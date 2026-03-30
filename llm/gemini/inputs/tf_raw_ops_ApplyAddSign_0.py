@@ -4,59 +4,149 @@ from generator.input_generators import get_abstract_input
 
 generated_inputs = dict()
 
+import tensorflow as tf
 import numpy as np
 import copy
 
+tf.config.experimental.enable_op_determinism()
+tf.random.set_seed(42)
+
 def tf_raw_ops_apply_add_sign_inputs():
-    """
-    Generates a list of valid inputs for the tf.raw_ops.ApplyAddSign function.
-
-    The repeated error "RuntimeError: apply_add_sign op does not support eager
-    execution. Arg 'out' is a ref" points to a fundamental incompatibility
-    between the nature of this TensorFlow operation and the constraints of the
-    testing environment.
-
-    1.  **Operation Requirement:** `tf.raw_ops.ApplyAddSign` is a stateful
-        operation that modifies its `var` and `m` inputs in-place. In
-        TensorFlow's eager execution context, this requires `var` and `m` to be
-        `tf.Variable` objects, which are mutable.
-
-    2.  **Testing Framework Constraint:** The framework requires all inputs to be
-        provided in NumPy format. It then likely converts these NumPy arrays into
-        standard, immutable `tf.Tensor` objects before calling the operation.
-
-    The error occurs because the operation is being called with immutable
-    `tf.Tensor`s instead of the required mutable `tf.Variable`s. This is not a
-    problem with the input *values* (e.g., shape, dtype, or numbers) but with
-    the *type* of the object at the time of execution. The input generation
-    script cannot resolve this, as the type conversion is handled by the
-    external testing framework.
-
-    This submission provides a single, minimal, and valid input according to the
-    specified NumPy format. If this fails, it confirms the issue lies in the
-    testing framework's inability to handle this category of stateful,
-    variable-updating ops.
-    """
     list_of_inputs = []
 
-    # A single, minimal test case. If this fails, the issue is structural
-    # to the testing framework's handling of stateful ops.
-    dtype = np.float32
-    input_dict = {
-        'var': np.array(10.0, dtype=dtype),
-        'm': np.array(1.0, dtype=dtype),
-        'lr': np.array(0.1, dtype=dtype),
-        'alpha': np.array(1.0, dtype=dtype),
-        'sign_decay': np.array(0.9, dtype=dtype),
-        'beta': np.array(0.9, dtype=dtype),
-        'grad': np.array(-2.0, dtype=dtype),
-        'use_locking': False,
-        'name': 'minimal_case'
-    }
+    # Input 1
+    var = tf.Variable(np.array([1.0, 2.0, 3.0], dtype=np.float32))
+    m = tf.Variable(np.array([0.0, 0.0, 0.0], dtype=np.float32))
+    lr = np.array(0.1, dtype=np.float32)
+    alpha = np.array(0.2, dtype=np.float32)
+    sign_decay = np.array(0.3, dtype=np.float32)
+    beta = np.array(0.9, dtype=np.float32)
+    grad = np.array([0.5, 1.0, 1.5], dtype=np.float32)
+    use_locking = False
+    name = "apply_add_sign_1"
+    input_dict = {"var": var, "m": m, "lr": lr, "alpha": alpha, "sign_decay": sign_decay, "beta": beta, "grad": grad, "use_locking": use_locking, "name": name}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 2
+    var = tf.Variable(np.array([[1.0, 2.0], [3.0, 4.0]], dtype=np.float64))
+    m = tf.Variable(np.array([[0.0, 0.0], [0.0, 0.0]], dtype=np.float64))
+    lr = np.array(0.01, dtype=np.float64)
+    alpha = np.array(0.1, dtype=np.float64)
+    sign_decay = np.array(0.2, dtype=np.float64)
+    beta = np.array(0.8, dtype=np.float64)
+    grad = np.array([[0.2, 0.4], [0.6, 0.8]], dtype=np.float64)
+    use_locking = True
+    name = "apply_add_sign_2"
+    input_dict = {"var": var, "m": m, "lr": lr, "alpha": alpha, "sign_decay": sign_decay, "beta": beta, "grad": grad, "use_locking": use_locking, "name": name}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 3
+    var = tf.Variable(np.array([1, 2, 3], dtype=np.int32))
+    m = tf.Variable(np.array([0, 0, 0], dtype=np.int32))
+    lr = np.array(1, dtype=np.int32)
+    alpha = np.array(2, dtype=np.int32)
+    sign_decay = np.array(3, dtype=np.int32)
+    beta = np.array(0, dtype=np.int32)
+    grad = np.array([5, 10, 15], dtype=np.int32)
+    use_locking = False
+    name = "apply_add_sign_3"
+    input_dict = {"var": var, "m": m, "lr": lr, "alpha": alpha, "sign_decay": sign_decay, "beta": beta, "grad": grad, "use_locking": use_locking, "name": name}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 4
+    var = tf.Variable(np.array([1.0], dtype=np.float32))
+    m = tf.Variable(np.array([0.0], dtype=np.float32))
+    lr = np.array(-0.1, dtype=np.float32)
+    alpha = np.array(-0.2, dtype=np.float32)
+    sign_decay = np.array(-0.3, dtype=np.float32)
+    beta = np.array(0.9, dtype=np.float32)
+    grad = np.array([-0.5], dtype=np.float32)
+    use_locking = True
+    name = "apply_add_sign_4"
+    input_dict = {"var": var, "m": m, "lr": lr, "alpha": alpha, "sign_decay": sign_decay, "beta": beta, "grad": grad, "use_locking": use_locking, "name": name}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 5
+    var = tf.Variable(np.array([[1, 2], [3, 4]], dtype=np.int64))
+    m = tf.Variable(np.array([[0, 0], [0, 0]], dtype=np.int64))
+    lr = np.array(1, dtype=np.int64)
+    alpha = np.array(2, dtype=np.int64)
+    sign_decay = np.array(3, dtype=np.int64)
+    beta = np.array(0, dtype=np.int64)
+    grad = np.array([[5, 10], [15, 20]], dtype=np.int64)
+    use_locking = False
+    name = "apply_add_sign_5"
+    input_dict = {"var": var, "m": m, "lr": lr, "alpha": alpha, "sign_decay": sign_decay, "beta": beta, "grad": grad, "use_locking": use_locking, "name": name}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 6
+    var = tf.Variable(np.array([1.0, 2.0, 3.0], dtype=np.float32))
+    m = tf.Variable(np.array([0.0, 0.0, 0.0], dtype=np.float32))
+    lr = np.array(0.0, dtype=np.float32)
+    alpha = np.array(0.0, dtype=np.float32)
+    sign_decay = np.array(0.0, dtype=np.float32)
+    beta = np.array(0.0, dtype=np.float32)
+    grad = np.array([0.5, 1.0, 1.5], dtype=np.float32)
+    use_locking = False
+    name = "apply_add_sign_6"
+    input_dict = {"var": var, "m": m, "lr": lr, "alpha": alpha, "sign_decay": sign_decay, "beta": beta, "grad": grad, "use_locking": use_locking, "name": name}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 7
+    var = tf.Variable(np.array([[1.0, 2.0], [3.0, 4.0]], dtype=np.float64))
+    m = tf.Variable(np.array([[0.0, 0.0], [0.0, 0.0]], dtype=np.float64))
+    lr = np.array(-0.01, dtype=np.float64)
+    alpha = np.array(-0.1, dtype=np.float64)
+    sign_decay = np.array(-0.2, dtype=np.float64)
+    beta = np.array(0.8, dtype=np.float64)
+    grad = np.array([[-0.2, -0.4], [-0.6, -0.8]], dtype=np.float64)
+    use_locking = True
+    name = "apply_add_sign_7"
+    input_dict = {"var": var, "m": m, "lr": lr, "alpha": alpha, "sign_decay": sign_decay, "beta": beta, "grad": grad, "use_locking": use_locking, "name": name}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 8
+    var = tf.Variable(np.array([1, 2, 3], dtype=np.int32))
+    m = tf.Variable(np.array([0, 0, 0], dtype=np.int32))
+    lr = np.array(-1, dtype=np.int32)
+    alpha = np.array(-2, dtype=np.int32)
+    sign_decay = np.array(-3, dtype=np.int32)
+    beta = np.array(0, dtype=np.int32)
+    grad = np.array([-5, -10, -15], dtype=np.int32)
+    use_locking = False
+    name = "apply_add_sign_8"
+    input_dict = {"var": var, "m": m, "lr": lr, "alpha": alpha, "sign_decay": sign_decay, "beta": beta, "grad": grad, "use_locking": use_locking, "name": name}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 9
+    var = tf.Variable(np.array([1.0], dtype=np.float32))
+    m = tf.Variable(np.array([0.0], dtype=np.float32))
+    lr = np.array(1.0, dtype=np.float32)
+    alpha = np.array(1.0, dtype=np.float32)
+    sign_decay = np.array(1.0, dtype=np.float32)
+    beta = np.array(0.0, dtype=np.float32)
+    grad = np.array([1.0], dtype=np.float32)
+    use_locking = True
+    name = "apply_add_sign_9"
+    input_dict = {"var": var, "m": m, "lr": lr, "alpha": alpha, "sign_decay": sign_decay, "beta": beta, "grad": grad, "use_locking": use_locking, "name": name}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 10
+    var = tf.Variable(np.array([[1, 2], [3, 4]], dtype=np.int64))
+    m = tf.Variable(np.array([[0, 0], [0, 0]], dtype=np.int64))
+    lr = np.array(-1, dtype=np.int64)
+    alpha = np.array(-2, dtype=np.int64)
+    sign_decay = np.array(-3, dtype=np.int64)
+    beta = np.array(0, dtype=np.int64)
+    grad = np.array([[-5, -10], [-15, -20]], dtype=np.int64)
+    use_locking = False
+    name = "apply_add_sign_10"
+    input_dict = {"var": var, "m": m, "lr": lr, "alpha": alpha, "sign_decay": sign_decay, "beta": beta, "grad": grad, "use_locking": use_locking, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs
 
+generated_inputs = {}
 generated_inputs["tf.raw_ops.ApplyAddSign"] = tf_raw_ops_apply_add_sign_inputs()
 
 def check_valid(api, list_of_inputs, lib="tf", suffix=0):
@@ -71,5 +161,9 @@ def check_valid(api, list_of_inputs, lib="tf", suffix=0):
 
 if 'tf.raw_ops.ApplyAddSign' not in generated_inputs:
     raise Exception("Output of the input generating function was not assigned to the generated_inputs dictionary to the key 'tf.raw_ops.ApplyAddSign'.")
+
+
+tf.config.experimental.enable_op_determinism()
+tf.random.set_seed(42)
 
 check_valid('tf.raw_ops.ApplyAddSign', generated_inputs['tf.raw_ops.ApplyAddSign'], lib="tf", suffix=0)

@@ -8,96 +8,66 @@ import tensorflow as tf
 import numpy as np
 import copy
 
+tf.config.experimental.enable_op_determinism()
+tf.random.set_seed(42)
+
 def tf_data_experimental_group_by_window_inputs():
-    """
-    Generates a list of valid inputs for the tf.data.experimental.group_by_window function.
-    """
     list_of_inputs = []
 
-    # The API is a transformation function, which the test harness is expected to apply
-    # to an input dataset. We provide the elements for this dataset under the key 'x'.
-    # The value for 'x' is a tuple of numpy arrays, which tf.data.Dataset.from_tensor_slices
-    # can use to create the dataset.
+    # Input 1
+    def key_func_1(x):
+        return tf.cast(x % 2, tf.int64)
 
-    # Due to the strict signature and the mutual exclusivity of `window_size` and
-    # `window_size_func`, we can only reliably generate inputs for the `window_size`
-    # case. For this, `window_size_func` can be set to `[]`, an empty list, which
-    # satisfies its type requirement. Generating inputs for `window_size_func`
-    # would require providing a tensor for `window_size` that is treated as `None`
-    # by the API, which is not possible.
+    def reduce_func_1(key, dataset):
+        return dataset.batch(10)
 
-    # Input 1: Basic case with a single numpy array as the dataset element.
-    input_dict_1 = {
-        'x': (np.arange(20, dtype=np.int32),),
-        'key_func': [lambda x: tf.cast(x % 2, tf.int64)],
-        'reduce_func': [lambda key, ds: ds.batch(4)],
-        'window_size': np.int64(4),
-        'window_size_func': []
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict_1))
+    window_size_1 = tf.constant(5, dtype=tf.int64)
 
-    # Input 2: Different keying logic and data types.
-    input_dict_2 = {
-        'x': (np.arange(30, dtype=np.int64),),
-        'key_func': [lambda x: tf.cast(x // 10, tf.int64)],
-        'reduce_func': [lambda key, ds: ds.batch(5)],
-        'window_size': np.int64(5),
-        'window_size_func': []
+    input_dict = {
+        "key_func": [key_func_1],
+        "reduce_func": [reduce_func_1],
+        "window_size": window_size_1,
+        "window_size_func": []
     }
-    list_of_inputs.append(copy.deepcopy(input_dict_2))
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 3: Structured dataset elements (a tuple of two arrays).
-    input_dict_3 = {
-        'x': (np.arange(10, dtype=np.int64), np.arange(10, 20, dtype=np.int32)),
-        'key_func': [lambda id, value: id % 3],
-        'reduce_func': [lambda key, ds: ds.map(lambda id, val: val).batch(3)],
-        'window_size': np.int64(3),
-        'window_size_func': []
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict_3))
+    # Input 2
+    def key_func_2(x):
+        return tf.cast(x % 3, tf.int64)
 
-    # Input 4: Reduce function that utilizes the key.
-    input_dict_4 = {
-        'x': (np.arange(12, dtype=np.int32),),
-        'key_func': [lambda x: tf.cast(x % 3, tf.int64)],
-        'reduce_func': [lambda key, ds: ds.map(lambda x: x + tf.cast(key, x.dtype)).batch(2)],
-        'window_size': np.int64(2),
-        'window_size_func': []
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict_4))
+    def reduce_func_2(key, dataset):
+        return dataset.batch(1)
 
-    # Input 5: Minimal window size of 1.
-    input_dict_5 = {
-        'x': (np.arange(8, dtype=np.float32),),
-        'key_func': [lambda x: tf.cast(tf.floor(x / 2.0), tf.int64)],
-        'reduce_func': [lambda key, ds: ds.batch(1)],
-        'window_size': np.int64(1),
-        'window_size_func': []
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict_5))
+    window_size_2 = tf.constant(2, dtype=tf.int64)
 
-    # Input 6: Using a different reduce function logic (summing elements).
-    input_dict_6 = {
-        'x': (np.arange(15, dtype=np.int64),),
-        'key_func': [lambda x: x % 5],
-        'reduce_func': [lambda key, ds: ds.reduce(np.int64(0), lambda a, b: a + b)],
-        'window_size': np.int64(3),
-        'window_size_func': []
+    input_dict = {
+        "key_func": [key_func_2],
+        "reduce_func": [reduce_func_2],
+        "window_size": window_size_2,
+        "window_size_func": []
     }
-    list_of_inputs.append(copy.deepcopy(input_dict_6))
-    
-    # Input 7: Dataset with tensor elements
-    input_dict_7 = {
-        'x': (np.arange(24, dtype=np.int32).reshape(12, 2),),
-        'key_func': [lambda t: tf.cast(tf.reduce_sum(t) % 4, tf.int64)],
-        'reduce_func': [lambda key, ds: ds.batch(3)],
-        'window_size': np.int64(3),
-        'window_size_func': []
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 3
+    def key_func_3(x):
+        return tf.cast(x % 4, tf.int64)
+
+    def reduce_func_3(key, dataset):
+        return dataset.batch(tf.cast(key + 1, tf.int64))
+
+    window_size_3 = tf.constant(3, dtype=tf.int64)
+
+    input_dict = {
+        "key_func": [key_func_3],
+        "reduce_func": [reduce_func_3],
+        "window_size": window_size_3,
+        "window_size_func": []
     }
-    list_of_inputs.append(copy.deepcopy(input_dict_7))
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs
 
+generated_inputs = {}
 generated_inputs["tf.data.experimental.group_by_window"] = tf_data_experimental_group_by_window_inputs()
 
 def check_valid(api, list_of_inputs, lib="tf", suffix=0):
@@ -112,5 +82,9 @@ def check_valid(api, list_of_inputs, lib="tf", suffix=0):
 
 if 'tf.data.experimental.group_by_window' not in generated_inputs:
     raise Exception("Output of the input generating function was not assigned to the generated_inputs dictionary to the key 'tf.data.experimental.group_by_window'.")
+
+
+tf.config.experimental.enable_op_determinism()
+tf.random.set_seed(42)
 
 check_valid('tf.data.experimental.group_by_window', generated_inputs['tf.data.experimental.group_by_window'], lib="tf", suffix=0)

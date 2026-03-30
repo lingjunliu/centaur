@@ -8,200 +8,133 @@ import tensorflow as tf
 import numpy as np
 import copy
 
-# Helper class to make SparseTensor objects comparable to bypass a faulty test harness.
-# The test harness incorrectly tries to find min/max of SparseTensor objects.
-class ComparableSparseTensor(tf.SparseTensor):
-    def __lt__(self, other):
-        if not isinstance(other, tf.SparseTensor):
-            return NotImplemented
-        # A dummy comparison based on the number of non-zero elements.
-        return self.values.shape[0] < other.values.shape[0]
-
-    def __le__(self, other):
-        if not isinstance(other, tf.SparseTensor):
-            return NotImplemented
-        return self.values.shape[0] <= other.values.shape[0]
-
 def tf_sparse_concat_inputs():
-    """
-    Generates a list of valid inputs for the tf.sparse.concat function.
-    The sp_inputs are wrapped in np.array(dtype=object) and use a custom
-    comparable class to satisfy the requirements of a faulty test harness.
-    """
     list_of_inputs = []
 
-    # Input 1: Basic 2D concatenation along axis 1 (from docs)
-    sp_input1_1 = ComparableSparseTensor(
-        indices=np.array([[0, 2], [1, 0], [1, 1]], dtype=np.int64),
-        values=np.array(["a", "b", "c"]),
-        dense_shape=np.array([2, 3], dtype=np.int64))
-    sp_input1_2 = ComparableSparseTensor(
-        indices=np.array([[0, 1], [0, 2]], dtype=np.int64),
-        values=np.array(["d", "e"]),
-        dense_shape=np.array([2, 4], dtype=np.int64))
-    input_dict_1 = {
-        'axis': 1,
-        'sp_inputs': np.array([sp_input1_1, sp_input1_2], dtype=object),
-        'expand_nonconcat_dims': False,
-        'name': 'concat_2d_axis1_basic'
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict_1))
+    # Input 1: Basic concatenation along axis 0
+    indices1 = np.array([[0, 0], [1, 2]])
+    values1 = np.array([1, 2])
+    shape1 = np.array([2, 3])
+    st1 = tf.SparseTensor(indices1, values1, shape1)
+    indices2 = np.array([[0, 1], [1, 0]])
+    values2 = np.array([3, 4])
+    shape2 = np.array([2, 3])
+    st2 = tf.SparseTensor(indices2, values2, shape2)
+    sp_inputs = [st1, st2]
+    input_dict = {'axis': 0, 'sp_inputs': sp_inputs, 'expand_nonconcat_dims': False, 'name': 'concat_0'}
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 2: Basic 2D concatenation along axis 0
-    sp_input2_1 = ComparableSparseTensor(
-        indices=np.array([[0, 1], [1, 2]], dtype=np.int64),
-        values=np.array([10.0, 20.0], dtype=np.float32),
-        dense_shape=np.array([2, 4], dtype=np.int64))
-    sp_input2_2 = ComparableSparseTensor(
-        indices=np.array([[0, 0]], dtype=np.int64),
-        values=np.array([30.0], dtype=np.float32),
-        dense_shape=np.array([1, 4], dtype=np.int64))
-    input_dict_2 = {
-        'axis': 0,
-        'sp_inputs': np.array([sp_input2_1, sp_input2_2], dtype=object),
-        'expand_nonconcat_dims': False,
-        'name': 'concat_2d_axis0_basic'
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict_2))
+    # Input 2: Concatenation along axis 1
+    indices1 = np.array([[0, 0], [1, 1]])
+    values1 = np.array([5, 6])
+    shape1 = np.array([2, 2])
+    st1 = tf.SparseTensor(indices1, values1, shape1)
+    indices2 = np.array([[0, 0], [1, 1]])
+    values2 = np.array([7, 8])
+    shape2 = np.array([2, 2])
+    st2 = tf.SparseTensor(indices2, values2, shape2)
+    sp_inputs = [st1, st2]
+    input_dict = {'axis': 1, 'sp_inputs': sp_inputs, 'expand_nonconcat_dims': False, 'name': 'concat_1'}
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 3: expand_nonconcat_dims=True (from docs)
-    sp_input3_1 = ComparableSparseTensor(
-        indices=np.array([[0, 2], [1, 0], [2, 1]], dtype=np.int64),
-        values=np.array(["a", "b", "c"]),
-        dense_shape=np.array([3, 3], dtype=np.int64))
-    sp_input3_2 = ComparableSparseTensor(
-        indices=np.array([[0, 1], [0, 2]], dtype=np.int64),
-        values=np.array(["d", "e"]),
-        dense_shape=np.array([2, 4], dtype=np.int64))
-    input_dict_3 = {
-        'axis': 1,
-        'sp_inputs': np.array([sp_input3_1, sp_input3_2], dtype=object),
-        'expand_nonconcat_dims': True,
-        'name': 'concat_2d_expand'
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict_3))
+    # Input 3: expand_nonconcat_dims = True
+    indices1 = np.array([[0, 0], [1, 1]])
+    values1 = np.array([9, 10])
+    shape1 = np.array([2, 2])
+    st1 = tf.SparseTensor(indices1, values1, shape1)
+    indices2 = np.array([[0, 0]])
+    values2 = np.array([11])
+    shape2 = np.array([1, 3])
+    st2 = tf.SparseTensor(indices2, values2, shape2)
+    sp_inputs = [st1, st2]
+    input_dict = {'axis': 0, 'sp_inputs': sp_inputs, 'expand_nonconcat_dims': True, 'name': 'concat_expand'}
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 4: Concatenating three tensors
-    sp_input4_1 = ComparableSparseTensor(
-        indices=np.array([[0, 0]], dtype=np.int64),
-        values=np.array([1], dtype=np.int32),
-        dense_shape=np.array([2, 1], dtype=np.int64))
-    sp_input4_2 = ComparableSparseTensor(
-        indices=np.array([[1, 0]], dtype=np.int64),
-        values=np.array([2], dtype=np.int32),
-        dense_shape=np.array([2, 2], dtype=np.int64))
-    sp_input4_3 = ComparableSparseTensor(
-        indices=np.array([[0, 0], [1,1]], dtype=np.int64),
-        values=np.array([3, 4], dtype=np.int32),
-        dense_shape=np.array([2, 2], dtype=np.int64))
-    input_dict_4 = {
-        'axis': 1,
-        'sp_inputs': np.array([sp_input4_1, sp_input4_2, sp_input4_3], dtype=object),
-        'expand_nonconcat_dims': False,
-        'name': 'concat_three_tensors'
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict_4))
+    # Input 4: Negative axis
+    indices1 = np.array([[0, 0], [1, 1]])
+    values1 = np.array([12, 13])
+    shape1 = np.array([2, 2])
+    st1 = tf.SparseTensor(indices1, values1, shape1)
+    indices2 = np.array([[0, 0], [1, 1]])
+    values2 = np.array([14, 15])
+    shape2 = np.array([2, 2])
+    st2 = tf.SparseTensor(indices2, values2, shape2)
+    sp_inputs = [st1, st2]
+    input_dict = {'axis': -1, 'sp_inputs': sp_inputs, 'expand_nonconcat_dims': False, 'name': 'concat_neg'}
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 5: Concatenating 3D tensors
-    sp_input5_1 = ComparableSparseTensor(
-        indices=np.array([[0, 0, 0], [1, 1, 1]], dtype=np.int64),
-        values=np.array([1, 2]),
-        dense_shape=np.array([2, 2, 2], dtype=np.int64))
-    sp_input5_2 = ComparableSparseTensor(
-        indices=np.array([[0, 1, 0]], dtype=np.int64),
-        values=np.array([3]),
-        dense_shape=np.array([2, 2, 1], dtype=np.int64))
-    input_dict_5 = {
-        'axis': 2,
-        'sp_inputs': np.array([sp_input5_1, sp_input5_2], dtype=object),
-        'expand_nonconcat_dims': False,
-        'name': 'concat_3d'
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict_5))
+    # Input 5: 3D SparseTensors
+    indices1 = np.array([[0, 0, 0], [1, 1, 1]])
+    values1 = np.array([16, 17])
+    shape1 = np.array([2, 2, 2])
+    st1 = tf.SparseTensor(indices1, values1, shape1)
+    indices2 = np.array([[0, 0, 0], [1, 1, 1]])
+    values2 = np.array([18, 19])
+    shape2 = np.array([2, 2, 2])
+    st2 = tf.SparseTensor(indices2, values2, shape2)
+    sp_inputs = [st1, st2]
+    input_dict = {'axis': 1, 'sp_inputs': sp_inputs, 'expand_nonconcat_dims': False, 'name': 'concat_3d'}
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 6: Using a negative axis
-    sp_input6_1 = ComparableSparseTensor(
-        indices=np.array([[0, 2]], dtype=np.int64),
-        values=np.array([1.1], dtype=np.float64),
-        dense_shape=np.array([2, 3], dtype=np.int64))
-    sp_input6_2 = ComparableSparseTensor(
-        indices=np.array([[1, 1]], dtype=np.int64),
-        values=np.array([2.2], dtype=np.float64),
-        dense_shape=np.array([2, 2], dtype=np.int64))
-    input_dict_6 = {
-        'axis': -1,
-        'sp_inputs': np.array([sp_input6_1, sp_input6_2], dtype=object),
-        'expand_nonconcat_dims': False,
-        'name': 'concat_negative_axis'
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict_6))
+    # Input 7: Multiple SparseTensors
+    indices1 = np.array([[0, 0]])
+    values1 = np.array([21])
+    shape1 = np.array([1, 1])
+    st1 = tf.SparseTensor(indices1, values1, shape1)
+    indices2 = np.array([[0, 0]])
+    values2 = np.array([22])
+    shape2 = np.array([1, 1])
+    st2 = tf.SparseTensor(indices2, values2, shape2)
+    indices3 = np.array([[0, 0]])
+    values3 = np.array([23])
+    shape3 = np.array([1, 1])
+    st3 = tf.SparseTensor(indices3, values3, shape3)
+    sp_inputs = [st1, st2, st3]
+    input_dict = {'axis': 1, 'sp_inputs': sp_inputs, 'expand_nonconcat_dims': False, 'name': 'concat_multi'}
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 7: Concatenating with an empty SparseTensor
-    sp_input7_1 = ComparableSparseTensor(
-        indices=np.array([[0, 1]], dtype=np.int64),
-        values=np.array(['x']),
-        dense_shape=np.array([1, 3], dtype=np.int64))
-    sp_input7_2 = ComparableSparseTensor(
-        indices=np.empty((0, 2), dtype=np.int64),
-        values=np.array([], dtype=str),
-        dense_shape=np.array([2, 3], dtype=np.int64))
-    input_dict_7 = {
-        'axis': 0,
-        'sp_inputs': np.array([sp_input7_1, sp_input7_2], dtype=object),
-        'expand_nonconcat_dims': False,
-        'name': 'concat_with_empty'
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict_7))
+    # Input 8: Integer values
+    indices1 = np.array([[0, 0], [1, 1]])
+    values1 = np.array([24, 25], dtype=np.int32)
+    shape1 = np.array([2, 2])
+    st1 = tf.SparseTensor(indices1, values1, shape1)
+    indices2 = np.array([[0, 0], [1, 1]])
+    values2 = np.array([26, 27], dtype=np.int32)
+    shape2 = np.array([2, 2])
+    st2 = tf.SparseTensor(indices2, values2, shape2)
+    sp_inputs = [st1, st2]
+    input_dict = {'axis': 1, 'sp_inputs': sp_inputs, 'expand_nonconcat_dims': False, 'name': 'concat_int'}
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 8: expand_nonconcat_dims=True along axis 0
-    sp_input8_1 = ComparableSparseTensor(
-        indices=np.array([[0, 2], [1, 1]], dtype=np.int64),
-        values=np.array([1, 2]),
-        dense_shape=np.array([2, 3], dtype=np.int64))
-    sp_input8_2 = ComparableSparseTensor(
-        indices=np.array([[0, 0]], dtype=np.int64),
-        values=np.array([3]),
-        dense_shape=np.array([1, 5], dtype=np.int64))
-    input_dict_8 = {
-        'axis': 0,
-        'sp_inputs': np.array([sp_input8_1, sp_input8_2], dtype=object),
-        'expand_nonconcat_dims': True,
-        'name': 'concat_axis0_expand'
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict_8))
-    
-    # Input 9: A single tensor in the input list
-    sp_input9_1 = ComparableSparseTensor(
-        indices=np.array([[0, 0], [1, 1]], dtype=np.int64),
-        values=np.array(['single', 'tensor']),
-        dense_shape=np.array([2, 2], dtype=np.int64))
-    input_dict_9 = {
-        'axis': 0,
-        'sp_inputs': np.array([sp_input9_1], dtype=object),
-        'expand_nonconcat_dims': False,
-        'name': 'concat_single_tensor'
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict_9))
+    # Input 9: expand_nonconcat_dims with axis = 0
+    indices1 = np.array([[0, 0]])
+    values1 = np.array([28])
+    shape1 = np.array([1, 2])
+    st1 = tf.SparseTensor(indices1, values1, shape1)
+    indices2 = np.array([[0, 0]])
+    values2 = np.array([29])
+    shape2 = np.array([1, 3])
+    st2 = tf.SparseTensor(indices2, values2, shape2)
+    sp_inputs = [st1, st2]
+    input_dict = {'axis': 0, 'sp_inputs': sp_inputs, 'expand_nonconcat_dims': True, 'name': 'concat_expand_0'}
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 10: Concatenating two empty SparseTensors
-    sp_input10_1 = ComparableSparseTensor(
-        indices=np.empty((0, 2), dtype=np.int64),
-        values=np.array([], dtype=np.int32),
-        dense_shape=np.array([2, 3], dtype=np.int64))
-    sp_input10_2 = ComparableSparseTensor(
-        indices=np.empty((0, 2), dtype=np.int64),
-        values=np.array([], dtype=np.int32),
-        dense_shape=np.array([2, 4], dtype=np.int64))
-    input_dict_10 = {
-        'axis': 1,
-        'sp_inputs': np.array([sp_input10_1, sp_input10_2], dtype=object),
-        'expand_nonconcat_dims': False,
-        'name': 'concat_all_empty'
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict_10))
+    # Input 10: different dtypes of values
+    indices1 = np.array([[0, 0], [1, 1]])
+    values1 = np.array([30.0, 31.0], dtype=np.float32)
+    shape1 = np.array([2, 2])
+    st1 = tf.SparseTensor(indices1, values1, shape1)
+    indices2 = np.array([[0, 0], [1, 1]])
+    values2 = np.array([32.0, 33.0], dtype=np.float32)
+    shape2 = np.array([2, 2])
+    st2 = tf.SparseTensor(indices2, values2, shape2)
+    sp_inputs = [st1, st2]
+    input_dict = {'axis': 1, 'sp_inputs': sp_inputs, 'expand_nonconcat_dims': False, 'name': 'concat_dtype'}
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs
 
+generated_inputs = {}
 generated_inputs["tf.sparse.concat"] = tf_sparse_concat_inputs()
 
 def check_valid(api, list_of_inputs, lib="tf", suffix=0):
@@ -216,5 +149,9 @@ def check_valid(api, list_of_inputs, lib="tf", suffix=0):
 
 if 'tf.sparse.concat' not in generated_inputs:
     raise Exception("Output of the input generating function was not assigned to the generated_inputs dictionary to the key 'tf.sparse.concat'.")
+
+
+tf.config.experimental.enable_op_determinism()
+tf.random.set_seed(42)
 
 check_valid('tf.sparse.concat', generated_inputs['tf.sparse.concat'], lib="tf", suffix=0)

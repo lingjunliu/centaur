@@ -5,57 +5,65 @@ from generator.input_generators import get_abstract_input
 generated_inputs = dict()
 
 import tensorflow as tf
-import numpy as np
 import copy
-
+import numpy as np
 
 def tf_feature_column_make_parse_example_spec_inputs():
-    """
-    Generates a list of valid inputs for tf.feature_column.make_parse_example_spec.
-    This version creates inputs where the 'feature_columns' list contains at most
-    one element, to avoid triggering validation errors in external scripts that
-    cannot handle lists of heterogeneous complex objects.
-    """
     list_of_inputs = []
 
-    # Input 1: An empty list of feature columns. This is a valid edge case.
-    list_of_inputs.append({'feature_columns': []})
+    # Input 1: Empty list
+    feature_columns = []
+    input_dict = {'feature_columns': feature_columns}
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # --- Inputs with a single FeatureColumn in the list ---
+    # Input 2: Single numeric column
+    feature_columns = [tf.feature_column.numeric_column("feature_a")]
+    input_dict = {'feature_columns': feature_columns}
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 2: A list with a single, basic numeric column.
-    list_of_inputs.append({'feature_columns': [tf.feature_column.numeric_column('price')]})
+    # Input 3: Multiple numeric columns
+    feature_columns = [tf.feature_column.numeric_column("feature_a"), tf.feature_column.numeric_column("feature_b")]
+    input_dict = {'feature_columns': feature_columns}
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 3: A list with a single numeric column with a scalar default value.
-    list_of_inputs.append({'feature_columns': [tf.feature_column.numeric_column('score', default_value=-1.0)]})
+    # Input 4: Single categorical column with vocabulary list
+    feature_columns = [tf.feature_column.categorical_column_with_vocabulary_list(key="feature_c", vocabulary_list=["a", "b", "c"])]
+    input_dict = {'feature_columns': feature_columns}
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 4: A list with a single numeric column with a non-default dtype.
-    list_of_inputs.append({'feature_columns': [tf.feature_column.numeric_column('items_in_cart', dtype=tf.int64)]})
+    # Input 5: Bucketized column
+    feature_columns = [tf.feature_column.bucketized_column(tf.feature_column.numeric_column("feature_e"), boundaries=[0, 10, 20])]
+    input_dict = {'feature_columns': feature_columns}
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 5: A list with a single categorical column using a hash bucket.
-    list_of_inputs.append({'feature_columns': [tf.feature_column.categorical_column_with_hash_bucket('product_id', hash_bucket_size=1000)]})
+    # Input 6: Indicator column
+    feature_columns = [tf.feature_column.indicator_column(tf.feature_column.categorical_column_with_vocabulary_list(key="feature_f", vocabulary_list=["p", "q"]))]
+    input_dict = {'feature_columns': feature_columns}
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 6: A list with a single categorical column using identity.
-    list_of_inputs.append({'feature_columns': [tf.feature_column.categorical_column_with_identity('class_id', num_buckets=5)]})
+    # Input 7: Numeric column with shape
+    feature_columns = [tf.feature_column.numeric_column(key='feature_h', shape=(2,))]
+    input_dict = {'feature_columns': feature_columns}
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 7: A list with a single indicator column.
-    cat_col_7 = tf.feature_column.categorical_column_with_hash_bucket('department', hash_bucket_size=20)
-    list_of_inputs.append({'feature_columns': [tf.feature_column.indicator_column(cat_col_7)]})
+    # Input 8: Numeric column with default value
+    feature_columns = [tf.feature_column.numeric_column(key='feature_i', default_value=0.5)]
+    input_dict = {'feature_columns': feature_columns}
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 8: A list with a single embedding column.
-    cat_col_8 = tf.feature_column.categorical_column_with_hash_bucket('user_id', hash_bucket_size=5000)
-    list_of_inputs.append({'feature_columns': [tf.feature_column.embedding_column(cat_col_8, dimension=8)]})
+    # Input 9: Numeric column with dtype
+    feature_columns = [tf.feature_column.numeric_column(key='feature_j', dtype=tf.int64)]
+    input_dict = {'feature_columns': feature_columns}
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 9: A list with a single indicator column wrapping a categorical_column_with_identity.
-    cat_col_9 = tf.feature_column.categorical_column_with_identity('day_of_week', num_buckets=7)
-    list_of_inputs.append({'feature_columns': [tf.feature_column.indicator_column(cat_col_9)]})
+    # Input 10: Identity categorical column
+    feature_columns = [tf.feature_column.categorical_column_with_identity(key='feature_k', num_buckets=10)]
+    input_dict = {'feature_columns': feature_columns}
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 10: A list with a single embedding column with a different dimension.
-    cat_col_10 = tf.feature_column.categorical_column_with_identity('country_code', num_buckets=250)
-    list_of_inputs.append({'feature_columns': [tf.feature_column.embedding_column(cat_col_10, dimension=16)]})
+    return list_of_inputs
 
-    return [copy.deepcopy(d) for d in list_of_inputs]
-
+generated_inputs = {}
 generated_inputs["tf.feature_column.make_parse_example_spec"] = tf_feature_column_make_parse_example_spec_inputs()
 
 def check_valid(api, list_of_inputs, lib="tf", suffix=0):
@@ -70,5 +78,9 @@ def check_valid(api, list_of_inputs, lib="tf", suffix=0):
 
 if 'tf.feature_column.make_parse_example_spec' not in generated_inputs:
     raise Exception("Output of the input generating function was not assigned to the generated_inputs dictionary to the key 'tf.feature_column.make_parse_example_spec'.")
+
+
+tf.config.experimental.enable_op_determinism()
+tf.random.set_seed(42)
 
 check_valid('tf.feature_column.make_parse_example_spec', generated_inputs['tf.feature_column.make_parse_example_spec'], lib="tf", suffix=0)

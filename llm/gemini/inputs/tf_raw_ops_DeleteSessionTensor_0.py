@@ -4,61 +4,113 @@ from generator.input_generators import get_abstract_input
 
 generated_inputs = dict()
 
+import tensorflow as tf
 import numpy as np
 import copy
 
-def get_tf_raw_ops_DeleteSessionTensor_inputs():
-    """
-    Generates a list of syntactically valid inputs for tf.raw_ops.DeleteSessionTensor.
-    This operation is stateful and requires a valid tensor handle from an active
-    session. Calling it with static strings in a stateless context will
-    inherently lead to a FailedPreconditionError at runtime because the handle
-    does not exist. The provided inputs are valid according to the function's signature.
-    """
+def tf_raw_ops_delete_session_tensor_inputs():
     list_of_inputs = []
 
-    # Input 1
-    input_dict_1 = {
-        'handle': 'a',
-        'name': 'delete_a'
+    # Input 1: Basic valid input
+    handle_val = b"tensor_handle_1"
+    input_dict = {
+        "handle": np.array(handle_val, dtype=np.string_),
+        "name": ""
     }
-    list_of_inputs.append(copy.deepcopy(input_dict_1))
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 2
-    input_dict_2 = {
-        'handle': 'b'
+    # Input 2: Different tensor handle
+    handle_val = b"another_tensor_handle"
+    input_dict = {
+        "handle": np.array(handle_val, dtype=np.string_),
+        "name": ""
     }
-    list_of_inputs.append(copy.deepcopy(input_dict_2))
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 3
-    input_dict_3 = {
-        'handle': 'c_1',
-        'name': 'delete_c_1'
+    # Input 3: Empty name
+    handle_val = b"empty_name_handle"
+    input_dict = {
+        "handle": np.array(handle_val, dtype=np.string_),
+        "name": ""
     }
-    list_of_inputs.append(copy.deepcopy(input_dict_3))
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 4
-    input_dict_4 = {
-        'handle': 'd_2'
+    # Input 4: Handle with numbers
+    handle_val = b"tensor_handle_123"
+    input_dict = {
+        "handle": np.array(handle_val, dtype=np.string_),
+        "name": ""
     }
-    list_of_inputs.append(copy.deepcopy(input_dict_4))
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 5: Long handle
+    handle_val = b"this_is_a_very_long_tensor_handle_string"
+    input_dict = {
+        "handle": np.array(handle_val, dtype=np.string_),
+        "name": ""
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 6: Handle with special characters
+    handle_val = b"tensor_handle!@#$"
+    input_dict = {
+        "handle": np.array(handle_val, dtype=np.string_),
+        "name": ""
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 7: Different name
+    handle_val = b"handle_7"
+    input_dict = {
+        "handle": np.array(handle_val, dtype=np.string_),
+        "name": ""
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 8: Another long name
+    handle_val = b"handle_8"
+    input_dict = {
+        "handle": np.array(handle_val, dtype=np.string_),
+        "name": ""
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 9: Name with numbers
+    handle_val = b"handle_9"
+    input_dict = {
+        "handle": np.array(handle_val, dtype=np.string_),
+        "name": ""
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 10: Name with special characters
+    handle_val = b"handle_10"
+    input_dict = {
+        "handle": np.array(handle_val, dtype=np.string_),
+        "name": ""
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 11: Name same as handle
+    handle_val = b"same_name_handle"
+    input_dict = {
+        "handle": np.array(handle_val, dtype=np.string_),
+        "name": ""
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 12: Short handle
+    handle_val = b"h1"
+    input_dict = {
+        "handle": np.array(handle_val, dtype=np.string_),
+        "name": ""
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
     
-    # Input 5
-    input_dict_5 = {
-        'handle': 'MyHandle',
-        'name': 'DeleteMyHandle'
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict_5))
-
-    # Input 6
-    input_dict_6 = {
-        'handle': 'AnotherHandle'
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict_6))
-
     return list_of_inputs
 
-generated_inputs["tf.raw_ops.DeleteSessionTensor"] = get_tf_raw_ops_DeleteSessionTensor_inputs()
+generated_inputs = {}
+generated_inputs["tf.raw_ops.DeleteSessionTensor"] = tf_raw_ops_delete_session_tensor_inputs()
 
 def check_valid(api, list_of_inputs, lib="tf", suffix=0):
     for idx, input_dict in enumerate(list_of_inputs):
@@ -72,5 +124,9 @@ def check_valid(api, list_of_inputs, lib="tf", suffix=0):
 
 if 'tf.raw_ops.DeleteSessionTensor' not in generated_inputs:
     raise Exception("Output of the input generating function was not assigned to the generated_inputs dictionary to the key 'tf.raw_ops.DeleteSessionTensor'.")
+
+
+tf.config.experimental.enable_op_determinism()
+tf.random.set_seed(42)
 
 check_valid('tf.raw_ops.DeleteSessionTensor', generated_inputs['tf.raw_ops.DeleteSessionTensor'], lib="tf", suffix=0)

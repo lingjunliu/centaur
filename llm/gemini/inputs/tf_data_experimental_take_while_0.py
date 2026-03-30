@@ -9,87 +9,71 @@ import numpy as np
 import copy
 
 def tf_data_experimental_take_while_inputs():
-    """
-    Generates a list of valid inputs for tf.data.experimental.take_while.
-    This approach provides the necessary "inner values" for the dataset under the
-    key 'x', which the test harness is expected to use to create the base dataset.
-    The 'predicate' list is expected to be used by a synthesized predicate function
-    (e.g., lambda elem: elem < predicate[0]).
-    """
     list_of_inputs = []
 
-    # Input 1: Basic case. Take elements < 5 from an int32 array.
-    input_dict_1 = {
-        'x': np.arange(10, dtype=np.int32),
-        'predicate': [5]
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict_1))
+    # Input 1: Simple predicate returning True
+    def predicate1(x):
+        return tf.constant(True)
+    input_dict1 = {"predicate": [predicate1]}
+    list_of_inputs.append(copy.deepcopy(input_dict1))
 
-    # Input 2: Take all elements. Predicate value is larger than any element.
-    input_dict_2 = {
-        'x': np.arange(10, dtype=np.int64),
-        'predicate': [100]
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict_2))
+    # Input 2: Simple predicate with a tensor
+    def predicate2(x):
+        return x < tf.constant(5, dtype=tf.int32)
+    input_dict2 = {"predicate": [predicate2]}
+    list_of_inputs.append(copy.deepcopy(input_dict2))
 
-    # Input 3: Take no elements. Predicate value is smaller than the first element.
-    input_dict_3 = {
-        'x': np.arange(5, 15, dtype=np.int32),
-        'predicate': [0]
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict_3))
+    # Input 3: More complex predicate with a tensor
+    def predicate3(x):
+        return tf.logical_and(x > tf.constant(2, dtype=tf.int32), x < tf.constant(8, dtype=tf.int32))
+    input_dict3 = {"predicate": [predicate3]}
+    list_of_inputs.append(copy.deepcopy(input_dict3))
 
-    # Input 4: Floating point data.
-    input_dict_4 = {
-        'x': np.arange(0.0, 5.0, 0.5, dtype=np.float32),
-        'predicate': [3.0]
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict_4))
-    
-    # Input 5: float64 data.
-    input_dict_5 = {
-        'x': np.arange(10, dtype=np.float64),
-        'predicate': [5.5]
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict_5))
+    # Input 4: Predicate using tf.reduce_sum with a tensor
+    def predicate4(x):
+        return tf.reduce_sum(x) < tf.constant(10, dtype=tf.int32)
+    input_dict4 = {"predicate": [predicate4]}
+    list_of_inputs.append(copy.deepcopy(input_dict4))
 
-    # Input 6: Dataset with negative numbers.
-    input_dict_6 = {
-        'x': np.arange(-10, 10, dtype=np.int32),
-        'predicate': [0]
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict_6))
+    # Input 5: Predicate with a multi-dimensional tensor
+    def predicate5(x):
+        return tf.reduce_sum(x) < tf.constant(20, dtype=tf.int32)
+    input_dict5 = {"predicate": [predicate5]}
+    list_of_inputs.append(copy.deepcopy(input_dict5))
 
-    # Input 7: Empty dataset. Should produce an empty dataset.
-    input_dict_7 = {
-        'x': np.array([], dtype=np.int32),
-        'predicate': [10]
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict_7))
+    # Input 6: Predicate with logical_or
+    def predicate6(x):
+        return tf.logical_or(tf.reduce_sum(x) > tf.constant(15, dtype=tf.int32), x[0] < tf.constant(3, dtype=tf.int32))
+    input_dict6 = {"predicate": [predicate6]}
+    list_of_inputs.append(copy.deepcopy(input_dict6))
 
-    # Input 8: Single element dataset, condition met.
-    input_dict_8 = {
-        'x': np.array([3], dtype=np.int32),
-        'predicate': [5]
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict_8))
+    # Input 7: Predicate using abs
+    def predicate7(x):
+        return tf.math.abs(tf.reduce_sum(x)) < tf.constant(10, dtype=tf.int32)
+    input_dict7 = {"predicate": [predicate7]}
+    list_of_inputs.append(copy.deepcopy(input_dict7))
 
-    # Input 9: Single element dataset, condition not met.
-    input_dict_9 = {
-        'x': np.array([8], dtype=np.int32),
-        'predicate': [5]
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict_9))
+    # Input 8: Predicate with negative values
+    def predicate8(x):
+        return tf.reduce_sum(x) > tf.constant(-5, dtype=tf.int32)
+    input_dict8 = {"predicate": [predicate8]}
+    list_of_inputs.append(copy.deepcopy(input_dict8))
 
-    # Input 10: Predicate value is a float, data is int.
-    input_dict_10 = {
-        'x': np.arange(10, dtype=np.int32),
-        'predicate': [4.5]
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict_10))
+    # Input 9: Predicate using size
+    def predicate9(x):
+        return tf.size(x) < tf.constant(10, dtype=tf.int32)
+    input_dict9 = {"predicate": [predicate9]}
+    list_of_inputs.append(copy.deepcopy(input_dict9))
+
+    # Input 10: Predicate using reduce_mean
+    def predicate10(x):
+        return tf.reduce_mean(tf.cast(x, tf.float32)) < tf.constant(5, dtype=tf.float32)
+    input_dict10 = {"predicate": [predicate10]}
+    list_of_inputs.append(copy.deepcopy(input_dict10))
 
     return list_of_inputs
 
+generated_inputs = {}
 generated_inputs["tf.data.experimental.take_while"] = tf_data_experimental_take_while_inputs()
 
 def check_valid(api, list_of_inputs, lib="tf", suffix=0):
@@ -104,5 +88,9 @@ def check_valid(api, list_of_inputs, lib="tf", suffix=0):
 
 if 'tf.data.experimental.take_while' not in generated_inputs:
     raise Exception("Output of the input generating function was not assigned to the generated_inputs dictionary to the key 'tf.data.experimental.take_while'.")
+
+
+tf.config.experimental.enable_op_determinism()
+tf.random.set_seed(42)
 
 check_valid('tf.data.experimental.take_while', generated_inputs['tf.data.experimental.take_while'], lib="tf", suffix=0)

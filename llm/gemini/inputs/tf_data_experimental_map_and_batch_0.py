@@ -4,120 +4,218 @@ from generator.input_generators import get_abstract_input
 
 generated_inputs = dict()
 
-import numpy as np
 import tensorflow as tf
+import numpy as np
 import copy
 
-# Define map functions at the top level to be pickle-able.
-def _simple_map_func_single_arg(x):
-    return x * 2
-
-def _structured_map_func_single_arg(x):
-    return (x, x + 1)
-
-def _map_func_two_args(x, y):
-    return x + y
+tf.config.experimental.enable_op_determinism()
+tf.random.set_seed(42)
 
 def tf_data_experimental_map_and_batch_inputs():
-    """
-    Generates a list of valid inputs for the tf.data.experimental.map_and_batch function.
-    The test harness requires the dataset source data to be provided under the key 'dataset'
-    as a tuple of numpy arrays. 'map_func' must be a list containing the
-    callable to satisfy the harness's pre-processing step.
-    """
     list_of_inputs = []
 
-    # Input 1: Basic case. Using 'dataset' as the key for the data source.
-    input_dict_1 = {
-        'dataset': (np.arange(20, dtype=np.int64),),
-        'map_func': [_simple_map_func_single_arg],
-        'batch_size': np.array(8, dtype=np.int64),
-        'num_parallel_batches': None,
-        'drop_remainder': np.array(False, dtype=np.bool_),
-        'num_parallel_calls': None,
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict_1))
+    # Input 1
+    map_func = [lambda x: x * 2]
+    batch_size = tf.constant(4, dtype=tf.int64)
+    num_parallel_batches = tf.constant(2, dtype=tf.int64)
+    drop_remainder = tf.constant(False, dtype=tf.bool)
+    num_parallel_calls = None
 
-    # Input 2: drop_remainder is True.
-    input_dict_2 = {
-        'dataset': (np.arange(21, dtype=np.int32),),
-        'map_func': [_simple_map_func_single_arg],
-        'batch_size': np.array(4, dtype=np.int64),
-        'num_parallel_batches': None,
-        'drop_remainder': np.array(True, dtype=np.bool_),
-        'num_parallel_calls': None,
+    input_dict = {
+        "map_func": map_func,
+        "batch_size": batch_size,
+        "num_parallel_batches": num_parallel_batches,
+        "drop_remainder": drop_remainder,
+        "num_parallel_calls": num_parallel_calls
     }
-    list_of_inputs.append(copy.deepcopy(input_dict_2))
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 3: Using num_parallel_batches.
-    input_dict_3 = {
-        'dataset': (np.arange(100, dtype=np.float32),),
-        'map_func': [_simple_map_func_single_arg],
-        'batch_size': np.array(16, dtype=np.int64),
-        'num_parallel_batches': np.array(2, dtype=np.int64),
-        'drop_remainder': np.array(False, dtype=np.bool_),
-        'num_parallel_calls': None,
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict_3))
+    # Input 2
+    map_func = [lambda x: x + 1]
+    batch_size = tf.constant(8, dtype=tf.int64)
+    num_parallel_batches = None
+    drop_remainder = tf.constant(True, dtype=tf.bool)
+    num_parallel_calls = tf.constant(4, dtype=tf.int32)
 
-    # Input 4: Using num_parallel_calls.
-    input_dict_4 = {
-        'dataset': (np.arange(55, dtype=np.int64),),
-        'map_func': [_simple_map_func_single_arg],
-        'batch_size': np.array(10, dtype=np.int64),
-        'num_parallel_batches': None,
-        'drop_remainder': np.array(False, dtype=np.bool_),
-        'num_parallel_calls': np.array(4, dtype=np.int32),
+    input_dict = {
+        "map_func": map_func,
+        "batch_size": batch_size,
+        "num_parallel_batches": num_parallel_batches,
+        "drop_remainder": drop_remainder,
+        "num_parallel_calls": num_parallel_calls
     }
-    list_of_inputs.append(copy.deepcopy(input_dict_4))
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 5: Using AUTOTUNE for num_parallel_calls.
-    input_dict_5 = {
-        'dataset': (np.random.rand(100).astype(np.float32),),
-        'map_func': [_simple_map_func_single_arg],
-        'batch_size': np.array(32, dtype=np.int64),
-        'num_parallel_batches': None,
-        'drop_remainder': np.array(False, dtype=np.bool_),
-        'num_parallel_calls': np.array(tf.data.AUTOTUNE, dtype=np.int32),
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict_5))
+    # Input 3
+    map_func = [lambda x: tf.strings.to_number(x, out_type=tf.int32)]
+    batch_size = tf.constant(2, dtype=tf.int64)
+    num_parallel_batches = tf.constant(4, dtype=tf.int64)
+    drop_remainder = tf.constant(False, dtype=tf.bool)
+    num_parallel_calls = None
 
-    # Input 6: Dataset with two tensors and a map function that accepts two args.
-    input_dict_6 = {
-        'dataset': (np.arange(50, dtype=np.int32), np.arange(50, 100, dtype=np.int32)),
-        'map_func': [_map_func_two_args],
-        'batch_size': np.array(10, dtype=np.int64),
-        'num_parallel_batches': None,
-        'drop_remainder': np.array(True, dtype=np.bool_),
-        'num_parallel_calls': None,
+    input_dict = {
+        "map_func": map_func,
+        "batch_size": batch_size,
+        "num_parallel_batches": num_parallel_batches,
+        "drop_remainder": drop_remainder,
+        "num_parallel_calls": num_parallel_calls
     }
-    list_of_inputs.append(copy.deepcopy(input_dict_6))
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 7: A map_func that returns a nested structure (tuple).
-    input_dict_7 = {
-        'dataset': (np.arange(50, dtype=np.float64),),
-        'map_func': [_structured_map_func_single_arg],
-        'batch_size': np.array(20, dtype=np.int64),
-        'num_parallel_batches': None,
-        'drop_remainder': np.array(False, dtype=np.bool_),
-        'num_parallel_calls': np.array(tf.data.AUTOTUNE, dtype=np.int32),
+    # Input 4
+    map_func = [lambda x: tf.reshape(x, [1])]
+    batch_size = tf.constant(5, dtype=tf.int64)
+    num_parallel_batches = None
+    drop_remainder = tf.constant(True, dtype=tf.bool)
+    num_parallel_calls = tf.constant(16, dtype=tf.int32)
+
+    input_dict = {
+        "map_func": map_func,
+        "batch_size": batch_size,
+        "num_parallel_batches": num_parallel_batches,
+        "drop_remainder": drop_remainder,
+        "num_parallel_calls": num_parallel_calls
     }
-    list_of_inputs.append(copy.deepcopy(input_dict_7))
-    
-    # Input 8: batch_size of 1.
-    input_dict_8 = {
-        'dataset': (np.arange(10, dtype=np.int64),),
-        'map_func': [_simple_map_func_single_arg],
-        'batch_size': np.array(1, dtype=np.int64),
-        'num_parallel_batches': np.array(4, dtype=np.int64),
-        'drop_remainder': np.array(False, dtype=np.bool_),
-        'num_parallel_calls': None,
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 5
+    map_func = [lambda x: tf.cast(x, tf.float32)]
+    batch_size = tf.constant(10, dtype=tf.int64)
+    num_parallel_batches = tf.constant(5, dtype=tf.int64)
+    drop_remainder = tf.constant(False, dtype=tf.bool)
+    num_parallel_calls = None
+
+    input_dict = {
+        "map_func": map_func,
+        "batch_size": batch_size,
+        "num_parallel_batches": num_parallel_batches,
+        "drop_remainder": drop_remainder,
+        "num_parallel_calls": num_parallel_calls
     }
-    list_of_inputs.append(copy.deepcopy(input_dict_8))
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 6
+    map_func = [lambda x: tf.clip_by_value(x, 0, 1)]
+    batch_size = tf.constant(3, dtype=tf.int64)
+    num_parallel_batches = None
+    drop_remainder = tf.constant(True, dtype=tf.bool)
+    num_parallel_calls = tf.constant(tf.data.AUTOTUNE, dtype=tf.int32)
+
+    input_dict = {
+        "map_func": map_func,
+        "batch_size": batch_size,
+        "num_parallel_batches": num_parallel_batches,
+        "drop_remainder": drop_remainder,
+        "num_parallel_calls": num_parallel_calls
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 7
+    map_func = [lambda x: x]
+    batch_size = tf.constant(7, dtype=tf.int64)
+    num_parallel_batches = tf.constant(7, dtype=tf.int64)
+    drop_remainder = tf.constant(False, dtype=tf.bool)
+    num_parallel_calls = None
+
+    input_dict = {
+        "map_func": map_func,
+        "batch_size": batch_size,
+        "num_parallel_batches": num_parallel_batches,
+        "drop_remainder": drop_remainder,
+        "num_parallel_calls": num_parallel_calls
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+   # Input 8
+    map_func = [lambda x: tf.math.sqrt(tf.cast(x, dtype=tf.float32))]
+    batch_size = tf.constant(1, dtype=tf.int64)
+    num_parallel_batches = None
+    drop_remainder = tf.constant(True, dtype=tf.bool)
+    num_parallel_calls = tf.constant(tf.data.AUTOTUNE, dtype=tf.int32)
+
+    input_dict = {
+        "map_func": map_func,
+        "batch_size": batch_size,
+        "num_parallel_batches": num_parallel_batches,
+        "drop_remainder": drop_remainder,
+        "num_parallel_calls": num_parallel_calls
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 9
+    map_func = [lambda x: x * x]
+    batch_size = tf.constant(64, dtype=tf.int64)
+    num_parallel_batches = tf.constant(1, dtype=tf.int64)
+    drop_remainder = tf.constant(False, dtype=tf.bool)
+    num_parallel_calls = None
+
+    input_dict = {
+        "map_func": map_func,
+        "batch_size": batch_size,
+        "num_parallel_batches": num_parallel_batches,
+        "drop_remainder": drop_remainder,
+        "num_parallel_calls": num_parallel_calls
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 10
+    map_func = [lambda x: tf.identity(x)]
+    batch_size = tf.constant(128, dtype=tf.int64)
+    num_parallel_batches = None
+    drop_remainder = tf.constant(True, dtype=tf.bool)
+    num_parallel_calls = tf.constant(1, dtype=tf.int32)
+
+    input_dict = {
+        "map_func": map_func,
+        "batch_size": batch_size,
+        "num_parallel_batches": num_parallel_batches,
+        "drop_remainder": drop_remainder,
+        "num_parallel_calls": num_parallel_calls
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs
 
-generated_inputs["tf.data.experimental.map_and_batch"] = tf_data_experimental_map_and_batch_inputs()
+generated_inputs = {}
+
+def apply_map_and_batch(dataset, input_dict):
+    map_func = input_dict['map_func'][0]
+    batch_size = input_dict['batch_size']
+    num_parallel_batches = input_dict['num_parallel_batches']
+    drop_remainder = input_dict['drop_remainder']
+    num_parallel_calls = input_dict['num_parallel_calls']
+
+    if num_parallel_calls is None:
+        return dataset.apply(
+            tf.data.experimental.map_and_batch(
+                map_func=map_func,
+                batch_size=batch_size,
+                num_parallel_batches=num_parallel_batches,
+                drop_remainder=drop_remainder
+            )
+        )
+    else:
+        return dataset.apply(
+            tf.data.experimental.map_and_batch(
+                map_func=map_func,
+                batch_size=batch_size,
+                num_parallel_batches=num_parallel_batches,
+                drop_remainder=drop_remainder,
+                num_parallel_calls=num_parallel_calls
+            )
+        )
+
+map_and_batch_inputs = tf_data_experimental_map_and_batch_inputs()
+generated_inputs["tf.data.experimental.map_and_batch"] = []
+
+for input_dict in map_and_batch_inputs:
+    try:
+        dataset = tf.data.Dataset.range(100)
+        transformed_dataset = apply_map_and_batch(dataset, input_dict)
+        list(transformed_dataset.as_numpy_iterator())
+        generated_inputs["tf.data.experimental.map_and_batch"].append(input_dict)
+    except Exception as e:
+        print(f"Failed to create input for {input_dict}: {e}")
 
 def check_valid(api, list_of_inputs, lib="tf", suffix=0):
     for idx, input_dict in enumerate(list_of_inputs):
@@ -131,5 +229,9 @@ def check_valid(api, list_of_inputs, lib="tf", suffix=0):
 
 if 'tf.data.experimental.map_and_batch' not in generated_inputs:
     raise Exception("Output of the input generating function was not assigned to the generated_inputs dictionary to the key 'tf.data.experimental.map_and_batch'.")
+
+
+tf.config.experimental.enable_op_determinism()
+tf.random.set_seed(42)
 
 check_valid('tf.data.experimental.map_and_batch', generated_inputs['tf.data.experimental.map_and_batch'], lib="tf", suffix=0)

@@ -4,121 +4,110 @@ from generator.input_generators import get_abstract_input
 
 generated_inputs = dict()
 
+import tensorflow as tf
 import numpy as np
 import copy
 
-def get_tf_raw_ops_queuedequeuemany_inputs():
-    """
-    Generates a list of valid inputs for the tf.raw_ops.QueueDequeueMany function.
-    NOTE: This op is not supported in eager execution. The generated inputs use n=0
-    and a placeholder handle, as creating a real queue is not possible with numpy
-    and n > 0 will cause a runtime error in eager mode.
-    """
+tf.config.experimental.enable_op_determinism()
+tf.random.set_seed(42)
+
+def tf_raw_ops_queue_dequeue_many_inputs():
     list_of_inputs = []
 
-    # Input 1: Basic case with n=0
-    input_dict_1 = {
-        'handle': np.array("h1", dtype=object),
-        'n': np.array(0, dtype=np.int32),
-        'component_types': [np.float32],
-        'timeout_ms': -1,
-        'name': 'dequeue_zero_float'
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict_1))
+    # Input 1
+    handle = tf.constant("dummy_handle", dtype=tf.string)
+    n = tf.constant(2, dtype=tf.int32)
+    component_types = [tf.float32]
+    timeout_ms = -1
+    name = None
+    input_dict = {"handle": handle, "n": n, "component_types": component_types, "timeout_ms": timeout_ms, "name": name}
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 2: Multiple component types
-    input_dict_2 = {
-        'handle': np.array("h2", dtype=object),
-        'n': np.array(0, dtype=np.int32),
-        'component_types': [np.float64, np.int32],
-        'timeout_ms': -1,
-        'name': 'dequeue_zero_multi'
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict_2))
+    # Input 2
+    handle = tf.constant("another_dummy_handle", dtype=tf.string)
+    n = tf.constant(5, dtype=tf.int32)
+    component_types = [tf.int32, tf.float64]
+    timeout_ms = 100
+    name = "dequeue_op"
+    input_dict = {"handle": handle, "n": n, "component_types": component_types, "timeout_ms": timeout_ms, "name": name}
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 3: With a timeout specified
-    input_dict_3 = {
-        'handle': np.array("h3", dtype=object),
-        'n': np.array(0, dtype=np.int32),
-        'component_types': [np.int64],
-        'timeout_ms': 1000,
-        'name': 'dequeue_zero_timeout'
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict_3))
+    # Input 3
+    handle = tf.constant("yet_another_dummy", dtype=tf.string)
+    n = tf.constant(1, dtype=tf.int32)
+    component_types = [tf.float32]
+    timeout_ms = 0
+    name = "string_dequeue"
+    input_dict = {"handle": handle, "n": n, "component_types": component_types, "timeout_ms": timeout_ms, "name": name}
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 4: Complex component type
-    input_dict_4 = {
-        'handle': np.array("h4", dtype=object),
-        'n': np.array(0, dtype=np.int32),
-        'component_types': [np.complex64],
-        'timeout_ms': -1,
-        'name': 'dequeue_zero_complex64'
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict_4))
+    # Input 4
+    handle = tf.constant("handle_4", dtype=tf.string)
+    n = tf.constant(10, dtype=tf.int32)
+    component_types = [tf.bool]
+    timeout_ms = -1
+    name = None
+    input_dict = {"handle": handle, "n": n, "component_types": component_types, "timeout_ms": timeout_ms, "name": name}
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 5: Zero timeout
-    input_dict_5 = {
-        'handle': np.array("h5", dtype=object),
-        'n': np.array(0, dtype=np.int32),
-        'component_types': [np.int16, np.uint8],
-        'timeout_ms': 0,
-        'name': 'dequeue_zero_zerotimeout'
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict_5))
+    # Input 5
+    handle = tf.constant("handle_5", dtype=tf.string)
+    n = tf.constant(3, dtype=tf.int32)
+    component_types = [tf.int8, tf.int16, tf.int32]
+    timeout_ms = 50
+    name = "multi_type_dequeue"
+    input_dict = {"handle": handle, "n": n, "component_types": component_types, "timeout_ms": timeout_ms, "name": name}
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 6: String component type
-    input_dict_6 = {
-        'handle': np.array("h6", dtype=object),
-        'n': np.array(0, dtype=np.int32),
-        'component_types': [np.string_],
-        'timeout_ms': -1,
-        'name': 'dequeue_zero_string'
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict_6))
+    # Input 6
+    handle = tf.constant("handle_6", dtype=tf.string)
+    n = tf.constant(7, dtype=tf.int32)
+    component_types = [tf.uint8]
+    timeout_ms = 200
+    name = "uint8_dequeue"
+    input_dict = {"handle": handle, "n": n, "component_types": component_types, "timeout_ms": timeout_ms, "name": name}
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 7: Boolean component type
-    input_dict_7 = {
-        'handle': np.array("h7", dtype=object),
-        'n': np.array(0, dtype=np.int32),
-        'component_types': [np.bool_],
-        'timeout_ms': 500,
-        'name': 'dequeue_zero_bool'
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict_7))
+    # Input 7
+    handle = tf.constant("handle_7", dtype=tf.string)
+    n = tf.constant(4, dtype=tf.int32)
+    component_types = [tf.complex64]
+    timeout_ms = -1
+    name = "complex_dequeue"
+    input_dict = {"handle": handle, "n": n, "component_types": component_types, "timeout_ms": timeout_ms, "name": name}
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 8: Complex128 component type
-    input_dict_8 = {
-        'handle': np.array("h8", dtype=object),
-        'n': np.array(0, dtype=np.int32),
-        'component_types': [np.complex128],
-        'timeout_ms': -1,
-        'name': 'dequeue_zero_complex128'
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict_8))
+     # Input 8
+    handle = tf.constant("handle_8", dtype=tf.string)
+    n = tf.constant(6, dtype=tf.int32)
+    component_types = [tf.float16]
+    timeout_ms = -1
+    name = None
+    input_dict = {"handle": handle, "n": n, "component_types": component_types, "timeout_ms": timeout_ms, "name": name}
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 9: Long list of component types
-    input_dict_9 = {
-        'handle': np.array("h9", dtype=object),
-        'n': np.array(0, dtype=np.int32),
-        'component_types': [np.float32, np.int64, np.bool_, np.complex64],
-        'timeout_ms': 10,
-        'name': 'dequeue_zero_long_list'
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict_9))
+    # Input 9
+    handle = tf.constant("handle_9", dtype=tf.string)
+    n = tf.constant(2, dtype=tf.int32)
+    component_types = [tf.int64]
+    timeout_ms = -1
+    name = "variant_dequeue"
+    input_dict = {"handle": handle, "n": n, "component_types": component_types, "timeout_ms": timeout_ms, "name": name}
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 10: Unsigned integer types
-    input_dict_10 = {
-        'handle': np.array("h10", dtype=object),
-        'n': np.array(0, dtype=np.int32),
-        'component_types': [np.uint8, np.uint16, np.uint32, np.uint64],
-        'timeout_ms': -1,
-        'name': 'dequeue_zero_unsigned'
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict_10))
+    # Input 10
+    handle = tf.constant("handle_10", dtype=tf.string)
+    n = tf.constant(8, dtype=tf.int32)
+    component_types = [tf.bfloat16]
+    timeout_ms = -1
+    name = None
+    input_dict = {"handle": handle, "n": n, "component_types": component_types, "timeout_ms": timeout_ms, "name": name}
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs
 
-generated_inputs["tf.raw_ops.QueueDequeueMany"] = get_tf_raw_ops_queuedequeuemany_inputs()
+generated_inputs = {}
+generated_inputs["tf.raw_ops.QueueDequeueMany"] = tf_raw_ops_queue_dequeue_many_inputs()
 
 def check_valid(api, list_of_inputs, lib="tf", suffix=0):
     for idx, input_dict in enumerate(list_of_inputs):
@@ -132,5 +121,9 @@ def check_valid(api, list_of_inputs, lib="tf", suffix=0):
 
 if 'tf.raw_ops.QueueDequeueMany' not in generated_inputs:
     raise Exception("Output of the input generating function was not assigned to the generated_inputs dictionary to the key 'tf.raw_ops.QueueDequeueMany'.")
+
+
+tf.config.experimental.enable_op_determinism()
+tf.random.set_seed(42)
 
 check_valid('tf.raw_ops.QueueDequeueMany', generated_inputs['tf.raw_ops.QueueDequeueMany'], lib="tf", suffix=0)

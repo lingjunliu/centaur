@@ -4,89 +4,88 @@ from generator.input_generators import get_abstract_input
 
 generated_inputs = dict()
 
+import tensorflow as tf
 import numpy as np
 import copy
 
+tf.config.experimental.enable_op_determinism()
+tf.random.set_seed(42)
+
 def tf_data_experimental_enumerate_dataset_inputs():
-    """
-    Generates a list of valid inputs for the tf.data.experimental.enumerate_dataset function.
-    This API returns a transformation function. The test harness needs to know which dataset
-    to apply this transformation on. This is speculatively provided via a special key
-    '_apply_on_dataset', containing the data in numpy format.
-    """
     list_of_inputs = []
 
-    # Input 1: Basic case with a simple integer array and default start
-    input_dict = {
-        '_apply_on_dataset': np.array([1, 2, 3], dtype=np.int32),
-        'start': np.int64(0)
-    }
+    # Input 1: start = 0
+    start = np.int64(0)
+    input_dict = {"start": start}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 2: Positive start value with a float array
-    input_dict = {
-        '_apply_on_dataset': np.array([10.0, 20.0, 30.0], dtype=np.float32),
-        'start': np.int64(5)
-    }
+    # Input 2: start = 1
+    start = np.int64(1)
+    input_dict = {"start": start}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 3: Negative start value with a 2D array
-    input_dict = {
-        '_apply_on_dataset': np.array([[1, 2], [3, 4]], dtype=np.int64),
-        'start': np.int64(-10)
-    }
+    # Input 3: start = 10
+    start = np.int64(10)
+    input_dict = {"start": start}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 4: Empty dataset
-    input_dict = {
-        '_apply_on_dataset': np.array([], dtype=np.float64),
-        'start': np.int64(42)
-    }
+    # Input 4: start = -1
+    start = np.int64(-1)
+    input_dict = {"start": start}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 5: Dataset with a single element
-    input_dict = {
-        '_apply_on_dataset': np.array([100], dtype=np.int64),
-        'start': np.int64(-1)
-    }
+    # Input 5: start = large positive number
+    start = np.int64(2**31 - 1)
+    input_dict = {"start": start}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 6: Start value as a 0-D numpy array
-    input_dict = {
-        '_apply_on_dataset': np.arange(6, dtype=np.uint8).reshape(3, 2),
-        'start': np.array(10, dtype=np.int64)
-    }
+    # Input 6: start = large negative number
+    start = np.int64(-(2**31))
+    input_dict = {"start": start}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 7: Large positive start value
-    input_dict = {
-        '_apply_on_dataset': np.array([True, False]),
-        'start': np.int64(1000000)
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-    
-    # Input 8: Large negative start value
-    input_dict = {
-        '_apply_on_dataset': np.array([-1.0, -2.0, -3.0], dtype=np.float64),
-        'start': np.int64(-1000000)
-    }
+    # Input 7: start as a numpy array (scalar)
+    start = np.array(5, dtype=np.int64)
+    input_dict = {"start": start}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 9: 3D data array
-    input_dict = {
-        '_apply_on_dataset': np.zeros((2, 2, 2), dtype=np.int16),
-        'start': np.int64(1)
-    }
+    # Input 8: start as numpy array
+    start = np.array([2], dtype=np.int64)
+    input_dict = {"start": start}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 10: Unsigned integer data
-    input_dict = {
-        '_apply_on_dataset': np.array([10, 20, 30], dtype=np.uint32),
-        'start': np.int64(99)
-    }
+    # Input 9: start = small positive number
+    start = np.int64(5)
+    input_dict = {"start": start}
     list_of_inputs.append(copy.deepcopy(input_dict))
-    
+
+    # Input 10: start = small negative number
+    start = np.int64(-5)
+    input_dict = {"start": start}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
     return list_of_inputs
+
+generated_inputs = {}
+
+def check_valid(api, list_of_inputs, lib="tf", suffix=0):
+    for i, input_dict in enumerate(list_of_inputs):
+        try:
+            output = run_api(api, input_dict, cpu=True, lib=lib)
+        except Exception as e:
+            print(f"Exception {type(e)}:{e} at input {i} suffix {suffix}")
+            raise
+    return True
+
+def run_api(api, input_dict, cpu=True, lib="tf"):
+    if lib == "torch":
+        if "dtype" in input_dict:
+            input_dict["dtype"] = getattr(torch, input_dict["dtype"])
+        if "layout" in input_dict:
+            input_dict["layout"] = getattr(torch, input_dict["layout"])
+
+    api_func = eval(api)
+    return api_func(**input_dict)
 
 generated_inputs["tf.data.experimental.enumerate_dataset"] = tf_data_experimental_enumerate_dataset_inputs()
 
@@ -102,5 +101,9 @@ def check_valid(api, list_of_inputs, lib="tf", suffix=0):
 
 if 'tf.data.experimental.enumerate_dataset' not in generated_inputs:
     raise Exception("Output of the input generating function was not assigned to the generated_inputs dictionary to the key 'tf.data.experimental.enumerate_dataset'.")
+
+
+tf.config.experimental.enable_op_determinism()
+tf.random.set_seed(42)
 
 check_valid('tf.data.experimental.enumerate_dataset', generated_inputs['tf.data.experimental.enumerate_dataset'], lib="tf", suffix=0)

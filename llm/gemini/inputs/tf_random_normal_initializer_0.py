@@ -5,59 +5,138 @@ from generator.input_generators import get_abstract_input
 generated_inputs = dict()
 
 import tensorflow as tf
-import numpy as np
 import copy
+import numpy as np
+
+tf.config.experimental.enable_op_determinism()
+tf.random.set_seed(42)
 
 def tf_random_normal_initializer_inputs():
     list_of_inputs = []
 
-    def create_input(mean, stddev, seed, shape, dtype):
-        input_dict = {
-            'mean': float(mean),
-            'stddev': float(stddev),
-            'seed': int(seed)
-        }
-        # The error indicates the test harness expects arguments for the callable
-        # returned by the initializer. We hypothesize the key for these
-        # arguments is 'call_args'.
-        input_dict['call_args'] = {
-            'shape': shape,
-            'dtype': dtype,
-        }
-        return input_dict
+    # Input 1
+    mean = np.float32(0.0)
+    stddev = np.float32(0.05)
+    seed = np.int32(1)
 
-    # Input 1: Basic 1D case, float32
-    list_of_inputs.append(copy.deepcopy(create_input(0.0, 1.0, 1, [10], np.float32)))
+    input_dict = {
+        "mean": mean,
+        "stddev": stddev,
+        "seed": seed
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 2: Negative mean, 2D shape, float32
-    list_of_inputs.append(copy.deepcopy(create_input(-5.0, 2.0, 42, [5, 5], np.float32)))
+    # Input 2
+    mean = np.float32(1.0)
+    stddev = np.float32(0.1)
+    seed = np.int32(42)
 
-    # Input 3: Zero stddev, 3D shape (results in a tensor of constants), float32
-    list_of_inputs.append(copy.deepcopy(create_input(10.0, 0.0, 7, [2, 3, 4], np.float32)))
+    input_dict = {
+        "mean": mean,
+        "stddev": stddev,
+        "seed": seed
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 4: Small stddev, float64 dtype
-    list_of_inputs.append(copy.deepcopy(create_input(0.0, 1e-5, 100, [100], np.float64)))
+    # Input 3
+    mean = np.float32(-1.0)
+    stddev = np.float32(0.2)
+    seed = np.int32(123)
 
-    # Input 5: Large values, 1-element shape, float32
-    list_of_inputs.append(copy.deepcopy(create_input(1000.0, 500.0, 2023, [1], np.float32)))
+    input_dict = {
+        "mean": mean,
+        "stddev": stddev,
+        "seed": seed
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 6: Values from docs, 2D shape, float32
-    list_of_inputs.append(copy.deepcopy(create_input(0.0, 0.05, 0, [8, 2], np.float32)))
+    # Input 4
+    mean = np.float32(0.5)
+    stddev = np.float32(0.01)
+    seed = np.int32(456)
 
-    # Input 7: Negative seed, float64 dtype
-    list_of_inputs.append(copy.deepcopy(create_input(-1.0, 1.5, -10, [4, 4], np.float64)))
+    input_dict = {
+        "mean": mean,
+        "stddev": stddev,
+        "seed": seed
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 8: Fractional values, 3D shape, float32
-    list_of_inputs.append(copy.deepcopy(create_input(3.14, 2.718, 99, [1, 1, 10], np.float32)))
+    # Input 5
+    mean = np.float32(-0.5)
+    stddev = np.float32(0.02)
+    seed = np.int32(789)
 
-    # Input 9: Scalar output (empty shape), float32
-    list_of_inputs.append(copy.deepcopy(create_input(0.5, 0.5, 1337, [], np.float32)))
+    input_dict = {
+        "mean": mean,
+        "stddev": stddev,
+        "seed": seed
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 10: Zero-sized dimension in shape, float32
-    list_of_inputs.append(copy.deepcopy(create_input(0.0, 1.0, 2, [5, 0], np.float32)))
+    # Input 6
+    mean = np.float32(2.0)
+    stddev = np.float32(0.5)
+    seed = np.int32(101)
+
+    input_dict = {
+        "mean": mean,
+        "stddev": stddev,
+        "seed": seed
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 7
+    mean = np.float32(-2.0)
+    stddev = np.float32(1.0)
+    seed = np.int32(202)
+
+    input_dict = {
+        "mean": mean,
+        "stddev": stddev,
+        "seed": seed
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 8
+    mean = np.float32(0.123)
+    stddev = np.float32(0.0321)
+    seed = np.int32(303)
+
+    input_dict = {
+        "mean": mean,
+        "stddev": stddev,
+        "seed": seed
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 9
+    mean = np.float32(-0.456)
+    stddev = np.float32(0.0654)
+    seed = np.int32(404)
+
+    input_dict = {
+        "mean": mean,
+        "stddev": stddev,
+        "seed": seed
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 10
+    mean = np.float32(10.0)
+    stddev = np.float32(5.0)
+    seed = np.int32(505)
+
+    input_dict = {
+        "mean": mean,
+        "stddev": stddev,
+        "seed": seed
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs
 
+generated_inputs = {}
 generated_inputs["tf.random_normal_initializer"] = tf_random_normal_initializer_inputs()
 
 def check_valid(api, list_of_inputs, lib="tf", suffix=0):
@@ -72,5 +151,9 @@ def check_valid(api, list_of_inputs, lib="tf", suffix=0):
 
 if 'tf.random_normal_initializer' not in generated_inputs:
     raise Exception("Output of the input generating function was not assigned to the generated_inputs dictionary to the key 'tf.random_normal_initializer'.")
+
+
+tf.config.experimental.enable_op_determinism()
+tf.random.set_seed(42)
 
 check_valid('tf.random_normal_initializer', generated_inputs['tf.random_normal_initializer'], lib="tf", suffix=0)

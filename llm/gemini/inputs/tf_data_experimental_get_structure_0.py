@@ -6,95 +6,64 @@ generated_inputs = dict()
 
 import tensorflow as tf
 import numpy as np
-import copy
 
 def tf_data_experimental_get_structure_inputs():
     list_of_inputs = []
 
-    # Input 1: A tuple containing a single 1D integer array.
-    list_of_inputs.append({
-        'dataset_or_iterator': (np.array([1, 2, 3], dtype=np.int32),)
-    })
+    # Input 1: Dataset from tensor slices
+    dataset1 = tf.data.Dataset.from_tensor_slices(np.array([1, 2, 3], dtype=np.int32))
+    input_dict1 = {"dataset_or_iterator": dataset1}
+    list_of_inputs.append(input_dict1)
 
-    # Input 2: A tuple containing a single 2D float array with negative values.
-    list_of_inputs.append({
-        'dataset_or_iterator': (np.array([[1.0, 2.0], [3.0, 4.0], [-5.0, -6.0]], dtype=np.float32),)
-    })
+    # Input 2: Dataset from tuples of tensors
+    dataset2 = tf.data.Dataset.from_tensor_slices((np.array([1, 2, 3], dtype=np.int32), np.array(['a', 'b', 'c'], dtype=np.string_)))
+    input_dict2 = {"dataset_or_iterator": dataset2}
+    list_of_inputs.append(input_dict2)
 
-    # Input 3: A tuple with two 1D arrays of different types.
-    list_of_inputs.append({
-        'dataset_or_iterator': (
-            np.arange(10, dtype=np.int64),
-            (np.random.rand(10) * 10).astype(np.uint8)
-        )
-    })
+    # Input 3: Iterator from a dataset
+    dataset3 = tf.data.Dataset.from_tensor_slices(np.array([1, 2, 3], dtype=np.int32))
+    iterator3 = iter(dataset3)
+    input_dict3 = {"dataset_or_iterator": iterator3}
+    list_of_inputs.append(input_dict3)
 
-    # Input 4: A tuple with a string array and a 3D integer array.
-    list_of_inputs.append({
-        'dataset_or_iterator': (
-            np.array([b'a', b'b', b'c']),
-            np.array([[[1],[2]], [[3],[4]], [[5],[6]]], dtype=np.int16)
-        )
-    })
+    # Input 4: Dataset with multiple dimensions
+    dataset4 = tf.data.Dataset.from_tensor_slices(np.array([[1, 2], [3, 4]], dtype=np.int32))
+    input_dict4 = {"dataset_or_iterator": dataset4}
+    list_of_inputs.append(input_dict4)
 
-    # Input 5: A tuple containing a boolean array.
-    list_of_inputs.append({
-        'dataset_or_iterator': ((np.random.rand(5, 2) > 0.5).astype(np.bool_),)
-    })
+    # Input 5: Dataset with float values
+    dataset5 = tf.data.Dataset.from_tensor_slices(np.array([1.0, 2.0, 3.0], dtype=np.float32))
+    input_dict5 = {"dataset_or_iterator": dataset5}
+    list_of_inputs.append(input_dict5)
 
-    # Input 6: A tuple with arrays of different float precisions.
-    list_of_inputs.append({
-        'dataset_or_iterator': (
-            np.array([-10.5, -20.25], dtype=np.float16),
-            np.array([[-1.5], [-3.5]], dtype=np.float64)
-        )
-    })
+    # Input 6: Dataset with string values
+    dataset6 = tf.data.Dataset.from_tensor_slices(np.array(['a', 'b', 'c'], dtype=np.string_))
+    input_dict6 = {"dataset_or_iterator": dataset6}
+    list_of_inputs.append(input_dict6)
 
-    # Input 7: A tuple with a higher-rank (4D) array.
-    list_of_inputs.append({
-        'dataset_or_iterator': (np.zeros((2, 2, 2, 2), dtype=np.uint16),)
-    })
+    # Input 7: Dataset with mixed types (int and float)
+    dataset7 = tf.data.Dataset.from_tensor_slices((np.array([1, 2, 3], dtype=np.int32), np.array([1.0, 2.0, 3.0], dtype=np.float32)))
+    input_dict7 = {"dataset_or_iterator": dataset7}
+    list_of_inputs.append(input_dict7)
 
-    # Input 8: A tuple with single-element arrays.
-    list_of_inputs.append({
-        'dataset_or_iterator': (
-            np.array([100], dtype=np.int64),
-            np.array([b'hello']),
-        )
-    })
+    # Input 8: Dataset with tuples of tensors of the SAME SHAPE
+    dataset8 = tf.data.Dataset.from_tensor_slices((np.array([1, 2], dtype=np.int32), np.array([3, 4], dtype=np.int32)))
+    input_dict8 = {"dataset_or_iterator": dataset8}
+    list_of_inputs.append(input_dict8)
 
-    # Input 9: A tuple of empty arrays.
-    list_of_inputs.append({
-        'dataset_or_iterator': (
-            np.array([], dtype=np.string_),
-            np.array([], dtype=np.float32)
-        )
-    })
+    # Input 9: Dataset with tuples containing numpy arrays
+    dataset9 = tf.data.Dataset.from_tensor_slices([(np.array([1, 2], dtype=np.int32), np.array([3, 4], dtype=np.int32)), (np.array([5, 6], dtype=np.int32), np.array([7, 8], dtype=np.int32))])
+    input_dict9 = {"dataset_or_iterator": dataset9}
+    list_of_inputs.append(input_dict9)
 
-    # Input 10: A tuple with multiple arrays of various types and ranks.
-    list_of_inputs.append({
-        'dataset_or_iterator': (
-            np.arange(4, dtype=np.int32),
-            np.random.rand(4, 1).astype(np.float32),
-            (np.random.rand(4, 2) > 0.5)
-        )
-    })
+    # Input 10: Empty Dataset
+    dataset10 = tf.data.Dataset.from_tensor_slices(np.array([], dtype=np.int32))
+    input_dict10 = {"dataset_or_iterator": dataset10}
+    list_of_inputs.append(input_dict10)
 
-    # Input 11: Tuple with complex numbers.
-    list_of_inputs.append({
-        'dataset_or_iterator': (np.array([1+2j, -3+4j], dtype=np.complex128),)
-    })
-
-    # Input 12: Tuple with unsigned integers.
-    list_of_inputs.append({
-        'dataset_or_iterator': (
-            np.array([0, 255], dtype=np.uint8),
-            np.array([0, 65535], dtype=np.uint16),
-        )
-    })
-    
     return list_of_inputs
 
+generated_inputs = {}
 generated_inputs["tf.data.experimental.get_structure"] = tf_data_experimental_get_structure_inputs()
 
 def check_valid(api, list_of_inputs, lib="tf", suffix=0):
@@ -109,5 +78,9 @@ def check_valid(api, list_of_inputs, lib="tf", suffix=0):
 
 if 'tf.data.experimental.get_structure' not in generated_inputs:
     raise Exception("Output of the input generating function was not assigned to the generated_inputs dictionary to the key 'tf.data.experimental.get_structure'.")
+
+
+tf.config.experimental.enable_op_determinism()
+tf.random.set_seed(42)
 
 check_valid('tf.data.experimental.get_structure', generated_inputs['tf.data.experimental.get_structure'], lib="tf", suffix=0)

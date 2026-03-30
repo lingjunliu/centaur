@@ -4,96 +4,70 @@ from generator.input_generators import get_abstract_input
 
 generated_inputs = dict()
 
+import tensorflow as tf
 import numpy as np
 import copy
 
+tf.compat.v1.disable_eager_execution()
+tf.config.experimental.enable_op_determinism()
+tf.random.set_seed(42)
+
 def tf_raw_ops_IsVariableInitialized_inputs():
-    """
-    Generates a list of valid inputs for the tf.raw_ops.IsVariableInitialized function.
-    The inputs are provided in numpy format as required by the user's constraints.
-    The recurring error 'RuntimeError: is_variable_initialized op does not support eager execution'
-    is not caused by the input data values (shape, dtype) but by the fact that this
-    low-level operation is designed for TensorFlow's graph mode and expects a variable
-    reference, which cannot be provided directly in an eager execution context using
-    a standard tensor. The testing framework is responsible for creating the correct
-    graph context and variable handle to execute this operation successfully. This
-    implementation provides valid inputs according to the API signature and numpy
-    format requirement.
-    """
     list_of_inputs = []
 
-    # Input 1: Basic 1D float32 tensor
-    input_dict_1 = {
-        'ref': np.array([1.0, 2.0, 3.0], dtype=np.float32),
-        'name': 'check_init_float32'
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict_1))
+    # Input 1: Basic case with a scalar variable
+    v1 = tf.Variable(1.0)
+    input_dict = {"ref": v1.handle, "name": "scalar_variable"}
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 2: 2D int32 tensor
-    input_dict_2 = {
-        'ref': np.array([[-1, 0], [1, 2]], dtype=np.int32),
-        'name': 'check_init_int32'
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict_2))
+    # Input 2: A variable with a different shape
+    v2 = tf.Variable([1, 2, 3])
+    input_dict = {"ref": v2.handle, "name": "vector_variable"}
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 3: Scalar (0-D) float64 tensor
-    input_dict_3 = {
-        'ref': np.array(100.5, dtype=np.float64),
-        'name': 'check_scalar_float64'
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict_3))
+    # Input 3: A variable with a different dtype (int)
+    v3 = tf.Variable(5)
+    input_dict = {"ref": v3.handle, "name": "int_variable"}
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 4: 3D float32 tensor
-    input_dict_4 = {
-        'ref': np.ones((2, 2, 2), dtype=np.float32),
-        'name': 'check_3d_float32'
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict_4))
+    # Input 4: A multi-dimensional variable
+    v4 = tf.Variable(np.array([[1, 2], [3, 4]], dtype=np.float32))
+    input_dict = {"ref": v4.handle, "name": "matrix_variable"}
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 5: Tensor with a single int32 element
-    input_dict_5 = {
-        'ref': np.array([-99], dtype=np.int32),
-        'name': 'check_single_element_int32'
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict_5))
+    # Input 5: A complex number variable
+    v5 = tf.Variable(np.complex64(1 + 2j))
+    input_dict = {"ref": v5.handle, "name": "complex_variable"}
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 6: Boolean tensor
-    input_dict_6 = {
-        'ref': np.array([[True, False], [False, True]], dtype=np.bool_),
-        'name': 'check_bool'
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict_6))
+    # Input 6: A string variable (tf.string)
+    v6 = tf.Variable("hello")
+    input_dict = {"ref": v6.handle, "name": "string_variable"}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 7: A boolean variable
+    v7 = tf.Variable(True)
+    input_dict = {"ref": v7.handle, "name": "bool_variable"}
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 7: 1D int64 tensor
-    input_dict_7 = {
-        'ref': np.array([10000000000, 20000000000], dtype=np.int64),
-        'name': 'check_int64'
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict_7))
+    # Input 8: Larger shaped variable
+    v8 = tf.Variable(np.zeros((100, 100)))
+    input_dict = {"ref": v8.handle, "name": "large_variable"}
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 8: High-dimensional (4D) float32 tensor
-    input_dict_8 = {
-        'ref': np.ones((1, 2, 1, 3), dtype=np.float32),
-        'name': 'check_high_dim_float32'
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict_8))
+    # Input 9: 3D variable
+    v9 = tf.Variable(np.random.rand(3, 4, 5))
+    input_dict = {"ref": v9.handle, "name": "3d_variable"}
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 9: Empty float32 tensor
-    input_dict_9 = {
-        'ref': np.array([], dtype=np.float32),
-        'name': 'check_empty_float32'
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict_9))
-
-    # Input 10: Another 2D int32 tensor with a different name
-    input_dict_10 = {
-        'ref': np.array([[10, 20], [30, 40]], dtype=np.int32),
-        'name': 'another_init_check'
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict_10))
+    # Input 10: 4D Variable
+    v10 = tf.Variable(np.random.rand(2, 3, 4, 5))
+    input_dict = {"ref": v10.handle, "name": "4d_variable"}
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs
 
+generated_inputs = {}
 generated_inputs["tf.raw_ops.IsVariableInitialized"] = tf_raw_ops_IsVariableInitialized_inputs()
 
 def check_valid(api, list_of_inputs, lib="tf", suffix=0):
@@ -108,5 +82,9 @@ def check_valid(api, list_of_inputs, lib="tf", suffix=0):
 
 if 'tf.raw_ops.IsVariableInitialized' not in generated_inputs:
     raise Exception("Output of the input generating function was not assigned to the generated_inputs dictionary to the key 'tf.raw_ops.IsVariableInitialized'.")
+
+
+tf.config.experimental.enable_op_determinism()
+tf.random.set_seed(42)
 
 check_valid('tf.raw_ops.IsVariableInitialized', generated_inputs['tf.raw_ops.IsVariableInitialized'], lib="tf", suffix=0)

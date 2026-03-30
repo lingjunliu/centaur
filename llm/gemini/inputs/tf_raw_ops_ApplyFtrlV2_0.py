@@ -8,43 +8,318 @@ import tensorflow as tf
 import numpy as np
 import copy
 
-def get_tf_raw_ops_apply_ftrl_v2_inputs():
-    """
-    Generates a list of valid inputs for the tf.raw_ops.ApplyFtrlV2 operation.
+tf.config.experimental.enable_op_determinism()
+tf.compat.v1.enable_resource_variables()
+tf.compat.v1.enable_eager_execution()
+tf.random.set_seed(42)
 
-    The recurring error "apply_ftrl_v2 op does not support eager execution" stems from a
-    fundamental incompatibility between this legacy op and TensorFlow's default eager
-    execution mode. The op is designed for a graph-based context which uses "Ref"
-    tensors, not the "Resource" tensors used in eager mode. This issue cannot be
-    resolved by altering the numerical values or data types of the inputs alone.
-
-    This submission provides a single, degenerate input case using empty tensors. The
-    hypothesis is that an operation on zero-element tensors might follow a minimal
-    execution path that bypasses the Ref-based logic, thus avoiding the runtime error.
-    This represents an attempt to find an edge case that is technically valid but does
-    not trigger the problematic code path.
-    """
+def tf_raw_ops_apply_ftrl_v2_inputs():
     list_of_inputs = []
 
-    input_dict_1 = {
-        'var': np.array([], dtype=np.float32),
-        'accum': np.array([], dtype=np.float32),
-        'linear': np.array([], dtype=np.float32),
-        'grad': np.array([], dtype=np.float32),
-        'lr': np.array(0.001, dtype=np.float32),
-        'l1': np.array(0.1, dtype=np.float32),
-        'l2': np.array(0.01, dtype=np.float32),
-        'l2_shrinkage': np.array(0.0, dtype=np.float32),
-        'lr_power': np.array(-0.5, dtype=np.float32),
-        'use_locking': False,
-        'multiply_linear_by_lr': False,
-        'name': 'degenerate_empty_case'
+    # Input 1
+    var = np.array([1.0], dtype=np.float32)
+    accum = np.array([0.1], dtype=np.float32)
+    linear = np.array([0.4], dtype=np.float32)
+    grad = np.array([0.7], dtype=np.float32)
+    lr = np.array(0.01, dtype=np.float32)
+    l1 = np.array(0.02, dtype=np.float32)
+    l2 = np.array(0.03, dtype=np.float32)
+    l2_shrinkage = np.array(0.001, dtype=np.float32)
+    lr_power = np.array(-0.5, dtype=np.float32)
+    use_locking = False
+    multiply_linear_by_lr = False
+    name = "ftrl_update_1"
+
+    input_dict = {
+        "var": var,
+        "accum": accum,
+        "linear": linear,
+        "grad": grad,
+        "lr": lr,
+        "l1": l1,
+        "l2": l2,
+        "l2_shrinkage": l2_shrinkage,
+        "lr_power": lr_power,
+        "use_locking": use_locking,
+        "multiply_linear_by_lr": multiply_linear_by_lr,
+        "name": name
     }
-    list_of_inputs.append(copy.deepcopy(input_dict_1))
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 2
+    var = np.array([1.0], dtype=np.float64)
+    accum = np.array([0.1], dtype=np.float64)
+    linear = np.array([0.4], dtype=np.float64)
+    grad = np.array([0.7], dtype=np.float64)
+    lr = np.array(0.01, dtype=np.float64)
+    l1 = np.array(0.02, dtype=np.float64)
+    l2 = np.array(0.03, dtype=np.float64)
+    l2_shrinkage = np.array(0.001, dtype=np.float64)
+    lr_power = np.array(-0.5, dtype=np.float64)
+    use_locking = True
+    multiply_linear_by_lr = True
+    name = "ftrl_update_2"
+
+    input_dict = {
+        "var": var,
+        "accum": accum,
+        "linear": linear,
+        "grad": grad,
+        "lr": lr,
+        "l1": l1,
+        "l2": l2,
+        "l2_shrinkage": l2_shrinkage,
+        "lr_power": lr_power,
+        "use_locking": use_locking,
+        "multiply_linear_by_lr": multiply_linear_by_lr,
+        "name": name
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 3
+    var = np.array([1], dtype=np.int32)
+    accum = np.array([0], dtype=np.int32)
+    linear = np.array([0], dtype=np.int32)
+    grad = np.array([1], dtype=np.int32)
+    lr = np.array(1, dtype=np.int32)
+    l1 = np.array(1, dtype=np.int32)
+    l2 = np.array(1, dtype=np.int32)
+    l2_shrinkage = np.array(0, dtype=np.int32)
+    lr_power = np.array(0, dtype=np.int32)
+    use_locking = False
+    multiply_linear_by_lr = False
+    name = "ftrl_update_3"
+
+    input_dict = {
+        "var": var,
+        "accum": accum,
+        "linear": linear,
+        "grad": grad,
+        "lr": lr,
+        "l1": l1,
+        "l2": l2,
+        "l2_shrinkage": l2_shrinkage,
+        "lr_power": lr_power,
+        "use_locking": use_locking,
+        "multiply_linear_by_lr": multiply_linear_by_lr,
+        "name": name
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+   # Input 4
+    var = np.array([-1.0], dtype=np.float32)
+    accum = np.array([0.1], dtype=np.float32)
+    linear = np.array([0.4], dtype=np.float32)
+    grad = np.array([0.7], dtype=np.float32)
+    lr = np.array(0.01, dtype=np.float32)
+    l1 = np.array(0.02, dtype=np.float32)
+    l2 = np.array(0.03, dtype=np.float32)
+    l2_shrinkage = np.array(0.001, dtype=np.float32)
+    lr_power = np.array(-0.5, dtype=np.float32)
+    use_locking = False
+    multiply_linear_by_lr = False
+    name = "ftrl_update_4"
+
+    input_dict = {
+        "var": var,
+        "accum": accum,
+        "linear": linear,
+        "grad": grad,
+        "lr": lr,
+        "l1": l1,
+        "l2": l2,
+        "l2_shrinkage": l2_shrinkage,
+        "lr_power": lr_power,
+        "use_locking": use_locking,
+        "multiply_linear_by_lr": multiply_linear_by_lr,
+        "name": name
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+   # Input 5
+    var = np.array([1.0], dtype=np.float32)
+    accum = np.array([-0.1], dtype=np.float32)
+    linear = np.array([0.4], dtype=np.float32)
+    grad = np.array([0.7], dtype=np.float32)
+    lr = np.array(0.01, dtype=np.float32)
+    l1 = np.array(0.02, dtype=np.float32)
+    l2 = np.array(0.03, dtype=np.float32)
+    l2_shrinkage = np.array(0.001, dtype=np.float32)
+    lr_power = np.array(-0.5, dtype=np.float32)
+    use_locking = False
+    multiply_linear_by_lr = False
+    name = "ftrl_update_5"
+
+    input_dict = {
+        "var": var,
+        "accum": accum,
+        "linear": linear,
+        "grad": grad,
+        "lr": lr,
+        "l1": l1,
+        "l2": l2,
+        "l2_shrinkage": l2_shrinkage,
+        "lr_power": lr_power,
+        "use_locking": use_locking,
+        "multiply_linear_by_lr": multiply_linear_by_lr,
+        "name": name
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 6
+    var = np.array([1.0], dtype=np.float32)
+    accum = np.array([0.1], dtype=np.float32)
+    linear = np.array([-0.4], dtype=np.float32)
+    grad = np.array([0.7], dtype=np.float32)
+    lr = np.array(0.01, dtype=np.float32)
+    l1 = np.array(0.02, dtype=np.float32)
+    l2 = np.array(0.03, dtype=np.float32)
+    l2_shrinkage = np.array(0.001, dtype=np.float32)
+    lr_power = np.array(-0.5, dtype=np.float32)
+    use_locking = False
+    multiply_linear_by_lr = False
+    name = "ftrl_update_6"
+
+    input_dict = {
+        "var": var,
+        "accum": accum,
+        "linear": linear,
+        "grad": grad,
+        "lr": lr,
+        "l1": l1,
+        "l2": l2,
+        "l2_shrinkage": l2_shrinkage,
+        "lr_power": lr_power,
+        "use_locking": use_locking,
+        "multiply_linear_by_lr": multiply_linear_by_lr,
+        "name": name
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 7
+    var = np.array([1.0], dtype=np.float32)
+    accum = np.array([0.1], dtype=np.float32)
+    linear = np.array([0.4], dtype=np.float32)
+    grad = np.array([-0.7], dtype=np.float32)
+    lr = np.array(0.01, dtype=np.float32)
+    l1 = np.array(0.02, dtype=np.float32)
+    l2 = np.array(0.03, dtype=np.float32)
+    l2_shrinkage = np.array(0.001, dtype=np.float32)
+    lr_power = np.array(-0.5, dtype=np.float32)
+    use_locking = False
+    multiply_linear_by_lr = False
+    name = "ftrl_update_7"
+
+    input_dict = {
+        "var": var,
+        "accum": accum,
+        "linear": linear,
+        "grad": grad,
+        "lr": lr,
+        "l1": l1,
+        "l2": l2,
+        "l2_shrinkage": l2_shrinkage,
+        "lr_power": lr_power,
+        "use_locking": use_locking,
+        "multiply_linear_by_lr": multiply_linear_by_lr,
+        "name": name
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 8
+    var = np.array([1.0], dtype=np.float32)
+    accum = np.array([0.1], dtype=np.float32)
+    linear = np.array([0.4], dtype=np.float32)
+    grad = np.array([0.7], dtype=np.float32)
+    lr = np.array(0.01, dtype=np.float32)
+    l1 = np.array(0.02, dtype=np.float32)
+    l2 = np.array(0.03, dtype=np.float32)
+    l2_shrinkage = np.array(0.001, dtype=np.float32)
+    lr_power = np.array(-0.5, dtype=np.float32)
+    use_locking = False
+    multiply_linear_by_lr = False
+    name = "ftrl_update_8"
+
+    input_dict = {
+        "var": var,
+        "accum": accum,
+        "linear": linear,
+        "grad": grad,
+        "lr": lr,
+        "l1": l1,
+        "l2": l2,
+        "l2_shrinkage": l2_shrinkage,
+        "lr_power": lr_power,
+        "use_locking": use_locking,
+        "multiply_linear_by_lr": multiply_linear_by_lr,
+        "name": name
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 9
+    var = np.array([1.0], dtype=np.float32)
+    accum = np.array([0.1], dtype=np.float32)
+    linear = np.array([0.4], dtype=np.float32)
+    grad = np.array([0.7], dtype=np.float32)
+    lr = np.array(0.01, dtype=np.float32)
+    l1 = np.array(0.02, dtype=np.float32)
+    l2 = np.array(0.03, dtype=np.float32)
+    l2_shrinkage = np.array(0.001, dtype=np.float32)
+    lr_power = np.array(-0.5, dtype=np.float32)
+    use_locking = False
+    multiply_linear_by_lr = False
+    name = "ftrl_update_9"
+
+    input_dict = {
+        "var": var,
+        "accum": accum,
+        "linear": linear,
+        "grad": grad,
+        "lr": lr,
+        "l1": l1,
+        "l2": l2,
+        "l2_shrinkage": l2_shrinkage,
+        "lr_power": lr_power,
+        "use_locking": use_locking,
+        "multiply_linear_by_lr": multiply_linear_by_lr,
+        "name": name
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 10
+    var = np.array([1.0], dtype=np.float32)
+    accum = np.array([0.1], dtype=np.float32)
+    linear = np.array([0.4], dtype=np.float32)
+    grad = np.array([0.7], dtype=np.float32)
+    lr = np.array(0.01, dtype=np.float32)
+    l1 = np.array(0.02, dtype=np.float32)
+    l2 = np.array(0.03, dtype=np.float32)
+    l2_shrinkage = np.array(0.001, dtype=np.float32)
+    lr_power = np.array(-0.5, dtype=np.float32)
+    use_locking = False
+    multiply_linear_by_lr = False
+    name = "ftrl_update_10"
+
+    input_dict = {
+        "var": var,
+        "accum": accum,
+        "linear": linear,
+        "grad": grad,
+        "lr": lr,
+        "l1": l1,
+        "l2": l2,
+        "l2_shrinkage": l2_shrinkage,
+        "lr_power": lr_power,
+        "use_locking": use_locking,
+        "multiply_linear_by_lr": multiply_linear_by_lr,
+        "name": name
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs
 
-generated_inputs["tf.raw_ops.ApplyFtrlV2"] = get_tf_raw_ops_apply_ftrl_v2_inputs()
+generated_inputs = {}
+generated_inputs["tf.raw_ops.ApplyFtrlV2"] = tf_raw_ops_apply_ftrl_v2_inputs()
 
 def check_valid(api, list_of_inputs, lib="tf", suffix=0):
     for idx, input_dict in enumerate(list_of_inputs):
@@ -58,5 +333,9 @@ def check_valid(api, list_of_inputs, lib="tf", suffix=0):
 
 if 'tf.raw_ops.ApplyFtrlV2' not in generated_inputs:
     raise Exception("Output of the input generating function was not assigned to the generated_inputs dictionary to the key 'tf.raw_ops.ApplyFtrlV2'.")
+
+
+tf.config.experimental.enable_op_determinism()
+tf.random.set_seed(42)
 
 check_valid('tf.raw_ops.ApplyFtrlV2', generated_inputs['tf.raw_ops.ApplyFtrlV2'], lib="tf", suffix=0)

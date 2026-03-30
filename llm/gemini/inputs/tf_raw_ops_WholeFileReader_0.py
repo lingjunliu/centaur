@@ -5,102 +5,138 @@ from generator.input_generators import get_abstract_input
 generated_inputs = dict()
 
 import tensorflow as tf
-import numpy as np
 import copy
+import numpy as np
+
+tf.config.experimental.enable_op_determinism()
+tf.random.set_seed(42)
 
 def tf_raw_ops_WholeFileReader_inputs():
-    """
-    Generates a list of valid inputs for the tf.raw_ops.WholeFileReader operation.
-    The 'RuntimeError: whole_file_reader op does not support eager execution' is an
-    inherent limitation of this specific TensorFlow operation. It is designed to work
-    only within a TensorFlow Graph (like in TF1.x or a tf.function), not in the default
-    eager execution mode. The inputs provided here are syntactically correct for the
-    operation's intended graph-based usage.
-    """
     list_of_inputs = []
 
-    # Input 1: Default values for container and shared_name
+    # Input 1
+    container = b""
+    shared_name = b""
+    name = b"" if isinstance(None, type(None)) else "".encode('utf-8')
+
     input_dict = {
-        'container': '',
-        'shared_name': '',
-        'name': 'reader1'
+        "container": container,
+        "shared_name": shared_name,
+        "name": name
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 2: Only container specified
+    # Input 2
+    container = b"my_container"
+    shared_name = b"my_shared_name"
+    name = b"" if isinstance(None, type(None)) else "".encode('utf-8')
+
     input_dict = {
-        'container': 'my_container',
-        'shared_name': '',
-        'name': 'reader2'
+        "container": container,
+        "shared_name": shared_name,
+        "name": name
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 3: Only shared_name specified
+    # Input 3
+    container = b"another_container"
+    shared_name = b""
+    name = b"another_name"
+
     input_dict = {
-        'container': '',
-        'shared_name': 'my_shared_reader',
-        'name': 'reader3'
+        "container": container,
+        "shared_name": shared_name,
+        "name": name
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 4: Both container and shared_name specified
+    # Input 4
+    container = b""
+    shared_name = b"unique_shared_name"
+    name = b"" if isinstance(None, type(None)) else "".encode('utf-8')
+
     input_dict = {
-        'container': 'another_container',
-        'shared_name': 'another_shared_reader',
-        'name': 'reader4'
+        "container": container,
+        "shared_name": shared_name,
+        "name": name
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 5: All parameters are empty strings
+    # Input 5
+    container = b"container_5"
+    shared_name = b"shared_5"
+    name = b"" if isinstance(None, type(None)) else "".encode('utf-8')
+
     input_dict = {
-        'container': '',
-        'shared_name': '',
-        'name': ''
+        "container": container,
+        "shared_name": shared_name,
+        "name": name
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 6: Names containing numbers
+    # Input 6
+    container = b""
+    shared_name = b""
+    name = b"name_6"
+
     input_dict = {
-        'container': 'container_v1',
-        'shared_name': 'reader_2024',
-        'name': 'op_99'
+        "container": container,
+        "shared_name": shared_name,
+        "name": name
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 7: Mixed-case names
+     # Input 7
+    container = b"container_7"
+    shared_name = b""
+    name = b"" if isinstance(None, type(None)) else "".encode('utf-8')
+
     input_dict = {
-        'container': 'ProductionContainer',
-        'shared_name': 'GlobalFileReader',
-        'name': 'ReadOperation'
+        "container": container,
+        "shared_name": shared_name,
+        "name": name
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 8: Long, descriptive names
+    # Input 8
+    container = b""
+    shared_name = b"shared_8"
+    name = b"name_8"
+
     input_dict = {
-        'container': 'long_container_name_for_resource_isolation',
-        'shared_name': 'shared_reader_instance_for_all_pipelines',
-        'name': 'whole_file_reader_initialization_op'
+        "container": container,
+        "shared_name": shared_name,
+        "name": name
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 9: Using a shared name in the same container with a different op name
+    # Input 9
+    container = b"a_very_long_container_name"
+    shared_name = b"a_very_long_shared_name"
+    name = b"" if isinstance(None, type(None)) else "".encode('utf-8')
+
     input_dict = {
-        'container': 'another_container',
-        'shared_name': 'another_shared_reader',
-        'name': 'reader5'
+        "container": container,
+        "shared_name": shared_name,
+        "name": name
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 10: Single character names
+    # Input 10
+    container = b"container_10"
+    shared_name = b"shared_10"
+    name = b"name_10"
+
     input_dict = {
-        'container': 'a',
-        'shared_name': 'b',
-        'name': 'c'
+        "container": container,
+        "shared_name": shared_name,
+        "name": name
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs
 
+generated_inputs = {}
 generated_inputs["tf.raw_ops.WholeFileReader"] = tf_raw_ops_WholeFileReader_inputs()
 
 def check_valid(api, list_of_inputs, lib="tf", suffix=0):
@@ -115,5 +151,9 @@ def check_valid(api, list_of_inputs, lib="tf", suffix=0):
 
 if 'tf.raw_ops.WholeFileReader' not in generated_inputs:
     raise Exception("Output of the input generating function was not assigned to the generated_inputs dictionary to the key 'tf.raw_ops.WholeFileReader'.")
+
+
+tf.config.experimental.enable_op_determinism()
+tf.random.set_seed(42)
 
 check_valid('tf.raw_ops.WholeFileReader', generated_inputs['tf.raw_ops.WholeFileReader'], lib="tf", suffix=0)

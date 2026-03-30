@@ -6,127 +6,104 @@ generated_inputs = dict()
 
 import tensorflow as tf
 import numpy as np
+import copy
 
-def generate_inputs_for_tf_data_experimental_choose_from_datasets():
+tf.config.experimental.enable_op_determinism()
+tf.random.set_seed(42)
+
+def tf_data_experimental_choose_from_datasets_inputs():
     list_of_inputs = []
 
-    # Case 1: Basic example
-    datasets1 = [tf.data.Dataset.from_tensor_slices(np.array([1], dtype=np.int32)),
-                 tf.data.Dataset.from_tensor_slices(np.array([2], dtype=np.int32)),
-                 tf.data.Dataset.from_tensor_slices(np.array([3], dtype=np.int32))]
-    choice_dataset1 = tf.data.Dataset.from_tensor_slices(np.array([0, 1, 2, 0, 1, 2], dtype=np.int64))
-    input_dict1 = {
-        'datasets': datasets1,
-        'choice_dataset': choice_dataset1,
-        'stop_on_empty_dataset': False
-    }
-    list_of_inputs.append(input_dict1)
+    # Input 1: Basic example with three datasets and a choice dataset
+    datasets = [tf.data.Dataset.from_tensor_slices(np.array(["foo"])).take(5).cache(),
+                tf.data.Dataset.from_tensor_slices(np.array(["bar"])).take(5).cache(),
+                tf.data.Dataset.from_tensor_slices(np.array(["baz"])).take(5).cache()]
+    choice_dataset = tf.data.Dataset.from_tensor_slices(np.array([0, 1, 2, 0, 1, 2])).take(6).cache()
+    stop_on_empty_dataset = False
+    input_dict = {"datasets": datasets, "choice_dataset": choice_dataset, "stop_on_empty_dataset": stop_on_empty_dataset}
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Case 2: Using stop_on_empty_dataset=True
-    datasets2 = [tf.data.Dataset.from_tensor_slices(np.array([100, 101], dtype=np.int32)),
-                 tf.data.Dataset.from_tensor_slices(np.array([200, 201], dtype=np.int32))]
-    choice_dataset2 = tf.data.Dataset.from_tensor_slices(np.array([0, 1, 1, 0, 1], dtype=np.int64))
-    input_dict2 = {
-        'datasets': datasets2,
-        'choice_dataset': choice_dataset2,
-        'stop_on_empty_dataset': True
-    }
-    list_of_inputs.append(input_dict2)
+    # Input 2: Two datasets and a simple choice dataset
+    datasets = [tf.data.Dataset.from_tensor_slices(np.array([1])).take(5).cache(),
+                tf.data.Dataset.from_tensor_slices(np.array([2])).take(5).cache()]
+    choice_dataset = tf.data.Dataset.from_tensor_slices(np.array([0, 1])).take(6).cache()
+    stop_on_empty_dataset = True
+    input_dict = {"datasets": datasets, "choice_dataset": choice_dataset, "stop_on_empty_dataset": stop_on_empty_dataset}
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Case 3: Float data
-    datasets3 = [tf.data.Dataset.from_tensor_slices(np.array([1.1, 2.2, 3.3], dtype=np.float32)),
-                 tf.data.Dataset.from_tensor_slices(np.array([4.4, 5.5], dtype=np.float32))]
-    choice_dataset3 = tf.data.Dataset.from_tensor_slices(np.array([0, 1, 0, 1, 0, 1, 0], dtype=np.int64))
-    input_dict3 = {
-        'datasets': datasets3,
-        'choice_dataset': choice_dataset3,
-        'stop_on_empty_dataset': False
-    }
-    list_of_inputs.append(input_dict3)
+    # Input 3: Datasets with different data types
+    datasets = [tf.data.Dataset.from_tensor_slices(np.array([1.0])).take(5).cache(),
+                tf.data.Dataset.from_tensor_slices(np.array(["hello"])).take(5).cache()]
+    choice_dataset = tf.data.Dataset.from_tensor_slices(np.array([0, 1])).take(6).cache()
+    stop_on_empty_dataset = False
+    input_dict = {"datasets": datasets, "choice_dataset": choice_dataset, "stop_on_empty_dataset": stop_on_empty_dataset}
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Case 4: Complex structure (tuple of tensors)
-    datasets4 = [
-        tf.data.Dataset.from_tensor_slices((np.arange(3, dtype=np.int16), np.arange(3, 6, dtype=np.float16))),
-        tf.data.Dataset.from_tensor_slices((np.arange(10, 13, dtype=np.int16), np.arange(13, 16, dtype=np.float16)))
-    ]
-    choice_dataset4 = tf.data.Dataset.from_tensor_slices(np.array([0, 1, 0, 1], dtype=np.int64))
-    input_dict4 = {
-        'datasets': datasets4,
-        'choice_dataset': choice_dataset4,
-        'stop_on_empty_dataset': True
-    }
-    list_of_inputs.append(input_dict4)
+    # Input 4:  Choice dataset with larger range
+    datasets = [tf.data.Dataset.from_tensor_slices(np.array([1])).take(5).cache(),
+                tf.data.Dataset.from_tensor_slices(np.array([2])).take(5).cache(),
+                tf.data.Dataset.from_tensor_slices(np.array([3])).take(5).cache(),
+                tf.data.Dataset.from_tensor_slices(np.array([4])).take(5).cache()]
+    choice_dataset = tf.data.Dataset.from_tensor_slices(np.array([0, 1, 2, 3])).take(6).cache()
+    stop_on_empty_dataset = True
+    input_dict = {"datasets": datasets, "choice_dataset": choice_dataset, "stop_on_empty_dataset": stop_on_empty_dataset}
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Case 5: More datasets (5)
-    datasets5 = [tf.data.Dataset.from_tensor_slices(np.array([i], dtype=np.int32)) for i in range(5)]
-    choice_dataset5 = tf.data.Dataset.from_tensor_slices(np.tile(np.arange(5), 2).astype(np.int64))
-    input_dict5 = {
-        'datasets': datasets5,
-        'choice_dataset': choice_dataset5,
-        'stop_on_empty_dataset': False
-    }
-    list_of_inputs.append(input_dict5)
+    # Input 5: More complex choice dataset (more variety of choices)
+    datasets = [tf.data.Dataset.from_tensor_slices(np.array([[1, 2]])).take(5).cache(),
+                tf.data.Dataset.from_tensor_slices(np.array([[3, 4]])).take(5).cache()]
+    choice_dataset = tf.data.Dataset.from_tensor_slices(np.array([0, 0, 1, 1, 0, 1])).take(6).cache()
+    stop_on_empty_dataset = False
+    input_dict = {"datasets": datasets, "choice_dataset": choice_dataset, "stop_on_empty_dataset": stop_on_empty_dataset}
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Case 6: 2D array elements
-    datasets6 = [tf.data.Dataset.from_tensor_slices(np.ones((2, 2, 3), dtype=np.int16)),
-                 tf.data.Dataset.from_tensor_slices(np.zeros((3, 2, 3), dtype=np.int16))]
-    choice_dataset6 = tf.data.Dataset.from_tensor_slices(np.array([0, 1, 1, 0, 1], dtype=np.int64))
-    input_dict6 = {
-        'datasets': datasets6,
-        'choice_dataset': choice_dataset6,
-        'stop_on_empty_dataset': True
-    }
-    list_of_inputs.append(input_dict6)
+   # Input 6: Datasets with different shapes
+    datasets = [tf.data.Dataset.from_tensor_slices(np.array([1, 2, 3])).take(5).cache(),
+                tf.data.Dataset.from_tensor_slices(np.array([4])).take(5).cache()]
+    choice_dataset = tf.data.Dataset.from_tensor_slices(np.array([0, 1])).take(6).cache()
+    stop_on_empty_dataset = True
+    input_dict = {"datasets": datasets, "choice_dataset": choice_dataset, "stop_on_empty_dataset": stop_on_empty_dataset}
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Case 7: One dataset is empty
-    datasets7 = [tf.data.Dataset.from_tensor_slices(np.array([1, 2], dtype=np.int32)),
-                 tf.data.Dataset.from_tensor_slices(np.array([], dtype=np.int32)),
-                 tf.data.Dataset.from_tensor_slices(np.array([3, 4], dtype=np.int32))]
-    choice_dataset7 = tf.data.Dataset.from_tensor_slices(np.array([0, 2, 1, 0, 2, 1], dtype=np.int64))
-    input_dict7 = {
-        'datasets': datasets7,
-        'choice_dataset': choice_dataset7,
-        'stop_on_empty_dataset': False
-    }
-    list_of_inputs.append(input_dict7)
+    # Input 7: Larger choice dataset and more datasets
+    datasets = [tf.data.Dataset.from_tensor_slices(np.array([i])).take(5).cache() for i in range(3)]
+    choice_dataset = tf.data.Dataset.from_tensor_slices(np.array([i % 3 for i in range(9)])).take(12).cache()
+    stop_on_empty_dataset = False
+    input_dict = {"datasets": datasets, "choice_dataset": choice_dataset, "stop_on_empty_dataset": stop_on_empty_dataset}
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Case 8: All source datasets are empty
-    datasets8 = [tf.data.Dataset.from_tensor_slices(np.array([], dtype=np.float64)),
-                 tf.data.Dataset.from_tensor_slices(np.array([], dtype=np.float64))]
-    choice_dataset8 = tf.data.Dataset.from_tensor_slices(np.array([0, 1, 0, 1], dtype=np.int64))
-    input_dict8 = {
-        'datasets': datasets8,
-        'choice_dataset': choice_dataset8,
-        'stop_on_empty_dataset': False
-    }
-    list_of_inputs.append(input_dict8)
+    # Input 8: Choice dataset with non-repeating values
+    datasets = [tf.data.Dataset.from_tensor_slices(np.array([1])).take(5).cache(),
+                tf.data.Dataset.from_tensor_slices(np.array([2])).take(5).cache()]
+    choice_dataset = tf.data.Dataset.from_tensor_slices(np.array([0, 1, 0, 1])).take(4).cache()
+    stop_on_empty_dataset = True
+    input_dict = {"datasets": datasets, "choice_dataset": choice_dataset, "stop_on_empty_dataset": stop_on_empty_dataset}
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Case 9: Complex structure (dict of tensors)
-    datasets9 = [
-        tf.data.Dataset.from_tensor_slices({'a': np.array([1, 2]), 'b': np.array([[3, 3], [4, 4]])}),
-        tf.data.Dataset.from_tensor_slices({'a': np.array([5, 6]), 'b': np.array([[7, 7], [8, 8]])})
-    ]
-    choice_dataset9 = tf.data.Dataset.from_tensor_slices(np.array([1, 0, 1, 0], dtype=np.int64))
-    input_dict9 = {
-        'datasets': datasets9,
-        'choice_dataset': choice_dataset9,
-        'stop_on_empty_dataset': True
-    }
-    list_of_inputs.append(input_dict9)
+    # Input 9: Using a dataset that generates float and convert to integer
+    datasets = [tf.data.Dataset.from_tensor_slices(np.array([1])).take(5).cache(),
+                tf.data.Dataset.from_tensor_slices(np.array([2])).take(5).cache()]
 
-    # Case 10: Single dataset in the list
-    datasets10 = [tf.data.Dataset.from_tensor_slices(np.arange(10, dtype=np.uint8))]
-    choice_dataset10 = tf.data.Dataset.from_tensor_slices(np.zeros(5, dtype=np.int64))
-    input_dict10 = {
-        'datasets': datasets10,
-        'choice_dataset': choice_dataset10,
-        'stop_on_empty_dataset': False
-    }
-    list_of_inputs.append(input_dict10)
-    
+    float_choice_dataset = tf.data.Dataset.range(2).take(4)
+    choice_dataset = float_choice_dataset.map(lambda x: tf.cast(x, tf.int64)).cache()
+
+    stop_on_empty_dataset = False
+    input_dict = {"datasets": datasets, "choice_dataset": choice_dataset, "stop_on_empty_dataset": stop_on_empty_dataset}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 10: Using datasets of numpy arrays
+    datasets = [tf.data.Dataset.from_tensor_slices(np.array([[1,2],[3,4]])).take(5).cache(),
+                tf.data.Dataset.from_tensor_slices(np.array([[5,6],[7,8]])).take(5).cache()]
+    choice_dataset = tf.data.Dataset.from_tensor_slices(np.array([0, 1])).take(6).cache()
+    stop_on_empty_dataset = True
+    input_dict = {"datasets": datasets, "choice_dataset": choice_dataset, "stop_on_empty_dataset": stop_on_empty_dataset}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+
     return list_of_inputs
 
-generated_inputs["tf.data.experimental.choose_from_datasets"] = generate_inputs_for_tf_data_experimental_choose_from_datasets()
+generated_inputs = {}
+generated_inputs["tf.data.experimental.choose_from_datasets"] = tf_data_experimental_choose_from_datasets_inputs()
 
 def check_valid(api, list_of_inputs, lib="tf", suffix=0):
     for idx, input_dict in enumerate(list_of_inputs):
@@ -140,5 +117,9 @@ def check_valid(api, list_of_inputs, lib="tf", suffix=0):
 
 if 'tf.data.experimental.choose_from_datasets' not in generated_inputs:
     raise Exception("Output of the input generating function was not assigned to the generated_inputs dictionary to the key 'tf.data.experimental.choose_from_datasets'.")
+
+
+tf.config.experimental.enable_op_determinism()
+tf.random.set_seed(42)
 
 check_valid('tf.data.experimental.choose_from_datasets', generated_inputs['tf.data.experimental.choose_from_datasets'], lib="tf", suffix=0)

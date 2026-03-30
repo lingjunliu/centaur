@@ -8,129 +8,166 @@ import tensorflow as tf
 import numpy as np
 import copy
 
-def get_tf_raw_ops_quantized_relu6_inputs():
-    """
-    Generates a list of valid inputs for the tf.raw_ops.QuantizedRelu6 function.
-    The user's testing harness fails when presented with tf.Tensor objects
-    that have quantized dtypes (e.g., tf.qint8), resulting in a ValueError.
-    To resolve this specific error, all tensor inputs are provided strictly
-    in numpy format, as requested by the prompt.
-    """
+tf.config.experimental.enable_op_determinism()
+tf.random.set_seed(42)
+
+def tf_raw_ops_quantizedrelu6_inputs():
     list_of_inputs = []
 
-    # Input 1: quint8 case
+    # Input 1
+    features = np.array([-1, 0, 1, 2, 6, 7], dtype=np.int8)
+    min_features = np.array([0.0], dtype=np.float32)
+    max_features = np.array([6.0], dtype=np.float32)
+    out_type = tf.quint8
+
     input_dict = {
-        'features': np.array([0, 128, 153, 255], dtype=np.uint8),
-        'min_features': np.array(-10.0, dtype=np.float32),
-        'max_features': np.array(10.0, dtype=np.float32),
-        'out_type': tf.quint8,
-        'name': 'quint8_basic'
+        "features": tf.constant(features, dtype=tf.int8),
+        "min_features": min_features,
+        "max_features": max_features,
+        "out_type": out_type,
+        "name": "relu6_1"
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 2: qint8 case
+    # Input 2
+    features = np.array([[-2, -1, 0], [1, 2, 6]], dtype=np.int8)
+    min_features = np.array([0.0], dtype=np.float32)
+    max_features = np.array([6.0], dtype=np.float32)
+    out_type = tf.quint8
+
     input_dict = {
-        'features': np.array([-128, -25, 0, 100, 127], dtype=np.int8),
-        'min_features': np.array(-8.0, dtype=np.float32),
-        'max_features': np.array(8.0, dtype=np.float32),
-        'out_type': tf.qint8,
-        'name': 'qint8_basic'
+        "features": tf.constant(features, dtype=tf.uint8),
+        "min_features": min_features,
+        "max_features": max_features,
+        "out_type": out_type,
+        "name": "relu6_2"
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 3: 2D features with qint8
+    # Input 3
+    features = np.array([[[1, 2], [3, 4]], [[5, 6], [7, 8]]], dtype=np.int32)
+    min_features = np.array([1.0], dtype=np.float32)
+    max_features = np.array([7.0], dtype=np.float32)
+    out_type = tf.quint8
+
     input_dict = {
-        'features': np.array([[-128, 0], [100, 127]], dtype=np.int8),
-        'min_features': np.array(0.0, dtype=np.float32),
-        'max_features': np.array(8.0, dtype=np.float32),
-        'out_type': tf.qint8,
-        'name': '2d_qint8'
+        "features": tf.constant(features, dtype=tf.int32),
+        "min_features": min_features,
+        "max_features": max_features,
+        "out_type": out_type,
+        "name": "relu6_3"
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 4: qint16 type
+    # Input 4
+    features = np.array([10, 20, 30, 40], dtype=np.int16)
+    min_features = np.array([5.0], dtype=np.float32)
+    max_features = np.array([35.0], dtype=np.float32)
+    out_type = tf.quint8
+
     input_dict = {
-        'features': np.array([-32768, 0, 10000, 32767], dtype=np.int16),
-        'min_features': np.array(-30.0, dtype=np.float32),
-        'max_features': np.array(30.0, dtype=np.float32),
-        'out_type': tf.qint16,
-        'name': 'qint16_test'
+        "features": tf.constant(features, dtype=tf.int16),
+        "min_features": min_features,
+        "max_features": max_features,
+        "out_type": out_type,
+        "name": "relu6_4"
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 5: quint16 type with 3D tensor
+    # Input 5
+    features = np.array([0, 0, 10, 20], dtype=np.uint16)
+    min_features = np.array([0.0], dtype=np.float32)
+    max_features = np.array([25.0], dtype=np.float32)
+    out_type = tf.quint8
+
     input_dict = {
-        'features': np.array([[[0, 1000], [32767, 40000]], [[50000, 60000], [65535, 20000]]], dtype=np.uint16),
-        'min_features': np.array(0.0, dtype=np.float32),
-        'max_features': np.array(12.0, dtype=np.float32),
-        'out_type': tf.quint16,
-        'name': 'quint16_3d_test'
+        "features":  tf.constant(features, dtype=tf.uint16),
+        "min_features": min_features,
+        "max_features": max_features,
+        "out_type": out_type,
+        "name": "relu6_5"
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 6: qint32 type
+    # Input 6
+    features = np.array([[-1, 0, 1], [2, 3, 4]], dtype=np.int8)
+    min_features = np.array([-2.0], dtype=np.float32)
+    max_features = np.array([5.0], dtype=np.float32)
+    out_type = tf.quint8
+
     input_dict = {
-        'features': np.array([-2147483648, -10000, 0, 128849018, 2147483647], dtype=np.int32),
-        'min_features': np.array(-100.0, dtype=np.float32),
-        'max_features': np.array(100.0, dtype=np.float32),
-        'out_type': tf.qint32,
-        'name': 'qint32_test'
+        "features": tf.constant(features, dtype=tf.int8),
+        "min_features": min_features,
+        "max_features": max_features,
+        "out_type": out_type,
+        "name": "relu6_6"
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 7: Different out_type from features type (int32 to quint8)
+    # Input 7
+    features = np.array([1, 2, 3, 4, 5, 6, 6, 6], dtype=np.uint8)
+    min_features = np.array([1.0], dtype=np.float32)
+    max_features = np.array([6.0], dtype=np.float32)
+    out_type = tf.quint8
+
     input_dict = {
-        'features': np.array([-100, 0, 100, 200], dtype=np.int32),
-        'min_features': np.array(-100.0, dtype=np.float32),
-        'max_features': np.array(100.0, dtype=np.float32),
-        'out_type': tf.quint8,
-        'name': 'int32_to_quint8'
+        "features": tf.constant(features, dtype=tf.uint8),
+        "min_features": min_features,
+        "max_features": max_features,
+        "out_type": out_type,
+        "name": "relu6_7"
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 8: Empty features tensor
+    # Input 8
+    features = np.array([[[1, 2], [3, 4]], [[5, 6], [6, 6]]], dtype=np.int32)
+    min_features = np.array([0.0], dtype=np.float32)
+    max_features = np.array([6.0], dtype=np.float32)
+    out_type = tf.quint8
+
     input_dict = {
-        'features': np.array([], dtype=np.int8),
-        'min_features': np.array(-1.0, dtype=np.float32),
-        'max_features': np.array(1.0, dtype=np.float32),
-        'out_type': tf.qint8,
-        'name': 'empty_features'
+        "features": tf.constant(features, dtype=tf.int32),
+        "min_features": min_features,
+        "max_features": max_features,
+        "out_type": out_type,
+        "name": "relu6_8"
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 9: All values clipped below 0.0
+    # Input 9
+    features = np.array([-1, 2, 3], dtype=np.int16)
+    min_features = np.array([-1.0], dtype=np.float32)
+    max_features = np.array([7.0], dtype=np.float32)
+    out_type = tf.quint8
+
     input_dict = {
-        'features': np.array([0, 128, 255], dtype=np.uint8),
-        'min_features': np.array(-10.0, dtype=np.float32),
-        'max_features': np.array(-5.0, dtype=np.float32),
-        'out_type': tf.quint8,
-        'name': 'all_clipped_below'
+        "features": tf.constant(features, dtype=tf.int16),
+        "min_features": min_features,
+        "max_features": max_features,
+        "out_type": out_type,
+        "name": "relu6_9"
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 10: Range is exactly [0, 6]
-    input_dict = {
-        'features': np.array([0, 128, 255], dtype=np.uint8),
-        'min_features': np.array(0.0, dtype=np.float32),
-        'max_features': np.array(6.0, dtype=np.float32),
-        'out_type': tf.quint8,
-        'name': 'range_0_to_6'
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
+     # Input 10
+    features = np.array([0, 1, 2, 3, 4, 5, 6, 7, 8, 9], dtype=np.uint16)
+    min_features = np.array([0.0], dtype=np.float32)
+    max_features = np.array([6.0], dtype=np.float32)
+    out_type = tf.quint8
 
-    # Input 11: Scalar features
     input_dict = {
-        'features': np.array(100, dtype=np.int8),
-        'min_features': np.array(-10.0, dtype=np.float32),
-        'max_features': np.array(10.0, dtype=np.float32),
-        'out_type': tf.qint8,
-        'name': 'scalar_qint8'
+        "features": tf.constant(features, dtype=tf.uint16),
+        "min_features": min_features,
+        "max_features": max_features,
+        "out_type": out_type,
+        "name": "relu6_10"
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs
 
-generated_inputs["tf.raw_ops.QuantizedRelu6"] = get_tf_raw_ops_quantized_relu6_inputs()
+generated_inputs = {}
+generated_inputs["tf.raw_ops.QuantizedRelu6"] = tf_raw_ops_quantizedrelu6_inputs()
 
 def check_valid(api, list_of_inputs, lib="tf", suffix=0):
     for idx, input_dict in enumerate(list_of_inputs):
@@ -144,5 +181,9 @@ def check_valid(api, list_of_inputs, lib="tf", suffix=0):
 
 if 'tf.raw_ops.QuantizedRelu6' not in generated_inputs:
     raise Exception("Output of the input generating function was not assigned to the generated_inputs dictionary to the key 'tf.raw_ops.QuantizedRelu6'.")
+
+
+tf.config.experimental.enable_op_determinism()
+tf.random.set_seed(42)
 
 check_valid('tf.raw_ops.QuantizedRelu6', generated_inputs['tf.raw_ops.QuantizedRelu6'], lib="tf", suffix=0)

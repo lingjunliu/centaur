@@ -4,41 +4,70 @@ from generator.input_generators import get_abstract_input
 
 generated_inputs = dict()
 
+import tensorflow as tf
 import numpy as np
 import copy
 
-def get_tf_raw_ops_getsessionhandlev2_inputs():
-    """
-    Generates a list of valid inputs for the tf.raw_ops.GetSessionHandleV2 function.
+tf.config.experimental.enable_op_determinism()
+tf.random.set_seed(42)
 
-    The recurring 'FailedPreconditionError: GetSessionHandle called on null session state'
-    is an environmental issue, not an input issue. This raw operation is designed for
-    TensorFlow's session-based execution model (e.g., TF1.x), where it stores a tensor
-    within an active session. When run in the default eager execution mode of modern
-    TensorFlow (TF2.x), no such session exists, causing this unavoidable error. No modification
-    of the input numpy array ('value') or the 'name' can fix this fundamental
-    incompatibility between the operation and the execution environment. This function
-    provides a minimal set of syntactically correct inputs as a best-effort response.
-    """
+def tf_raw_ops_GetSessionHandleV2_inputs():
     list_of_inputs = []
 
-    # Input 1: A single, minimal, valid input.
-    input_dict_1 = {
-        'value': np.array([42.0], dtype=np.float32),
-        'name': 'the_only_handle'
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict_1))
-    
-    # Input 2: Another single, minimal, valid input with a different type.
-    input_dict_2 = {
-        'value': np.array([10], dtype=np.int32),
-        'name': 'another_handle'
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict_2))
+    # Input 1: Basic integer tensor
+    value = np.array([1, 2, 3], dtype=np.int32)
+    input_dict = {"value": value, "name": "handle1"}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 2: Float tensor
+    value = np.array([1.5, 2.5, 3.5], dtype=np.float32)
+    input_dict = {"value": value, "name": "handle2"}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 3: 2D integer tensor
+    value = np.array([[1, 2], [3, 4]], dtype=np.int64)
+    input_dict = {"value": value, "name": "handle3"}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 4: Boolean tensor
+    value = np.array([True, False, True], dtype=np.bool_)
+    input_dict = {"value": value, "name": "handle4"}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 5: String tensor (bytes)
+    value = np.array([b"hello", b"world"])
+    input_dict = {"value": value, "name": "handle5"}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 6: Empty tensor
+    value = np.array([], dtype=np.int32)
+    input_dict = {"value": value, "name": "handle6"}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 7: 3D float tensor
+    value = np.array([[[1.0, 2.0], [3.0, 4.0]], [[5.0, 6.0], [7.0, 8.0]]], dtype=np.float64)
+    input_dict = {"value": value, "name": "handle7"}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 8: Negative integer values
+    value = np.array([-1, -2, -3], dtype=np.int32)
+    input_dict = {"value": value, "name": "handle8"}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 9: Large integer values
+    value = np.array([2**31-1, -(2**31)], dtype=np.int64)
+    input_dict = {"value": value, "name": "handle9"}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 10: Tensor with a different shape
+    value = np.array([[1, 2, 3], [4, 5, 6], [7,8,9]], dtype=np.int32)
+    input_dict = {"value": value, "name": "handle10"}
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs
 
-generated_inputs["tf.raw_ops.GetSessionHandleV2"] = get_tf_raw_ops_getsessionhandlev2_inputs()
+generated_inputs = {}
+generated_inputs["tf.raw_ops.GetSessionHandleV2"] = tf_raw_ops_GetSessionHandleV2_inputs()
 
 def check_valid(api, list_of_inputs, lib="tf", suffix=0):
     for idx, input_dict in enumerate(list_of_inputs):
@@ -52,5 +81,9 @@ def check_valid(api, list_of_inputs, lib="tf", suffix=0):
 
 if 'tf.raw_ops.GetSessionHandleV2' not in generated_inputs:
     raise Exception("Output of the input generating function was not assigned to the generated_inputs dictionary to the key 'tf.raw_ops.GetSessionHandleV2'.")
+
+
+tf.config.experimental.enable_op_determinism()
+tf.random.set_seed(42)
 
 check_valid('tf.raw_ops.GetSessionHandleV2', generated_inputs['tf.raw_ops.GetSessionHandleV2'], lib="tf", suffix=0)

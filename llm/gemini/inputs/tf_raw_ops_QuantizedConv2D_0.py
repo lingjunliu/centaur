@@ -8,116 +8,296 @@ import tensorflow as tf
 import numpy as np
 import copy
 
-def get_tf_raw_ops_quantized_conv2d_inputs():
-    """
-    Generates a list of valid inputs for the tf.raw_ops.QuantizedConv2D function.
-    """
+tf.config.experimental.enable_op_determinism()
+tf.random.set_seed(42)
+
+def tf_raw_ops_QuantizedConv2D_inputs():
     list_of_inputs = []
 
-    # Helper to create the structured dictionary
-    def create_input_dict(input_tensor, filter_tensor, min_input, max_input, min_filter, max_filter, strides, padding, out_type, dilations, name):
-        return {
-            'input': input_tensor,
-            'filter': filter_tensor,
-            'min_input': np.array(min_input, dtype=np.float32),
-            'max_input': np.array(max_input, dtype=np.float32),
-            'min_filter': np.array(min_filter, dtype=np.float32),
-            'max_filter': np.array(max_filter, dtype=np.float32),
-            'strides': strides,
-            'padding': padding,
-            'out_type': out_type,
-            'dilations': dilations,
-            'name': name
-        }
+    # Input 1
+    input_tensor = np.array([[[[1, 2]], [[3, 4]]]], dtype=np.qint8)
+    filter_tensor = np.array([[[[1]], [[2]]]], dtype=np.qint8)
+    min_input_tensor = np.float32(0.0)
+    max_input_tensor = np.float32(5.0)
+    min_filter_tensor = np.float32(-1.0)
+    max_filter_tensor = np.float32(2.0)
+    strides_val = [1, 1, 1, 1]
+    padding_val = "VALID"
+    out_type_val = tf.qint32
+    dilations_val = [1, 1, 1, 1]
+    name_val = "conv1"
 
-    # The fundamental issue is that TensorFlow distinguishes between `tf.uint8` and `tf.quint8`.
-    # `tf.raw_ops.QuantizedConv2D` requires the latter. However, there is no standard way
-    # to create a numpy array that automatically converts to a `tf.quint8` tensor.
-    # The `tf.quint8.as_numpy_dtype` creates a structured dtype that the test harness rejects.
-    # The following inputs use standard numpy dtypes (np.uint8, np.int8), which will be
-    # converted to `tf.uint8` and `tf.int8`, likely causing an InvalidArgumentError from TF.
-    # This is an inherent limitation of trying to call this low-level op with numpy arrays.
-    # We provide combinations of types that correspond to existing C++ kernels.
+    input_dict = {
+        "input": input_tensor,
+        "filter": filter_tensor,
+        "min_input": min_input_tensor,
+        "max_input": max_input_tensor,
+        "min_filter": min_filter_tensor,
+        "max_filter": max_filter_tensor,
+        "strides": strides_val,
+        "padding": padding_val,
+        "out_type": out_type_val,
+        "dilations": dilations_val,
+        "name": name_val
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Based on available kernels like QuantizedConv2D<CPUDevice, quint8, qint8, qint32, ...>
-    # Try Tinput=quint8 (np.uint8), Tfilter=qint8 (np.int8), out_type=qint32
+    # Input 2
+    input_tensor = np.array([[[[1, 2, 3], [4, 5, 6]]]], dtype=np.quint8)
+    filter_tensor = np.array([[[[1], [2]], [[3], [4]]]], dtype=np.quint8)
+    min_input_tensor = np.float32(0.0)
+    max_input_tensor = np.float32(255.0)
+    min_filter_tensor = np.float32(0.0)
+    max_filter_tensor = np.float32(255.0)
+    strides_val = [1, 2, 2, 1]
+    padding_val = "SAME"
+    out_type_val = tf.qint16
+    dilations_val = [1, 1, 1, 1]
+    name_val = "conv2"
 
-    # Input 1: Basic quint8 input, qint8 filter
-    input_1 = np.random.randint(0, 256, size=(1, 4, 4, 1)).astype(np.uint8)
-    filter_1 = np.random.randint(-128, 128, size=(2, 2, 1, 2)).astype(np.int8)
-    list_of_inputs.append(copy.deepcopy(create_input_dict(
-        input_1, filter_1, 0.0, 255.0, -127.0, 127.0, [1, 1, 1, 1], "VALID", tf.qint32, [1, 1, 1, 1], "test_quint8_qint8"
-    )))
+    input_dict = {
+        "input": input_tensor,
+        "filter": filter_tensor,
+        "min_input": min_input_tensor,
+        "max_input": max_input_tensor,
+        "min_filter": min_filter_tensor,
+        "max_filter": max_filter_tensor,
+        "strides": strides_val,
+        "padding": padding_val,
+        "out_type": out_type_val,
+        "dilations": dilations_val,
+        "name": name_val
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 2: SAME padding
-    input_2 = np.random.randint(0, 256, size=(1, 5, 5, 3)).astype(np.uint8)
-    filter_2 = np.random.randint(-128, 128, size=(3, 3, 3, 4)).astype(np.int8)
-    list_of_inputs.append(copy.deepcopy(create_input_dict(
-        input_2, filter_2, 0.0, 10.0, -5.0, 5.0, [1, 1, 1, 1], "SAME", tf.qint32, [1, 1, 1, 1], "test_same_padding"
-    )))
+    # Input 3
+    input_tensor = np.array([[[[[1, 2], [3, 4]]]], [[[[5, 6], [7, 8]]]]], dtype=np.qint8)
+    filter_tensor = np.array([[[[[1], [2]]]], [[[[3], [4]]]]], dtype=np.qint8)
+    min_input_tensor = np.float32(-10.0)
+    max_input_tensor = np.float32(10.0)
+    min_filter_tensor = np.float32(-5.0)
+    max_filter_tensor = np.float32(5.0)
+    strides_val = [1, 1, 1, 1]
+    padding_val = "VALID"
+    out_type_val = tf.quint8
+    dilations_val = [1, 2, 2, 1]
+    name_val = "conv3"
 
-    # Input 3: With strides
-    input_3 = np.random.randint(0, 256, size=(1, 8, 8, 1)).astype(np.uint8)
-    filter_3 = np.random.randint(-128, 128, size=(3, 3, 1, 2)).astype(np.int8)
-    list_of_inputs.append(copy.deepcopy(create_input_dict(
-        input_3, filter_3, -10.0, 245.0, -100.0, 100.0, [1, 2, 2, 1], "VALID", tf.qint32, [1, 1, 1, 1], "test_strides"
-    )))
+    input_dict = {
+        "input": input_tensor,
+        "filter": filter_tensor,
+        "min_input": min_input_tensor,
+        "max_input": max_input_tensor,
+        "min_filter": min_filter_tensor,
+        "max_filter": max_filter_tensor,
+        "strides": strides_val,
+        "padding": padding_val,
+        "out_type": out_type_val,
+        "dilations": dilations_val,
+        "name": name_val
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 4: With dilations
-    input_4 = np.random.randint(0, 256, size=(1, 10, 10, 1)).astype(np.uint8)
-    filter_4 = np.random.randint(-128, 128, size=(3, 3, 1, 2)).astype(np.int8)
-    list_of_inputs.append(copy.deepcopy(create_input_dict(
-        input_4, filter_4, 0.0, 255.0, -127.0, 127.0, [1, 1, 1, 1], "VALID", tf.qint32, [1, 2, 2, 1], "test_dilations"
-    )))
+    # Input 4
+    input_tensor = np.array([[[[1, 2, 3], [4, 5, 6]]]], dtype=np.quint16)
+    filter_tensor = np.array([[[[1], [2]], [[3], [4]]]], dtype=np.quint16)
+    min_input_tensor = np.float32(0.0)
+    max_input_tensor = np.float32(65535.0)
+    min_filter_tensor = np.float32(0.0)
+    max_filter_tensor = np.float32(65535.0)
+    strides_val = [1, 2, 2, 1]
+    padding_val = "SAME"
+    out_type_val = tf.qint32
+    dilations_val = [1, 1, 1, 1]
+    name_val = "conv4"
 
-    # Kernel for Tinput=qint8, Tfilter=qint8, out_type=qint32 exists
-    # Input 5: qint8 input, qint8 filter
-    input_5 = np.random.randint(-128, 128, size=(1, 4, 4, 2)).astype(np.int8)
-    filter_5 = np.random.randint(-128, 128, size=(2, 2, 2, 3)).astype(np.int8)
-    list_of_inputs.append(copy.deepcopy(create_input_dict(
-        input_5, filter_5, -128.0, 127.0, -128.0, 127.0, [1, 1, 1, 1], "VALID", tf.qint32, [1, 1, 1, 1], "test_qint8_qint8"
-    )))
+    input_dict = {
+        "input": input_tensor,
+        "filter": filter_tensor,
+        "min_input": min_input_tensor,
+        "max_input": max_input_tensor,
+        "min_filter": min_filter_tensor,
+        "max_filter": max_filter_tensor,
+        "strides": strides_val,
+        "padding": padding_val,
+        "out_type": out_type_val,
+        "dilations": dilations_val,
+        "name": name_val
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Kernel for Tinput=quint8, Tfilter=quint8, out_type=quint8 exists
-    # Input 6: Tinput=quint8, Tfilter=quint8, out_type=quint8
-    input_6 = np.random.randint(0, 256, size=(1, 3, 3, 2)).astype(np.uint8)
-    filter_6 = np.random.randint(0, 256, size=(2, 2, 2, 4)).astype(np.uint8)
-    list_of_inputs.append(copy.deepcopy(create_input_dict(
-        input_6, filter_6, 0.0, 255.0, 0.0, 255.0, [1, 1, 1, 1], "VALID", tf.quint8, [1, 1, 1, 1], "test_quint8_all"
-    )))
+    # Input 5
+    input_tensor = np.array([[[[[1, 2], [3, 4]]]], [[[[5, 6], [7, 8]]]]], dtype=np.qint32)
+    filter_tensor = np.array([[[[[1], [2]]]], [[[[3], [4]]]]], dtype=np.qint32)
+    min_input_tensor = np.float32(-100.0)
+    max_input_tensor = np.float32(100.0)
+    min_filter_tensor = np.float32(-50.0)
+    max_filter_tensor = np.float32(50.0)
+    strides_val = [1, 1, 1, 1]
+    padding_val = "VALID"
+    out_type_val = tf.quint16
+    dilations_val = [1, 3, 3, 1]
+    name_val = "conv5"
 
-    # Input 7: Larger dimensions with qint8
-    input_7 = np.random.randint(-128, 128, size=(2, 16, 16, 3)).astype(np.int8)
-    filter_7 = np.random.randint(-128, 128, size=(5, 5, 3, 8)).astype(np.int8)
-    list_of_inputs.append(copy.deepcopy(create_input_dict(
-        input_7, filter_7, -100.0, 100.0, -50.0, 50.0, [1, 2, 2, 1], "SAME", tf.qint32, [1, 1, 1, 1], "test_larger_qint8"
-    )))
+    input_dict = {
+        "input": input_tensor,
+        "filter": filter_tensor,
+        "min_input": min_input_tensor,
+        "max_input": max_input_tensor,
+        "min_filter": min_filter_tensor,
+        "max_filter": max_filter_tensor,
+        "strides": strides_val,
+        "padding": padding_val,
+        "out_type": out_type_val,
+        "dilations": dilations_val,
+        "name": name_val
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 8: non-1 batch and depth
-    input_8 = np.random.randint(0, 256, size=(4, 6, 6, 2)).astype(np.uint8)
-    filter_8 = np.random.randint(-128, 128, size=(3, 3, 2, 5)).astype(np.int8)
-    list_of_inputs.append(copy.deepcopy(create_input_dict(
-        input_8, filter_8, 0.0, 255.0, -127.0, 127.0, [1, 1, 1, 1], "VALID", tf.qint32, [1, 1, 1, 1], "test_batch_depth"
-    )))
+    # Input 6
+    input_tensor = np.array([[[[1, 2]], [[3, 4]]]], dtype=np.qint16)
+    filter_tensor = np.array([[[[1]], [[2]]]], dtype=np.qint16)
+    min_input_tensor = np.float32(-10.0)
+    max_input_tensor = np.float32(10.0)
+    min_filter_tensor = np.float32(-5.0)
+    max_filter_tensor = np.float32(5.0)
+    strides_val = [1, 1, 1, 1]
+    padding_val = "VALID"
+    out_type_val = tf.qint8
+    dilations_val = [1, 1, 1, 1]
+    name_val = "conv6"
 
-    # Input 9: Non-square filter
-    input_9 = np.random.randint(0, 256, size=(1, 7, 7, 1)).astype(np.uint8)
-    filter_9 = np.random.randint(-128, 128, size=(1, 3, 1, 2)).astype(np.int8)
-    list_of_inputs.append(copy.deepcopy(create_input_dict(
-        input_9, filter_9, 0.0, 1.0, -1.0, 1.0, [1, 1, 1, 1], "VALID", tf.qint32, [1, 1, 1, 1], "test_nonsquare_filter"
-    )))
+    input_dict = {
+        "input": input_tensor,
+        "filter": filter_tensor,
+        "min_input": min_input_tensor,
+        "max_input": max_input_tensor,
+        "min_filter": min_filter_tensor,
+        "max_filter": max_filter_tensor,
+        "strides": strides_val,
+        "padding": padding_val,
+        "out_type": out_type_val,
+        "dilations": dilations_val,
+        "name": name_val
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Kernel for out_type=qint8 requires Tinput=qint8, Tfilter=qint8
-    # Input 10: out_type qint8
-    input_10 = np.random.randint(-128, 128, size=(1, 5, 5, 3)).astype(np.int8)
-    filter_10 = np.random.randint(-128, 128, size=(3, 3, 3, 4)).astype(np.int8)
-    list_of_inputs.append(copy.deepcopy(create_input_dict(
-        input_10, filter_10, -128.0, 127.0, -128.0, 127.0, [1, 1, 1, 1], "VALID", tf.qint8, [1, 1, 1, 1], "test_out_qint8"
-    )))
-    
+    # Input 7
+    input_tensor = np.array([[[[1, 2, 3], [4, 5, 6]]]], dtype=np.qint8)
+    filter_tensor = np.array([[[[1], [2]], [[3], [4]]]], dtype=np.qint8)
+    min_input_tensor = np.float32(-128.0)
+    max_input_tensor = np.float32(127.0)
+    min_filter_tensor = np.float32(-128.0)
+    max_filter_tensor = np.float32(127.0)
+    strides_val = [1, 2, 2, 1]
+    padding_val = "SAME"
+    out_type_val = tf.qint32
+    dilations_val = [1, 1, 1, 1]
+    name_val = "conv7"
+
+    input_dict = {
+        "input": input_tensor,
+        "filter": filter_tensor,
+        "min_input": min_input_tensor,
+        "max_input": max_input_tensor,
+        "min_filter": min_filter_tensor,
+        "max_filter": max_filter_tensor,
+        "strides": strides_val,
+        "padding": padding_val,
+        "out_type": out_type_val,
+        "dilations": dilations_val,
+        "name": name_val
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 8
+    input_tensor = np.array([[[[[1, 2], [3, 4]]]], [[[[5, 6], [7, 8]]]]], dtype=np.quint8)
+    filter_tensor = np.array([[[[[1], [2]]]], [[[[3], [4]]]]], dtype=np.quint8)
+    min_input_tensor = np.float32(0.0)
+    max_input_tensor = np.float32(255.0)
+    min_filter_tensor = np.float32(0.0)
+    max_filter_tensor = np.float32(255.0)
+    strides_val = [1, 1, 1, 1]
+    padding_val = "VALID"
+    out_type_val = tf.qint16
+    dilations_val = [1, 2, 2, 1]
+    name_val = "conv8"
+
+    input_dict = {
+        "input": input_tensor,
+        "filter": filter_tensor,
+        "min_input": min_input_tensor,
+        "max_input": max_input_tensor,
+        "min_filter": min_filter_tensor,
+        "max_filter": max_filter_tensor,
+        "strides": strides_val,
+        "padding": padding_val,
+        "out_type": out_type_val,
+        "dilations": dilations_val,
+        "name": name_val
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+   # Input 9
+    input_tensor = np.array([[[[[1, 2], [3, 4]]]], [[[[5, 6], [7, 8]]]]], dtype=np.qint32)
+    filter_tensor = np.array([[[[[1], [2]]]], [[[[3], [4]]]]], dtype=np.qint32)
+    min_input_tensor = np.float32(-2147483648.0)
+    max_input_tensor = np.float32(2147483647.0)
+    min_filter_tensor = np.float32(-2147483648.0)
+    max_filter_tensor = np.float32(2147483647.0)
+    strides_val = [1, 1, 1, 1]
+    padding_val = "VALID"
+    out_type_val = tf.quint16
+    dilations_val = [1, 3, 3, 1]
+    name_val = "conv9"
+
+    input_dict = {
+        "input": input_tensor,
+        "filter": filter_tensor,
+        "min_input": min_input_tensor,
+        "max_input": max_input_tensor,
+        "min_filter": min_filter_tensor,
+        "max_filter": max_filter_tensor,
+        "strides": strides_val,
+        "padding": padding_val,
+        "out_type": out_type_val,
+        "dilations": dilations_val,
+        "name": name_val
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 10
+    input_tensor = np.array([[[[1, 2]], [[3, 4]]]], dtype=np.qint8)
+    filter_tensor = np.array([[[[1]], [[2]]]], dtype=np.qint8)
+    min_input_tensor = np.float32(0.0)
+    max_input_tensor = np.float32(5.0)
+    min_filter_tensor = np.float32(-1.0)
+    max_filter_tensor = np.float32(2.0)
+    strides_val = [1, 1, 1, 1]
+    padding_val = "VALID"
+    out_type_val = tf.qint32
+    dilations_val = [1, 1, 1, 1]
+    name_val = "conv10"
+
+    input_dict = {
+        "input": input_tensor,
+        "filter": filter_tensor,
+        "min_input": min_input_tensor,
+        "max_input": max_input_tensor,
+        "min_filter": min_filter_tensor,
+        "max_filter": max_filter_tensor,
+        "strides": strides_val,
+        "padding": padding_val,
+        "out_type": out_type_val,
+        "dilations": dilations_val,
+        "name": name_val
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
     return list_of_inputs
 
-generated_inputs["tf.raw_ops.QuantizedConv2D"] = get_tf_raw_ops_quantized_conv2d_inputs()
+generated_inputs = {}
+generated_inputs["tf.raw_ops.QuantizedConv2D"] = tf_raw_ops_QuantizedConv2D_inputs()
 
 def check_valid(api, list_of_inputs, lib="tf", suffix=0):
     for idx, input_dict in enumerate(list_of_inputs):
@@ -131,5 +311,9 @@ def check_valid(api, list_of_inputs, lib="tf", suffix=0):
 
 if 'tf.raw_ops.QuantizedConv2D' not in generated_inputs:
     raise Exception("Output of the input generating function was not assigned to the generated_inputs dictionary to the key 'tf.raw_ops.QuantizedConv2D'.")
+
+
+tf.config.experimental.enable_op_determinism()
+tf.random.set_seed(42)
 
 check_valid('tf.raw_ops.QuantizedConv2D', generated_inputs['tf.raw_ops.QuantizedConv2D'], lib="tf", suffix=0)

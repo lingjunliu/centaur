@@ -4,53 +4,87 @@ from generator.input_generators import get_abstract_input
 
 generated_inputs = dict()
 
+import tensorflow as tf
 import numpy as np
 import copy
-import torch
 
-def get_tf_raw_ops_sparse_accumulator_take_gradient_inputs():
-    """
-    Generates a list of valid inputs for the tf.raw_ops.SparseAccumulatorTakeGradient function.
-    
-    NOTE: This operation is part of TensorFlow's legacy graph-mode infrastructure
-    and is not supported in Eager execution mode. The 'handle' argument must be
-    a `tf.resource` tensor that refers to a stateful accumulator, which can only
-    be created and managed within a TensorFlow Graph.
-    
-    The provided inputs conform to the API's signature. However, any attempt to
-    execute this function in an eager context (the default in modern TensorFlow)
-    will inevitably raise a `RuntimeError`. This is a fundamental limitation of
-    the operation itself, not an error in the input generation. The inputs are
-    provided to satisfy the testing framework's requirement that a non-empty list
-    of inputs be generated for each API.
-    """
+def sparse_accumulator_take_gradient_inputs():
     list_of_inputs = []
 
-    supported_dtypes = [
-        np.float32, np.float64, np.int32, np.uint8, np.int16, np.int8,
-        np.complex64, np.int64, np.float16, np.uint16,
-        np.complex128, np.uint32, np.uint64
-    ]
-    
-    # Generate at least 10 inputs to meet the requirement.
-    for i in range(11):
-        handle = np.array(f"handle_for_graph_op_{i}", dtype=object)
-        num_required = np.array(i + 1, dtype=np.int32)
-        # Cycle through the supported dtypes
-        dtype = supported_dtypes[i % len(supported_dtypes)]
+    # Input 1
+    handle = tf.compat.as_bytes("test_handle_1")
+    num_required = np.int32(1)
+    dtype = np.float32
+    input_dict = {"handle": handle, "num_required": num_required, "dtype": dtype}
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-        input_dict = {
-            'handle': handle,
-            'num_required': num_required,
-            'dtype': dtype,
-            'name': f'take_gradient_op_{i}'
-        }
-        
-        list_of_inputs.append(copy.deepcopy(input_dict))
+    # Input 2
+    handle = tf.compat.as_bytes("test_handle_2")
+    num_required = np.int32(5)
+    dtype = np.float64
+    input_dict = {"handle": handle, "num_required": num_required, "dtype": dtype}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 3
+    handle = tf.compat.as_bytes("test_handle_3")
+    num_required = np.int32(10)
+    dtype = np.int32
+    input_dict = {"handle": handle, "num_required": num_required, "dtype": dtype}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 4
+    handle = tf.compat.as_bytes("test_handle_4")
+    num_required = np.int32(2)
+    dtype = np.uint8
+    input_dict = {"handle": handle, "num_required": num_required, "dtype": dtype}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 5
+    handle = tf.compat.as_bytes("test_handle_5")
+    num_required = np.int32(3)
+    dtype = np.int16
+    input_dict = {"handle": handle, "num_required": num_required, "dtype": dtype}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 6
+    handle = tf.compat.as_bytes("test_handle_6")
+    num_required = np.int32(1)
+    dtype = np.int8
+    input_dict = {"handle": handle, "num_required": num_required, "dtype": dtype}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 7
+    handle = tf.compat.as_bytes("test_handle_7")
+    num_required = np.int32(7)
+    dtype = np.complex64
+    input_dict = {"handle": handle, "num_required": num_required, "dtype": dtype}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 8
+    handle = tf.compat.as_bytes("test_handle_8")
+    num_required = np.int32(4)
+    dtype = np.int64
+    input_dict = {"handle": handle, "num_required": num_required, "dtype": dtype}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 9
+    handle = tf.compat.as_bytes("test_handle_9")
+    num_required = np.int32(6)
+    dtype = np.bfloat16
+    input_dict = {"handle": handle, "num_required": num_required, "dtype": dtype}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 10
+    handle = tf.compat.as_bytes("test_handle_10")
+    num_required = np.int32(8)
+    dtype = np.float16
+    input_dict = {"handle": handle, "num_required": num_required, "dtype": dtype}
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs
 
-generated_inputs["tf.raw_ops.SparseAccumulatorTakeGradient"] = get_tf_raw_ops_sparse_accumulator_take_gradient_inputs()
+generated_inputs = {}
+generated_inputs["tf.raw_ops.SparseAccumulatorTakeGradient"] = sparse_accumulator_take_gradient_inputs()
 
 def check_valid(api, list_of_inputs, lib="tf", suffix=0):
     for idx, input_dict in enumerate(list_of_inputs):
@@ -64,5 +98,9 @@ def check_valid(api, list_of_inputs, lib="tf", suffix=0):
 
 if 'tf.raw_ops.SparseAccumulatorTakeGradient' not in generated_inputs:
     raise Exception("Output of the input generating function was not assigned to the generated_inputs dictionary to the key 'tf.raw_ops.SparseAccumulatorTakeGradient'.")
+
+
+tf.config.experimental.enable_op_determinism()
+tf.random.set_seed(42)
 
 check_valid('tf.raw_ops.SparseAccumulatorTakeGradient', generated_inputs['tf.raw_ops.SparseAccumulatorTakeGradient'], lib="tf", suffix=0)

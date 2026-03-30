@@ -4,98 +4,443 @@ from generator.input_generators import get_abstract_input
 
 generated_inputs = dict()
 
+import tensorflow as tf
 import numpy as np
 import copy
-import tensorflow as tf
+
+tf.config.experimental.enable_op_determinism()
+tf.random.set_seed(42)
 
 def tf_raw_ops_quantized_batch_norm_with_global_normalization_inputs():
-    """
-    Generates a list of valid inputs for the
-    tf.raw_ops.QuantizedBatchNormWithGlobalNormalization function.
-    This version creates correctly typed quantized tensors to resolve the
-    InvalidArgumentError from TensorFlow.
-    """
     list_of_inputs = []
 
-    def generate_one_input(tf_input_type, shape, scale_after, epsilon, name, out_type, custom_ranges=None):
-        channels = shape[-1]
+    # Input 1
+    # t = np.array([[[[1, 2], [3, 4]], [[5, 6], [7, 8]]]]).astype(np.int8)
+    # t_min = np.array(-1.0).astype(np.float32)
+    # t_max = np.array(1.0).astype(np.float32)
+    # m = np.array([0, 0]).astype(np.int8)
+    # m_min = np.array(-0.5).astype(np.float32)
+    # m_max = np.array(0.5).astype(np.float32)
+    # v = np.array([1, 1]).astype(np.int8)
+    # v_min = np.array(0.0).astype(np.float32)
+    # v_max = np.array(2.0).astype(np.float32)
+    # beta = np.array([0, 0]).astype(np.int8)
+    # beta_min = np.array(-0.1).astype(np.float32)
+    # beta_max = np.array(0.1).astype(np.float32)
+    # gamma = np.array([1, 1]).astype(np.int8)
+    # gamma_min = np.array(0.9).astype(np.float32)
+    # gamma_max = np.array(1.1).astype(np.float32)
+    # out_type = tf.qint8
+    # variance_epsilon = 0.001
+    # scale_after_normalization = True
 
-        ranges = custom_ranges or {
-            't': (-1.0, 1.0), 'm': (-0.5, 0.5), 'v': (0.0, 1.0),
-            'beta': (-0.1, 0.1), 'gamma': (0.9, 1.1)
-        }
-        
-        # Helper to create a quantized tensor
-        def quantize(float_data, min_val, max_val):
-            # For quint types, the float data must be non-negative
-            if tf_input_type.is_unsigned:
-                float_data = np.abs(float_data)
-                min_val, max_val = abs(min_val), abs(max_val)
+    # input_dict = {
+    #     "t": t,
+    #     "t_min": t_min,
+    #     "t_max": t_max,
+    #     "m": m,
+    #     "m_min": m_min,
+    #     "m_max": m_max,
+    #     "v": v,
+    #     "v_min": v_min,
+    #     "v_max": v_max,
+    #     "beta": beta,
+    #     "beta_min": beta_min,
+    #     "beta_max": beta_max,
+    #     "gamma": gamma,
+    #     "gamma_min": gamma_min,
+    #     "gamma_max": gamma_max,
+    #     "out_type": out_type,
+    #     "variance_epsilon": variance_epsilon,
+    #     "scale_after_normalization": scale_after_normalization,
+    #     "name": None
+    # }
+    # list_of_inputs.append(copy.deepcopy(input_dict)) #Removing int8 because Tinput does not support int8
 
-            q, _, _ = tf.quantization.quantize(
-                tf.constant(float_data, dtype=tf.float32), 
-                min_range=tf.constant(min_val, dtype=tf.float32), 
-                max_range=tf.constant(max_val, dtype=tf.float32),
-                T=tf_input_type, 
-                mode='SCALED'
-            )
-            return q, min_val, max_val
+    # Input 2
+    # t = np.array([[[[1, 2], [3, 4]], [[5, 6], [7, 8]]]]).astype(np.uint8)
+    # t_min = np.array(0.0).astype(np.float32)
+    # t_max = np.array(255.0).astype(np.float32)
+    # m = np.array([128, 128]).astype(np.uint8)
+    # m_min = np.array(0.0).astype(np.float32)
+    # m_max = np.array(255.0).astype(np.float32)
+    # v = np.array([64, 64]).astype(np.uint8)
+    # v_min = np.array(0.0).astype(np.float32)
+    # v_max = np.array(128.0).astype(np.float32)
+    # beta = np.array([0, 0]).astype(np.uint8)
+    # beta_min = np.array(-10.0).astype(np.float32)
+    # beta_max = np.array(10.0).astype(np.float32)
+    # gamma = np.array([2, 2]).astype(np.uint8)
+    # gamma_min = np.array(0.0).astype(np.float32)
+    # gamma_max = np.array(5.0).astype(np.float32)
+    # out_type = tf.quint8
 
-        t_float = np.random.uniform(-1.0, 1.0, size=shape).astype(np.float32)
-        m_float = np.random.uniform(-1.0, 1.0, size=(channels,)).astype(np.float32)
-        v_float = np.random.uniform(0.0, 1.0, size=(channels,)).astype(np.float32) # Variance is non-negative
-        beta_float = np.random.uniform(-1.0, 1.0, size=(channels,)).astype(np.float32)
-        gamma_float = np.random.uniform(-1.0, 1.0, size=(channels,)).astype(np.float32)
+    # input_dict = {
+    #     "t": t,
+    #     "t_min": t_min,
+    #     "t_max": t_max,
+    #     "m": m,
+    #     "m_min": m_min,
+    #     "m_max": m_max,
+    #     "v": v,
+    #     "v_min": v_min,
+    #     "v_max": v_max,
+    #     "beta": beta,
+    #     "beta_min": beta_min,
+    #     "beta_max": beta_max,
+    #     "gamma": gamma,
+    #     "gamma_min": gamma_min,
+    #     "gamma_max": gamma_max,
+    #     "out_type": out_type,
+    #     "variance_epsilon": 0.0001,
+    #     "scale_after_normalization": False,
+    #     "name": None
+    # }
+    # list_of_inputs.append(copy.deepcopy(input_dict)) #Removing uint8 because Tinput does not support uint8
 
-        t_q, t_min_val, t_max_val = quantize(t_float, ranges['t'][0], ranges['t'][1])
-        m_q, m_min_val, m_max_val = quantize(m_float, ranges['m'][0], ranges['m'][1])
-        v_q, v_min_val, v_max_val = quantize(v_float, ranges['v'][0], ranges['v'][1])
-        beta_q, beta_min_val, beta_max_val = quantize(beta_float, ranges['beta'][0], ranges['beta'][1])
-        gamma_q, gamma_min_val, gamma_max_val = quantize(gamma_float, ranges['gamma'][0], ranges['gamma'][1])
+    # Input 3
 
-        input_dict = {
-            't': t_q,
-            't_min': np.array(t_min_val, dtype=np.float32),
-            't_max': np.array(t_max_val, dtype=np.float32),
-            'm': m_q,
-            'm_min': np.array(m_min_val, dtype=np.float32),
-            'm_max': np.array(m_max_val, dtype=np.float32),
-            'v': v_q,
-            'v_min': np.array(v_min_val, dtype=np.float32),
-            'v_max': np.array(v_max_val, dtype=np.float32),
-            'beta': beta_q,
-            'beta_min': np.array(beta_min_val, dtype=np.float32),
-            'beta_max': np.array(beta_max_val, dtype=np.float32),
-            'gamma': gamma_q,
-            'gamma_min': np.array(gamma_min_val, dtype=np.float32),
-            'gamma_max': np.array(gamma_max_val, dtype=np.float32),
-            'out_type': out_type,
-            'variance_epsilon': epsilon,
-            'scale_after_normalization': scale_after,
-            'name': name
-        }
-        # The min/max inputs must be tensors according to the signature, so we convert them back
-        for key in ['t_min', 't_max', 'm_min', 'm_max', 'v_min', 'v_max', 'beta_min', 'beta_max', 'gamma_min', 'gamma_max']:
-            input_dict[key] = tf.constant(input_dict[key])
+    t = np.array([[[[1, 2], [3, 4]], [[5, 6], [7, 8]]]]).astype(np.int32)
+    t_min = np.array(-1000.0).astype(np.float32)
+    t_max = np.array(1000.0).astype(np.float32)
+    m = np.array([0, 0]).astype(np.int32)
+    m_min = np.array(-500.0).astype(np.float32)
+    m_max = np.array(500.0).astype(np.float32)
+    v = np.array([100, 100]).astype(np.int32)
+    v_min = np.array(0.0).astype(np.float32)
+    v_max = np.array(200.0).astype(np.float32)
+    beta = np.array([0, 0]).astype(np.int32)
+    beta_min = np.array(-100.0).astype(np.float32)
+    beta_max = np.array(100.0).astype(np.float32)
+    gamma = np.array([1, 1]).astype(np.int32)
+    gamma_min = np.array(0.0).astype(np.float32)
+    gamma_max = np.array(2.0).astype(np.float32)
+    out_type = tf.qint32
 
-        return input_dict
+    input_dict = {
+        "t": t,
+        "t_min": t_min,
+        "t_max": t_max,
+        "m": m,
+        "m_min": m_min,
+        "m_max": m_max,
+        "v": v,
+        "v_min": v_min,
+        "v_max": v_max,
+        "beta": beta,
+        "beta_min": beta_min,
+        "beta_max": beta_max,
+        "gamma": gamma,
+        "gamma_min": gamma_min,
+        "gamma_max": gamma_max,
+        "out_type": out_type,
+        "variance_epsilon": 0.01,
+        "scale_after_normalization": True,
+        "name": None
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    list_of_inputs.append(copy.deepcopy(generate_one_input(tf.qint8, (1, 2, 2, 3), True, 0.001, 'case1_qint8', tf.qint8)))
-    list_of_inputs.append(copy.deepcopy(generate_one_input(tf.quint8, (2, 3, 3, 4), False, 1e-5, 'case2_quint8_no_scale', tf.quint8)))
-    list_of_inputs.append(copy.deepcopy(generate_one_input(tf.qint32, (1, 1, 1, 5), True, 1e-4, 'case3_qint32', tf.qint32)))
-    list_of_inputs.append(copy.deepcopy(generate_one_input(tf.qint16, (1, 4, 4, 2), True, 0.01, 'case4_qint16', tf.qint16)))
-    custom_ranges_5 = {'t': (0.0, 100.0), 'm': (10.0, 20.0), 'v': (1.0, 5.0), 'beta': (-1.0, 1.0), 'gamma': (0.8, 1.2)}
-    list_of_inputs.append(copy.deepcopy(generate_one_input(tf.quint16, (3, 1, 2, 6), True, 1e-9, 'case5_quint16', tf.quint16, custom_ranges_5)))
-    list_of_inputs.append(copy.deepcopy(generate_one_input(tf.qint8, (1, 2, 2, 2), True, 0.002, 'case6_type_promotion', tf.qint32)))
-    list_of_inputs.append(copy.deepcopy(generate_one_input(tf.qint8, (1, 1, 1, 1), True, 0.001, 'case7_minimal_shape', tf.qint8)))
-    list_of_inputs.append(copy.deepcopy(generate_one_input(tf.quint8, (1, 3, 3, 3), True, 0.005, 'case8_type_conversion', tf.qint8)))
-    list_of_inputs.append(copy.deepcopy(generate_one_input(tf.qint16, (1, 2, 2, 10), True, 1e-3, 'case9_large_channels', tf.qint16)))
-    custom_ranges_10 = {'t': (-10.0, -5.0), 'm': (-2.0, -1.0), 'v': (0.1, 0.5), 'beta': (-0.5, -0.1), 'gamma': (0.8, 1.2)}
-    list_of_inputs.append(copy.deepcopy(generate_one_input(tf.qint8, (1, 3, 3, 4), True, 0.001, 'case10_negative_ranges', tf.qint8, custom_ranges_10)))
-    list_of_inputs.append(copy.deepcopy(generate_one_input(tf.qint16, (1, 4, 4, 2), True, 0.01, None, tf.qint16)))
+    # Input 4
 
+    t = np.array([[[[1, 2], [3, 4]], [[5, 6], [7, 8]]]]).astype(np.int16)
+    t_min = np.array(-100.0).astype(np.float32)
+    t_max = np.array(100.0).astype(np.float32)
+    m = np.array([0, 0]).astype(np.int16)
+    m_min = np.array(-50.0).astype(np.float32)
+    m_max = np.array(50.0).astype(np.float32)
+    v = np.array([10, 10]).astype(np.int16)
+    v_min = np.array(0.0).astype(np.float32)
+    v_max = np.array(20.0).astype(np.float32)
+    beta = np.array([0, 0]).astype(np.int16)
+    beta_min = np.array(-10.0).astype(np.float32)
+    beta_max = np.array(10.0).astype(np.float32)
+    gamma = np.array([1, 1]).astype(np.int16)
+    gamma_min = np.array(0.0).astype(np.float32)
+    gamma_max = np.array(2.0).astype(np.float32)
+    out_type = tf.qint16
+
+    input_dict = {
+        "t": t,
+        "t_min": t_min,
+        "t_max": t_max,
+        "m": m,
+        "m_min": m_min,
+        "m_max": m_max,
+        "v": v,
+        "v_min": v_min,
+        "v_max": v_max,
+        "beta": beta,
+        "beta_min": beta_min,
+        "beta_max": beta_max,
+        "gamma": gamma,
+        "gamma_min": gamma_min,
+        "gamma_max": gamma_max,
+        "out_type": out_type,
+        "variance_epsilon": 0.1,
+        "scale_after_normalization": False,
+        "name": None
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 5
+
+    t = np.array([[[[1, 2], [3, 4]], [[5, 6], [7, 8]]]]).astype(np.uint16)
+    t_min = np.array(0.0).astype(np.float32)
+    t_max = np.array(65535.0).astype(np.float32)
+    m = np.array([32768, 32768]).astype(np.uint16)
+    m_min = np.array(0.0).astype(np.float32)
+    m_max = np.array(65535.0).astype(np.float32)
+    v = np.array([16384, 16384]).astype(np.uint16)
+    v_min = np.array(0.0).astype(np.float32)
+    v_max = np.array(32768.0).astype(np.float32)
+    beta = np.array([0, 0]).astype(np.uint16)
+    beta_min = np.array(-1000.0).astype(np.float32)
+    beta_max = np.array(1000.0).astype(np.float32)
+    gamma = np.array([1, 1]).astype(np.uint16)
+    gamma_min = np.array(0.0).astype(np.float32)
+    gamma_max = np.array(2.0).astype(np.float32)
+    out_type = tf.quint16
+
+    input_dict = {
+        "t": t,
+        "t_min": t_min,
+        "t_max": t_max,
+        "m": m,
+        "m_min": m_min,
+        "m_max": m_max,
+        "v": v,
+        "v_min": v_min,
+        "v_max": v_max,
+        "beta": beta,
+        "beta_min": beta_min,
+        "beta_max": beta_max,
+        "gamma": gamma,
+        "gamma_min": gamma_min,
+        "gamma_max": gamma_max,
+        "out_type": out_type,
+        "variance_epsilon": 1e-8,
+        "scale_after_normalization": True,
+        "name": None
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 6
+    # t = np.array([[[[1, 2], [3, 4]], [[5, 6], [7, 8]]]]).astype(np.int8)
+    # t_min = np.array(-5.0).astype(np.float32)
+    # t_max = np.array(5.0).astype(np.float32)
+    # m = np.array([0, 0]).astype(np.int8)
+    # m_min = np.array(-1.0).astype(np.float32)
+    # m_max = np.array(1.0).astype(np.float32)
+    # v = np.array([2, 2]).astype(np.int8)
+    # v_min = np.array(0.0).astype(np.float32)
+    # v_max = np.array(4.0).astype(np.float32)
+    # beta = np.array([0, 0]).astype(np.int8)
+    # beta_min = np.array(-0.5).astype(np.float32)
+    # beta_max = np.array(0.5).astype(np.float32)
+    # gamma = np.array([1, 1]).astype(np.int8)
+    # gamma_min = np.array(0.8).astype(np.float32)
+    # gamma_max = np.array(1.2).astype(np.float32)
+    # out_type = tf.qint8
+    # variance_epsilon = 0.00001
+    # scale_after_normalization = False
+
+    # input_dict = {
+    #     "t": t,
+    #     "t_min": t_min,
+    #     "t_max": t_max,
+    #     "m": m,
+    #     "m_min": m_min,
+    #     "m_max": m_max,
+    #     "v": v,
+    #     "v_min": v_min,
+    #     "v_max": v_max,
+    #     "beta": beta,
+    #     "beta_min": beta_min,
+    #     "beta_max": beta_max,
+    #     "gamma": gamma,
+    #     "gamma_min": gamma_min,
+    #     "gamma_max": gamma_max,
+    #     "out_type": out_type,
+    #     "variance_epsilon": variance_epsilon,
+    #     "scale_after_normalization": scale_after_normalization,
+    #     "name": None
+    # }
+    # list_of_inputs.append(copy.deepcopy(input_dict)) #Removing int8 because Tinput does not support int8
+
+    # Input 7
+    # t = np.array([[[[1, 2], [3, 4]], [[5, 6], [7, 8]]]]).astype(np.uint8)
+    # t_min = np.array(0.0).astype(np.float32)
+    # t_max = np.array(10.0).astype(np.float32)
+    # m = np.array([5, 5]).astype(np.uint8)
+    # m_min = np.array(0.0).astype(np.float32)
+    # m_max = np.array(10.0).astype(np.float32)
+    # v = np.array([2, 2]).astype(np.uint8)
+    # v_min = np.array(0.0).astype(np.float32)
+    # v_max = np.array(5.0).astype(np.float32)
+    # beta = np.array([0, 0]).astype(np.uint8)
+    # beta_min = np.array(-1.0).astype(np.float32)
+    # beta_max = np.array(1.0).astype(np.float32)
+    # gamma = np.array([1, 1]).astype(np.uint8)
+    # gamma_min = np.array(0.5).astype(np.float32)
+    # gamma_max = np.array(1.5).astype(np.float32)
+    # out_type = tf.quint8
+    # variance_epsilon = 0.001
+    # scale_after_normalization = False
+
+    # input_dict = {
+    #     "t": t,
+    #     "t_min": t_min,
+    #     "t_max": t_max,
+    #     "m": m,
+    #     "m_min": m_min,
+    #     "m_max": m_max,
+    #     "v": v,
+    #     "v_min": v_min,
+    #     "v_max": v_max,
+    #     "beta": beta,
+    #     "beta_min": beta_min,
+    #     "beta_max": beta_max,
+    #     "gamma": gamma,
+    #     "gamma_min": gamma_min,
+    #     "gamma_max": gamma_max,
+    #     "out_type": out_type,
+    #     "variance_epsilon": variance_epsilon,
+    #     "scale_after_normalization": scale_after_normalization,
+    #     "name": None
+    # }
+    # list_of_inputs.append(copy.deepcopy(input_dict)) #Removing uint8 because Tinput does not support uint8
+
+    # Input 8
+    t = np.array([[[[1, 2], [3, 4]], [[5, 6], [7, 8]]]]).astype(np.int32)
+    t_min = np.array(-10000.0).astype(np.float32)
+    t_max = np.array(10000.0).astype(np.float32)
+    m = np.array([0, 0]).astype(np.int32)
+    m_min = np.array(-5000.0).astype(np.float32)
+    m_max = np.array(5000.0).astype(np.float32)
+    v = np.array([2000, 2000]).astype(np.int32)
+    v_min = np.array(0.0).astype(np.float32)
+    v_max = np.array(4000.0).astype(np.float32)
+    beta = np.array([0, 0]).astype(np.int32)
+    beta_min = np.array(-1000.0).astype(np.float32)
+    beta_max = np.array(1000.0).astype(np.float32)
+    gamma = np.array([1, 1]).astype(np.int32)
+    gamma_min = np.array(0.2).astype(np.float32)
+    gamma_max = np.array(1.8).astype(np.float32)
+    out_type = tf.qint32
+    variance_epsilon = 0.0001
+    scale_after_normalization = True
+
+    input_dict = {
+        "t": t,
+        "t_min": t_min,
+        "t_max": t_max,
+        "m": m,
+        "m_min": m_min,
+        "m_max": m_max,
+        "v": v,
+        "v_min": v_min,
+        "v_max": v_max,
+        "beta": beta,
+        "beta_min": beta_min,
+        "beta_max": beta_max,
+        "gamma": gamma,
+        "gamma_min": gamma_min,
+        "gamma_max": gamma_max,
+        "out_type": out_type,
+        "variance_epsilon": variance_epsilon,
+        "scale_after_normalization": scale_after_normalization,
+        "name": None
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 9
+    t = np.array([[[[1, 2], [3, 4]], [[5, 6], [7, 8]]]]).astype(np.int16)
+    t_min = np.array(-200.0).astype(np.float32)
+    t_max = np.array(200.0).astype(np.float32)
+    m = np.array([0, 0]).astype(np.int16)
+    m_min = np.array(-100.0).astype(np.float32)
+    m_max = np.array(100.0).astype(np.float32)
+    v = np.array([20, 20]).astype(np.int16)
+    v_min = np.array(0.0).astype(np.float32)
+    v_max = np.array(40.0).astype(np.float32)
+    beta = np.array([0, 0]).astype(np.int16)
+    beta_min = np.array(-50.0).astype(np.float32)
+    beta_max = np.array(50.0).astype(np.float32)
+    gamma = np.array([1, 1]).astype(np.int16)
+    gamma_min = np.array(0.3).astype(np.float32)
+    gamma_max = np.array(1.7).astype(np.float32)
+    out_type = tf.qint16
+    variance_epsilon = 0.0001
+    scale_after_normalization = False
+
+    input_dict = {
+        "t": t,
+        "t_min": t_min,
+        "t_max": t_max,
+        "m": m,
+        "m_min": m_min,
+        "m_max": m_max,
+        "v": v,
+        "v_min": v_min,
+        "v_max": v_max,
+        "beta": beta,
+        "beta_min": beta_min,
+        "beta_max": beta_max,
+        "gamma": gamma,
+        "gamma_min": gamma_min,
+        "gamma_max": gamma_max,
+        "out_type": out_type,
+        "variance_epsilon": variance_epsilon,
+        "scale_after_normalization": scale_after_normalization,
+        "name": None
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 10
+    t = np.array([[[[1, 2], [3, 4]], [[5, 6], [7, 8]]]]).astype(np.uint16)
+    t_min = np.array(0.0).astype(np.float32)
+    t_max = np.array(30000.0).astype(np.float32)
+    m = np.array([15000, 15000]).astype(np.uint16)
+    m_min = np.array(0.0).astype(np.float32)
+    m_max = np.array(30000.0).astype(np.float32)
+    v = np.array([5000, 5000]).astype(np.uint16)
+    v_min = np.array(0.0).astype(np.float32)
+    v_max = np.array(10000.0).astype(np.float32)
+    beta = np.array([0, 0]).astype(np.uint16)
+    beta_min = np.array(-200.0).astype(np.float32)
+    beta_max = np.array(200.0).astype(np.float32)
+    gamma = np.array([1, 1]).astype(np.uint16)
+    gamma_min = np.array(0.1).astype(np.float32)
+    gamma_max = np.array(1.9).astype(np.float32)
+    out_type = tf.quint16
+    variance_epsilon = 0.000001
+    scale_after_normalization = True
+
+    input_dict = {
+        "t": t,
+        "t_min": t_min,
+        "t_max": t_max,
+        "m": m,
+        "m_min": m_min,
+        "m_max": m_max,
+        "v": v,
+        "v_min": v_min,
+        "v_max": v_max,
+        "beta": beta,
+        "beta_min": beta_min,
+        "beta_max": beta_max,
+        "gamma": gamma,
+        "gamma_min": gamma_min,
+        "gamma_max": gamma_max,
+        "out_type": out_type,
+        "variance_epsilon": variance_epsilon,
+        "scale_after_normalization": scale_after_normalization,
+        "name": None
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
     return list_of_inputs
 
+generated_inputs = {}
 generated_inputs["tf.raw_ops.QuantizedBatchNormWithGlobalNormalization"] = tf_raw_ops_quantized_batch_norm_with_global_normalization_inputs()
 
 def check_valid(api, list_of_inputs, lib="tf", suffix=0):
@@ -110,5 +455,9 @@ def check_valid(api, list_of_inputs, lib="tf", suffix=0):
 
 if 'tf.raw_ops.QuantizedBatchNormWithGlobalNormalization' not in generated_inputs:
     raise Exception("Output of the input generating function was not assigned to the generated_inputs dictionary to the key 'tf.raw_ops.QuantizedBatchNormWithGlobalNormalization'.")
+
+
+tf.config.experimental.enable_op_determinism()
+tf.random.set_seed(42)
 
 check_valid('tf.raw_ops.QuantizedBatchNormWithGlobalNormalization', generated_inputs['tf.raw_ops.QuantizedBatchNormWithGlobalNormalization'], lib="tf", suffix=0)

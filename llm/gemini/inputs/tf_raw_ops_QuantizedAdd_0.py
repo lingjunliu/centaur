@@ -5,124 +5,255 @@ from generator.input_generators import get_abstract_input
 generated_inputs = dict()
 
 import tensorflow as tf
-import copy
 import numpy as np
+import copy
 
-def tf_raw_ops_quantizedadd_inputs():
-    """
-    Generates a list of valid inputs for the tf.raw_ops.QuantizedAdd function.
-    The execution environment appears to have two conflicting constraints:
-    1. The `tf.raw_ops.QuantizedAdd` API requires input tensors `x` and `y` to have
-       a quantized dtype (e.g., `tf.qint32`), which can only be created by
-       quantization operations. Providing standard integer tensors causes a
-       TensorFlow `InvalidArgumentError`.
-    2. The testing harness fails with a `ValueError` if it encounters a `tf.qint*`
-       dtype object in the input dictionary, as these dtypes are not in its
-       list of recognized types.
-
-    This creates a catch-22. To resolve this, this implementation makes a critical
-    assumption: the testing harness expects standard numpy arrays and numpy dtypes,
-    and it will perform the necessary conversion to quantized tensors behind the
-    scenes before calling the TensorFlow API. This is the only possible way to create
-    an input that might satisfy both the harness's validation and the API's
-    runtime requirements. Inputs are therefore constructed using only numpy types.
-    """
+def tf_raw_ops_QuantizedAdd_inputs():
     list_of_inputs = []
 
-    # Input 1: Basic case with int32 numpy types.
-    input_dict_1 = {
-        'x': np.array([-100, 0, 100], dtype=np.int32),
-        'y': np.array([-20, 10, 20], dtype=np.int32),
-        'min_x': np.array(-1.0, dtype=np.float32),
-        'max_x': np.array(1.0, dtype=np.float32),
-        'min_y': np.array(-2.0, dtype=np.float32),
-        'max_y': np.array(2.0, dtype=np.float32),
-        'Toutput': np.int32,  # Assuming harness maps this to tf.qint32
-        'name': 'qadd_numpy_int32'
+    # Input 1
+    x = np.array([1, 2, 3], dtype=np.int8)
+    y = np.array([4, 5, 6], dtype=np.int8)
+    min_x = np.float32(0.0)
+    max_x = np.float32(5.0)
+    min_y = np.float32(0.0)
+    max_y = np.float32(10.0)
+    Toutput = tf.qint32
+    name = "quantized_add_1"
+    x = tf.constant(x, dtype=tf.qint8)
+    y = tf.constant(y, dtype=tf.qint8)
+    input_dict = {
+        "x": x,
+        "y": y,
+        "min_x": min_x,
+        "max_x": max_x,
+        "min_y": min_y,
+        "max_y": max_y,
+        "Toutput": Toutput,
+        "name": name
     }
-    list_of_inputs.append(copy.deepcopy(input_dict_1))
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 2: Using int8 numpy types.
-    input_dict_2 = {
-        'x': np.array([-128, 0, 127], dtype=np.int8),
-        'y': np.array([-64, 10, 64], dtype=np.int8),
-        'min_x': np.array(-1.0, dtype=np.float32),
-        'max_x': np.array(1.0, dtype=np.float32),
-        'min_y': np.array(-2.0, dtype=np.float32),
-        'max_y': np.array(2.0, dtype=np.float32),
-        'Toutput': np.int8, # Assuming harness maps this to tf.qint8
-        'name': 'qadd_numpy_int8'
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict_2))
+    # Input 2
+    x = np.array([[1, 2], [3, 4]], dtype=np.uint8)
+    y = np.array([[5, 6], [7, 8]], dtype=np.uint8)
+    min_x = np.float32(0.0)
+    max_x = np.float32(10.0)
+    min_y = np.float32(0.0)
+    max_y = np.float32(15.0)
+    Toutput = tf.qint32
+    name = "quantized_add_2"
+    x = tf.constant(x, dtype=tf.quint8)
+    y = tf.constant(y, dtype=tf.quint8)
 
-    # Input 3: Using uint8 numpy types.
-    input_dict_3 = {
-        'x': np.array([[0, 10], [200, 255]], dtype=np.uint8),
-        'y': np.array([[5, 15], [20, 30]], dtype=np.uint8),
-        'min_x': np.array(0.0, dtype=np.float32),
-        'max_x': np.array(25.5, dtype=np.float32),
-        'min_y': np.array(0.0, dtype=np.float32),
-        'max_y': np.array(50.0, dtype=np.float32),
-        'Toutput': np.uint8, # Assuming harness maps this to tf.quint8
-        'name': 'qadd_numpy_uint8'
+    input_dict = {
+        "x": x,
+        "y": y,
+        "min_x": min_x,
+        "max_x": max_x,
+        "min_y": min_y,
+        "max_y": max_y,
+        "Toutput": Toutput,
+        "name": name
     }
-    list_of_inputs.append(copy.deepcopy(input_dict_3))
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 4: Using int16 numpy types.
-    input_dict_4 = {
-        'x': np.array([[-32768, -1], [0, 32767]], dtype=np.int16),
-        'y': np.array([[-100, 100], [1000, -1000]], dtype=np.int16),
-        'min_x': np.array(-32.768, dtype=np.float32),
-        'max_x': np.array(32.767, dtype=np.float32),
-        'min_y': np.array(-5.0, dtype=np.float32),
-        'max_y': np.array(5.0, dtype=np.float32),
-        'Toutput': np.int16, # Assuming harness maps this to tf.qint16
-        'name': 'qadd_numpy_int16'
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict_4))
+    # Input 3
+    x = np.array([1, 2, 3, 4], dtype=np.int32)
+    y = np.array([5, 6, 7, 8], dtype=np.int32)
+    min_x = np.float32(-10.0)
+    max_x = np.float32(10.0)
+    min_y = np.float32(-15.0)
+    max_y = np.float32(15.0)
+    Toutput = tf.qint32
+    name = "quantized_add_3"
+    x = tf.constant(x, dtype=tf.qint32)
+    y = tf.constant(y, dtype=tf.qint32)
 
-    # Input 5: Using uint16 numpy types.
-    input_dict_5 = {
-        'x': np.array([0, 1000, 65535], dtype=np.uint16),
-        'y': np.array([10, 20, 30], dtype=np.uint16),
-        'min_x': np.array(0.0, dtype=np.float32),
-        'max_x': np.array(655.35, dtype=np.float32),
-        'min_y': np.array(0.0, dtype=np.float32),
-        'max_y': np.array(1.0, dtype=np.float32),
-        'Toutput': np.uint16, # Assuming harness maps this to tf.quint16
-        'name': 'qadd_numpy_uint16'
+    input_dict = {
+        "x": x,
+        "y": y,
+        "min_x": min_x,
+        "max_x": max_x,
+        "min_y": min_y,
+        "max_y": max_y,
+        "Toutput": Toutput,
+        "name": name
     }
-    list_of_inputs.append(copy.deepcopy(input_dict_5))
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 6: Broadcasting with numpy types
-    input_dict_6 = {
-        'x': np.array([[10, 20, 30], [40, 50, 60]], dtype=np.int32),
-        'y': np.array([1, 2, 3], dtype=np.int32),
-        'min_x': np.array(0.0, dtype=np.float32),
-        'max_x': np.array(100.0, dtype=np.float32),
-        'min_y': np.array(-10.0, dtype=np.float32),
-        'max_y': np.array(10.0, dtype=np.float32),
-        'Toutput': np.int32,
-        'name': 'qadd_broadcast_numpy'
+    # Input 4
+    x = np.array([[-1, -2], [-3, -4]], dtype=np.int16)
+    y = np.array([[5, 6], [7, 8]], dtype=np.int16)
+    min_x = np.float32(-20.0)
+    max_x = np.float32(-1.0)
+    min_y = np.float32(1.0)
+    max_y = np.float32(20.0)
+    Toutput = tf.qint32
+    name = "quantized_add_4"
+    x = tf.constant(x, dtype=tf.qint16)
+    y = tf.constant(y, dtype=tf.qint16)
+
+    input_dict = {
+        "x": x,
+        "y": y,
+        "min_x": min_x,
+        "max_x": max_x,
+        "min_y": min_y,
+        "max_y": max_y,
+        "Toutput": Toutput,
+        "name": name
     }
-    list_of_inputs.append(copy.deepcopy(input_dict_6))
-    
-    # Input 7: Scalar-like inputs
-    input_dict_7 = {
-        'x': np.array(100, dtype=np.int16),
-        'y': np.array(50, dtype=np.int16),
-        'min_x': np.array(-128.0, dtype=np.float32),
-        'max_x': np.array(127.0, dtype=np.float32),
-        'min_y': np.array(-128.0, dtype=np.float32),
-        'max_y': np.array(127.0, dtype=np.float32),
-        'Toutput': np.int16,
-        'name': 'qadd_scalar_numpy'
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+     # Input 5
+    x = np.array([1, 2, 3], dtype=np.uint16)
+    y = np.array([4, 5, 6], dtype=np.uint16)
+    min_x = np.float32(0.0)
+    max_x = np.float32(5.0)
+    min_y = np.float32(0.0)
+    max_y = np.float32(10.0)
+    Toutput = tf.qint32
+    name = "quantized_add_5"
+    x = tf.constant(x, dtype=tf.quint16)
+    y = tf.constant(y, dtype=tf.quint16)
+
+    input_dict = {
+        "x": x,
+        "y": y,
+        "min_x": min_x,
+        "max_x": max_x,
+        "min_y": min_y,
+        "max_y": max_y,
+        "Toutput": Toutput,
+        "name": name
     }
-    list_of_inputs.append(copy.deepcopy(input_dict_7))
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 6
+    x = np.array([1, 2, 3], dtype=np.int8)
+    y = np.array([4, 5, 6], dtype=np.int8)
+    min_x = np.float32(-5.0)
+    max_x = np.float32(5.0)
+    min_y = np.float32(-10.0)
+    max_y = np.float32(10.0)
+    Toutput = tf.qint32
+    name = "quantized_add_6"
+    x = tf.constant(x, dtype=tf.qint8)
+    y = tf.constant(y, dtype=tf.qint8)
+
+    input_dict = {
+        "x": x,
+        "y": y,
+        "min_x": min_x,
+        "max_x": max_x,
+        "min_y": min_y,
+        "max_y": max_y,
+        "Toutput": Toutput,
+        "name": name
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 7
+    x = np.array([[1, 2], [3, 4]], dtype=np.uint8)
+    y = np.array([[5, 6], [7, 8]], dtype=np.uint8)
+    min_x = np.float32(5.0)
+    max_x = np.float32(10.0)
+    min_y = np.float32(10.0)
+    max_y = np.float32(15.0)
+    Toutput = tf.qint32
+    name = "quantized_add_7"
+    x = tf.constant(x, dtype=tf.quint8)
+    y = tf.constant(y, dtype=tf.quint8)
+
+    input_dict = {
+        "x": x,
+        "y": y,
+        "min_x": min_x,
+        "max_x": max_x,
+        "min_y": min_y,
+        "max_y": max_y,
+        "Toutput": Toutput,
+        "name": name
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 8
+    x = np.array([1, 2, 3, 4], dtype=np.int16)
+    y = np.array([5, 6, 7, 8], dtype=np.int16)
+    min_x = np.float32(-10.0)
+    max_x = np.float32(10.0)
+    min_y = np.float32(-15.0)
+    max_y = np.float32(15.0)
+    Toutput = tf.qint32
+    name = "quantized_add_8"
+    x = tf.constant(x, dtype=tf.qint16)
+    y = tf.constant(y, dtype=tf.qint16)
+
+    input_dict = {
+        "x": x,
+        "y": y,
+        "min_x": min_x,
+        "max_x": max_x,
+        "min_y": min_y,
+        "max_y": max_y,
+        "Toutput": Toutput,
+        "name": name
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 9
+    x = np.array([[-1, -2], [-3, -4]], dtype=np.int16)
+    y = np.array([[5, 6], [7, 8]], dtype=np.int16)
+    min_x = np.float32(-20.0)
+    max_x = np.float32(-1.0)
+    min_y = np.float32(1.0)
+    max_y = np.float32(20.0)
+    Toutput = tf.qint32
+    name = "quantized_add_9"
+    x = tf.constant(x, dtype=tf.qint16)
+    y = tf.constant(y, dtype=tf.qint16)
+
+    input_dict = {
+        "x": x,
+        "y": y,
+        "min_x": min_x,
+        "max_x": max_x,
+        "min_y": min_y,
+        "max_y": max_y,
+        "Toutput": Toutput,
+        "name": name
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+     # Input 10
+    x = np.array([1, 2, 3], dtype=np.uint16)
+    y = np.array([4, 5, 6], dtype=np.uint16)
+    min_x = np.float32(0.0)
+    max_x = np.float32(5.0)
+    min_y = np.float32(0.0)
+    max_y = np.float32(10.0)
+    Toutput = tf.qint32
+    name = "quantized_add_10"
+    x = tf.constant(x, dtype=tf.quint16)
+    y = tf.constant(y, dtype=tf.quint16)
+
+    input_dict = {
+        "x": x,
+        "y": y,
+        "min_x": min_x,
+        "max_x": max_x,
+        "min_y": min_y,
+        "max_y": max_y,
+        "Toutput": Toutput,
+        "name": name
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs
 
-generated_inputs["tf.raw_ops.QuantizedAdd"] = tf_raw_ops_quantizedadd_inputs()
+generated_inputs = {}
+generated_inputs["tf.raw_ops.QuantizedAdd"] = tf_raw_ops_QuantizedAdd_inputs()
 
 def check_valid(api, list_of_inputs, lib="tf", suffix=0):
     for idx, input_dict in enumerate(list_of_inputs):
@@ -136,5 +267,9 @@ def check_valid(api, list_of_inputs, lib="tf", suffix=0):
 
 if 'tf.raw_ops.QuantizedAdd' not in generated_inputs:
     raise Exception("Output of the input generating function was not assigned to the generated_inputs dictionary to the key 'tf.raw_ops.QuantizedAdd'.")
+
+
+tf.config.experimental.enable_op_determinism()
+tf.random.set_seed(42)
 
 check_valid('tf.raw_ops.QuantizedAdd', generated_inputs['tf.raw_ops.QuantizedAdd'], lib="tf", suffix=0)

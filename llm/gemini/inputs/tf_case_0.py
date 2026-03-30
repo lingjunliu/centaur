@@ -4,141 +4,118 @@ from generator.input_generators import get_abstract_input
 
 generated_inputs = dict()
 
+import tensorflow as tf
 import numpy as np
+import copy
+
+tf.config.experimental.enable_op_determinism()
+tf.random.set_seed(42)
 
 def tf_case_inputs():
     list_of_inputs = []
 
-    # The error `AttributeError: Tensor.name is undefined` is internal to TensorFlow's
-    # `tf.case` implementation when run in eager mode, as it tries to access
-    # a property that only exists on graph tensors. This is not fixable by
-    # changing the input alone while adhering to the numpy-only and eager execution
-    # constraints of the test environment.
-    #
-    # The previous set of inputs correctly navigated the test harness's limitations
-    # (which fails on callables or inhomogeneous lists) by providing a homogeneous
-    # structure like `[(tensor, tensor)]` for `pred_fn_pairs`. This successfully
-    # passed the harness but triggered the unfixable `AttributeError` in the API.
-    #
-    # This new set of inputs follows the same successful harness-passing structure
-    # but uses different values and types. This represents a "retry" with new inputs,
-    # which is the only possible action as the root cause is outside the generator's control.
+    # Input 1
+    pred_fn_pairs = [(tf.constant(True), lambda: [tf.constant(1)])]
+    default = lambda: [tf.constant(0)]
+    exclusive = False
+    strict = False
+    name = "case_1"
+    input_dict = {"pred_fn_pairs": pred_fn_pairs, "default": [default], "exclusive": exclusive, "strict": strict, "name": name}
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 1: Basic integer case
-    input_1 = {
-        'pred_fn_pairs': [(np.array(True), np.array(100, dtype=np.int32))],
-        'default': [np.array(200, dtype=np.int32)],
-        'exclusive': False,
-        'strict': False,
-        'name': 'retry_case_1'
-    }
-    list_of_inputs.append(input_1)
+    # Input 2
+    pred_fn_pairs = [(tf.constant(False), lambda: [tf.constant(1)])]
+    default = lambda: [tf.constant(0)]
+    exclusive = False
+    strict = False
+    name = "case_2"
+    input_dict = {"pred_fn_pairs": pred_fn_pairs, "default": [default], "exclusive": exclusive, "strict": strict, "name": name}
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 2: Default branch is taken
-    input_2 = {
-        'pred_fn_pairs': [(np.array(False), np.array(1, dtype=np.int32))],
-        'default': [np.array(-1, dtype=np.int32)],
-        'exclusive': False,
-        'strict': False,
-        'name': 'retry_case_2'
-    }
-    list_of_inputs.append(input_2)
+    # Input 3
+    pred_fn_pairs = [(tf.constant(False), lambda: [tf.constant(1)]), (tf.constant(True), lambda: [tf.constant(2)])]
+    default = lambda: [tf.constant(0)]
+    exclusive = False
+    strict = False
+    name = "case_3"
+    input_dict = {"pred_fn_pairs": pred_fn_pairs, "default": [default], "exclusive": exclusive, "strict": strict, "name": name}
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 3: Multiple predicates, second is taken
-    input_3 = {
-        'pred_fn_pairs': [
-            (np.array(False), np.array(1.0, dtype=np.float32)),
-            (np.array(True), np.array(2.0, dtype=np.float32))
-        ],
-        'default': [np.array(3.0, dtype=np.float32)],
-        'exclusive': False,
-        'strict': False,
-        'name': 'retry_case_3'
-    }
-    list_of_inputs.append(input_3)
+    # Input 4
+    pred_fn_pairs = [(tf.constant(False), lambda: [tf.constant(1)]), (tf.constant(False), lambda: [tf.constant(2)])]
+    default = lambda: [tf.constant(0)]
+    exclusive = False
+    strict = False
+    name = "case_4"
+    input_dict = {"pred_fn_pairs": pred_fn_pairs, "default": [default], "exclusive": exclusive, "strict": strict, "name": name}
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 4: Exclusive=True
-    input_4 = {
-        'pred_fn_pairs': [
-            (np.array(False), np.array(10, dtype=np.int64)),
-            (np.array(True), np.array(20, dtype=np.int64))
-        ],
-        'default': [np.array(30, dtype=np.int64)],
-        'exclusive': True,
-        'strict': False,
-        'name': 'retry_case_4'
-    }
-    list_of_inputs.append(input_4)
+    # Input 5
+    pred_fn_pairs = [(tf.constant(True), lambda: [tf.constant(1)]), (tf.constant(True), lambda: [tf.constant(2)])]
+    default = lambda: [tf.constant(0)]
+    exclusive = True
+    strict = False
+    name = "case_5"
+    input_dict = {"pred_fn_pairs": pred_fn_pairs, "default": [default], "exclusive": exclusive, "strict": strict, "name": name}
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 5: Strict=True
-    input_5 = {
-        'pred_fn_pairs': [(np.array(True), np.array(5, dtype=np.int16))],
-        'default': [np.array(10, dtype=np.int16)],
-        'exclusive': False,
-        'strict': True,
-        'name': 'retry_case_5'
-    }
-    list_of_inputs.append(input_5)
+    # Input 6
+    pred_fn_pairs = [(tf.constant(True), lambda: [tf.constant([1, 2, 3])])]
+    default = lambda: [tf.constant([0, 0, 0])]
+    exclusive = False
+    strict = False
+    name = "case_6"
+    input_dict = {"pred_fn_pairs": pred_fn_pairs, "default": [default], "exclusive": exclusive, "strict": strict, "name": name}
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 6: Float64 type
-    input_6 = {
-        'pred_fn_pairs': [(np.array(True), np.array(1.23, dtype=np.float64))],
-        'default': [np.array(4.56, dtype=np.float64)],
-        'exclusive': False,
-        'strict': False,
-        'name': 'retry_case_6'
-    }
-    list_of_inputs.append(input_6)
+    # Input 7
+    pred_fn_pairs = [(tf.constant(False), lambda: [tf.constant([1, 2, 3])])]
+    default = lambda: [tf.constant([0, 0, 0])]
+    exclusive = False
+    strict = False
+    name = "case_7"
+    input_dict = {"pred_fn_pairs": pred_fn_pairs, "default": [default], "exclusive": exclusive, "strict": strict, "name": name}
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 7: Exclusive=True, default branch
-    input_7 = {
-        'pred_fn_pairs': [
-            (np.array(False), np.array(11)),
-            (np.array(False), np.array(22))
-        ],
-        'default': [np.array(33)],
-        'exclusive': True,
-        'strict': False,
-        'name': 'retry_case_7'
-    }
-    list_of_inputs.append(input_7)
+    # Input 8
+    pred_fn_pairs = [(tf.constant(True), lambda: [tf.constant(1), tf.constant(2)])]
+    default = lambda: [tf.constant(0), tf.constant(0)]
+    exclusive = False
+    strict = False
+    name = "case_8"
+    input_dict = {"pred_fn_pairs": pred_fn_pairs, "default": [default], "exclusive": exclusive, "strict": strict, "name": name}
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 8: Complex numbers
-    input_8 = {
-        'pred_fn_pairs': [(np.array(True), np.array(1+2j, dtype=np.complex128))],
-        'default': [np.array(3+4j, dtype=np.complex128)],
-        'exclusive': False,
-        'strict': False,
-        'name': 'retry_case_8'
-    }
-    list_of_inputs.append(input_8)
+    # Input 9
+    pred_fn_pairs = [(tf.constant(False), lambda: [tf.constant(1), tf.constant(2)])]
+    default = lambda: [tf.constant(0), tf.constant(0)]
+    exclusive = False
+    strict = False
+    name = "case_9"
+    input_dict = {"pred_fn_pairs": pred_fn_pairs, "default": [default], "exclusive": exclusive, "strict": strict, "name": name}
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 9: Unsigned integer
-    input_9 = {
-        'pred_fn_pairs': [
-            (np.array(True), np.array(255, dtype=np.uint8))
-        ],
-        'default': [np.array(0, dtype=np.uint8)],
-        'exclusive': False,
-        'strict': False,
-        'name': 'retry_case_9'
-    }
-    list_of_inputs.append(input_9)
+    # Input 10
+    pred_fn_pairs = [(tf.constant(True), lambda: [tf.constant(1.0)]), (tf.constant(False), lambda: [tf.constant(2.0)])]
+    default = lambda: [tf.constant(0.0)]
+    exclusive = False
+    strict = False
+    name = "case_10"
+    input_dict = {"pred_fn_pairs": pred_fn_pairs, "default": [default], "exclusive": exclusive, "strict": strict, "name": name}
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 10: Boolean return value
-    input_10 = {
-        'pred_fn_pairs': [
-            (np.array(True), np.array(True, dtype=np.bool_))
-        ],
-        'default': [np.array(False, dtype=np.bool_)],
-        'exclusive': False,
-        'strict': False,
-        'name': 'retry_case_10'
-    }
-    list_of_inputs.append(input_10)
+    # Input 11
+    pred_fn_pairs = [(tf.constant(True), lambda: [tf.constant([1,2,3], dtype=tf.int32)])]
+    default = lambda: [tf.constant([0,0,0], dtype=tf.int32)]
+    exclusive = False
+    strict = True
+    name = "case_11"
+    input_dict = {"pred_fn_pairs": pred_fn_pairs, "default": [default], "exclusive": exclusive, "strict": strict, "name": name}
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs
 
+generated_inputs = {}
 generated_inputs["tf.case"] = tf_case_inputs()
 
 def check_valid(api, list_of_inputs, lib="tf", suffix=0):
@@ -153,5 +130,9 @@ def check_valid(api, list_of_inputs, lib="tf", suffix=0):
 
 if 'tf.case' not in generated_inputs:
     raise Exception("Output of the input generating function was not assigned to the generated_inputs dictionary to the key 'tf.case'.")
+
+
+tf.config.experimental.enable_op_determinism()
+tf.random.set_seed(42)
 
 check_valid('tf.case', generated_inputs['tf.case'], lib="tf", suffix=0)

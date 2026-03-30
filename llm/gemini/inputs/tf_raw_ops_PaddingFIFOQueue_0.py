@@ -4,66 +4,97 @@ from generator.input_generators import get_abstract_input
 
 generated_inputs = dict()
 
+import tensorflow as tf
 import numpy as np
 import copy
 
-def tf_raw_ops_padding_fifo_queue_inputs():
-    """
-    This function generates a list of valid inputs for the tf.raw_ops.PaddingFIFOQueue API.
-    The tf.raw_ops.PaddingFIFOQueue op is not supported in eager execution, which is the
-    default in modern TensorFlow. These inputs are structurally valid according to the
-    API's documentation but will raise a RuntimeError if executed in eager mode,
-    as observed from the execution logs.
-    """
+def tf_raw_ops_PaddingFIFOQueue_inputs():
     list_of_inputs = []
 
-    # Input 1: Basic case with a fixed shape and capacity.
-    input_dict_1 = {
-        'component_types': [np.int32],
-        'shapes': [[2, 3]],
-        'capacity': 10,
-        'container': '',
-        'shared_name': '',
-        'name': 'fixed_queue'
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict_1))
+    # Input 1
+    component_types = [tf.float32.as_numpy_dtype]
+    shapes = [[10]]
+    capacity = 10
+    container = ""
+    shared_name = ""
+    name = None
+    input_dict = {"component_types": component_types, "shapes": shapes, "capacity": capacity, "container": container, "shared_name": shared_name, "name": name}
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 2: Multiple components, one with a variable dimension, unlimited capacity.
-    input_dict_2 = {
-        'component_types': [np.float32, np.string_],
-        'shapes': [[-1], []],
-        'capacity': -1,
-        'container': 'test_container',
-        'shared_name': '',
-        'name': 'multi_component_var_shape'
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict_2))
+    # Input 2
+    component_types = [tf.int32.as_numpy_dtype, tf.float64.as_numpy_dtype]
+    shapes = [[5], [2, 3]]
+    capacity = 5
+    container = "my_container"
+    shared_name = "my_shared_queue"
+    name = "my_queue"
+    input_dict = {"component_types": component_types, "shapes": shapes, "capacity": capacity, "container": container, "shared_name": shared_name, "name": name}
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 3: Single boolean component, default shape, shared name.
-    input_dict_3 = {
-        'component_types': [np.bool_],
-        'shapes': [],
-        'capacity': 1,
-        'container': '',
-        'shared_name': 'shared_bool_queue',
-        'name': 'bool_queue'
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict_3))
-    
-    # Input 4: A case with a zero dimension for variable size.
-    input_dict_4 = {
-        'component_types': [np.uint8],
-        'shapes': [[10, 0]],
-        'capacity': 100,
-        'container': '',
-        'shared_name': '',
-        'name': 'zero_dim_queue'
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict_4))
+    # Input 3
+    component_types = [tf.string.as_numpy_dtype]
+    shapes = []
+    capacity = -1
+    container = ""
+    shared_name = ""
+    name = None
+    input_dict = {"component_types": component_types, "shapes": shapes, "capacity": capacity, "container": container, "shared_name": shared_name, "name": name}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 4
+    component_types = [tf.bool.as_numpy_dtype]
+    shapes = [[], []]
+    capacity = 100
+    container = "bool_container"
+    shared_name = "bool_queue"
+    name = "bool_name"
+    input_dict = {"component_types": component_types, "shapes": shapes, "capacity": capacity, "container": container, "shared_name": shared_name, "name": name}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 5
+    component_types = [tf.float32.as_numpy_dtype, tf.int64.as_numpy_dtype]
+    shapes = [[None], [2, None]]
+    capacity = 20
+    container = "mixed_container"
+    shared_name = "mixed_queue"
+    name = "mixed_name"
+    input_dict = {"component_types": component_types, "shapes": shapes, "capacity": capacity, "container": container, "shared_name": shared_name, "name": name}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 6
+    component_types = [tf.complex64.as_numpy_dtype]
+    shapes = [[2, 2, 2]]
+    capacity = 10
+    container = ""
+    shared_name = ""
+    name = None
+    input_dict = {"component_types": component_types, "shapes": shapes, "capacity": capacity, "container": container, "shared_name": shared_name, "name": name}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 7
+    component_types = [tf.uint8.as_numpy_dtype]
+    shapes = [[3, 4]]
+    capacity = -1
+    container = "uint8_container"
+    shared_name = "uint8_queue"
+    name = "uint8_name"
+    input_dict = {"component_types": component_types, "shapes": shapes, "capacity": capacity, "container": container, "shared_name": shared_name, "name": name}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 8
+    component_types = [tf.float16.as_numpy_dtype]
+    shapes = [[1, 5, 10]]
+    capacity = 15
+    container = ""
+    shared_name = "float16_queue"
+    name = None
+    input_dict = {"component_types": component_types, "shapes": shapes, "capacity": capacity, "container": container, "shared_name": shared_name, "name": name}
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs
 
-generated_inputs["tf.raw_ops.PaddingFIFOQueue"] = tf_raw_ops_padding_fifo_queue_inputs()
+generated_inputs = {}
+generated_inputs["tf.raw_ops.PaddingFIFOQueue"] = tf_raw_ops_PaddingFIFOQueue_inputs()
 
 def check_valid(api, list_of_inputs, lib="tf", suffix=0):
     for idx, input_dict in enumerate(list_of_inputs):
@@ -77,5 +108,9 @@ def check_valid(api, list_of_inputs, lib="tf", suffix=0):
 
 if 'tf.raw_ops.PaddingFIFOQueue' not in generated_inputs:
     raise Exception("Output of the input generating function was not assigned to the generated_inputs dictionary to the key 'tf.raw_ops.PaddingFIFOQueue'.")
+
+
+tf.config.experimental.enable_op_determinism()
+tf.random.set_seed(42)
 
 check_valid('tf.raw_ops.PaddingFIFOQueue', generated_inputs['tf.raw_ops.PaddingFIFOQueue'], lib="tf", suffix=0)

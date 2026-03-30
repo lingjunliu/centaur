@@ -4,147 +4,206 @@ from generator.input_generators import get_abstract_input
 
 generated_inputs = dict()
 
+import tensorflow as tf
 import numpy as np
 import copy
 
-def get_tf_raw_ops_SparseAccumulatorApplyGradient_inputs():
-    """
-    Generates a list of valid inputs for the tf.raw_ops.SparseAccumulatorApplyGradient function.
-    NOTE: This operation is not compatible with eager execution and will raise a
-    RuntimeError if called directly. This is an inherent property of the op, which
-    is designed for TensorFlow's graph mode. The inputs provided are syntactically
-    and semantically valid for the op's documented behavior in a graph context.
-    """
+def tf_raw_ops_sparse_accumulator_apply_gradient_inputs():
     list_of_inputs = []
 
-    def create_handle(i):
-        # A placeholder string tensor for the handle, as required by the signature.
-        return np.array([f'handle_placeholder_{i}'], dtype=np.object_)
+    # Input 1
+    handle = np.array(b"accumulator_handle", dtype=np.string_)
+    local_step = np.array(1, dtype=np.int64)
+    gradient_indices = np.array([[0, 0], [1, 2]], dtype=np.int64)
+    gradient_values = np.array([1.0, 2.0], dtype=np.float32)
+    gradient_shape = np.array([2, 3], dtype=np.int64)
+    has_known_shape = True
 
-    # Input 1: Basic float32 case, updating slices of a 2D tensor
-    list_of_inputs.append({
-        'handle': create_handle(1),
-        'local_step': np.array(10, dtype=np.int64),
-        'gradient_indices': np.array([1, 3], dtype=np.int64),
-        'gradient_values': np.array([[1.0, 2.0], [3.0, 4.0]], dtype=np.float32),
-        'gradient_shape': np.array([5, 2], dtype=np.int64),
-        'has_known_shape': True,
-        'name': 'apply_grad_float32'
-    })
+    input_dict = {
+        "handle": handle,
+        "local_step": local_step,
+        "gradient_indices": gradient_indices,
+        "gradient_values": gradient_values,
+        "gradient_shape": gradient_shape,
+        "has_known_shape": has_known_shape,
+        "name": None
+    }
+    list_of_inputs.append(input_dict)
 
-    # Input 2: Basic int32 case, updating elements of a 1D tensor
-    list_of_inputs.append({
-        'handle': create_handle(2),
-        'local_step': np.array(20, dtype=np.int64),
-        'gradient_indices': np.array([0, 1, 4], dtype=np.int64),
-        'gradient_values': np.array([-5, 10, -15], dtype=np.int32),
-        'gradient_shape': np.array([10], dtype=np.int64),
-        'has_known_shape': True,
-        'name': 'apply_grad_int32'
-    })
+    # Input 2
+    handle = np.array(b"another_handle", dtype=np.string_)
+    local_step = np.array(2, dtype=np.int64)
+    gradient_indices = np.array([[0], [1]], dtype=np.int64)
+    gradient_values = np.array([3, 4], dtype=np.int32)
+    gradient_shape = np.array([5], dtype=np.int64)
+    has_known_shape = False
 
-    # Input 3: float64, updating a slice of a 3D tensor
-    list_of_inputs.append({
-        'handle': create_handle(3),
-        'local_step': np.array(30, dtype=np.int64),
-        'gradient_indices': np.array([0], dtype=np.int64),
-        'gradient_values': np.array([[[1.1, 1.2], [2.1, 2.2]]], dtype=np.float64),
-        'gradient_shape': np.array([3, 2, 2], dtype=np.int64),
-        'has_known_shape': True,
-        'name': 'apply_grad_float64_3d'
-    })
+    input_dict = {
+        "handle": handle,
+        "local_step": local_step,
+        "gradient_indices": gradient_indices,
+        "gradient_values": gradient_values,
+        "gradient_shape": gradient_shape,
+        "has_known_shape": has_known_shape,
+        "name": None
+    }
+    list_of_inputs.append(input_dict)
 
-    # Input 4: complex128, 1D tensor
-    list_of_inputs.append({
-        'handle': create_handle(4),
-        'local_step': np.array(40, dtype=np.int64),
-        'gradient_indices': np.array([4, 9], dtype=np.int64),
-        'gradient_values': np.array([1+2j, -3-4j], dtype=np.complex128),
-        'gradient_shape': np.array([10], dtype=np.int64),
-        'has_known_shape': True,
-        'name': 'apply_grad_complex128'
-    })
+    # Input 3
+    handle = np.array(b"yet_another_handle", dtype=np.string_)
+    local_step = np.array(3, dtype=np.int64)
+    gradient_indices = np.array([[0, 0, 0], [1, 1, 1]], dtype=np.int64)
+    gradient_values = np.array([5.5, 6.6], dtype=np.float64)
+    gradient_shape = np.array([2, 2, 2], dtype=np.int64)
+    has_known_shape = True
 
-    # Input 5: Empty gradient update
-    list_of_inputs.append({
-        'handle': create_handle(5),
-        'local_step': np.array(50, dtype=np.int64),
-        'gradient_indices': np.array([], dtype=np.int64),
-        'gradient_values': np.empty((0, 5, 5), dtype=np.float32),
-        'gradient_shape': np.array([10, 5, 5], dtype=np.int64),
-        'has_known_shape': True,
-        'name': 'apply_grad_empty'
-    })
+    input_dict = {
+        "handle": handle,
+        "local_step": local_step,
+        "gradient_indices": gradient_indices,
+        "gradient_values": gradient_values,
+        "gradient_shape": gradient_shape,
+        "has_known_shape": has_known_shape,
+        "name": None
+    }
+    list_of_inputs.append(input_dict)
 
-    # Input 6: has_known_shape = False
-    list_of_inputs.append({
-        'handle': create_handle(6),
-        'local_step': np.array(60, dtype=np.int64),
-        'gradient_indices': np.array([0], dtype=np.int64),
-        'gradient_values': np.array([1.0], dtype=np.float32),
-        'gradient_shape': np.array([-1], dtype=np.int64),
-        'has_known_shape': False,
-        'name': 'apply_grad_unknown_shape'
-    })
+    # Input 4
+    handle = np.array(b"handle4", dtype=np.string_)
+    local_step = np.array(4, dtype=np.int64)
+    gradient_indices = np.array([[0, 1], [1, 0]], dtype=np.int64)
+    gradient_values = np.array([7, 8], dtype=np.int64)
+    gradient_shape = np.array([2, 2], dtype=np.int64)
+    has_known_shape = False
 
-    # Input 7: uint16 type
-    list_of_inputs.append({
-        'handle': create_handle(7),
-        'local_step': np.array(70, dtype=np.int64),
-        'gradient_indices': np.array([0, 100], dtype=np.int64),
-        'gradient_values': np.array([65535, 1], dtype=np.uint16),
-        'gradient_shape': np.array([101], dtype=np.int64),
-        'has_known_shape': True,
-        'name': 'apply_grad_uint16'
-    })
+    input_dict = {
+        "handle": handle,
+        "local_step": local_step,
+        "gradient_indices": gradient_indices,
+        "gradient_values": gradient_values,
+        "gradient_shape": gradient_shape,
+        "has_known_shape": has_known_shape,
+        "name": None
+    }
+    list_of_inputs.append(input_dict)
 
-    # Input 8: int8 type, 2D slices
-    list_of_inputs.append({
-        'handle': create_handle(8),
-        'local_step': np.array(80, dtype=np.int64),
-        'gradient_indices': np.array([1], dtype=np.int64),
-        'gradient_values': np.array([[-127, 0, 127]], dtype=np.int8),
-        'gradient_shape': np.array([5, 3], dtype=np.int64),
-        'has_known_shape': True,
-        'name': 'apply_grad_int8'
-    })
+    # Input 5
+    handle = np.array(b"handle5", dtype=np.string_)
+    local_step = np.array(5, dtype=np.int64)
+    gradient_indices = np.array([[0]], dtype=np.int64)
+    gradient_values = np.array([9], dtype=np.float32)
+    gradient_shape = np.array([1], dtype=np.int64)
+    has_known_shape = True
 
-    # Input 9: uint32 with max value
-    list_of_inputs.append({
-        'handle': create_handle(9),
-        'local_step': np.array(90, dtype=np.int64),
-        'gradient_indices': np.array([0], dtype=np.int64),
-        'gradient_values': np.array([np.iinfo(np.uint32).max], dtype=np.uint32),
-        'gradient_shape': np.array([1], dtype=np.int64),
-        'has_known_shape': True,
-        'name': 'apply_grad_uint32'
-    })
+    input_dict = {
+        "handle": handle,
+        "local_step": local_step,
+        "gradient_indices": gradient_indices,
+        "gradient_values": gradient_values,
+        "gradient_shape": gradient_shape,
+        "has_known_shape": has_known_shape,
+        "name": None
+    }
+    list_of_inputs.append(input_dict)
 
-    # Input 10: Max local_step value
-    list_of_inputs.append({
-        'handle': create_handle(10),
-        'local_step': np.array(9223372036854775807, dtype=np.int64),
-        'gradient_indices': np.array([0], dtype=np.int64),
-        'gradient_values': np.array([1.0], dtype=np.float32),
-        'gradient_shape': np.array([1], dtype=np.int64),
-        'has_known_shape': True,
-        'name': 'apply_grad_large_step'
-    })
+   # Input 6
+    handle = np.array(b"handle6", dtype=np.string_)
+    local_step = np.array(6, dtype=np.int64)
+    gradient_indices = np.array([[0, 0], [0, 1]], dtype=np.int64)
+    gradient_values = np.array([10, 11], dtype=np.float64)
+    gradient_shape = np.array([1, 2], dtype=np.int64)
+    has_known_shape = False
 
-    # Input 11: bfloat16 placeholder
-    list_of_inputs.append({
-        'handle': create_handle(11),
-        'local_step': np.array(110, dtype=np.int64),
-        'gradient_indices': np.array([0], dtype=np.int64),
-        'gradient_values': np.array([1.0], dtype=np.float32), # Use float32 as numpy doesn't have bfloat16
-        'gradient_shape': np.array([1], dtype=np.int64),
-        'has_known_shape': True,
-        'name': 'apply_grad_bfloat16'
-    })
+    input_dict = {
+        "handle": handle,
+        "local_step": local_step,
+        "gradient_indices": gradient_indices,
+        "gradient_values": gradient_values,
+        "gradient_shape": gradient_shape,
+        "has_known_shape": has_known_shape,
+        "name": None
+    }
+    list_of_inputs.append(input_dict)
 
-    return [copy.deepcopy(d) for d in list_of_inputs]
+    # Input 7
+    handle = np.array(b"handle7", dtype=np.string_)
+    local_step = np.array(7, dtype=np.int64)
+    gradient_indices = np.array([[0, 0, 0]], dtype=np.int64)
+    gradient_values = np.array([12], dtype=np.int32)
+    gradient_shape = np.array([1, 1, 1], dtype=np.int64)
+    has_known_shape = True
 
-generated_inputs["tf.raw_ops.SparseAccumulatorApplyGradient"] = get_tf_raw_ops_SparseAccumulatorApplyGradient_inputs()
+    input_dict = {
+        "handle": handle,
+        "local_step": local_step,
+        "gradient_indices": gradient_indices,
+        "gradient_values": gradient_values,
+        "gradient_shape": gradient_shape,
+        "has_known_shape": has_known_shape,
+        "name": None
+    }
+    list_of_inputs.append(input_dict)
+
+    # Input 8
+    handle = np.array(b"handle8", dtype=np.string_)
+    local_step = np.array(8, dtype=np.int64)
+    gradient_indices = np.array([[1, 0]], dtype=np.int64)
+    gradient_values = np.array([13], dtype=np.int64)
+    gradient_shape = np.array([2, 1], dtype=np.int64)
+    has_known_shape = False
+
+    input_dict = {
+        "handle": handle,
+        "local_step": local_step,
+        "gradient_indices": gradient_indices,
+        "gradient_values": gradient_values,
+        "gradient_shape": gradient_shape,
+        "has_known_shape": has_known_shape,
+        "name": None
+    }
+    list_of_inputs.append(input_dict)
+
+    # Input 9
+    handle = np.array(b"handle9", dtype=np.string_)
+    local_step = np.array(9, dtype=np.int64)
+    gradient_indices = np.array([[2, 2]], dtype=np.int64)
+    gradient_values = np.array([14], dtype=np.uint8)
+    gradient_shape = np.array([3, 3], dtype=np.int64)
+    has_known_shape = True
+
+    input_dict = {
+        "handle": handle,
+        "local_step": local_step,
+        "gradient_indices": gradient_indices,
+        "gradient_values": gradient_values,
+        "gradient_shape": gradient_shape,
+        "has_known_shape": has_known_shape,
+        "name": None
+    }
+    list_of_inputs.append(input_dict)
+
+    # Input 10
+    handle = np.array(b"handle10", dtype=np.string_)
+    local_step = np.array(10, dtype=np.int64)
+    gradient_indices = np.array([[0, 1, 2, 3, 4]], dtype=np.int64)
+    gradient_values = np.array([15], dtype=np.float32)
+    gradient_shape = np.array([1, 5], dtype=np.int64)
+    has_known_shape = False
+
+    input_dict = {
+        "handle": handle,
+        "local_step": local_step,
+        "gradient_indices": gradient_indices,
+        "gradient_values": gradient_values,
+        "gradient_shape": gradient_shape,
+        "has_known_shape": has_known_shape,
+        "name": None
+    }
+    list_of_inputs.append(input_dict)
+
+    return list_of_inputs
+
+generated_inputs["tf.raw_ops.SparseAccumulatorApplyGradient"] = tf_raw_ops_sparse_accumulator_apply_gradient_inputs()
 
 def check_valid(api, list_of_inputs, lib="tf", suffix=0):
     for idx, input_dict in enumerate(list_of_inputs):
@@ -158,5 +217,9 @@ def check_valid(api, list_of_inputs, lib="tf", suffix=0):
 
 if 'tf.raw_ops.SparseAccumulatorApplyGradient' not in generated_inputs:
     raise Exception("Output of the input generating function was not assigned to the generated_inputs dictionary to the key 'tf.raw_ops.SparseAccumulatorApplyGradient'.")
+
+
+tf.config.experimental.enable_op_determinism()
+tf.random.set_seed(42)
 
 check_valid('tf.raw_ops.SparseAccumulatorApplyGradient', generated_inputs['tf.raw_ops.SparseAccumulatorApplyGradient'], lib="tf", suffix=0)

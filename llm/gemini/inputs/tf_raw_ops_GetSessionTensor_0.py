@@ -4,60 +4,77 @@ from generator.input_generators import get_abstract_input
 
 generated_inputs = dict()
 
+import tensorflow as tf
 import numpy as np
 import copy
 
-def get_tf_raw_ops_get_session_tensor_inputs():
-    """
-    Generates a list of valid inputs for the tf.raw_ops.GetSessionTensor function.
-    The `FailedPreconditionError` is inherent to this op when run in isolation,
-    as it requires a session state to be populated first (e.g., by another op like
-    GetSessionHandle). The provided inputs are syntactically valid according to the
-    API's signature but are expected to fail at runtime in an environment where
-    the session state is not initialized with the specified handles.
-    """
+def tf_raw_ops_GetSessionTensor_inputs():
     list_of_inputs = []
 
-    # A diverse set of dtypes to be requested.
-    dtypes_to_test = [
-        np.float32, np.int32, np.bool_, np.complex64, np.string_,
-        np.float64, np.uint8, np.int64, np.complex128, np.int16
-    ]
+    # Input 1: Simple string handle, float32 dtype
+    handle = np.array("tensor_handle_1", dtype=np.object_)
+    dtype = np.float32
+    input_dict = {"handle": handle, "dtype": dtype, "name": "get_session_tensor_1"}
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    for i, dtype in enumerate(dtypes_to_test):
-        # Create a unique handle and name for each case.
-        handle_str = f'test_handle_{i}'
-        name_str = f'get_tensor_op_{i}'
+    # Input 2: Another string handle, int32 dtype
+    handle = np.array("tensor_handle_2", dtype=np.object_)
+    dtype = np.int32
+    input_dict = {"handle": handle, "dtype": dtype, "name": "get_session_tensor_2"}
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-        input_dict = {
-            # Handle is a 0D tensor of type string. `dtype=object` is used to
-            # create a NumPy array containing a Python string, which is
-            # correctly interpreted as a tf.string tensor by TensorFlow.
-            'handle': np.array(handle_str, dtype=object),
-            'dtype': dtype,
-            'name': name_str
-        }
-        list_of_inputs.append(copy.deepcopy(input_dict))
-    
-    # Case 11: Add a case with an empty name string
-    input_dict_empty_name = {
-        'handle': np.array('handle_with_empty_name', dtype=object),
-        'dtype': np.uint32,
-        'name': ''
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict_empty_name))
+    # Input 3:  string handle, complex64 dtype (Removed non-ascii characters)
+    handle = np.array("tensor_handle_3", dtype=np.object_)
+    dtype = np.complex64
+    input_dict = {"handle": handle, "dtype": dtype, "name": "get_session_tensor_3"}
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Case 12: Add a case with a name containing slashes (like a scope)
-    input_dict_scoped_name = {
-        'handle': np.array('handle_with_scoped_name', dtype=object),
-        'dtype': np.uint64,
-        'name': 'my_scope/my_op_name'
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict_scoped_name))
+    # Input 4: Empty string handle, bool dtype
+    handle = np.array("", dtype=np.object_)
+    dtype = np.bool_
+    input_dict = {"handle": handle, "dtype": dtype, "name": "get_session_tensor_4"}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 5: Long string handle, int64 dtype
+    handle = np.array("a_very_long_tensor_handle_string_5", dtype=np.object_)
+    dtype = np.int64
+    input_dict = {"handle": handle, "dtype": dtype, "name": "get_session_tensor_5"}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 6: Handle with special characters, uint8 dtype
+    handle = np.array("handle_with_$peci@l_chars", dtype=np.object_)
+    dtype = np.uint8
+    input_dict = {"handle": handle, "dtype": dtype, "name": "get_session_tensor_6"}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 7: Handle with numbers, float64 dtype
+    handle = np.array("handle_1234567890", dtype=np.object_)
+    dtype = np.float64
+    input_dict = {"handle": handle, "dtype": dtype, "name": "get_session_tensor_7"}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 8: Handle with mixed characters, string dtype
+    handle = np.array("MiXeD_cHaRs_HaNdLe", dtype=np.object_)
+    dtype = np.string_
+    input_dict = {"handle": handle, "dtype": dtype, "name": "get_session_tensor_8"}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 9:  Valid string handle, int8 dtype
+    handle = np.array("handle_9", dtype=np.object_)
+    dtype = np.int8
+    input_dict = {"handle": handle, "dtype": dtype, "name": "get_session_tensor_9"}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 10: Valid string handle, uint16 dtype
+    handle = np.array("handle_10", dtype=np.object_)
+    dtype = np.uint16
+    input_dict = {"handle": handle, "dtype": dtype, "name": "get_session_tensor_10"}
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs
 
-generated_inputs["tf.raw_ops.GetSessionTensor"] = get_tf_raw_ops_get_session_tensor_inputs()
+generated_inputs = {}
+generated_inputs["tf.raw_ops.GetSessionTensor"] = tf_raw_ops_GetSessionTensor_inputs()
 
 def check_valid(api, list_of_inputs, lib="tf", suffix=0):
     for idx, input_dict in enumerate(list_of_inputs):
@@ -71,5 +88,9 @@ def check_valid(api, list_of_inputs, lib="tf", suffix=0):
 
 if 'tf.raw_ops.GetSessionTensor' not in generated_inputs:
     raise Exception("Output of the input generating function was not assigned to the generated_inputs dictionary to the key 'tf.raw_ops.GetSessionTensor'.")
+
+
+tf.config.experimental.enable_op_determinism()
+tf.random.set_seed(42)
 
 check_valid('tf.raw_ops.GetSessionTensor', generated_inputs['tf.raw_ops.GetSessionTensor'], lib="tf", suffix=0)

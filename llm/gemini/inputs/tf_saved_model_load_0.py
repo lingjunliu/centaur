@@ -5,85 +5,119 @@ from generator.input_generators import get_abstract_input
 generated_inputs = dict()
 
 import tensorflow as tf
-import numpy as np
 import copy
 import os
-import tempfile
-import shutil
 
 def tf_saved_model_load_inputs():
-    """
-    Generates a list of valid inputs for tf.saved_model.load.
-
-    To fix the `AttributeError: 'str' object has no attribute ...`, the `options`
-    parameter is provided as a `tf.saved_model.LoadOptions` object, which is the
-    correct type expected by the API, instead of a string. This corrects the
-    runtime error, assuming the provided signature `'options': 'string'` was incorrect.
-
-    A SavedModel is also created with a MetaGraph that has an empty tag set (`[]`).
-    This allows `tags=[]` to be used as a valid input, which works around a
-    potential issue in the testing harness with lists of strings.
-    """
-    # Create a temporary directory for the SavedModel.
-    model_dir = tempfile.mkdtemp()
-
-    # Use TF1 SavedModelBuilder to create a model that includes a MetaGraph with an empty tag set.
-    with tf.Graph().as_default():
-        with tf.compat.v1.Session() as sess:
-            x = tf.compat.v1.placeholder(tf.float32, shape=(), name='x_placeholder')
-            v = tf.Variable(2.0, name='v_variable')
-            y = tf.multiply(x, v, name='y_output')
-            sess.run(tf.compat.v1.global_variables_initializer())
-
-            signature = tf.compat.v1.saved_model.signature_def_utils.predict_signature_def(
-                inputs={'input': x}, outputs={'output': y})
-
-            builder = tf.compat.v1.saved_model.builder.SavedModelBuilder(model_dir)
-
-            builder.add_meta_graph_and_variables(
-                sess, ["serve"], signature_def_map={'serving_default': signature})
-
-            builder.add_meta_graph([], signature_def_map={'no_tags_sig': signature})
-            
-            builder.save()
-
     list_of_inputs = []
-    
-    model_dir_2 = tempfile.mkdtemp()
-    shutil.copytree(os.path.realpath(model_dir), os.path.realpath(model_dir_2), dirs_exist_ok=True)
 
-    # Input 1: Default LoadOptions
-    list_of_inputs.append({'export_dir': model_dir, 'tags': [], 'options': tf.saved_model.LoadOptions()})
-    
-    # Input 2: Skip checkpoint restoration
-    list_of_inputs.append({'export_dir': model_dir, 'tags': [], 'options': tf.saved_model.LoadOptions(experimental_skip_checkpoint=True)})
-    
-    # Input 3: Disallow partial checkpoint restore
-    list_of_inputs.append({'export_dir': model_dir, 'tags': [], 'options': tf.saved_model.LoadOptions(allow_partial_checkpoint_restore=False)})
-    
-    # Input 4: Specify IO device
-    list_of_inputs.append({'export_dir': model_dir, 'tags': [], 'options': tf.saved_model.LoadOptions(experimental_io_device='/job:localhost')})
-    
-    # Input 5: Different variable policy
-    list_of_inputs.append({'export_dir': model_dir, 'tags': [], 'options': tf.saved_model.LoadOptions(experimental_variable_policy=tf.saved_model.experimental.VariablePolicy.SAVE_AND_RESTORE_DECLARED_VARIABLES)})
-    
-    # Input 6: Default LoadOptions on second dir
-    list_of_inputs.append({'export_dir': model_dir_2, 'tags': [], 'options': tf.saved_model.LoadOptions()})
-    
-    # Input 7: Skip checkpoint on second dir
-    list_of_inputs.append({'export_dir': model_dir_2, 'tags': [], 'options': tf.saved_model.LoadOptions(experimental_skip_checkpoint=True)})
-    
-    # Input 8: Both options changed
-    list_of_inputs.append({'export_dir': model_dir, 'tags': [], 'options': tf.saved_model.LoadOptions(allow_partial_checkpoint_restore=False, experimental_skip_checkpoint=True)})
+    # Helper function to create a dummy SavedModel directory
+    def create_dummy_saved_model(export_dir, tags=None):
+        if not os.path.exists(export_dir):
+            os.makedirs(export_dir)
 
-    # Input 9: Another variable policy using its string name
-    list_of_inputs.append({'export_dir': model_dir, 'tags': [], 'options': tf.saved_model.LoadOptions(experimental_variable_policy='checkpoint_variables')})
-    
-    # Input 10: Path with trailing slash
-    list_of_inputs.append({'export_dir': model_dir + os.sep, 'tags': [], 'options': tf.saved_model.LoadOptions()})
-    
+        # Create a dummy function and save it
+        @tf.function(input_signature=[tf.TensorSpec(shape=(None,), dtype=tf.float32, name='x')])
+        def dummy_function(x):
+            return x * 2.0
+
+        concrete_function = dummy_function.get_concrete_function()
+        tf.saved_model.save(
+            obj=dummy_function,
+            export_dir=export_dir,
+            signatures={'serving_default': concrete_function}
+        )
+
+    # Input 1: Basic valid input with minimal parameters
+    export_dir = "dummy_saved_model_1"
+    create_dummy_saved_model(export_dir)
+    tags = None
+    options = None
+    input_dict = {"export_dir": export_dir, "tags": tags, "options": str(options)}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 2: With a specific tag
+    export_dir = "dummy_saved_model_2"
+    create_dummy_saved_model(export_dir, tags=["serve"])
+    tags = ["serve"]
+    options = None
+    input_dict = {"export_dir": export_dir, "tags": tags, "options": str(options)}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 3: Empty tag list
+    export_dir = "dummy_saved_model_3"
+    create_dummy_saved_model(export_dir)
+    tags = []
+    options = None
+    input_dict = {"export_dir": export_dir, "tags": tags, "options": str(options)}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 4: Multiple tags
+    export_dir = "dummy_saved_model_4"
+    create_dummy_saved_model(export_dir, tags=["serve", "train"])
+    tags = ["serve", "train"]
+    options = None
+    input_dict = {"export_dir": export_dir, "tags": tags, "options": str(options)}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 5: Longer export directory path
+    export_dir = "path/to/a/very/long/dummy_saved_model_5"
+    if not os.path.exists(os.path.dirname(export_dir)):
+        os.makedirs(os.path.dirname(export_dir))
+
+    create_dummy_saved_model(export_dir)
+    tags = None
+    options = None
+    input_dict = {"export_dir": export_dir, "tags": tags, "options": str(options)}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 6: Export dir with spaces
+    export_dir = "dummy saved model 6"
+    if not os.path.exists(export_dir):
+        os.makedirs(export_dir)
+    create_dummy_saved_model(export_dir)
+    tags = None
+    options = None
+    input_dict = {"export_dir": export_dir, "tags": tags, "options": str(options)}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 7: Options specified
+    export_dir = "dummy_saved_model_7"
+    create_dummy_saved_model(export_dir)
+    tags = None
+    options = str(tf.saved_model.LoadOptions())
+    input_dict = {"export_dir": export_dir, "tags": tags, "options": options}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 8: Different tags
+    export_dir = "dummy_saved_model_8"
+    create_dummy_saved_model(export_dir, tags=["serving"])
+    tags = ["serving"]
+    options = None
+    input_dict = {"export_dir": export_dir, "tags": tags, "options": str(options)}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 9: With a dot in directory name
+    export_dir = "dummy.saved.model.9"
+    if not os.path.exists(export_dir):
+        os.makedirs(export_dir)
+    create_dummy_saved_model(export_dir)
+    tags = None
+    options = None
+    input_dict = {"export_dir": export_dir, "tags": tags, "options": str(options)}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 10: Options specified with different parameters
+    export_dir = "dummy_saved_model_10"
+    create_dummy_saved_model(export_dir)
+    tags = None
+    options = str(tf.saved_model.LoadOptions())
+    input_dict = {"export_dir": export_dir, "tags": tags, "options": options}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
     return list_of_inputs
 
+generated_inputs = {}
 generated_inputs["tf.saved_model.load"] = tf_saved_model_load_inputs()
 
 def check_valid(api, list_of_inputs, lib="tf", suffix=0):
@@ -98,5 +132,9 @@ def check_valid(api, list_of_inputs, lib="tf", suffix=0):
 
 if 'tf.saved_model.load' not in generated_inputs:
     raise Exception("Output of the input generating function was not assigned to the generated_inputs dictionary to the key 'tf.saved_model.load'.")
+
+
+tf.config.experimental.enable_op_determinism()
+tf.random.set_seed(42)
 
 check_valid('tf.saved_model.load', generated_inputs['tf.saved_model.load'], lib="tf", suffix=0)

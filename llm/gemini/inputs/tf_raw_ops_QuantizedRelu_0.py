@@ -8,80 +8,106 @@ import tensorflow as tf
 import numpy as np
 import copy
 
-def get_quantized_relu_inputs():
-    """
-    Generates a list of valid inputs for the tf.raw_ops.QuantizedRelu function.
-    Uses tf.quantization.quantize to create correctly typed quantized tensors.
-    """
+tf.config.experimental.enable_op_determinism()
+tf.random.set_seed(42)
+
+def tf_raw_ops_quantized_relu_inputs():
     list_of_inputs = []
 
-    def create_quantized_input(float_features, min_val, max_val, quant_type, out_type, name):
-        """Helper to create a single valid input dictionary."""
-        # This is the correct way to create the required quantized tensor type
-        features_tensor, min_features_tensor, max_features_tensor = tf.quantization.quantize(
-            tf.constant(float_features, dtype=tf.float32), min_val, max_val, T=quant_type
-        )
-        return {
-            'features': features_tensor,
-            'min_features': min_features_tensor,
-            'max_features': max_features_tensor,
-            'out_type': out_type,
-            'name': name
-        }
+    # Input 1
+    features = np.array([1, 0, 1, 2], dtype=np.int8)
+    min_features = np.array([-1.0], dtype=np.float32)
+    max_features = np.array([2.0], dtype=np.float32)
+    out_type = tf.quint8
+    name = "relu1"
+    input_dict = {"out_type": out_type, "name": name, "features": features, "min_features": min_features, "max_features": max_features}
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Case 1: Basic qint8 input
-    list_of_inputs.append(create_quantized_input(
-        [-10.0, -5.0, 0.0, 5.0, 9.9], -10.0, 10.0, tf.qint8, tf.qint8, 'qint8_basic'
-    ))
+    # Input 2
+    features = np.array([[0, 0], [1, 2]], dtype=np.uint8)
+    min_features = np.array([0.0], dtype=np.float32)
+    max_features = np.array([2.0], dtype=np.float32)
+    out_type = tf.quint8
+    name = "relu2"
+    input_dict = {"out_type": out_type, "name": name, "features": features, "min_features": min_features, "max_features": max_features}
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Case 2: Basic quint8 input
-    list_of_inputs.append(create_quantized_input(
-        [[0.0, 1.5], [12.8, 25.5]], 0.0, 25.5, tf.quint8, tf.quint8, 'quint8_basic'
-    ))
+    # Input 3
+    features = np.array([-10, 0, 10, 20], dtype=np.int32)
+    min_features = np.array([-10.0], dtype=np.float32)
+    max_features = np.array([20.0], dtype=np.float32)
+    out_type = tf.qint32
+    name = "relu3"
+    input_dict = {"out_type": out_type, "name": name, "features": features, "min_features": min_features, "max_features": max_features}
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Case 3: Basic qint32 input
-    list_of_inputs.append(create_quantized_input(
-        [[[-200.0, -1.0], [0.0, 100.0]]], -200.0, 100.0, tf.qint32, tf.qint32, 'qint32_basic'
-    ))
+    # Input 4
+    features = np.array([[-100, 0], [100, 200]], dtype=np.int16)
+    min_features = np.array([-100.0], dtype=np.float32)
+    max_features = np.array([200.0], dtype=np.float32)
+    out_type = tf.qint16
+    name = "relu4"
+    input_dict = {"out_type": out_type, "name": name, "features": features, "min_features": min_features, "max_features": max_features}
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Case 4: Basic qint16 input
-    list_of_inputs.append(create_quantized_input(
-        [-5.0, -0.1, 0.0, 1.0, 4.9], -5.0, 5.0, tf.qint16, tf.qint16, 'qint16_basic'
-    ))
+    # Input 5
+    features = np.array([0, 0, 1, 2, 3, 4], dtype=np.uint16)
+    min_features = np.array([0.0], dtype=np.float32)
+    max_features = np.array([4.0], dtype=np.float32)
+    out_type = tf.quint16
+    name = "relu5"
+    input_dict = {"out_type": out_type, "name": name, "features": features, "min_features": min_features, "max_features": max_features}
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Case 5: Basic quint16 input
-    list_of_inputs.append(create_quantized_input(
-        [[0.0, 100.0], [300.0, 655.3]], 0.0, 655.35, tf.quint16, tf.quint16, 'quint16_basic'
-    ))
+    # Input 6
+    features = np.array([[-1, 0, 1], [2, 3, 4]], dtype=np.int8)
+    min_features = np.array([-1.0], dtype=np.float32)
+    max_features = np.array([4.0], dtype=np.float32)
+    out_type = tf.qint8
+    name = "relu6"
+    input_dict = {"out_type": out_type, "name": name, "features": features, "min_features": min_features, "max_features": max_features}
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Case 6: Input qint8, output quint8 (type change)
-    list_of_inputs.append(create_quantized_input(
-        [-1.0, -0.5, 0.0, 0.5, 1.0], -1.0, 1.0, tf.qint8, tf.quint8, 'qint8_to_quint8'
-    ))
+    # Input 7
+    features = np.array([[[1, 2], [3, 4]], [[5, 6], [7, 8]]], dtype=np.uint8)
+    min_features = np.array([1.0], dtype=np.float32)
+    max_features = np.array([8.0], dtype=np.float32)
+    out_type = tf.quint8
+    name = "relu7"
+    input_dict = {"out_type": out_type, "name": name, "features": features, "min_features": min_features, "max_features": max_features}
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Case 7: All negative feature values
-    list_of_inputs.append(create_quantized_input(
-        [[-0.1, -1.0], [-5.0, -12.8]], -12.8, -0.01, tf.qint8, tf.qint8, 'all_negative_features'
-    ))
+    # Input 8
+    features = np.array([[[1, 2], [3, 4]], [[5, 6], [7, 8]]], dtype=np.int32)
+    min_features = np.array([1.0], dtype=np.float32)
+    max_features = np.array([8.0], dtype=np.float32)
+    out_type = tf.qint32
+    name = "relu8"
+    input_dict = {"out_type": out_type, "name": name, "features": features, "min_features": min_features, "max_features": max_features}
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Case 8: Input qint32, output qint8 (down-casting bit depth)
-    list_of_inputs.append(create_quantized_input(
-        [-200.0, 0.0, 200.0], -200.0, 200.0, tf.qint32, tf.qint8, 'qint32_to_qint8'
-    ))
+    # Input 9
+    features = np.array([[[1, 2], [3, 4]], [[5, 6], [7, 8]]], dtype=np.int16)
+    min_features = np.array([-1.0], dtype=np.float32)
+    max_features = np.array([8.0], dtype=np.float32)
+    out_type = tf.qint16
+    name = "relu9"
+    input_dict = {"out_type": out_type, "name": name, "features": features, "min_features": min_features, "max_features": max_features}
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Case 9: Empty features tensor
-    list_of_inputs.append(create_quantized_input(
-        [], -1.0, 1.0, tf.qint8, tf.qint8, 'empty_features'
-    ))
-
-    # Case 10: All positive quint8 features
-    list_of_inputs.append(create_quantized_input(
-        [0.1, 1.5, 3.0], 0.0, 3.0, tf.quint8, tf.quint8, 'all_positive_quint8'
-    ))
+    # Input 10
+    features = np.array([[[1, 2], [3, 4]], [[5, 6], [7, 8]]], dtype=np.uint16)
+    min_features = np.array([0.0], dtype=np.float32)
+    max_features = np.array([10.0], dtype=np.float32)
+    out_type = tf.quint16
+    name = "relu10"
+    input_dict = {"out_type": out_type, "name": name, "features": features, "min_features": min_features, "max_features": max_features}
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs
 
-generated_inputs["tf.raw_ops.QuantizedRelu"] = get_quantized_relu_inputs()
+generated_inputs = {}
+generated_inputs["tf.raw_ops.QuantizedRelu"] = tf_raw_ops_quantized_relu_inputs()
 
 def check_valid(api, list_of_inputs, lib="tf", suffix=0):
     for idx, input_dict in enumerate(list_of_inputs):
@@ -95,5 +121,9 @@ def check_valid(api, list_of_inputs, lib="tf", suffix=0):
 
 if 'tf.raw_ops.QuantizedRelu' not in generated_inputs:
     raise Exception("Output of the input generating function was not assigned to the generated_inputs dictionary to the key 'tf.raw_ops.QuantizedRelu'.")
+
+
+tf.config.experimental.enable_op_determinism()
+tf.random.set_seed(42)
 
 check_valid('tf.raw_ops.QuantizedRelu', generated_inputs['tf.raw_ops.QuantizedRelu'], lib="tf", suffix=0)

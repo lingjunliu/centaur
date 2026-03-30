@@ -4,112 +4,103 @@ from generator.input_generators import get_abstract_input
 
 generated_inputs = dict()
 
+import tensorflow as tf
 import numpy as np
 import copy
 
-def get_temporary_variable_inputs():
-    """
-    Generates a list of valid inputs for the tf.raw_ops.TemporaryVariable function.
-    This operation is designed for graph-mode execution and will fail in an eager
-    context, which is the default in modern TensorFlow. The inputs provided here are
-    syntactically correct for the operation's signature. The RuntimeError is
-    expected when this op is called eagerly.
-    """
+def tf_raw_ops_TemporaryVariable_inputs():
     list_of_inputs = []
 
-    # Input 1: Basic 1D float32
-    input_dict_1 = {
-        'shape': [16],
-        'dtype': np.float32,
-        'var_name': 'temp_float_vec',
-        'name': 'OpFloatVec'
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict_1))
+    # Input 1
+    shape = [2, 3]
+    dtype = tf.float32
+    var_name = ""
+    name = "temp_var_1"
+    input_dict = {"shape": shape, "dtype": dtype, "var_name": var_name, "name": name}
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 2: 2D int32
-    input_dict_2 = {
-        'shape': [5, 5],
-        'dtype': np.int32,
-        'var_name': 'temp_int_matrix',
-        'name': 'OpIntMatrix'
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict_2))
+    # Input 2
+    shape = [1, 5, 2]
+    dtype = tf.int32
+    var_name = "my_temp_var"
+    name = None
+    input_dict = {"shape": shape, "dtype": dtype, "var_name": var_name, "name": name}
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 3: 3D float64
-    input_dict_3 = {
-        'shape': [2, 4, 3],
-        'dtype': np.float64,
-        'var_name': '',
-        'name': 'OpFloat64'
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict_3))
+    # Input 3
+    shape = [10]
+    dtype = tf.bool
+    var_name = ""
+    name = "bool_var"
+    input_dict = {"shape": shape, "dtype": dtype, "var_name": var_name, "name": name}
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 4: 4D int16
-    input_dict_4 = {
-        'shape': [1, 2, 3, 4],
-        'dtype': np.int16,
-        'var_name': 'temp_int16_tensor',
-        'name': ''
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict_4))
+    # Input 4
+    shape = [4, 4, 4, 4]
+    dtype = tf.int64
+    var_name = "very_specific_name"
+    name = None
+    input_dict = {"shape": shape, "dtype": dtype, "var_name": var_name, "name": name}
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 5: Scalar (0D) bool
-    input_dict_5 = {
-        'shape': [],
-        'dtype': np.bool_,
-        'var_name': 'temp_bool_scalar',
-        'name': 'OpBoolScalar'
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict_5))
+    # Input 5
+    shape = [7]
+    dtype = tf.complex64
+    var_name = ""
+    name = "complex_var"
+    input_dict = {"shape": shape, "dtype": dtype, "var_name": var_name, "name": name}
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 6: 2D int64
-    input_dict_6 = {
-        'shape': [8, 8],
-        'dtype': np.int64,
-        'var_name': 'temp_int64_matrix',
-        'name': 'OpInt64'
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict_6))
+    # Input 6
+    shape = [2, 2, 2]
+    dtype = tf.float64
+    var_name = "double_precision"
+    name = None
+    input_dict = {"shape": shape, "dtype": dtype, "var_name": var_name, "name": name}
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 7: 1D uint8 vector
-    input_dict_7 = {
-        'shape': [256],
-        'dtype': np.uint8,
-        'var_name': '',
-        'name': 'OpUint8'
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict_7))
+    # Input 7
+    shape = [1]
+    dtype = tf.string
+    var_name = ""
+    name = "string_var"
+    input_dict = {"shape": shape, "dtype": dtype, "var_name": var_name, "name": name}
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 8: 2D float16 (half precision)
-    input_dict_8 = {
-        'shape': [10, 20],
-        'dtype': np.float16,
-        'var_name': 'temp_float16_matrix',
-        'name': 'OpFloat16'
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict_8))
+    # Input 8
+    shape = [5, 5]
+    dtype = tf.uint8
+    var_name = "unsigned_int"
+    name = None
+    input_dict = {"shape": shape, "dtype": dtype, "var_name": var_name, "name": name}
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 9: 1D uint16 vector
-    input_dict_9 = {
-        'shape': [32],
-        'dtype': np.uint16,
-        'var_name': 'temp_uint16_vec',
-        'name': 'OpUint16'
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict_9))
-
-    # Input 10: Large-ish 2D tensor of int8
-    input_dict_10 = {
-        'shape': [64, 64],
-        'dtype': np.int8,
-        'var_name': 'temp_int8_large',
-        'name': 'OpInt8'
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict_10))
+    # Input 9
+    shape = [3, 1, 3, 1]
+    dtype = tf.int8
+    var_name = ""
+    name = "signed_int"
+    input_dict = {"shape": shape, "dtype": dtype, "var_name": var_name, "name": name}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 10
+    shape = []
+    dtype = tf.float16
+    var_name = "float16_var"
+    name = None
+    input_dict = {"shape": shape, "dtype": dtype, "var_name": var_name, "name": name}
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs
 
-generated_inputs["tf.raw_ops.TemporaryVariable"] = get_temporary_variable_inputs()
+generated_inputs = {}
+
+try:
+    tf.compat.v1.disable_eager_execution()
+except Exception as e:
+    print(f"Error disabling eager execution: {e}")
+
+generated_inputs["tf.raw_ops.TemporaryVariable"] = tf_raw_ops_TemporaryVariable_inputs()
 
 def check_valid(api, list_of_inputs, lib="tf", suffix=0):
     for idx, input_dict in enumerate(list_of_inputs):
@@ -123,5 +114,9 @@ def check_valid(api, list_of_inputs, lib="tf", suffix=0):
 
 if 'tf.raw_ops.TemporaryVariable' not in generated_inputs:
     raise Exception("Output of the input generating function was not assigned to the generated_inputs dictionary to the key 'tf.raw_ops.TemporaryVariable'.")
+
+
+tf.config.experimental.enable_op_determinism()
+tf.random.set_seed(42)
 
 check_valid('tf.raw_ops.TemporaryVariable', generated_inputs['tf.raw_ops.TemporaryVariable'], lib="tf", suffix=0)

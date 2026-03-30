@@ -4,52 +4,300 @@ from generator.input_generators import get_abstract_input
 
 generated_inputs = dict()
 
+import tensorflow as tf
 import numpy as np
 import copy
 
-def get_apply_momentum_inputs():
-    """
-    Generates a list of valid inputs for tf.raw_ops.ApplyMomentum.
+tf.config.experimental.enable_op_determinism()
+tf.random.set_seed(42)
 
-    The persistent `RuntimeError: apply_momentum op does not support eager
-    execution. Arg 'out' is a ref.` is a fundamental issue related to how
-    TensorFlow has evolved. This specific raw operation (`ApplyMomentum`) is a
-    "ref" operation, designed for the older TensorFlow graph mode where it
-    modifies a `tf.Variable` in-place.
-
-    Modern TensorFlow (TF2+) defaults to eager execution, which works with
-    immutable `tf.Tensor` objects and uses a different system of "resource"
-    variables (e.g., `tf.raw_ops.ResourceApplyMomentum`). The "ref" ops are not
-    compatible with this eager execution model. The error is not caused by the
-    values or dtypes of the numpy inputs, but by the attempt to run a
-    graph-mode-only operation in an eager context.
-
-    Since the problem lies in the execution environment's choice of op, no
-    variation of the numpy inputs can resolve it. This response provides a
-    single, canonical input that is perfectly valid according to the API's
-    signature. The failure of this minimal case confirms the issue is with the
-    execution context, not the input data.
-    """
+def tf_raw_ops_apply_momentum_inputs():
     list_of_inputs = []
 
-    # A single, canonical example representing the most common use case.
-    # This input is valid for the op's signature, even if the execution
-    # mode is incompatible.
-    input_dict = {
-        'use_locking': False,
-        'use_nesterov': False,
-        'name': 'canonical_apply_momentum',
-        'var': np.array([1.0, 2.0], dtype=np.float32),
-        'accum': np.array([0.1, 0.2], dtype=np.float32),
-        'lr': np.array(0.01, dtype=np.float32),
-        'grad': np.array([0.5, -0.5], dtype=np.float32),
-        'momentum': np.array(0.9, dtype=np.float32)
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    # Input 1
+    var = np.array([1.0, 2.0, 3.0], dtype=np.float32)
+    accum = np.array([0.1, 0.2, 0.3], dtype=np.float32)
+    lr = np.array(0.01, dtype=np.float32)
+    grad = np.array([0.4, 0.5, 0.6], dtype=np.float32)
+    momentum = np.array(0.9, dtype=np.float32)
+    use_locking = False
+    use_nesterov = False
+    name = "momentum_update_1"
 
+    tf.compat.v1.reset_default_graph()
+    with tf.compat.v1.Session() as sess:
+        v = tf.compat.v1.get_variable("var1", initializer=var)
+        a = tf.compat.v1.get_variable("accum1", initializer=accum)
+        sess.run(tf.compat.v1.initialize_all_variables())
+
+        input_dict = {
+            "var": v,
+            "accum": a,
+            "lr": lr,
+            "grad": grad,
+            "momentum": momentum,
+            "use_locking": use_locking,
+            "use_nesterov": use_nesterov,
+            "name": name
+        }
+        list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 2
+    var = np.array([[1.0, 2.0], [3.0, 4.0]], dtype=np.float64)
+    accum = np.array([[0.1, 0.2], [0.3, 0.4]], dtype=np.float64)
+    lr = np.array(0.005, dtype=np.float64)
+    grad = np.array([[0.5, 0.6], [0.7, 0.8]], dtype=np.float64)
+    momentum = np.array(0.8, dtype=np.float64)
+    use_locking = True
+    use_nesterov = True
+    name = "momentum_update_2"
+
+    tf.compat.v1.reset_default_graph()
+    with tf.compat.v1.Session() as sess:
+        v = tf.compat.v1.get_variable("var2", initializer=var)
+        a = tf.compat.v1.get_variable("accum2", initializer=accum)
+        sess.run(tf.compat.v1.initialize_all_variables())
+
+        input_dict = {
+            "var": v,
+            "accum": a,
+            "lr": lr,
+            "grad": grad,
+            "momentum": momentum,
+            "use_locking": use_locking,
+            "use_nesterov": use_nesterov,
+            "name": name
+        }
+        list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 3
+    var = np.array([1, 2, 3], dtype=np.int32)
+    accum = np.array([0, 0, 0], dtype=np.int32)
+    lr = np.array(1, dtype=np.int32)
+    grad = np.array([1, 1, 1], dtype=np.int32)
+    momentum = np.array(1, dtype=np.int32)
+    use_locking = False
+    use_nesterov = True
+    name = "momentum_update_3"
+    tf.compat.v1.reset_default_graph()
+    with tf.compat.v1.Session() as sess:
+        v = tf.compat.v1.get_variable("var3", initializer=var)
+        a = tf.compat.v1.get_variable("accum3", initializer=accum)
+        sess.run(tf.compat.v1.initialize_all_variables())
+
+
+        input_dict = {
+            "var": v,
+            "accum": a,
+            "lr": lr,
+            "grad": grad,
+            "momentum": momentum,
+            "use_locking": use_locking,
+            "use_nesterov": use_nesterov,
+            "name": name
+        }
+        list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 4
+    var = np.array([-1.0, -2.0, -3.0], dtype=np.float32)
+    accum = np.array([-0.1, -0.2, -0.3], dtype=np.float32)
+    lr = np.array(0.01, dtype=np.float32)
+    grad = np.array([-0.4, -0.5, -0.6], dtype=np.float32)
+    momentum = np.array(0.9, dtype=np.float32)
+    use_locking = True
+    use_nesterov = False
+    name = "momentum_update_4"
+
+    tf.compat.v1.reset_default_graph()
+    with tf.compat.v1.Session() as sess:
+        v = tf.compat.v1.get_variable("var4", initializer=var)
+        a = tf.compat.v1.get_variable("accum4", initializer=accum)
+        sess.run(tf.compat.v1.initialize_all_variables())
+
+        input_dict = {
+            "var": v,
+            "accum": a,
+            "lr": lr,
+            "grad": grad,
+            "momentum": momentum,
+            "use_locking": use_locking,
+            "use_nesterov": use_nesterov,
+            "name": name
+        }
+        list_of_inputs.append(copy.deepcopy(input_dict))
+
+   # Input 5
+    var = np.array([1.0], dtype=np.float32)
+    accum = np.array([0.1], dtype=np.float32)
+    lr = np.array(0.01, dtype=np.float32)
+    grad = np.array([0.4], dtype=np.float32)
+    momentum = np.array(0.9, dtype=np.float32)
+    use_locking = False
+    use_nesterov = False
+    name = "momentum_update_5"
+
+    tf.compat.v1.reset_default_graph()
+    with tf.compat.v1.Session() as sess:
+        v = tf.compat.v1.get_variable("var5", initializer=var)
+        a = tf.compat.v1.get_variable("accum5", initializer=accum)
+        sess.run(tf.compat.v1.initialize_all_variables())
+
+        input_dict = {
+            "var": v,
+            "accum": a,
+            "lr": lr,
+            "grad": grad,
+            "momentum": momentum,
+            "use_locking": use_locking,
+            "use_nesterov": use_nesterov,
+            "name": name
+        }
+        list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 6
+    var = np.array([1, 2, 3], dtype=np.int64)
+    accum = np.array([0, 0, 0], dtype=np.int64)
+    lr = np.array(1, dtype=np.int64)
+    grad = np.array([1, 1, 1], dtype=np.int64)
+    momentum = np.array(1, dtype=np.int64)
+    use_locking = False
+    use_nesterov = True
+    name = "momentum_update_6"
+    tf.compat.v1.reset_default_graph()
+    with tf.compat.v1.Session() as sess:
+        v = tf.compat.v1.get_variable("var6", initializer=var)
+        a = tf.compat.v1.get_variable("accum6", initializer=accum)
+        sess.run(tf.compat.v1.initialize_all_variables())
+
+        input_dict = {
+            "var": v,
+            "accum": a,
+            "lr": lr,
+            "grad": grad,
+            "momentum": momentum,
+            "use_locking": use_locking,
+            "use_nesterov": use_nesterov,
+            "name": name
+        }
+        list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 7
+    var = np.array([[1.0, 2.0], [3.0, 4.0]], dtype=np.float32)
+    accum = np.array([[0.1, 0.2], [0.3, 0.4]], dtype=np.float32)
+    lr = np.array(0.1, dtype=np.float32)
+    grad = np.array([[0.5, 0.6], [0.7, 0.8]], dtype=np.float32)
+    momentum = np.array(0.5, dtype=np.float32)
+    use_locking = True
+    use_nesterov = True
+    name = "momentum_update_7"
+
+    tf.compat.v1.reset_default_graph()
+    with tf.compat.v1.Session() as sess:
+        v = tf.compat.v1.get_variable("var7", initializer=var)
+        a = tf.compat.v1.get_variable("accum7", initializer=accum)
+        sess.run(tf.compat.v1.initialize_all_variables())
+
+
+        input_dict = {
+            "var": v,
+            "accum": a,
+            "lr": lr,
+            "grad": grad,
+            "momentum": momentum,
+            "use_locking": use_locking,
+            "use_nesterov": use_nesterov,
+            "name": name
+        }
+        list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 8
+    var = np.array([1.0, 2.0, 3.0], dtype=np.float64)
+    accum = np.array([0.1, 0.2, 0.3], dtype=np.float64)
+    lr = np.array(0.01, dtype=np.float64)
+    grad = np.array([0.4, 0.5, 0.6], dtype=np.float64)
+    momentum = np.array(0.9, dtype=np.float64)
+    use_locking = False
+    use_nesterov = False
+    name = "momentum_update_8"
+
+    tf.compat.v1.reset_default_graph()
+    with tf.compat.v1.Session() as sess:
+        v = tf.compat.v1.get_variable("var8", initializer=var)
+        a = tf.compat.v1.get_variable("accum8", initializer=accum)
+        sess.run(tf.compat.v1.initialize_all_variables())
+
+        input_dict = {
+            "var": v,
+            "accum": a,
+            "lr": lr,
+            "grad": grad,
+            "momentum": momentum,
+            "use_locking": use_locking,
+            "use_nesterov": use_nesterov,
+            "name": name
+        }
+        list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 9
+    var = np.array([1, 2, 3], dtype=np.int32)
+    accum = np.array([0, 0, 0], dtype=np.int32)
+    lr = np.array(1, dtype=np.int32)
+    grad = np.array([1, 1, 1], dtype=np.int32)
+    momentum = np.array(1, dtype=np.int32)
+    use_locking = False
+    use_nesterov = False
+    name = "momentum_update_9"
+
+    tf.compat.v1.reset_default_graph()
+    with tf.compat.v1.Session() as sess:
+        v = tf.compat.v1.get_variable("var9", initializer=var)
+        a = tf.compat.v1.get_variable("accum9", initializer=accum)
+        sess.run(tf.compat.v1.initialize_all_variables())
+
+        input_dict = {
+            "var": v,
+            "accum": a,
+            "lr": lr,
+            "grad": grad,
+            "momentum": momentum,
+            "use_locking": use_locking,
+            "use_nesterov": use_nesterov,
+            "name": name
+        }
+        list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 10
+    var = np.array([1.0, 2.0, 3.0], dtype=np.float32)
+    accum = np.array([0.1, 0.2, 0.3], dtype=np.float32)
+    lr = np.array(0.01, dtype=np.float32)
+    grad = np.array([0.4, 0.5, 0.6], dtype=np.float32)
+    momentum = np.array(0.9, dtype=np.float32)
+    use_locking = True
+    use_nesterov = True
+    name = "momentum_update_10"
+
+    tf.compat.v1.reset_default_graph()
+    with tf.compat.v1.Session() as sess:
+        v = tf.compat.v1.get_variable("var10", initializer=var)
+        a = tf.compat.v1.get_variable("accum10", initializer=accum)
+        sess.run(tf.compat.v1.initialize_all_variables())
+
+        input_dict = {
+            "var": v,
+            "accum": a,
+            "lr": lr,
+            "grad": grad,
+            "momentum": momentum,
+            "use_locking": use_locking,
+            "use_nesterov": use_nesterov,
+            "name": name
+        }
+        list_of_inputs.append(copy.deepcopy(input_dict))
+    
     return list_of_inputs
 
-generated_inputs["tf.raw_ops.ApplyMomentum"] = get_apply_momentum_inputs()
+generated_inputs = {}
+generated_inputs["tf.raw_ops.ApplyMomentum"] = tf_raw_ops_apply_momentum_inputs()
 
 def check_valid(api, list_of_inputs, lib="tf", suffix=0):
     for idx, input_dict in enumerate(list_of_inputs):
@@ -63,5 +311,9 @@ def check_valid(api, list_of_inputs, lib="tf", suffix=0):
 
 if 'tf.raw_ops.ApplyMomentum' not in generated_inputs:
     raise Exception("Output of the input generating function was not assigned to the generated_inputs dictionary to the key 'tf.raw_ops.ApplyMomentum'.")
+
+
+tf.config.experimental.enable_op_determinism()
+tf.random.set_seed(42)
 
 check_valid('tf.raw_ops.ApplyMomentum', generated_inputs['tf.raw_ops.ApplyMomentum'], lib="tf", suffix=0)

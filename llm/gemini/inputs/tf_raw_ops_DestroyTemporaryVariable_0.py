@@ -4,104 +4,77 @@ from generator.input_generators import get_abstract_input
 
 generated_inputs = dict()
 
+import tensorflow as tf
 import numpy as np
 import copy
 
-
-def get_destroy_temporary_variable_inputs():
-    """
-    Generates a list of inputs for the tf.raw_ops.DestroyTemporaryVariable function.
-    NOTE: This operation is designed for TensorFlow's graph mode and is expected to fail
-    when called directly in eager execution. The 'ref' argument must be a reference
-    to a TemporaryVariable created within the same graph. The provided numpy arrays
-    are placeholders that conform to the required signature but will cause a
-    runtime error in the eager execution context of the test environment.
-    """
+def tf_raw_ops_destroy_temporary_variable_inputs():
     list_of_inputs = []
 
-    # Input 1: Basic float32 1D tensor
-    input_dict_1 = {
-        'ref': np.array([1.0, 2.0, 3.0], dtype=np.float32),
-        'var_name': 'temp_var_float32',
-        'name': 'destroy_op_1'
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict_1))
+    # Input 1: Simple float tensor
+    ref = tf.compat.v1.get_variable(name="temp_var_1", shape=[], dtype=tf.float32, initializer=tf.constant_initializer(1.0), use_resource=True)
+    var_name = "temp_var_1"
+    input_dict = {"ref": ref, "var_name": var_name, "name": "destroy_op_1"}
+    list_of_inputs.append(input_dict)
 
-    # Input 2: int32 2D tensor with negative values
-    input_dict_2 = {
-        'ref': np.array([[-1, 2], [3, -4]], dtype=np.int32),
-        'var_name': 'temp_var_int32_matrix',
-        'name': 'DestroyIntMatrix'
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict_2))
+    # Input 2: Integer tensor
+    ref = tf.compat.v1.get_variable(name="temp_var_2", shape=[], dtype=tf.int32, initializer=tf.constant_initializer(5), use_resource=True)
+    var_name = "temp_var_2"
+    input_dict = {"ref": ref, "var_name": var_name, "name": "destroy_op_2"}
+    list_of_inputs.append(input_dict)
 
-    # Input 3: Scalar (0D) float64 tensor
-    input_dict_3 = {
-        'ref': np.array(42.0, dtype=np.float64),
-        'var_name': 'scalar_var',
-        'name': 'destroy_scalar'
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict_3))
+    # Input 3: Rank 2 float tensor
+    ref = tf.compat.v1.get_variable(name="temp_var_3", shape=[2, 2], dtype=tf.float32, initializer=tf.constant_initializer(np.array([[1.0, 2.0], [3.0, 4.0]])), use_resource=True)
+    var_name = "temp_var_3"
+    input_dict = {"ref": ref, "var_name": var_name, "name": "destroy_op_3"}
+    list_of_inputs.append(input_dict)
 
-    # Input 4: Empty 1D tensor
-    input_dict_4 = {
-        'ref': np.array([], dtype=np.float32),
-        'var_name': 'empty_variable',
-        'name': 'destroy_empty'
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict_4))
+    # Input 4: Rank 3 integer tensor
+    ref = tf.compat.v1.get_variable(name="temp_var_4", shape=[2, 2, 2], dtype=tf.int32, initializer=tf.constant_initializer(np.array([[[1, 2], [3, 4]], [[5, 6], [7, 8]]])), use_resource=True)
+    var_name = "temp_var_4"
+    input_dict = {"ref": ref, "var_name": var_name, "name": "destroy_op_4"}
+    list_of_inputs.append(input_dict)
 
-    # Input 5: Tensor with a zero dimension
-    input_dict_5 = {
-        'ref': np.zeros((3, 0, 2), dtype=np.int64),
-        'var_name': 'zero_dim_var',
-        'name': 'destroy_zero_dim_tensor'
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict_5))
+    # Input 5: Bool tensor
+    ref = tf.compat.v1.get_variable(name="temp_var_5", shape=[], dtype=tf.bool, initializer=tf.constant_initializer(True), use_resource=True)
+    var_name = "temp_var_5"
+    input_dict = {"ref": ref, "var_name": var_name, "name": "destroy_op_5"}
+    list_of_inputs.append(input_dict)
+    
+    # Input 6: String tensor
+    ref = tf.compat.v1.get_variable(name="temp_var_6", shape=[], dtype=tf.string, initializer=tf.constant_initializer(b"hello"), use_resource=True)
+    var_name = "temp_var_6"
+    input_dict = {"ref": ref, "var_name": var_name, "name": "destroy_op_6"}
+    list_of_inputs.append(input_dict)
 
-    # Input 6: Boolean 3D tensor
-    input_dict_6 = {
-        'ref': np.array([[[True], [False]], [[False], [True]]], dtype=np.bool_),
-        'var_name': 'boolean_tensor_var',
-        'name': 'destroy_bools'
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict_6))
+    # Input 7: Different variable name
+    ref = tf.compat.v1.get_variable(name="temp_var_7", shape=[], dtype=tf.float32, initializer=tf.constant_initializer(2.5), use_resource=True)
+    var_name = "different_temp_var"
+    input_dict = {"ref": ref, "var_name": var_name, "name": "destroy_op_7"}
+    list_of_inputs.append(input_dict)
 
-    # Input 7: uint8 tensor
-    input_dict_7 = {
-        'ref': np.array([0, 127, 255], dtype=np.uint8),
-        'var_name': 'image_data_like',
-        'name': 'destroy_uint8_data'
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict_7))
+    # Input 8: Larger integer
+    ref = tf.compat.v1.get_variable(name="temp_var_8", shape=[], dtype=tf.int64, initializer=tf.constant_initializer(10000), use_resource=True)
+    var_name = "temp_var_8"
+    input_dict = {"ref": ref, "var_name": var_name, "name": "destroy_op_8"}
+    list_of_inputs.append(input_dict)
+    
+    # Input 9: Rank 4 tensor
+    ref = tf.compat.v1.get_variable(name="temp_var_9", shape=[2,2,2,2], dtype=tf.float32, initializer=tf.constant_initializer(np.random.rand(2,2,2,2).astype(np.float32)), use_resource=True)
+    var_name = "temp_var_9"
+    input_dict = {"ref": ref, "var_name": var_name, "name": "destroy_op_9"}
+    list_of_inputs.append(input_dict)
 
-    # Input 8: Large 2D tensor
-    input_dict_8 = {
-        'ref': np.arange(100, dtype=np.float32).reshape(10, 10),
-        'var_name': 'large_matrix_var',
-        'name': 'destroy_large_matrix'
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict_8))
-
-    # Input 9: High-rank (5D) tensor with float32
-    input_dict_9 = {
-        'ref': np.ones((1, 2, 1, 3, 1), dtype=np.float32),
-        'var_name': 'high_rank_variable',
-        'name': 'destroy_5D'
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict_9))
-
-    # Input 10: A different 1D tensor
-    input_dict_10 = {
-        'ref': np.array([5.5, 6.6, 7.7, 8.8], dtype=np.float32),
-        'var_name': 'another_float_var',
-        'name': 'destroy_op_10'
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict_10))
+    # Input 10: Empty string name
+    ref = tf.compat.v1.get_variable(name="temp_var_10", shape=[], dtype=tf.int32, initializer=tf.constant_initializer(1), use_resource=True)
+    var_name = ""
+    input_dict = {"ref": ref, "var_name": var_name, "name": "destroy_op_10"}
+    list_of_inputs.append(input_dict)
 
     return list_of_inputs
 
-generated_inputs["tf.raw_ops.DestroyTemporaryVariable"] = get_destroy_temporary_variable_inputs()
+generated_inputs = {}
+generated_inputs["tf.raw_ops.DestroyTemporaryVariable"] = tf_raw_ops_destroy_temporary_variable_inputs()
 
 def check_valid(api, list_of_inputs, lib="tf", suffix=0):
     for idx, input_dict in enumerate(list_of_inputs):
@@ -115,5 +88,9 @@ def check_valid(api, list_of_inputs, lib="tf", suffix=0):
 
 if 'tf.raw_ops.DestroyTemporaryVariable' not in generated_inputs:
     raise Exception("Output of the input generating function was not assigned to the generated_inputs dictionary to the key 'tf.raw_ops.DestroyTemporaryVariable'.")
+
+
+tf.config.experimental.enable_op_determinism()
+tf.random.set_seed(42)
 
 check_valid('tf.raw_ops.DestroyTemporaryVariable', generated_inputs['tf.raw_ops.DestroyTemporaryVariable'], lib="tf", suffix=0)

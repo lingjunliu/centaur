@@ -6,110 +6,178 @@ generated_inputs = dict()
 
 import tensorflow as tf
 import numpy as np
+import copy
 
-# A custom variable class to satisfy the testing harness which expects a .size
-# attribute, while also being a mutable tf.Variable for the API.
-class PatchedVariable(tf.Variable):
-    @property
-    def size(self):
-        return np.prod(self.shape.as_list()) if self.shape.as_list() else 0
+tf.config.experimental.enable_op_determinism()
+tf.random.set_seed(42)
 
 def tf_raw_ops_apply_gradient_descent_inputs():
     list_of_inputs = []
 
-    # Input 1: Basic float32, 1D
-    list_of_inputs.append({
-        'var': PatchedVariable(np.array([1.0, 2.0, 3.0], dtype=np.float32)),
-        'alpha': np.array(0.1, dtype=np.float32),
-        'delta': np.array([0.5, 0.4, 0.3], dtype=np.float32),
-        'use_locking': False,
-        'name': 'float32_1d_patched'
-    })
+    # Input 1
+    var = tf.Variable(np.array([1.0, 2.0, 3.0], dtype=np.float32))
+    alpha = tf.constant(0.1, dtype=np.float32)
+    delta = tf.constant([0.5, 0.5, 0.5], dtype=np.float32)
+    use_locking = False
+    name = "gd_1"
 
-    # Input 2: float64, 2D with locking
-    list_of_inputs.append({
-        'var': PatchedVariable(np.array([[10.0, -5.0], [8.0, -2.0]], dtype=np.float64)),
-        'alpha': np.array(0.01, dtype=np.float64),
-        'delta': np.array([[1.0, 1.0], [2.0, 2.0]], dtype=np.float64),
-        'use_locking': True,
-        'name': 'float64_2d_locked_patched'
-    })
+    input_dict = {
+        "var": var,
+        "alpha": alpha,
+        "delta": delta,
+        "use_locking": use_locking,
+        "name": name
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 3: int32, 1D with negative values
-    list_of_inputs.append({
-        'var': PatchedVariable(np.array([-100, 200, -300], dtype=np.int32)),
-        'alpha': np.array(2, dtype=np.int32),
-        'delta': np.array([10, -5, 15], dtype=np.int32),
-        'use_locking': False,
-        'name': 'int32_negatives_patched'
-    })
+    # Input 2
+    var = tf.Variable(np.array([[1.0, 2.0], [3.0, 4.0]], dtype=np.float64))
+    alpha = tf.constant(0.01, dtype=np.float64)
+    delta = tf.constant([[0.1, 0.2], [0.3, 0.4]], dtype=np.float64)
+    use_locking = True
+    name = "gd_2"
 
-    # Input 4: half (float16)
-    list_of_inputs.append({
-        'var': PatchedVariable(np.array([5.5, 6.6], dtype=np.float16)),
-        'alpha': np.array(0.2, dtype=np.float16),
-        'delta': np.array([1.1, 2.2], dtype=np.float16),
-        'use_locking': False,
-        'name': 'half_float16_patched'
-    })
+    input_dict = {
+        "var": var,
+        "alpha": alpha,
+        "delta": delta,
+        "use_locking": use_locking,
+        "name": name
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 5: bfloat16
-    bfloat16_dtype = tf.bfloat16.as_numpy_dtype
-    list_of_inputs.append({
-        'var': PatchedVariable(np.array([[1.0, 2.0], [3.0, 4.0]], dtype=bfloat16_dtype)),
-        'alpha': np.array(0.1, dtype=bfloat16_dtype),
-        'delta': np.ones((2, 2), dtype=bfloat16_dtype),
-        'use_locking': False,
-        'name': 'bfloat16_patched'
-    })
+    # Input 3
+    var = tf.Variable(np.array([1, 2, 3], dtype=np.int32))
+    alpha = tf.constant(1, dtype=np.int32)
+    delta = tf.constant([1, 1, 1], dtype=np.int32)
+    use_locking = False
+    name = "gd_3"
 
-    # Input 6: Scalar var, alpha, and delta
-    list_of_inputs.append({
-        'var': PatchedVariable(np.array(100.0, dtype=np.float32)),
-        'alpha': np.array(0.5, dtype=np.float32),
-        'delta': np.array(10.0, dtype=np.float32),
-        'use_locking': True,
-        'name': 'scalar_all_patched'
-    })
+    input_dict = {
+        "var": var,
+        "alpha": alpha,
+        "delta": delta,
+        "use_locking": use_locking,
+        "name": name
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 7: complex64
-    list_of_inputs.append({
-        'var': PatchedVariable(np.array([1+2j, 3+4j], dtype=np.complex64)),
-        'alpha': np.array(0.5+0j, dtype=np.complex64),
-        'delta': np.array([0.2+0.1j, -0.4-0.3j], dtype=np.complex64),
-        'use_locking': False,
-        'name': 'complex64_patched'
-    })
+    # Input 4
+    var = tf.Variable(np.array([255], dtype=np.uint8))
+    alpha = tf.constant(10, dtype=np.uint8)
+    delta = tf.constant([5], dtype=np.uint8)
+    use_locking = True
+    name = "gd_4"
 
-    # Input 8: 3D tensor
-    list_of_inputs.append({
-        'var': PatchedVariable(np.arange(8, dtype=np.float32).reshape((2, 2, 2))),
-        'alpha': np.array(1.0, dtype=np.float32),
-        'delta': np.ones((2, 2, 2), dtype=np.float32),
-        'use_locking': True,
-        'name': 'float32_3d_patched'
-    })
+    input_dict = {
+        "var": var,
+        "alpha": alpha,
+        "delta": delta,
+        "use_locking": use_locking,
+        "name": name
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 9: Zero-sized var and delta
-    list_of_inputs.append({
-        'var': PatchedVariable(np.array([], dtype=np.float32)),
-        'alpha': np.array(0.1, dtype=np.float32),
-        'delta': np.array([], dtype=np.float32),
-        'use_locking': False,
-        'name': 'zero_sized_patched'
-    })
-    
-    # Input 10: int64
-    list_of_inputs.append({
-        'var': PatchedVariable(np.array([1000, 2000], dtype=np.int64)),
-        'alpha': np.array(10, dtype=np.int64),
-        'delta': np.array([5, 8], dtype=np.int64),
-        'use_locking': False,
-        'name': 'int64_patched'
-    })
+    # Input 5
+    var = tf.Variable(np.array([-32768], dtype=np.int16))
+    alpha = tf.constant(100, dtype=np.int16)
+    delta = tf.constant([10], dtype=np.int16)
+    use_locking = False
+    name = "gd_5"
+
+    input_dict = {
+        "var": var,
+        "alpha": alpha,
+        "delta": delta,
+        "use_locking": use_locking,
+        "name": name
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 6
+    var = tf.Variable(np.array([-128], dtype=np.int8))
+    alpha = tf.constant(1, dtype=np.int8)
+    delta = tf.constant([1], dtype=np.int8)
+    use_locking = True
+    name = "gd_6"
+
+    input_dict = {
+        "var": var,
+        "alpha": alpha,
+        "delta": delta,
+        "use_locking": use_locking,
+        "name": name
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 7
+    var = tf.Variable(np.array([1+1j, 2+2j], dtype=np.complex64))
+    alpha = tf.constant(0.1+0j, dtype=np.complex64)
+    delta = tf.constant([0.5+0j, 0.5+0j], dtype=np.complex64)
+    use_locking = False
+    name = "gd_7"
+
+    input_dict = {
+        "var": var,
+        "alpha": alpha,
+        "delta": delta,
+        "use_locking": use_locking,
+        "name": name
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 8
+    var = tf.Variable(np.array([1, 2, 3], dtype=np.int64))
+    alpha = tf.constant(1, dtype=np.int64)
+    delta = tf.constant([1, 1, 1], dtype=np.int64)
+    use_locking = True
+    name = "gd_8"
+
+    input_dict = {
+        "var": var,
+        "alpha": alpha,
+        "delta": delta,
+        "use_locking": use_locking,
+        "name": name
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 9
+    var = tf.Variable(np.array([1.0, 2.0, 3.0], dtype=np.float16))
+    alpha = tf.constant(0.1, dtype=np.float16)
+    delta = tf.constant([0.5, 0.5, 0.5], dtype=np.float16)
+    use_locking = False
+    name = "gd_9"
+
+    input_dict = {
+        "var": var,
+        "alpha": alpha,
+        "delta": delta,
+        "use_locking": use_locking,
+        "name": name
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 10
+    var = tf.Variable(np.array([1+1j, 2+2j], dtype=np.complex128))
+    alpha = tf.constant(0.1+0j, dtype=np.complex128)
+    delta = tf.constant([0.5+0j, 0.5+0j], dtype=np.complex128)
+    use_locking = True
+    name = "gd_10"
+
+    input_dict = {
+        "var": var,
+        "alpha": alpha,
+        "delta": delta,
+        "use_locking": use_locking,
+        "name": name
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
 
     return list_of_inputs
 
+generated_inputs = {}
 generated_inputs["tf.raw_ops.ApplyGradientDescent"] = tf_raw_ops_apply_gradient_descent_inputs()
 
 def check_valid(api, list_of_inputs, lib="tf", suffix=0):
@@ -124,5 +192,9 @@ def check_valid(api, list_of_inputs, lib="tf", suffix=0):
 
 if 'tf.raw_ops.ApplyGradientDescent' not in generated_inputs:
     raise Exception("Output of the input generating function was not assigned to the generated_inputs dictionary to the key 'tf.raw_ops.ApplyGradientDescent'.")
+
+
+tf.config.experimental.enable_op_determinism()
+tf.random.set_seed(42)
 
 check_valid('tf.raw_ops.ApplyGradientDescent', generated_inputs['tf.raw_ops.ApplyGradientDescent'], lib="tf", suffix=0)

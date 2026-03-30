@@ -11,48 +11,49 @@ import copy
 def tf_data_experimental_unique_inputs():
     list_of_inputs = []
 
-    # The API `tf.data.experimental.unique()` returns a transformation function
-    # that is meant to be used with `tf.data.Dataset.apply()`. The test harness
-    # needs to create the initial dataset. The recurring error
-    # "returns a function, but the input does not have inner values" suggests that
-    # the harness expects the data for the dataset under a specific key.
-    # Previous attempts with other keys failed. This attempt uses the key 'dataset'.
-    # The harness is expected to use the value of 'dataset' to create the
-    # `tf.data.Dataset` object, and then call the `unique()` function with an
-    # empty dictionary of arguments, which conforms to its `{}` signature.
+    # Input 1: Simple integer dataset
+    dataset = tf.data.Dataset.from_tensor_slices(np.array([1, 2, 2, 3, 4, 4, 5], dtype=np.int64))
+    list_of_inputs.append({"dataset": dataset})
 
-    # Input 1: Basic case with integers and duplicates
-    list_of_inputs.append({'dataset': np.array([1, 37, 2, 37, 2, 1], dtype=np.int32)})
+    # Input 2: Dataset with strings
+    dataset = tf.data.Dataset.from_tensor_slices(np.array(["a", "b", "b", "c", "d", "d"], dtype=np.str_))
+    list_of_inputs.append({"dataset": dataset})
 
-    # Input 2: Floating point numbers with duplicates
-    list_of_inputs.append({'dataset': np.array([1.1, 2.2, 1.1, 3.3, 2.2, 4.4], dtype=np.float32)})
+    # Input 3: Dataset with floats
+    dataset = tf.data.Dataset.from_tensor_slices(np.array([1.0, 2.0, 2.0, 3.0, 4.0, 4.0, 5.0], dtype=np.float64))
+    list_of_inputs.append({"dataset": dataset})
 
-    # Input 3: Strings with duplicates
-    list_of_inputs.append({'dataset': np.array(["apple", "banana", "apple", "cherry", "banana"], dtype=object)})
+    # Input 4: Dataset with mixed types (avoiding for now)
+    # dataset = tf.data.Dataset.from_tensor_slices(np.array([1, "a", 2, "b", 1, "a"], dtype=object))
+    # list_of_inputs.append({"dataset": np.array([1, "a", 2, "b", 1, "a"], dtype=object)})
 
-    # Input 4: Negative integers and zero
-    list_of_inputs.append({'dataset': np.array([-1, 0, 2, -1, 0, -3], dtype=np.int64)})
+    # Input 5: Empty dataset
+    dataset = tf.data.Dataset.from_tensor_slices(np.array([], dtype=np.int64))
+    list_of_inputs.append({"dataset": dataset})
 
-    # Input 5: All elements are the same
-    list_of_inputs.append({'dataset': np.array([5, 5, 5, 5, 5], dtype=np.int32)})
+    # Input 6: Dataset with repeated elements
+    dataset = tf.data.Dataset.from_tensor_slices(np.array([1, 1, 1, 1, 1], dtype=np.int64))
+    list_of_inputs.append({"dataset": dataset})
 
-    # Input 6: All elements are unique
-    list_of_inputs.append({'dataset': np.array([10, 20, 30, 40, 50], dtype=np.int32)})
+    # Input 7: Dataset with negative numbers
+    dataset = tf.data.Dataset.from_tensor_slices(np.array([-1, -2, -2, -3, -4, -4, -5], dtype=np.int64))
+    list_of_inputs.append({"dataset": dataset})
 
-    # Input 7: Empty dataset
-    list_of_inputs.append({'dataset': np.array([], dtype=np.float64)})
+    # Input 8: Dataset with tensors (as numpy arrays)
+    dataset = tf.data.Dataset.from_tensor_slices(np.array([[1, 2], [3, 4], [1, 2], [5, 6]], dtype=np.int64))
+    list_of_inputs.append({"dataset": dataset})
 
-    # Input 8: Dataset with a single element
-    list_of_inputs.append({'dataset': np.array([100], dtype=np.int32)})
+    # Input 9: Dataset with boolean values
+    dataset = tf.data.Dataset.from_tensor_slices(np.array([True, False, True, True, False], dtype=np.bool_))
+    list_of_inputs.append({"dataset": dataset})
 
-    # Input 9: Dataset with 2D elements (vectors)
-    list_of_inputs.append({'dataset': np.array([[1, 2], [3, 4], [1, 2], [5, 6]], dtype=np.int32)})
-
-    # Input 10: Dataset with 3D elements
-    list_of_inputs.append({'dataset': np.array([[[1],[2]], [[3],[4]], [[1],[2]]], dtype=np.int32)})
+    # Input 10: Larger dataset
+    dataset = tf.data.Dataset.from_tensor_slices(np.array(list(range(100)) + list(range(50)), dtype=np.int64))
+    list_of_inputs.append({"dataset": dataset})
 
     return list_of_inputs
 
+generated_inputs = {}
 generated_inputs["tf.data.experimental.unique"] = tf_data_experimental_unique_inputs()
 
 def check_valid(api, list_of_inputs, lib="tf", suffix=0):
@@ -67,5 +68,9 @@ def check_valid(api, list_of_inputs, lib="tf", suffix=0):
 
 if 'tf.data.experimental.unique' not in generated_inputs:
     raise Exception("Output of the input generating function was not assigned to the generated_inputs dictionary to the key 'tf.data.experimental.unique'.")
+
+
+tf.config.experimental.enable_op_determinism()
+tf.random.set_seed(42)
 
 check_valid('tf.data.experimental.unique', generated_inputs['tf.data.experimental.unique'], lib="tf", suffix=0)

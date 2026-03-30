@@ -4,94 +4,42 @@ from generator.input_generators import get_abstract_input
 
 generated_inputs = dict()
 
-import numpy as np
 import tensorflow as tf
+import numpy as np
 import copy
 
-def tf_raw_ops_mapunstagenokey_inputs():
-    """
-    Generates a list of syntactically valid inputs for the tf.raw_ops.MapUnstageNoKey function.
-    This op is designed to block if the underlying container is empty. In an isolated
-    test environment where no corresponding staging op is run, a timeout is the
-    expected behavior. The provided inputs are valid definitions for the operation.
-    """
+tf.config.experimental.enable_op_determinism()
+tf.random.set_seed(42)
+
+def tf_raw_ops_MapUnstageNoKey_inputs():
     list_of_inputs = []
 
-    # Input 1: Basic case with a single float32 dtype and an op-local container.
-    input_dict_1 = {
-        'indices': np.array([0], dtype=np.int32),
-        'dtypes': [tf.float32],
-        'capacity': 1,
-        'memory_limit': 0,
-        'container': '',
-        'shared_name': '',
-        'name': 'test_local_container'
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict_1))
+    # Input 1
+    indices = np.array([1], dtype=np.int32)
+    dtypes = [tf.float32]
+    capacity = 10
+    memory_limit = 1024
+    container = "testcontainer1"
+    shared_name = "testsharedname1"
+    name = "testname1"
 
-    # Input 2: Integer dtype with a session-local named container.
-    input_dict_2 = {
-        'indices': np.array([0], dtype=np.int32),
-        'dtypes': [tf.int32],
-        'capacity': 2,
-        'memory_limit': 0,
-        'container': 'mycontainerone',
-        'shared_name': '',
-        'name': 'test_named_container'
+    input_dict = {
+        "indices": indices,
+        "dtypes": dtypes,
+        "capacity": capacity,
+        "memory_limit": memory_limit,
+        "container": container,
+        "shared_name": shared_name,
+        "name": name
     }
-    list_of_inputs.append(copy.deepcopy(input_dict_2))
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 3: Bool dtype with a shared container (across sessions).
-    input_dict_3 = {
-        'indices': np.array([0], dtype=np.int32),
-        'dtypes': [tf.bool],
-        'capacity': 1,
-        'memory_limit': 0,
-        'container': '',
-        'shared_name': 'mysharedmapone',
-        'name': 'test_shared_container'
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict_3))
 
-    # Input 4: Multiple dtypes with both a container and shared name specified.
-    input_dict_4 = {
-        'indices': np.array([0, 1], dtype=np.int32),
-        'dtypes': [tf.string, tf.float64],
-        'capacity': 5,
-        'memory_limit': 0,
-        'container': 'mycontainertwo',
-        'shared_name': 'mysharedmaptwo',
-        'name': 'test_both_names'
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict_4))
-
-    # Input 5: Complex number dtype.
-    input_dict_5 = {
-        'indices': np.array([0], dtype=np.int32),
-        'dtypes': [tf.complex64],
-        'capacity': 1,
-        'memory_limit': 0,
-        'container': 'containerthree',
-        'shared_name': 'sharedthree',
-        'name': 'test_complex'
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict_5))
-
-    # Input 6: Zero capacity (unbounded).
-    input_dict_6 = {
-        'indices': np.array([0], dtype=np.int32),
-        'dtypes': [tf.int8],
-        'capacity': 0,
-        'memory_limit': 0,
-        'container': 'containerfour',
-        'shared_name': '',
-        'name': 'test_zero_capacity'
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict_6))
 
     return list_of_inputs
 
-generated_inputs["tf.raw_ops.MapUnstageNoKey"] = tf_raw_ops_mapunstagenokey_inputs()
+generated_inputs = {}
+generated_inputs["tf.raw_ops.MapUnstageNoKey"] = tf_raw_ops_MapUnstageNoKey_inputs()
 
 def check_valid(api, list_of_inputs, lib="tf", suffix=0):
     for idx, input_dict in enumerate(list_of_inputs):
@@ -105,5 +53,9 @@ def check_valid(api, list_of_inputs, lib="tf", suffix=0):
 
 if 'tf.raw_ops.MapUnstageNoKey' not in generated_inputs:
     raise Exception("Output of the input generating function was not assigned to the generated_inputs dictionary to the key 'tf.raw_ops.MapUnstageNoKey'.")
+
+
+tf.config.experimental.enable_op_determinism()
+tf.random.set_seed(42)
 
 check_valid('tf.raw_ops.MapUnstageNoKey', generated_inputs['tf.raw_ops.MapUnstageNoKey'], lib="tf", suffix=0)

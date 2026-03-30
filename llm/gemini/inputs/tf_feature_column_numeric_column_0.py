@@ -8,135 +8,114 @@ import tensorflow as tf
 import numpy as np
 import copy
 
+tf.config.experimental.enable_op_determinism()
+tf.random.set_seed(42)
+
 def tf_feature_column_numeric_column_inputs():
-    """
-    Generates a list of valid inputs for tf.feature_column.numeric_column.
-    """
     list_of_inputs = []
 
-    # Input 1: Basic case, no optional args used
-    input_1 = {
-        'key': 'price',
+    # Input 1: Basic valid input
+    input_dict = {
+        'key': 'feature_a',
         'shape': (1,),
-        'default_value': None,
-        'dtype': np.dtype('float32'),
-        'normalizer_fn': None
+        'default_value': [0.0],
+        'dtype': tf.float32,
+        'normalizer_fn': lambda x: x
     }
-    list_of_inputs.append(copy.deepcopy(input_1))
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 2: Basic case with int32
-    input_2 = {
-        'key': 'age',
-        'shape': (1,),
-        'default_value': None,
-        'dtype': np.dtype('int32'),
-        'normalizer_fn': None
-    }
-    list_of_inputs.append(copy.deepcopy(input_2))
-
-    # Input 3: Vector feature with float64
-    input_3 = {
-        'key': 'embedding_vector',
-        'shape': (4,),
-        'default_value': None,
-        'dtype': np.dtype('float64'),
-        'normalizer_fn': None
-    }
-    list_of_inputs.append(copy.deepcopy(input_3))
-
-    # Input 4: Scalar feature with a default value
-    input_4 = {
-        'key': 'temperature',
-        'shape': (1,),
-        'default_value': [-1.0],
-        'dtype': np.dtype('float32'),
-        'normalizer_fn': None
-    }
-    list_of_inputs.append(copy.deepcopy(input_4))
-
-    # Input 5: Vector feature with a default value
-    input_5 = {
-        'key': 'rgb_values',
-        'shape': (3,),
-        'default_value': [0, 0, 0],
-        'dtype': np.dtype('int32'),
-        'normalizer_fn': None
-    }
-    list_of_inputs.append(copy.deepcopy(input_5))
-
-    # Input 6: With a normalizer function
-    input_6 = {
-        'key': 'score',
-        'shape': (1,),
-        'default_value': None,
-        'dtype': np.dtype('float32'),
-        'normalizer_fn': lambda x: (x - 50.0) / 100.0
-    }
-    list_of_inputs.append(copy.deepcopy(input_6))
-
-    # Input 7: Multi-dimensional shape (2D)
-    input_7 = {
-        'key': 'image_patch',
+    # Input 2: Different shape
+    input_dict = {
+        'key': 'feature_b',
         'shape': (2, 2),
-        'default_value': None,
-        'dtype': np.dtype('float32'),
-        'normalizer_fn': None
+        'default_value': [0.0, 0.0, 0.0, 0.0],
+        'dtype': tf.float32,
+        'normalizer_fn': lambda x: x
     }
-    list_of_inputs.append(copy.deepcopy(input_7))
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 8: Multi-dimensional shape with a default value
-    input_8 = {
-        'key': 'matrix_feature',
-        'shape': (2, 3),
-        'default_value': [[0.0, 0.0, 0.0], [0.0, 0.0, 0.0]],
-        'dtype': np.dtype('float64'),
-        'normalizer_fn': None
-    }
-    list_of_inputs.append(copy.deepcopy(input_8))
-
-    # Input 9: int64 dtype with a default value
-    input_9 = {
-        'key': 'user_id',
-        'shape': (1,),
-        'default_value': [-1],
-        'dtype': np.dtype('int64'),
-        'normalizer_fn': None
-    }
-    list_of_inputs.append(copy.deepcopy(input_9))
-
-    # Input 10: Full combination of parameters
-    input_10 = {
-        'key': 'pixel_data',
-        'shape': (3, 3),
-        'default_value': [[0] * 3] * 3,
-        'dtype': np.dtype('int32'),
-        'normalizer_fn': lambda t: tf.cast(t, tf.float32) / 255.0
-    }
-    list_of_inputs.append(copy.deepcopy(input_10))
-
-    # Input 11: Another complex normalizer with log transform
-    input_11 = {
-        'key': 'view_counts',
+    # Input 3: Integer dtype
+    input_dict = {
+        'key': 'feature_c',
         'shape': (1,),
         'default_value': [0],
-        'dtype': np.dtype('int64'),
-        'normalizer_fn': lambda x: tf.math.log1p(tf.cast(x, tf.float32))
+        'dtype': tf.int32,
+        'normalizer_fn': lambda x: x
     }
-    list_of_inputs.append(copy.deepcopy(input_11))
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 12: Higher dimensional shape with normalizer
-    input_12 = {
-        'key': 'sensor_grid',
-        'shape': (8, 8),
-        'default_value': None,
-        'dtype': np.dtype('float32'),
-        'normalizer_fn': lambda x: x - tf.reduce_mean(x)
+    # Input 4: different key
+    input_dict = {
+        'key': 'feature_d',
+        'shape': (1,),
+        'default_value': [1.0],
+        'dtype': tf.float32,
+        'normalizer_fn': lambda x: x
     }
-    list_of_inputs.append(copy.deepcopy(input_12))
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
+   # Input 5: different default value
+    input_dict = {
+        'key': 'feature_e',
+        'shape': (1,),
+        'default_value': [-1.0],
+        'dtype': tf.float32,
+        'normalizer_fn': lambda x: x
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
+    # Input 6: multi-dimensional shape with int dtype
+    input_dict = {
+        'key': 'feature_f',
+        'shape': (3,),
+        'default_value': [1, 2, 3],
+        'dtype': tf.int64,
+        'normalizer_fn': lambda x: x
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 7: shape as int
+    input_dict = {
+        'key': 'feature_g',
+        'shape': (1,),
+        'default_value': [5.0],
+        'dtype': tf.float64,
+        'normalizer_fn': lambda x: x
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 8: larger shape
+    input_dict = {
+        'key': 'feature_h',
+        'shape': (5,),
+        'default_value': [1.0, 2.0, 3.0, 4.0, 5.0],
+        'dtype': tf.float32,
+        'normalizer_fn': lambda x: x
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 9: different dtype
+    input_dict = {
+        'key': 'feature_i',
+        'shape': (1,),
+        'default_value': [10],
+        'dtype': tf.int16,
+        'normalizer_fn': lambda x: x
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 10: negative default value, integer type, multidimensional shape
+    input_dict = {
+        'key': 'feature_j',
+        'shape': (2, 1),
+        'default_value': [-1, -2],
+        'dtype': tf.int32,
+        'normalizer_fn': lambda x: x
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
     return list_of_inputs
 
+generated_inputs = {}
 generated_inputs["tf.feature_column.numeric_column"] = tf_feature_column_numeric_column_inputs()
 
 def check_valid(api, list_of_inputs, lib="tf", suffix=0):
@@ -151,5 +130,9 @@ def check_valid(api, list_of_inputs, lib="tf", suffix=0):
 
 if 'tf.feature_column.numeric_column' not in generated_inputs:
     raise Exception("Output of the input generating function was not assigned to the generated_inputs dictionary to the key 'tf.feature_column.numeric_column'.")
+
+
+tf.config.experimental.enable_op_determinism()
+tf.random.set_seed(42)
 
 check_valid('tf.feature_column.numeric_column', generated_inputs['tf.feature_column.numeric_column'], lib="tf", suffix=0)

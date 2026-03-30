@@ -5,79 +5,20 @@ from generator.input_generators import get_abstract_input
 generated_inputs = dict()
 
 import tensorflow as tf
-import numpy as np
 import copy
 
 def tf_timestamp_inputs():
-    # The error "Timestamp cannot be called when determinism is enabled" is
-    # an environmental constraint and not an input validation error. The
-    # tf.timestamp operation is fundamentally non-deterministic. Therefore, any
-    # valid input will fail if the execution environment has determinism enabled.
-    # The following inputs are valid according to the API signature.
     list_of_inputs = []
 
-    # Input 1
+    # Input 1: No name
     input_dict = {
-        'name': 'begin_process'
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 2
-    input_dict = {
-        'name': 'end_process'
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 3
-    input_dict = {
-        'name': 'time_marker_1'
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 4
-    input_dict = {
-        'name': 'log_timestamp/entry_point'
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 5
-    input_dict = {
-        'name': 'My_Custom_Timestamp_Op'
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 6
-    input_dict = {
-        'name': 'time-for-debug'
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 7
-    input_dict = {
-        'name': 'seed-gen-ts'
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 8
-    input_dict = {
-        'name': 'record_event_time'
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 9
-    input_dict = {
-        'name': 'wall_clock_time'
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 10
-    input_dict = {
-        'name': 'execution_timer_start'
+        "name": None
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs
 
+generated_inputs = {}
 generated_inputs["tf.timestamp"] = tf_timestamp_inputs()
 
 def check_valid(api, list_of_inputs, lib="tf", suffix=0):
@@ -92,5 +33,9 @@ def check_valid(api, list_of_inputs, lib="tf", suffix=0):
 
 if 'tf.timestamp' not in generated_inputs:
     raise Exception("Output of the input generating function was not assigned to the generated_inputs dictionary to the key 'tf.timestamp'.")
+
+
+tf.config.experimental.enable_op_determinism()
+tf.random.set_seed(42)
 
 check_valid('tf.timestamp', generated_inputs['tf.timestamp'], lib="tf", suffix=0)

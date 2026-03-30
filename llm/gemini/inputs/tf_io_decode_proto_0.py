@@ -7,173 +7,236 @@ generated_inputs = dict()
 import tensorflow as tf
 import numpy as np
 import copy
-from google.protobuf import text_format
+
+tf.config.experimental.enable_op_determinism()
+tf.random.set_seed(42)
 
 def tf_io_decode_proto_inputs():
-    """
-    This function generates a list of valid inputs for the tf.io.decode_proto API.
-    """
-    # Helper data generation
-    summary_value_strs = [
-        "tag: 'train/loss' image { height: 128 width: 512 }",
-        "tag: 'train/accuracy' image { height: 256 width: 256 }",
-        "simple_value: 2.2",
-        "image { height: 64 width: 64 }",
-    ]
-    serialized_summary_values = [
-        text_format.Parse(v, tf.compat.v1.Summary.Value()).SerializeToString()
-        for v in summary_value_strs
-    ]
-    np_summary_values = np.array(serialized_summary_values, dtype=object)
-
-    event_strs = [
-        "wall_time: 1609459200.0 step: 100",
-        "wall_time: 1609459201.5 step: 101 summary { value { tag: 'loss' simple_value: 0.5} }",
-    ]
-    serialized_events = [
-        text_format.Parse(v, tf.compat.v1.Event()).SerializeToString()
-        for v in event_strs
-    ]
-    np_events = np.array(serialized_events, dtype=object)
-
     list_of_inputs = []
 
-    # Input 1: Basic case with multiple fields and types
-    input_dict_1 = {
-        'bytes': np_summary_values,
-        'message_type': tf.compat.v1.Summary.Value.DESCRIPTOR.full_name,
-        'field_names': ['simple_value', 'image'],
-        'output_types': [np.float32, np.object_],
-        'descriptor_source': 'local://',
-        'message_format': 'binary',
-        'sanitize': False,
-        'name': 'decode_float_and_string'
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict_1))
+    # Input 1
+    bytes_val = np.array([b"example1", b"example2"])
+    message_type_val = "MessageType"
+    field_names_val = ["field1", "field2"]
+    output_types_val = [tf.float32, tf.string]
+    descriptor_source_val = "local://"
+    message_format_val = "binary"
+    sanitize_val = False
+    name_val = "decode_proto_op1"
 
-    # Input 2: Text format
-    input_dict_2 = {
-        'bytes': np_summary_values,
-        'message_type': tf.compat.v1.Summary.Value.DESCRIPTOR.full_name,
-        'field_names': ['tag', 'image'],
-        'output_types': [np.object_, np.object_],
-        'descriptor_source': 'local://',
-        'message_format': 'text',
-        'sanitize': False,
-        'name': 'decode_text_format'
+    input_dict = {
+        "bytes": bytes_val.astype(np.string_),
+        "message_type": message_type_val,
+        "field_names": field_names_val,
+        "output_types": output_types_val,
+        "descriptor_source": descriptor_source_val,
+        "message_format": message_format_val,
+        "sanitize": sanitize_val,
+        "name": name_val
     }
-    list_of_inputs.append(copy.deepcopy(input_dict_2))
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 3: Empty input tensor
-    input_dict_3 = {
-        'bytes': np.array([], dtype=object),
-        'message_type': tf.compat.v1.Summary.Value.DESCRIPTOR.full_name,
-        'field_names': ['simple_value'],
-        'output_types': [np.float32],
-        'descriptor_source': 'local://',
-        'message_format': 'binary',
-        'sanitize': False,
-        'name': 'test_empty_input'
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict_3))
+    # Input 2
+    bytes_val = np.array([b"example3", b"example4", b"example5"])
+    message_type_val = "AnotherMessageType"
+    field_names_val = ["fieldA", "fieldB", "fieldC"]
+    output_types_val = [tf.int32, tf.bool, tf.float64]
+    descriptor_source_val = "/path/to/descriptor_set.pb"
+    message_format_val = "text"
+    sanitize_val = True
+    name_val = "decode_proto_op2"
 
-    # Input 4: Decode different types from Event proto
-    input_dict_4 = {
-        'bytes': np_events,
-        'message_type': tf.compat.v1.Event.DESCRIPTOR.full_name,
-        'field_names': ['step', 'wall_time', 'summary'],
-        'output_types': [np.int64, np.float64, np.object_],
-        'descriptor_source': 'local://',
-        'message_format': 'text',
-        'sanitize': False,
-        'name': 'test_event_types'
+    input_dict = {
+        "bytes": bytes_val.astype(np.string_),
+        "message_type": message_type_val,
+        "field_names": field_names_val,
+        "output_types": output_types_val,
+        "descriptor_source": descriptor_source_val,
+        "message_format": message_format_val,
+        "sanitize": sanitize_val,
+        "name": name_val
     }
-    list_of_inputs.append(copy.deepcopy(input_dict_4))
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 5: Sanitize flag set to True
-    input_dict_5 = {
-        'bytes': np_summary_values,
-        'message_type': tf.compat.v1.Summary.Value.DESCRIPTOR.full_name,
-        'field_names': ['simple_value'],
-        'output_types': [np.float32],
-        'descriptor_source': 'local://',
-        'message_format': 'binary',
-        'sanitize': True,
-        'name': 'test_sanitize'
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict_5))
+    # Input 3
+    bytes_val = np.array([b""])
+    message_type_val = "EmptyMessage"
+    field_names_val = []
+    output_types_val = []
+    descriptor_source_val = "local://"
+    message_format_val = "binary"
+    sanitize_val = False
+    name_val = "decode_proto_op3"
 
-    # Input 6: 2D batch shape
-    input_dict_6 = {
-        'bytes': np_summary_values.reshape(2, 2),
-        'message_type': tf.compat.v1.Summary.Value.DESCRIPTOR.full_name,
-        'field_names': ['image'],
-        'output_types': [np.object_],
-        'descriptor_source': 'local://',
-        'message_format': 'binary',
-        'sanitize': False,
-        'name': 'test_2d_batch'
+    input_dict = {
+        "bytes": bytes_val.astype(np.string_),
+        "message_type": message_type_val,
+        "field_names": field_names_val,
+        "output_types": output_types_val,
+        "descriptor_source": descriptor_source_val,
+        "message_format": message_format_val,
+        "sanitize": sanitize_val,
+        "name": name_val
     }
-    list_of_inputs.append(copy.deepcopy(input_dict_6))
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 7: Empty field and output type lists
-    input_dict_7 = {
-        'bytes': np_summary_values,
-        'message_type': tf.compat.v1.Summary.Value.DESCRIPTOR.full_name,
-        'field_names': [],
-        'output_types': [],
-        'descriptor_source': 'local://',
-        'message_format': 'binary',
-        'sanitize': False,
-        'name': 'test_empty_fields'
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict_7))
+    # Input 4
+    bytes_val = np.array([b"nested1", b"nested2"])
+    message_type_val = "NestedMessage"
+    field_names_val = ["nested_field"]
+    output_types_val = [tf.string]
+    descriptor_source_val = "bytes://somebytes"
+    message_format_val = "binary"
+    sanitize_val = True
+    name_val = "decode_proto_op4"
 
-    # Input 8: Scalar input tensor
-    input_dict_8 = {
-        'bytes': np.array(serialized_summary_values[0], dtype=object),
-        'message_type': tf.compat.v1.Summary.Value.DESCRIPTOR.full_name,
-        'field_names': ['tag'],
-        'output_types': [np.object_],
-        'descriptor_source': 'local://',
-        'message_format': 'binary',
-        'sanitize': False,
-        'name': 'test_scalar_input'
+    input_dict = {
+        "bytes": bytes_val.astype(np.string_),
+        "message_type": message_type_val,
+        "field_names": field_names_val,
+        "output_types": output_types_val,
+        "descriptor_source": descriptor_source_val,
+        "message_format": message_format_val,
+        "sanitize": sanitize_val,
+        "name": name_val
     }
-    list_of_inputs.append(copy.deepcopy(input_dict_8))
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 9: Unsigned int handling
-    image_proto = tf.compat.v1.Summary.Image(height=100, width=200, colorspace=3)
-    serialized_image_proto = image_proto.SerializeToString()
-    input_dict_9 = {
-        'bytes': np.array([serialized_image_proto], dtype=object),
-        'message_type': tf.compat.v1.Summary.Image.DESCRIPTOR.full_name,
-        'field_names': ['height', 'width'],
-        'output_types': [np.int64, np.int32],
-        'descriptor_source': 'local://',
-        'message_format': 'binary',
-        'sanitize': False,
-        'name': 'decode_uint32'
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict_9))
+    # Input 5
+    bytes_val = np.array([b"enum_val1", b"enum_val2"])
+    message_type_val = "EnumMessage"
+    field_names_val = ["enum_field"]
+    output_types_val = [tf.int32]
+    descriptor_source_val = "local://"
+    message_format_val = "text"
+    sanitize_val = False
+    name_val = "decode_proto_op5"
 
-    # Input 10: Decode 'enum' field as int32
-    tensor_proto = tf.TensorProto(dtype=tf.int32.as_datatype_enum, tensor_shape=tf.TensorShape([2, 2]).as_proto())
-    serialized_tensor_proto = tensor_proto.SerializeToString()
-    input_dict_10 = {
-        'bytes': np.array([serialized_tensor_proto], dtype=object),
-        'message_type': 'tensorflow.TensorProto',
-        'field_names': ['dtype'],
-        'output_types': [np.int32],
-        'descriptor_source': 'local://',
-        'message_format': 'binary',
-        'sanitize': False,
-        'name': 'decode_enum'
+    input_dict = {
+        "bytes": bytes_val.astype(np.string_),
+        "message_type": message_type_val,
+        "field_names": field_names_val,
+        "output_types": output_types_val,
+        "descriptor_source": descriptor_source_val,
+        "message_format": message_format_val,
+        "sanitize": sanitize_val,
+        "name": name_val
     }
-    list_of_inputs.append(copy.deepcopy(input_dict_10))
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+     # Input 6: Multi-dimensional bytes
+    bytes_val = np.array([[b"multi1", b"multi2"], [b"multi3", b"multi4"]])
+    message_type_val = "MultiMessage"
+    field_names_val = ["mfield1", "mfield2"]
+    output_types_val = [tf.float32, tf.int64]
+    descriptor_source_val = "local://"
+    message_format_val = "binary"
+    sanitize_val = False
+    name_val = "decode_proto_op6"
+
+    input_dict = {
+        "bytes": bytes_val.astype(np.string_),
+        "message_type": message_type_val,
+        "field_names": field_names_val,
+        "output_types": output_types_val,
+        "descriptor_source": descriptor_source_val,
+        "message_format": message_format_val,
+        "sanitize": sanitize_val,
+        "name": name_val
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 7: Different output types
+    bytes_val = np.array([b"type1", b"type2"])
+    message_type_val = "TypeMessage"
+    field_names_val = ["tfield1", "tfield2", "tfield3"]
+    output_types_val = [tf.string, tf.bool, tf.int32]
+    descriptor_source_val = "local://"
+    message_format_val = "binary"
+    sanitize_val = True
+    name_val = "decode_proto_op7"
+
+    input_dict = {
+        "bytes": bytes_val.astype(np.string_),
+        "message_type": message_type_val,
+        "field_names": field_names_val,
+        "output_types": output_types_val,
+        "descriptor_source": descriptor_source_val,
+        "message_format": message_format_val,
+        "sanitize": sanitize_val,
+        "name": name_val
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 8: Empty field names
+    bytes_val = np.array([b"empty1", b"empty2"])
+    message_type_val = "EmptyFieldMessage"
+    field_names_val = []
+    output_types_val = []
+    descriptor_source_val = "local://"
+    message_format_val = "binary"
+    sanitize_val = False
+    name_val = "decode_proto_op8"
+
+    input_dict = {
+        "bytes": bytes_val.astype(np.string_),
+        "message_type": message_type_val,
+        "field_names": field_names_val,
+        "output_types": output_types_val,
+        "descriptor_source": descriptor_source_val,
+        "message_format": message_format_val,
+        "sanitize": sanitize_val,
+        "name": name_val
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 9: bytes as empty array
+    bytes_val = np.array([])
+    message_type_val = "EmptyByteMessage"
+    field_names_val = ["afield"]
+    output_types_val = [tf.int32]
+    descriptor_source_val = "local://"
+    message_format_val = "binary"
+    sanitize_val = False
+    name_val = "decode_proto_op9"
+
+    input_dict = {
+        "bytes": bytes_val.astype(np.string_),
+        "message_type": message_type_val,
+        "field_names": field_names_val,
+        "output_types": output_types_val,
+        "descriptor_source": descriptor_source_val,
+        "message_format": message_format_val,
+        "sanitize": sanitize_val,
+        "name": name_val
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 10
+    bytes_val = np.array([b"example10"])
+    message_type_val = "MessageType10"
+    field_names_val = ["field10"]
+    output_types_val = [tf.float32]
+    descriptor_source_val = "local://"
+    message_format_val = "binary"
+    sanitize_val = True
+    name_val = None
+
+    input_dict = {
+        "bytes": bytes_val.astype(np.string_),
+        "message_type": message_type_val,
+        "field_names": field_names_val,
+        "output_types": output_types_val,
+        "descriptor_source": descriptor_source_val,
+        "message_format": message_format_val,
+        "sanitize": sanitize_val,
+        "name": name_val
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs
 
+generated_inputs = {}
 generated_inputs["tf.io.decode_proto"] = tf_io_decode_proto_inputs()
 
 def check_valid(api, list_of_inputs, lib="tf", suffix=0):
@@ -188,5 +251,9 @@ def check_valid(api, list_of_inputs, lib="tf", suffix=0):
 
 if 'tf.io.decode_proto' not in generated_inputs:
     raise Exception("Output of the input generating function was not assigned to the generated_inputs dictionary to the key 'tf.io.decode_proto'.")
+
+
+tf.config.experimental.enable_op_determinism()
+tf.random.set_seed(42)
 
 check_valid('tf.io.decode_proto', generated_inputs['tf.io.decode_proto'], lib="tf", suffix=0)

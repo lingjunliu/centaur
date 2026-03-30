@@ -4,141 +4,339 @@ from generator.input_generators import get_abstract_input
 
 generated_inputs = dict()
 
+import tensorflow as tf
 import numpy as np
 import copy
-import tensorflow as tf
+
+tf.config.experimental.enable_op_determinism()
+tf.random.set_seed(42)
 
 def tf_raw_ops_apply_adam_inputs():
-    """
-    Generates a list of valid inputs for the tf.raw_ops.ApplyAdam function.
-    To satisfy both the API's requirement for mutable variables in eager mode
-    and a testing harness that expects a .size attribute, the mutable inputs
-    (var, m, v) are created as tf.Variable objects and then monkey-patched
-    with a .size attribute. Other tensor inputs are standard numpy arrays.
-    """
     list_of_inputs = []
 
-    def create_input_dict(var_shape, np_dtype, use_locking, use_nesterov, name_suffix):
-        
-        # Create numpy arrays first
-        var_np = np.random.randn(*var_shape).astype(np_dtype)
-        m_np = np.random.randn(*var_shape).astype(np_dtype)
-        # v (variance) must be non-negative for the sqrt operation in the algorithm.
-        v_np = np.abs(np.random.randn(*var_shape)).astype(np_dtype)
+    # Input 1
+    var = np.array([1.0, 2.0, 3.0], dtype=np.float32)
+    m = np.array([0.0, 0.0, 0.0], dtype=np.float32)
+    v = np.array([0.0, 0.0, 0.0], dtype=np.float32)
+    beta1_power = np.array(0.9, dtype=np.float32)
+    beta2_power = np.array(0.999, dtype=np.float32)
+    lr = np.array(0.001, dtype=np.float32)
+    beta1 = np.array(0.9, dtype=np.float32)
+    beta2 = np.array(0.999, dtype=np.float32)
+    epsilon = np.array(1e-07, dtype=np.float32)
+    grad = np.array([0.1, 0.2, 0.3], dtype=np.float32)
+    use_locking = False
+    use_nesterov = False
+    name = "adam_1"
 
-        # Create tf.Variables as required by the API for mutable inputs
-        var = tf.Variable(var_np)
-        m = tf.Variable(m_np)
-        v = tf.Variable(v_np)
+    input_dict = {
+        "var": tf.Variable(var, dtype=tf.float32),
+        "m": tf.Variable(m, dtype=tf.float32),
+        "v": tf.Variable(v, dtype=tf.float32),
+        "beta1_power": tf.constant(beta1_power, dtype=tf.float32),
+        "beta2_power": tf.constant(beta2_power, dtype=tf.float32),
+        "lr": tf.constant(lr, dtype=tf.float32),
+        "beta1": tf.constant(beta1, dtype=tf.float32),
+        "beta2": tf.constant(beta2, dtype=tf.float32),
+        "epsilon": tf.constant(epsilon, dtype=tf.float32),
+        "grad": tf.constant(grad, dtype=tf.float32),
+        "use_locking": use_locking,
+        "use_nesterov": use_nesterov,
+        "name": name
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-        # Monkey-patch the .size attribute for the testing harness
-        var.size = var_np.size
-        m.size = m_np.size
-        v.size = v_np.size
+    # Input 2 - int32
+    var = np.array([1, 2, 3], dtype=np.int32)
+    m = np.array([0, 0, 0], dtype=np.int32)
+    v = np.array([0, 0, 0], dtype=np.int32)
+    beta1_power = np.array(0.9, dtype=np.float32).astype(np.int32)
+    beta2_power = np.array(0.999, dtype=np.float32).astype(np.int32)
+    lr = np.array(0.001, dtype=np.float32).astype(np.int32)
+    beta1 = np.array(0.9, dtype=np.float32).astype(np.int32)
+    beta2 = np.array(0.999, dtype=np.float32).astype(np.int32)
+    epsilon = np.array(1e-07, dtype=np.float32).astype(np.int32)
+    grad = np.array([1, 2, 3], dtype=np.int32)
+    use_locking = True
+    use_nesterov = True
+    name = "adam_2"
 
-        # Other tensor inputs can be numpy arrays as per the prompt's preference
-        grad = np.random.randn(*var_shape).astype(np_dtype)
-        beta1_power = np.array(0.9**2, dtype=np_dtype)
-        beta2_power = np.array(0.999**2, dtype=np_dtype)
-        lr = np.array(0.001, dtype=np_dtype)
-        beta1 = np.array(0.9, dtype=np_dtype)
-        beta2 = np.array(0.999, dtype=np_dtype)
-        epsilon = np.array(1e-7, dtype=np_dtype)
+    input_dict = {
+        "var": tf.Variable(var, dtype=tf.int32),
+        "m": tf.Variable(m, dtype=tf.int32),
+        "v": tf.Variable(v, dtype=tf.int32),
+        "beta1_power": tf.constant(beta1_power, dtype=tf.int32),
+        "beta2_power": tf.constant(beta2_power, dtype=tf.int32),
+        "lr": tf.constant(lr, dtype=tf.int32),
+        "beta1": tf.constant(beta1, dtype=tf.int32),
+        "beta2": tf.constant(beta2, dtype=tf.int32),
+        "epsilon": tf.constant(epsilon, dtype=tf.int32),
+        "grad": tf.constant(grad, dtype=tf.int32),
+        "use_locking": use_locking,
+        "use_nesterov": use_nesterov,
+        "name": name
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-        return {
-            'var': var,
-            'm': m,
-            'v': v,
-            'beta1_power': beta1_power,
-            'beta2_power': beta2_power,
-            'lr': lr,
-            'beta1': beta1,
-            'beta2': beta2,
-            'epsilon': epsilon,
-            'grad': grad,
-            'use_locking': use_locking,
-            'use_nesterov': use_nesterov,
-            'name': f'apply_adam_{name_suffix}'
-        }
+    # Input 3 - float64, different shapes
+    var = np.array([[1.0, 2.0], [3.0, 4.0]], dtype=np.float64)
+    m = np.array([[0.0, 0.0], [0.0, 0.0]], dtype=np.float64)
+    v = np.array([[0.0, 0.0], [0.0, 0.0]], dtype=np.float64)
+    beta1_power = np.array(0.9, dtype=np.float64)
+    beta2_power = np.array(0.999, dtype=np.float64)
+    lr = np.array(0.001, dtype=np.float64)
+    beta1 = np.array(0.9, dtype=np.float64)
+    beta2 = np.array(0.999, dtype=np.float64)
+    epsilon = np.array(1e-08, dtype=np.float64)
+    grad = np.array([[0.1, 0.2], [0.3, 0.4]], dtype=np.float64)
+    use_locking = False
+    use_nesterov = True
+    name = "adam_3"
 
-    # Input 1: Basic case, float32, 2D
-    list_of_inputs.append(copy.deepcopy(create_input_dict(
-        var_shape=(3, 3), np_dtype=np.float32, use_locking=False, use_nesterov=False, name_suffix="1"
-    )))
-
-    # Input 2: Nesterov enabled, float32, 2D
-    list_of_inputs.append(copy.deepcopy(create_input_dict(
-        var_shape=(3, 3), np_dtype=np.float32, use_locking=False, use_nesterov=True, name_suffix="2"
-    )))
+    input_dict = {
+        "var": tf.Variable(var, dtype=tf.float64),
+        "m": tf.Variable(m, dtype=tf.float64),
+        "v": tf.Variable(v, dtype=tf.float64),
+        "beta1_power": tf.constant(beta1_power, dtype=tf.float64),
+        "beta2_power": tf.constant(beta2_power, dtype=tf.float64),
+        "lr": tf.constant(lr, dtype=tf.float64),
+        "beta1": tf.constant(beta1, dtype=tf.float64),
+        "beta2": tf.constant(beta2, dtype=tf.float64),
+        "epsilon": tf.constant(epsilon, dtype=tf.float64),
+        "grad": tf.constant(grad, dtype=tf.float64),
+        "use_locking": use_locking,
+        "use_nesterov": use_nesterov,
+        "name": name
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
     
-    # Input 3: Locking enabled, float32, 2D
-    list_of_inputs.append(copy.deepcopy(create_input_dict(
-        var_shape=(2, 4), np_dtype=np.float32, use_locking=True, use_nesterov=False, name_suffix="3"
-    )))
+    # Input 4 - float16
+    var = np.array([1.0, 2.0, 3.0], dtype=np.float16)
+    m = np.array([0.0, 0.0, 0.0], dtype=np.float16)
+    v = np.array([0.0, 0.0, 0.0], dtype=np.float16)
+    beta1_power = np.array(0.9, dtype=np.float16)
+    beta2_power = np.array(0.999, dtype=np.float16)
+    lr = np.array(0.001, dtype=np.float16)
+    beta1 = np.array(0.9, dtype=np.float16)
+    beta2 = np.array(0.999, dtype=np.float16)
+    epsilon = np.array(1e-07, dtype=np.float16)
+    grad = np.array([0.1, 0.2, 0.3], dtype=np.float16)
+    use_locking = False
+    use_nesterov = False
+    name = "adam_4"
 
-    # Input 4: Nesterov and Locking enabled, float32, 2D
-    list_of_inputs.append(copy.deepcopy(create_input_dict(
-        var_shape=(2, 4), np_dtype=np.float32, use_locking=True, use_nesterov=True, name_suffix="4"
-    )))
+    input_dict = {
+        "var": tf.Variable(var, dtype=tf.float16),
+        "m": tf.Variable(m, dtype=tf.float16),
+        "v": tf.Variable(v, dtype=tf.float16),
+        "beta1_power": tf.constant(beta1_power, dtype=tf.float16),
+        "beta2_power": tf.constant(beta2_power, dtype=tf.float16),
+        "lr": tf.constant(lr, dtype=tf.float16),
+        "beta1": tf.constant(beta1, dtype=tf.float16),
+        "beta2": tf.constant(beta2, dtype=tf.float16),
+        "epsilon": tf.constant(epsilon, dtype=tf.float16),
+        "grad": tf.constant(grad, dtype=tf.float16),
+        "use_locking": use_locking,
+        "use_nesterov": use_nesterov,
+        "name": name
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 5: float64 dtype, 1D
-    list_of_inputs.append(copy.deepcopy(create_input_dict(
-        var_shape=(10,), np_dtype=np.float64, use_locking=False, use_nesterov=False, name_suffix="5"
-    )))
+    # Input 5 - int64
+    var = np.array([1, 2, 3], dtype=np.int64)
+    m = np.array([0, 0, 0], dtype=np.int64)
+    v = np.array([0, 0, 0], dtype=np.int64)
+    beta1_power = np.array(0.9, dtype=np.float64).astype(np.int64)
+    beta2_power = np.array(0.999, dtype=np.float64).astype(np.int64)
+    lr = np.array(0.001, dtype=np.float64).astype(np.int64)
+    beta1 = np.array(0.9, dtype=np.float64).astype(np.int64)
+    beta2 = np.array(0.999, dtype=np.float64).astype(np.int64)
+    epsilon = np.array(1e-07, dtype=np.float64).astype(np.int64)
+    grad = np.array([1, 2, 3], dtype=np.int64)
+    use_locking = True
+    use_nesterov = True
+    name = "adam_5"
 
-    # Input 6: Higher dimensions (3D), float32
-    list_of_inputs.append(copy.deepcopy(create_input_dict(
-        var_shape=(2, 3, 4), np_dtype=np.float32, use_locking=False, use_nesterov=True, name_suffix="6"
-    )))
-    
-    # Input 7: Zero gradient
-    input_7 = create_input_dict(
-        var_shape=(3, 2), np_dtype=np.float32, use_locking=False, use_nesterov=False, name_suffix="7"
-    )
-    input_7['grad'] = np.zeros((3, 2), dtype=np.float32)
-    list_of_inputs.append(copy.deepcopy(input_7))
+    input_dict = {
+        "var": tf.Variable(var, dtype=tf.int64),
+        "m": tf.Variable(m, dtype=tf.int64),
+        "v": tf.Variable(v, dtype=tf.int64),
+        "beta1_power": tf.constant(beta1_power, dtype=tf.int64),
+        "beta2_power": tf.constant(beta2_power, dtype=tf.int64),
+        "lr": tf.constant(lr, dtype=tf.int64),
+        "beta1": tf.constant(beta1, dtype=tf.int64),
+        "beta2": tf.constant(beta2, dtype=tf.int64),
+        "epsilon": tf.constant(epsilon, dtype=tf.int64),
+        "grad": tf.constant(grad, dtype=tf.int64),
+        "use_locking": use_locking,
+        "use_nesterov": use_nesterov,
+        "name": name
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 8: Zero-initialized m and v (typical first step)
-    input_8 = create_input_dict(
-        var_shape=(6,), np_dtype=np.float64, use_locking=True, use_nesterov=False, name_suffix="8"
-    )
-    m_np_8 = np.zeros(6, dtype=np.float64)
-    v_np_8 = np.zeros(6, dtype=np.float64)
-    m_8 = tf.Variable(m_np_8)
-    v_8 = tf.Variable(v_np_8)
-    m_8.size = m_np_8.size
-    v_8.size = v_np_8.size
-    input_8['m'] = m_8
-    input_8['v'] = v_8
-    input_8['beta1_power'] = np.array(0.9, dtype=np.float64) # t=1
-    input_8['beta2_power'] = np.array(0.999, dtype=np.float64) # t=1
-    list_of_inputs.append(copy.deepcopy(input_8))
+    # Input 6 - uint8
+    var = np.array([1, 2, 3], dtype=np.uint8)
+    m = np.array([0, 0, 0], dtype=np.uint8)
+    v = np.array([0, 0, 0], dtype=np.uint8)
+    beta1_power = np.array(1, dtype=np.uint8)
+    beta2_power = np.array(1, dtype=np.uint8)
+    lr = np.array(1, dtype=np.uint8)
+    beta1 = np.array(1, dtype=np.uint8)
+    beta2 = np.array(1, dtype=np.uint8)
+    epsilon = np.array(1, dtype=np.uint8)
+    grad = np.array([1, 2, 3], dtype=np.uint8)
+    use_locking = True
+    use_nesterov = True
+    name = "adam_6"
 
-    # Input 9: 4D tensor with different lr and epsilon
-    input_9 = create_input_dict(
-        var_shape=(1, 2, 2, 3), np_dtype=np.float32, use_locking=False, use_nesterov=False, name_suffix="9"
-    )
-    input_9['lr'] = np.array(0.1, dtype=np.float32)
-    input_9['epsilon'] = np.array(1e-4, dtype=np.float32)
-    list_of_inputs.append(copy.deepcopy(input_9))
-    
-    # Input 10: Negative values in var, m, and grad
-    input_10 = create_input_dict(
-        var_shape=(4,), np_dtype=np.float32, use_locking=False, use_nesterov=False, name_suffix="10"
-    )
-    var_np_10 = np.array([-1.0, -2.5, 3.0, -0.5], dtype=np.float32)
-    m_np_10 = np.array([-0.1, 0.2, -0.05, 0.15], dtype=np.float32)
-    var_10 = tf.Variable(var_np_10)
-    m_10 = tf.Variable(m_np_10)
-    var_10.size = var_np_10.size
-    m_10.size = m_np_10.size
-    input_10['var'] = var_10
-    input_10['m'] = m_10
-    input_10['grad'] = np.array([0.5, -1.0, -0.2, 0.3], dtype=np.float32)
-    list_of_inputs.append(copy.deepcopy(input_10))
+    input_dict = {
+        "var": tf.Variable(var, dtype=tf.uint8),
+        "m": tf.Variable(m, dtype=tf.uint8),
+        "v": tf.Variable(v, dtype=tf.uint8),
+        "beta1_power": tf.constant(beta1_power, dtype=tf.uint8),
+        "beta2_power": tf.constant(beta2_power, dtype=tf.uint8),
+        "lr": tf.constant(lr, dtype=tf.uint8),
+        "beta1": tf.constant(beta1, dtype=tf.uint8),
+        "beta2": tf.constant(beta2, dtype=tf.uint8),
+        "epsilon": tf.constant(epsilon, dtype=tf.uint8),
+        "grad": tf.constant(grad, dtype=tf.uint8),
+        "use_locking": use_locking,
+        "use_nesterov": use_nesterov,
+        "name": name
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 7 - int16, use negative values
+    var = np.array([-1, 2, -3], dtype=np.int16)
+    m = np.array([0, 0, 0], dtype=np.int16)
+    v = np.array([0, 0, 0], dtype=np.int16)
+    beta1_power = np.array(0.9, dtype=np.float32).astype(np.int16)
+    beta2_power = np.array(0.999, dtype=np.float32).astype(np.int16)
+    lr = np.array(0.001, dtype=np.float32).astype(np.int16)
+    beta1 = np.array(0.9, dtype=np.float32).astype(np.int16)
+    beta2 = np.array(0.999, dtype=np.float32).astype(np.int16)
+    epsilon = np.array(1e-07, dtype=np.float32).astype(np.int16)
+    grad = np.array([-1, 2, -3], dtype=np.int16)
+    use_locking = False
+    use_nesterov = True
+    name = "adam_7"
+
+    input_dict = {
+        "var": tf.Variable(var, dtype=tf.int16),
+        "m": tf.Variable(m, dtype=tf.int16),
+        "v": tf.Variable(v, dtype=tf.int16),
+        "beta1_power": tf.constant(beta1_power, dtype=tf.int16),
+        "beta2_power": tf.constant(beta2_power, dtype=tf.int16),
+        "lr": tf.constant(lr, dtype=tf.int16),
+        "beta1": tf.constant(beta1, dtype=tf.int16),
+        "beta2": tf.constant(beta2, dtype=tf.int16),
+        "epsilon": tf.constant(epsilon, dtype=tf.int16),
+        "grad": tf.constant(grad, dtype=tf.int16),
+        "use_locking": use_locking,
+        "use_nesterov": use_nesterov,
+        "name": name
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+   # Input 8 - complex64
+    var = np.array([1+1j, 2+2j, 3+3j], dtype=np.complex64)
+    m = np.array([0+0j, 0+0j, 0+0j], dtype=np.complex64)
+    v = np.array([0+0j, 0+0j, 0+0j], dtype=np.complex64)
+    beta1_power = np.array(0.9+0j, dtype=np.complex64)
+    beta2_power = np.array(0.999+0j, dtype=np.complex64)
+    lr = np.array(0.001+0j, dtype=np.complex64)
+    beta1 = np.array(0.9+0j, dtype=np.complex64)
+    beta2 = np.array(0.999+0j, dtype=np.complex64)
+    epsilon = np.array(1e-07+0j, dtype=np.complex64)
+    grad = np.array([0.1+0.1j, 0.2+0.2j, 0.3+0.3j], dtype=np.complex64)
+    use_locking = False
+    use_nesterov = False
+    name = "adam_8"
+
+    input_dict = {
+        "var": tf.Variable(var, dtype=tf.complex64),
+        "m": tf.Variable(m, dtype=tf.complex64),
+        "v": tf.Variable(v, dtype=tf.complex64),
+        "beta1_power": tf.constant(beta1_power, dtype=tf.complex64),
+        "beta2_power": tf.constant(beta2_power, dtype=tf.complex64),
+        "lr": tf.constant(lr, dtype=tf.complex64),
+        "beta1": tf.constant(beta1, dtype=tf.complex64),
+        "beta2": tf.constant(beta2, dtype=tf.complex64),
+        "epsilon": tf.constant(epsilon, dtype=tf.complex64),
+        "grad": tf.constant(grad, dtype=tf.complex64),
+        "use_locking": use_locking,
+        "use_nesterov": use_nesterov,
+        "name": name
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 9 - different shapes for grad
+    var = np.array([1.0, 2.0, 3.0], dtype=np.float32)
+    m = np.array([0.0, 0.0, 0.0], dtype=np.float32)
+    v = np.array([0.0, 0.0, 0.0], dtype=np.float32)
+    beta1_power = np.array(0.9, dtype=np.float32)
+    beta2_power = np.array(0.999, dtype=np.float32)
+    lr = np.array(0.001, dtype=np.float32)
+    beta1 = np.array(0.9, dtype=np.float32)
+    beta2 = np.array(0.999, dtype=np.float32)
+    epsilon = np.array(1e-07, dtype=np.float32)
+    grad = np.array([0.1, 0.2, 0.3], dtype=np.float32)
+    use_locking = False
+    use_nesterov = False
+    name = "adam_9"
+
+    input_dict = {
+        "var": tf.Variable(var, dtype=tf.float32),
+        "m": tf.Variable(m, dtype=tf.float32),
+        "v": tf.Variable(v, dtype=tf.float32),
+        "beta1_power": tf.constant(beta1_power, dtype=tf.float32),
+        "beta2_power": tf.constant(beta2_power, dtype=tf.float32),
+        "lr": tf.constant(lr, dtype=tf.float32),
+        "beta1": tf.constant(beta1, dtype=tf.float32),
+        "beta2": tf.constant(beta2, dtype=tf.float32),
+        "epsilon": tf.constant(epsilon, dtype=tf.float32),
+        "grad": tf.constant(grad, dtype=tf.float32),
+        "use_locking": use_locking,
+        "use_nesterov": use_nesterov,
+        "name": name
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+     # Input 10 - complex128
+    var = np.array([1+1j, 2+2j, 3+3j], dtype=np.complex128)
+    m = np.array([0+0j, 0+0j, 0+0j], dtype=np.complex128)
+    v = np.array([0+0j, 0+0j, 0+0j], dtype=np.complex128)
+    beta1_power = np.array(0.9+0j, dtype=np.complex128)
+    beta2_power = np.array(0.999+0j, dtype=np.complex128)
+    lr = np.array(0.001+0j, dtype=np.complex128)
+    beta1 = np.array(0.9+0j, dtype=np.complex128)
+    beta2 = np.array(0.999+0j, dtype=np.complex128)
+    epsilon = np.array(1e-07+0j, dtype=np.complex128)
+    grad = np.array([0.1+0.1j, 0.2+0.2j, 0.3+0.3j], dtype=np.complex128)
+    use_locking = False
+    use_nesterov = False
+    name = "adam_10"
+
+    input_dict = {
+        "var": tf.Variable(var, dtype=tf.complex128),
+        "m": tf.Variable(m, dtype=tf.complex128),
+        "v": tf.Variable(v, dtype=tf.complex128),
+        "beta1_power": tf.constant(beta1_power, dtype=tf.complex128),
+        "beta2_power": tf.constant(beta2_power, dtype=tf.complex128),
+        "lr": tf.constant(lr, dtype=tf.complex128),
+        "beta1": tf.constant(beta1, dtype=tf.complex128),
+        "beta2": tf.constant(beta2, dtype=tf.complex128),
+        "epsilon": tf.constant(epsilon, dtype=tf.complex128),
+        "grad": tf.constant(grad, dtype=tf.complex128),
+        "use_locking": use_locking,
+        "use_nesterov": use_nesterov,
+        "name": name
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs
 
+generated_inputs = {}
 generated_inputs["tf.raw_ops.ApplyAdam"] = tf_raw_ops_apply_adam_inputs()
 
 def check_valid(api, list_of_inputs, lib="tf", suffix=0):
@@ -153,5 +351,9 @@ def check_valid(api, list_of_inputs, lib="tf", suffix=0):
 
 if 'tf.raw_ops.ApplyAdam' not in generated_inputs:
     raise Exception("Output of the input generating function was not assigned to the generated_inputs dictionary to the key 'tf.raw_ops.ApplyAdam'.")
+
+
+tf.config.experimental.enable_op_determinism()
+tf.random.set_seed(42)
 
 check_valid('tf.raw_ops.ApplyAdam', generated_inputs['tf.raw_ops.ApplyAdam'], lib="tf", suffix=0)

@@ -4,128 +4,130 @@ from generator.input_generators import get_abstract_input
 
 generated_inputs = dict()
 
+import tensorflow as tf
 import numpy as np
 import copy
 
-def tf_queue_priorityqueue_inputs():
-    """
-    Generates a list of valid inputs for tf.queue.PriorityQueue.
-    """
+tf.config.experimental.enable_op_determinism()
+tf.random.set_seed(42)
+
+def tf_queue_priority_queue_inputs():
     list_of_inputs = []
 
-    # Input 1: Basic two-component queue
-    input_dict_1 = {
-        'capacity': 10,
-        'types': ['int64', 'float32'],
-        'shapes': None,
-        'names': None,
-        'shared_name': None,
-        'name': 'q1'
+    # Input 1
+    input_dict = {
+        "capacity": 10,
+        "types": [tf.int32, tf.float32],
+        "shapes": [(), (1,)],
+        "names": ["priority", "data"],
+        "shared_name": "queue1",
+        "name": "priority_queue1"
     }
-    list_of_inputs.append(copy.deepcopy(input_dict_1))
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 2: Three components, with names
-    input_dict_2 = {
-        'capacity': 20,
-        'types': ['int64', 'string', 'bool'],
-        'shapes': None,
-        'names': ['prio', 'meta', 'flag'],
-        'shared_name': None,
-        'name': 'q2'
+    # Input 2
+    input_dict = {
+        "capacity": 5,
+        "types": [tf.float64],
+        "shapes": [(2, 2)],
+        "names": ["priority"],
+        "shared_name": "queue2",
+        "name": "priority_queue2"
     }
-    list_of_inputs.append(copy.deepcopy(input_dict_2))
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 3: Using a shared_name
-    input_dict_3 = {
-        'capacity': 5,
-        'types': ['int64', 'int32'],
-        'shapes': None,
-        'names': None,
-        'shared_name': 'shared_q3',
-        'name': 'q3'
+    # Input 3
+    input_dict = {
+        "capacity": 20,
+        "types": [tf.int64, tf.bool],
+        "shapes": [(), ()],
+        "names": ["priority", "data"],
+        "shared_name": "queue3",
+        "name": "priority_queue3"
     }
-    list_of_inputs.append(copy.deepcopy(input_dict_3))
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 4: Priority only queue
-    input_dict_4 = {
-        'capacity': 100,
-        'types': ['int64'],
-        'shapes': None,
-        'names': None,
-        'shared_name': None,
-        'name': 'q4'
+    # Input 4
+    input_dict = {
+        "capacity": 1,
+        "types": [tf.uint8],
+        "shapes": [()],
+        "names": ["priority"],
+        "shared_name": "queue4",
+        "name": "priority_queue4"
     }
-    list_of_inputs.append(copy.deepcopy(input_dict_4))
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 5: Another data type (uint8)
-    input_dict_5 = {
-        'capacity': 50,
-        'types': ['int64', 'uint8'],
-        'shapes': None,
-        'names': None,
-        'shared_name': None,
-        'name': 'q5'
+    # Input 5
+    input_dict = {
+        "capacity": 100,
+        "types": [tf.int32],
+        "shapes": [()],
+        "names": ["priority"],
+        "shared_name": "queue5",
+        "name": "priority_queue5"
     }
-    list_of_inputs.append(copy.deepcopy(input_dict_5))
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 6: All optional arguments specified
-    input_dict_6 = {
-        'capacity': 25,
-        'types': ['int64', 'complex64'],
-        'shapes': None,
-        'names': ['priority', 'complex_data'],
-        'shared_name': 'shared_q6',
-        'name': 'q6'
+    # Input 6
+    input_dict = {
+        "capacity": 2,
+        "types": [tf.float32],
+        "shapes": [()],
+        "names": ["priority"],
+        "shared_name": "queue6",
+        "name": "priority_queue6"
     }
-    list_of_inputs.append(copy.deepcopy(input_dict_6))
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 7: Minimal capacity and empty shared_name
-    input_dict_7 = {
-        'capacity': 1,
-        'types': ['int64', 'float16'],
-        'shapes': None,
-        'names': None,
-        'shared_name': '',
-        'name': 'q7'
+    # Input 7
+    input_dict = {
+        "capacity": 7,
+        "types": [tf.int32],
+        "shapes": [()],
+        "names": ["priority"],
+        "shared_name": "queue7",
+        "name": "priority_queue7"
     }
-    list_of_inputs.append(copy.deepcopy(input_dict_7))
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 8: Minimal arguments with just priority
-    input_dict_8 = {
-        'capacity': 2,
-        'types': ['int64'],
-        'shapes': None,
-        'names': None,
-        'shared_name': None,
-        'name': 'q10'
+    # Input 8
+    input_dict = {
+        "capacity": 3,
+        "types": [tf.float32],
+        "shapes": [()],
+        "names": ["priority"],
+        "shared_name": "queue8",
+        "name": "priority_queue8"
     }
-    list_of_inputs.append(copy.deepcopy(input_dict_8))
-    
-    # Input 9: More components
-    input_dict_9 = {
-        'capacity': 12,
-        'types': ['int64', 'int16', 'string'],
-        'shapes': None,
-        'names': ['id', 'value', 'desc'],
-        'shared_name': 'high_dim_q',
-        'name': 'q_high_dim'
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict_9))
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 10: Using quantized type
-    input_dict_10 = {
-        'capacity': 40,
-        'types': ['int64', 'qint8'],
-        'shapes': None,
-        'names': None,
-        'shared_name': None,
-        'name': 'quantized_queue'
+   # Input 9
+    input_dict = {
+        "capacity": 12,
+        "types": [tf.int32],
+        "shapes": [()],
+        "names": ["priority"],
+        "shared_name": "queue9",
+        "name": "priority_queue9"
     }
-    list_of_inputs.append(copy.deepcopy(input_dict_10))
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 10
+    input_dict = {
+        "capacity": 4,
+        "types": [tf.float64],
+        "shapes": [()],
+        "names": ["priority"],
+        "shared_name": "queue10",
+        "name": "priority_queue10"
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs
 
-generated_inputs["tf.queue.PriorityQueue"] = tf_queue_priorityqueue_inputs()
+generated_inputs = {}
+generated_inputs["tf.queue.PriorityQueue"] = tf_queue_priority_queue_inputs()
 
 def check_valid(api, list_of_inputs, lib="tf", suffix=0):
     for idx, input_dict in enumerate(list_of_inputs):
@@ -139,5 +141,9 @@ def check_valid(api, list_of_inputs, lib="tf", suffix=0):
 
 if 'tf.queue.PriorityQueue' not in generated_inputs:
     raise Exception("Output of the input generating function was not assigned to the generated_inputs dictionary to the key 'tf.queue.PriorityQueue'.")
+
+
+tf.config.experimental.enable_op_determinism()
+tf.random.set_seed(42)
 
 check_valid('tf.queue.PriorityQueue', generated_inputs['tf.queue.PriorityQueue'], lib="tf", suffix=0)

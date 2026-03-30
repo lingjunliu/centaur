@@ -4,82 +4,70 @@ from generator.input_generators import get_abstract_input
 
 generated_inputs = dict()
 
+import tensorflow as tf
 import numpy as np
 import copy
 
-def tf_raw_ops_scatterndupdate_inputs():
-    """
-    This function generates a list of valid inputs for the tf.raw_ops.ScatterNdUpdate function.
+tf.config.experimental.enable_op_determinism()
+tf.random.set_seed(42)
 
-    NOTE: The runtime error "scatter_nd_update op does not support eager execution"
-    is fundamental to this specific raw operation. `tf.raw_ops.ScatterNdUpdate` is a
-    stateful op designed for TensorFlow's graph-based execution model (like in TF1.x
-    or inside a tf.function) where it can modify a tf.Variable in place. It is
-    explicitly disabled in the default eager execution mode of modern TensorFlow.
-    The error is not caused by invalid input shapes or types but by the execution
-    environment. The inputs provided below are correct according to the API's
-    documentation and would be valid in a graph context.
-    """
+def tf_raw_ops_ScatterNdUpdate_inputs():
     list_of_inputs = []
 
-    # Case 1: Basic 1D update
-    input_dict_1 = {
-        'ref': np.array([10, 20, 30, 40], dtype=np.float32),
-        'indices': np.array([[1], [3]], dtype=np.int32),
-        'updates': np.array([25.0, 45.0], dtype=np.float32),
-        'use_locking': True,
-        'bad_indices_policy': '',
-        'name': 'simple_1d_update'
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict_1))
+    # Input 1: Basic example
+    ref = tf.Variable(np.array([1, 2, 3, 4, 5, 6, 7, 8], dtype=np.int32))
+    indices = np.array([[4], [3], [1], [7]], dtype=np.int32)
+    updates = np.array([9, 10, 11, 12], dtype=np.int32)
+    use_locking = True
+    bad_indices_policy = ""
+    name = "basic_example"
+    input_dict = {"ref": ref, "indices": indices, "updates": updates, "use_locking": use_locking, "bad_indices_policy": bad_indices_policy, "name": name}
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Case 2: Update individual elements in a 2D tensor
-    input_dict_2 = {
-        'ref': np.zeros((3, 3), dtype=np.int32),
-        'indices': np.array([[0, 2], [1, 1], [2, 0]], dtype=np.int32),
-        'updates': np.array([1, 2, 3], dtype=np.int32),
-        'use_locking': False,
-        'bad_indices_policy': '',
-        'name': 'elements_2d_update'
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict_2))
+    # Input 2: 2D ref, 2D indices
+    ref = tf.Variable(np.array([[1, 2], [3, 4], [5, 6]], dtype=np.int32))
+    indices = np.array([[0, 0], [1, 1]], dtype=np.int32)
+    updates = np.array([7, 8], dtype=np.int32)
+    use_locking = False
+    bad_indices_policy = ""
+    name = "2d_example"
+    input_dict = {"ref": ref, "indices": indices, "updates": updates, "use_locking": use_locking, "bad_indices_policy": bad_indices_policy, "name": name}
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Case 3: Update slices (rows) in a 2D tensor
-    input_dict_3 = {
-        'ref': np.ones((4, 3), dtype=np.float64),
-        'indices': np.array([[1], [3]], dtype=np.int64),
-        'updates': np.array([[10.0, 11.0, 12.0], [13.0, 14.0, 15.0]], dtype=np.float64),
-        'use_locking': True,
-        'bad_indices_policy': '',
-        'name': 'slices_2d_update'
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict_3))
+    # Input 3: 3D ref, 2D indices
+    ref = tf.Variable(np.arange(24, dtype=np.int32).reshape((2, 3, 4)))
+    indices = np.array([[0, 1], [1, 2]], dtype=np.int32)
+    updates = np.array([[100, 101, 102, 103], [200, 201, 202, 203]], dtype=np.int32)
+    use_locking = True
+    bad_indices_policy = ""
+    name = "3d_example"
+    input_dict = {"ref": ref, "indices": indices, "updates": updates, "use_locking": use_locking, "bad_indices_policy": bad_indices_policy, "name": name}
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Case 4: Update elements in a 3D tensor
-    input_dict_4 = {
-        'ref': np.arange(8, dtype=np.int32).reshape((2, 2, 2)),
-        'indices': np.array([[0, 0, 1], [1, 1, 0]], dtype=np.int32),
-        'updates': np.array([100, 200], dtype=np.int32),
-        'use_locking': True,
-        'bad_indices_policy': 'IGNORE',
-        'name': 'elements_3d_update'
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict_4))
+    # Input 4: int64 indices
+    ref = tf.Variable(np.array([1, 2, 3, 4, 5], dtype=np.int32))
+    indices = np.array([[0], [2], [4]], dtype=np.int64)
+    updates = np.array([10, 20, 30], dtype=np.int32)
+    use_locking = True
+    bad_indices_policy = ""
+    name = "int64_indices"
+    input_dict = {"ref": ref, "indices": indices, "updates": updates, "use_locking": use_locking, "bad_indices_policy": bad_indices_policy, "name": name}
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Case 5: Empty update (no-op)
-    input_dict_5 = {
-        'ref': np.array([1, 2, 3], dtype=np.float32),
-        'indices': np.empty(shape=(0, 1), dtype=np.int32),
-        'updates': np.empty(shape=(0,), dtype=np.float32),
-        'use_locking': True,
-        'bad_indices_policy': '',
-        'name': 'empty_update'
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict_5))
+    # Input 5: Different data type for ref and updates (float32)
+    ref = tf.Variable(np.array([1.0, 2.0, 3.0, 4.0, 5.0], dtype=np.float32))
+    indices = np.array([[0], [2], [4]], dtype=np.int32)
+    updates = np.array([10.0, 20.0, 30.0], dtype=np.float32)
+    use_locking = True
+    bad_indices_policy = ""
+    name = "float32_example"
+    input_dict = {"ref": ref, "indices": indices, "updates": updates, "use_locking": use_locking, "bad_indices_policy": bad_indices_policy, "name": name}
+    list_of_inputs.append(copy.deepcopy(input_dict))
     
     return list_of_inputs
 
-generated_inputs["tf.raw_ops.ScatterNdUpdate"] = tf_raw_ops_scatterndupdate_inputs()
+generated_inputs = {}
+generated_inputs["tf.raw_ops.ScatterNdUpdate"] = tf_raw_ops_ScatterNdUpdate_inputs()
 
 def check_valid(api, list_of_inputs, lib="tf", suffix=0):
     for idx, input_dict in enumerate(list_of_inputs):
@@ -93,5 +81,9 @@ def check_valid(api, list_of_inputs, lib="tf", suffix=0):
 
 if 'tf.raw_ops.ScatterNdUpdate' not in generated_inputs:
     raise Exception("Output of the input generating function was not assigned to the generated_inputs dictionary to the key 'tf.raw_ops.ScatterNdUpdate'.")
+
+
+tf.config.experimental.enable_op_determinism()
+tf.random.set_seed(42)
 
 check_valid('tf.raw_ops.ScatterNdUpdate', generated_inputs['tf.raw_ops.ScatterNdUpdate'], lib="tf", suffix=0)

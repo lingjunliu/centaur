@@ -4,141 +4,143 @@ from generator.input_generators import get_abstract_input
 
 generated_inputs = dict()
 
+import tensorflow as tf
 import numpy as np
 import copy
 
+tf.config.experimental.enable_op_determinism()
+tf.random.set_seed(42)
+
 def tf_nn_with_space_to_batch_inputs():
-    """
-    Generates a list of valid inputs for tf.nn.with_space_to_batch.
-    """
     list_of_inputs = []
 
-    # A simple op function that satisfies the required signature.
-    # To satisfy the testing harness which expects an iterable, it is wrapped in a list.
-    op_func = lambda x, num_spatial_dims, padding: x
+    # Define a dummy op for testing
+    def dummy_op(input, num_spatial_dims, padding):
+        return tf.identity(input)
 
-    # Case 1: Basic 2D Convolution scenario (NHWC, SAME padding)
-    input_dict_1 = {
-        'input': np.random.rand(1, 5, 5, 3).astype(np.float32),
-        'dilation_rate': np.array([2, 2], dtype=np.int32),
-        'padding': 'SAME',
-        'op': [op_func],
-        'filter_shape': np.array([3, 3], dtype=np.int32),
-        'spatial_dims': [1, 2],
-        'data_format': 'NHWC'
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict_1))
+    # Input 1: VALID padding, simple case
+    input_np = np.random.rand(1, 4, 4, 3).astype(np.float32)
+    dilation_rate_np = np.array([2, 2]).astype(np.int32)
+    padding_str = "VALID"
+    op_func = dummy_op
+    filter_shape_np = np.array([3, 3]).astype(np.int32)
+    spatial_dims_list = [1, 2]
+    data_format_str = "NHWC"
 
-    # Case 2: Basic 2D with VALID padding
-    input_dict_2 = {
-        'input': np.random.rand(2, 8, 8, 1).astype(np.float32),
-        'dilation_rate': np.array([3, 3], dtype=np.int32),
-        'padding': 'VALID',
-        'op': [op_func],
-        'filter_shape': np.array([1, 1], dtype=np.int32),
-        'spatial_dims': [1, 2],
-        'data_format': 'NHWC'
+    input_dict = {
+        "input": input_np,
+        "dilation_rate": dilation_rate_np,
+        "padding": padding_str,
+        "op": op_func,
+        "filter_shape": filter_shape_np,
+        "spatial_dims": spatial_dims_list,
+        "data_format": data_format_str
     }
-    list_of_inputs.append(copy.deepcopy(input_dict_2))
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Case 3: 1D Spatial dimension (e.g., Conv1D on NWC data)
-    input_dict_3 = {
-        'input': np.arange(4 * 16 * 2, dtype=np.float32).reshape(4, 16, 2),
-        'dilation_rate': np.array([3], dtype=np.int32),
-        'padding': 'SAME',
-        'op': [op_func],
-        'filter_shape': np.array([3], dtype=np.int32),
-        'spatial_dims': [1],
-        'data_format': 'NWC'
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict_3))
+    # Input 2: SAME padding
+    input_np = np.random.rand(1, 8, 8, 3).astype(np.float32)
+    dilation_rate_np = np.array([3, 3]).astype(np.int32)
+    padding_str = "SAME"
+    op_func = dummy_op
+    filter_shape_np = np.array([5, 5]).astype(np.int32)
+    spatial_dims_list = [1, 2]
+    data_format_str = "NHWC"
 
-    # Case 4: 3D Spatial dimensions (NDHWC, e.g., Conv3D)
-    input_dict_4 = {
-        'input': np.ones((1, 4, 4, 4, 2), dtype=np.float32),
-        'dilation_rate': np.array([2, 1, 2], dtype=np.int32),
-        'padding': 'SAME',
-        'op': [op_func],
-        'filter_shape': np.array([3, 3, 3], dtype=np.int32),
-        'spatial_dims': [1, 2, 3],
-        'data_format': 'NDHWC'
+    input_dict = {
+        "input": input_np,
+        "dilation_rate": dilation_rate_np,
+        "padding": padding_str,
+        "op": op_func,
+        "filter_shape": filter_shape_np,
+        "spatial_dims": spatial_dims_list,
+        "data_format": data_format_str
     }
-    list_of_inputs.append(copy.deepcopy(input_dict_4))
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Case 5: NCHW data format
-    input_dict_5 = {
-        'input': np.random.rand(2, 3, 7, 7).astype(np.float32),
-        'dilation_rate': np.array([2, 3], dtype=np.int32),
-        'padding': 'SAME',
-        'op': [op_func],
-        'filter_shape': np.array([3, 3], dtype=np.int32),
-        'spatial_dims': [2, 3],
-        'data_format': 'NCHW'
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict_5))
+    # Input 3: Different data format
+    input_np = np.random.rand(1, 3, 4, 4).astype(np.float32)
+    dilation_rate_np = np.array([2, 2]).astype(np.int32)
+    padding_str = "VALID"
+    op_func = dummy_op
+    filter_shape_np = np.array([3, 3]).astype(np.int32)
+    spatial_dims_list = [2, 3]
+    data_format_str = "NCHW"
 
-    # Case 6: NCDHW data format with VALID padding
-    input_dict_6 = {
-        'input': np.zeros((1, 2, 5, 5, 5), dtype=np.float32),
-        'dilation_rate': np.array([1, 2, 3], dtype=np.int32),
-        'padding': 'VALID',
-        'op': [op_func],
-        'filter_shape': np.array([1, 1, 1], dtype=np.int32),
-        'spatial_dims': [2, 3, 4],
-        'data_format': 'NCDHW'
+    input_dict = {
+        "input": input_np,
+        "dilation_rate": dilation_rate_np,
+        "padding": padding_str,
+        "op": op_func,
+        "filter_shape": filter_shape_np,
+        "spatial_dims": spatial_dims_list,
+        "data_format": data_format_str
     }
-    list_of_inputs.append(copy.deepcopy(input_dict_6))
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Case 7: Special case with uniform dilation_rate of 1
-    input_dict_7 = {
-        'input': np.random.rand(4, 10, 10, 1).astype(np.float32),
-        'dilation_rate': np.array([1, 1], dtype=np.int32),
-        'padding': 'VALID',
-        'op': [op_func],
-        'filter_shape': np.array([2, 2], dtype=np.int32),
-        'spatial_dims': [1, 2],
-        'data_format': 'NHWC'
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict_7))
+    # Input 4: 3D input
+    input_np = np.random.rand(1, 4, 4, 4, 3).astype(np.float32)
+    dilation_rate_np = np.array([2, 2, 2]).astype(np.int32)
+    padding_str = "VALID"
+    op_func = dummy_op
+    filter_shape_np = np.array([3, 3, 3]).astype(np.int32)
+    spatial_dims_list = [1, 2, 3]
+    data_format_str = "NDHWC"
 
-    # Case 8: Non-square filter and non-uniform dilation
-    input_dict_8 = {
-        'input': np.random.rand(1, 10, 12, 3).astype(np.float32),
-        'dilation_rate': np.array([2, 3], dtype=np.int32),
-        'padding': 'SAME',
-        'op': [op_func],
-        'filter_shape': np.array([3, 5], dtype=np.int32),
-        'spatial_dims': [1, 2],
-        'data_format': 'NHWC'
+    input_dict = {
+        "input": input_np,
+        "dilation_rate": dilation_rate_np,
+        "padding": padding_str,
+        "op": op_func,
+        "filter_shape": filter_shape_np,
+        "spatial_dims": spatial_dims_list,
+        "data_format": data_format_str
     }
-    list_of_inputs.append(copy.deepcopy(input_dict_8))
-    
-    # Case 9: NCW data format
-    input_dict_9 = {
-        'input': np.arange(4*2*16).reshape(4, 2, 16).astype(np.float32),
-        'dilation_rate': np.array([2], dtype=np.int32),
-        'padding': 'SAME',
-        'op': [op_func],
-        'filter_shape': np.array([3], dtype=np.int32),
-        'spatial_dims': [2],
-        'data_format': 'NCW'
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict_9))
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Case 10: High dilation rate
-    input_dict_10 = {
-        'input': np.random.rand(1, 16, 16, 3).astype(np.float32),
-        'dilation_rate': np.array([4, 4], dtype=np.int32),
-        'padding': 'SAME',
-        'op': [op_func],
-        'filter_shape': np.array([3, 3], dtype=np.int32),
-        'spatial_dims': [1, 2],
-        'data_format': 'NHWC'
+    # Input 5: Spatial dims not starting from 1
+    input_np = np.random.rand(1, 2, 4, 4, 3).astype(np.float32)
+    dilation_rate_np = np.array([2, 2]).astype(np.int32)
+    padding_str = "VALID"
+    op_func = dummy_op
+    filter_shape_np = np.array([3, 3]).astype(np.int32)
+    spatial_dims_list = [2, 3]
+    data_format_str = "NHWC"
+
+    input_dict = {
+        "input": input_np,
+        "dilation_rate": dilation_rate_np,
+        "padding": padding_str,
+        "op": op_func,
+        "filter_shape": filter_shape_np,
+        "spatial_dims": spatial_dims_list,
+        "data_format": data_format_str
     }
-    list_of_inputs.append(copy.deepcopy(input_dict_10))
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 6: Uniform dilation rate of 1 (should be equivalent to original op)
+    input_np = np.random.rand(1, 4, 4, 3).astype(np.float32)
+    dilation_rate_np = np.array([1, 1]).astype(np.int32)
+    padding_str = "VALID"
+    op_func = dummy_op
+    filter_shape_np = np.array([3, 3]).astype(np.int32)
+    spatial_dims_list = [1, 2]
+    data_format_str = "NHWC"
+
+    input_dict = {
+        "input": input_np,
+        "dilation_rate": dilation_rate_np,
+        "padding": padding_str,
+        "op": op_func,
+        "filter_shape": filter_shape_np,
+        "spatial_dims": spatial_dims_list,
+        "data_format": data_format_str
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs
 
+generated_inputs = {}
 generated_inputs["tf.nn.with_space_to_batch"] = tf_nn_with_space_to_batch_inputs()
 
 def check_valid(api, list_of_inputs, lib="tf", suffix=0):
@@ -153,5 +155,9 @@ def check_valid(api, list_of_inputs, lib="tf", suffix=0):
 
 if 'tf.nn.with_space_to_batch' not in generated_inputs:
     raise Exception("Output of the input generating function was not assigned to the generated_inputs dictionary to the key 'tf.nn.with_space_to_batch'.")
+
+
+tf.config.experimental.enable_op_determinism()
+tf.random.set_seed(42)
 
 check_valid('tf.nn.with_space_to_batch', generated_inputs['tf.nn.with_space_to_batch'], lib="tf", suffix=0)

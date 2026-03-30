@@ -4,98 +4,305 @@ from generator.input_generators import get_abstract_input
 
 generated_inputs = dict()
 
+import tensorflow as tf
 import numpy as np
 import copy
 
-def tf_raw_ops_barriertakemany_inputs():
-    """
-    Generates a list of valid inputs for the tf.raw_ops.BarrierTakeMany function.
+tf.config.experimental.enable_op_determinism()
+tf.random.set_seed(42)
 
-    NOTE: This op is part of TensorFlow's V1 API and is not designed for eager
-    execution. The inputs are structured to be syntactically valid for the API's
-    signature in a graph context. The fundamental "does not support eager
-    execution" error is due to the testing environment and cannot be fixed by
-    modifying the inputs alone. The inputs below are correct for a graph-based
-    execution model.
-    """
+def tf_raw_ops_barrier_take_many_inputs():
     list_of_inputs = []
 
-    def create_input_dict(handle_str, num_elements_val, component_types_val, **kwargs):
-        """Helper to construct the input dictionary."""
-        # 'handle' and 'num_elements' must be single-element tensors.
-        # We represent TF string tensors with np.object_ to avoid dtype issues.
-        input_dict = {
-            'handle': np.array([handle_str], dtype=np.object_),
-            'num_elements': np.array([num_elements_val], dtype=np.int32),
-            'component_types': component_types_val,
-            'allow_small_batch': kwargs.get('allow_small_batch', False),
-            'wait_for_incomplete': kwargs.get('wait_for_incomplete', False),
-            'timeout_ms': kwargs.get('timeout_ms', -1),
-            'name': kwargs.get('name', None),
-        }
-        return input_dict
+    # Input 1
+    handle = tf.constant("test_barrier", dtype=tf.string)
+    num_elements = tf.constant(1, dtype=tf.int32)
+    component_types = [tf.float32]
+    allow_small_batch = False
+    wait_for_incomplete = False
+    timeout_ms = -1
 
-    # Input 1: Basic case, single float component
-    list_of_inputs.append(
-        create_input_dict('h1', 10, [np.float32])
-    )
+    input_dict = {
+        "handle": handle,
+        "num_elements": num_elements,
+        "component_types": component_types,
+        "allow_small_batch": allow_small_batch,
+        "wait_for_incomplete": wait_for_incomplete,
+        "timeout_ms": timeout_ms,
+        "name": None
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 2: Multiple component types
-    list_of_inputs.append(
-        create_input_dict('h2', 5, [np.int64, np.object_])
-    )
+    # Input 2
+    handle = tf.constant("another_barrier", dtype=tf.string)
+    num_elements = tf.constant(5, dtype=tf.int32)
+    component_types = [tf.int32]
+    allow_small_batch = True
+    wait_for_incomplete = True
+    timeout_ms = 100
 
-    # Input 3: allow_small_batch set to True
-    list_of_inputs.append(
-        create_input_dict('h3', 20, [np.float64], allow_small_batch=True)
-    )
+    input_dict = {
+        "handle": handle,
+        "num_elements": num_elements,
+        "component_types": component_types,
+        "allow_small_batch": allow_small_batch,
+        "wait_for_incomplete": wait_for_incomplete,
+        "timeout_ms": timeout_ms,
+        "name": "take_many"
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 4: wait_for_incomplete set to True
-    list_of_inputs.append(
-        create_input_dict('h4', 1, [np.int8], wait_for_incomplete=True)
-    )
+    # Input 3
+    handle = tf.constant("yet_another", dtype=tf.string)
+    num_elements = tf.constant(10, dtype=tf.int32)
+    component_types = [tf.float64]
+    allow_small_batch = False
+    wait_for_incomplete = True
+    timeout_ms = 0
 
-    # Input 5: With an operation name
-    list_of_inputs.append(
-        create_input_dict('h5', 8, [np.bool_, np.complex64], name='take_from_barrier')
-    )
+    input_dict = {
+        "handle": handle,
+        "num_elements": num_elements,
+        "component_types": component_types,
+        "allow_small_batch": allow_small_batch,
+        "wait_for_incomplete": wait_for_incomplete,
+        "timeout_ms": timeout_ms,
+        "name": None
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 6: All optional boolean flags set to True
-    list_of_inputs.append(
-        create_input_dict(
-            'h6', 15, [np.float16, np.int32],
-            allow_small_batch=True, wait_for_incomplete=True
-        )
-    )
+    # Input 4
+    handle = tf.constant("barrier_number_4", dtype=tf.string)
+    num_elements = tf.constant(0, dtype=tf.int32)
+    component_types = [tf.uint8]
+    allow_small_batch = True
+    wait_for_incomplete = False
+    timeout_ms = -1
 
-    # Input 7: Large number of elements to retrieve
-    list_of_inputs.append(
-        create_input_dict('h7', 500, [np.complex128])
-    )
+    input_dict = {
+        "handle": handle,
+        "num_elements": num_elements,
+        "component_types": component_types,
+        "allow_small_batch": allow_small_batch,
+        "wait_for_incomplete": wait_for_incomplete,
+        "timeout_ms": timeout_ms,
+        "name": "zero_elements"
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 8: Minimum number of elements (1)
-    list_of_inputs.append(
-        create_input_dict('h8', 1, [np.uint16])
-    )
+    # Input 5
+    handle = tf.constant("barrier_5", dtype=tf.string)
+    num_elements = tf.constant(2, dtype=tf.int32)
+    component_types = [tf.complex64]
+    allow_small_batch = False
+    wait_for_incomplete = False
+    timeout_ms = 50
 
-    # Input 9: A more complex list of component types
-    list_of_inputs.append(
-        create_input_dict('h9', 3, [np.float32, np.int32, np.object_, np.bool_, np.uint8, np.int16])
-    )
+    input_dict = {
+        "handle": handle,
+        "num_elements": num_elements,
+        "component_types": component_types,
+        "allow_small_batch": allow_small_batch,
+        "wait_for_incomplete": wait_for_incomplete,
+        "timeout_ms": timeout_ms,
+        "name": None
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 10: Empty string for handle name (still a valid string)
-    list_of_inputs.append(
-        create_input_dict('', 2, [np.uint32])
-    )
+    # Input 6
+    handle = tf.constant("barrier_6", dtype=tf.string)
+    num_elements = tf.constant(15, dtype=tf.int32)
+    component_types = [tf.bool]
+    allow_small_batch = True
+    wait_for_incomplete = True
+    timeout_ms = 1000
+
+    input_dict = {
+        "handle": handle,
+        "num_elements": num_elements,
+        "component_types": component_types,
+        "allow_small_batch": allow_small_batch,
+        "wait_for_incomplete": wait_for_incomplete,
+        "timeout_ms": timeout_ms,
+        "name": "resource_variant"
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+     # Input 7
+    handle = tf.constant("barrier_7", dtype=tf.string)
+    num_elements = tf.constant(-1, dtype=tf.int32)
+    component_types = [tf.bfloat16]
+    allow_small_batch = False
+    wait_for_incomplete = False
+    timeout_ms = -1
+
+    input_dict = {
+        "handle": handle,
+        "num_elements": num_elements,
+        "component_types": component_types,
+        "allow_small_batch": allow_small_batch,
+        "wait_for_incomplete": wait_for_incomplete,
+        "timeout_ms": timeout_ms,
+        "name": None
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 8
+    handle = tf.constant("barrier_8", dtype=tf.string)
+    num_elements = tf.constant(1, dtype=tf.int32)
+    component_types = [tf.float32]
+    allow_small_batch = True
+    wait_for_incomplete = True
+    timeout_ms = 100
+
+    input_dict = {
+        "handle": handle,
+        "num_elements": num_elements,
+        "component_types": component_types,
+        "allow_small_batch": allow_small_batch,
+        "wait_for_incomplete": wait_for_incomplete,
+        "timeout_ms": timeout_ms,
+        "name": "take_many"
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 9
+    handle = tf.constant("barrier_9", dtype=tf.string)
+    num_elements = tf.constant(np.iinfo(np.int32).max, dtype=tf.int32)
+    component_types = [tf.float64]
+    allow_small_batch = False
+    wait_for_incomplete = True
+    timeout_ms = 0
+
+    input_dict = {
+        "handle": handle,
+        "num_elements": num_elements,
+        "component_types": component_types,
+        "allow_small_batch": allow_small_batch,
+        "wait_for_incomplete": wait_for_incomplete,
+        "timeout_ms": timeout_ms,
+        "name": None
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 10
+    handle = tf.constant("barrier_10", dtype=tf.string)
+    num_elements = tf.constant(np.iinfo(np.int32).min, dtype=tf.int32)
+    component_types = [tf.uint8]
+    allow_small_batch = True
+    wait_for_incomplete = False
+    timeout_ms = -1
+
+    input_dict = {
+        "handle": handle,
+        "num_elements": num_elements,
+        "component_types": component_types,
+        "allow_small_batch": allow_small_batch,
+        "wait_for_incomplete": wait_for_incomplete,
+        "timeout_ms": timeout_ms,
+        "name": "zero_elements"
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+        
+    # Input 11
+    handle = tf.constant("barrier_11", dtype=tf.string)
+    num_elements = tf.constant(1, dtype=tf.int32)
+    component_types = [tf.resource]
+    allow_small_batch = False
+    wait_for_incomplete = False
+    timeout_ms = -1
+
+    input_dict = {
+        "handle": handle,
+        "num_elements": num_elements,
+        "component_types": component_types,
+        "allow_small_batch": allow_small_batch,
+        "wait_for_incomplete": wait_for_incomplete,
+        "timeout_ms": timeout_ms,
+        "name": None
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
     
-    # Input 11: timeout_ms set to a positive value (though unsupported, it's a valid input)
-    list_of_inputs.append(
-        create_input_dict('h11', 7, [np.float32], timeout_ms=1000)
-    )
+    # Input 12
+    handle = tf.constant("barrier_12", dtype=tf.string)
+    num_elements = tf.constant(1, dtype=tf.int32)
+    component_types = [tf.variant]
+    allow_small_batch = False
+    wait_for_incomplete = False
+    timeout_ms = -1
 
+    input_dict = {
+        "handle": handle,
+        "num_elements": num_elements,
+        "component_types": component_types,
+        "allow_small_batch": allow_small_batch,
+        "wait_for_incomplete": wait_for_incomplete,
+        "timeout_ms": timeout_ms,
+        "name": None
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 13
+    handle = tf.constant("barrier_13", dtype=tf.string)
+    num_elements = tf.constant(1, dtype=tf.int32)
+    component_types = [tf.qint8]
+    allow_small_batch = False
+    wait_for_incomplete = False
+    timeout_ms = -1
+
+    input_dict = {
+        "handle": handle,
+        "num_elements": num_elements,
+        "component_types": component_types,
+        "allow_small_batch": allow_small_batch,
+        "wait_for_incomplete": wait_for_incomplete,
+        "timeout_ms": timeout_ms,
+        "name": None
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 14
+    handle = tf.constant("barrier_14", dtype=tf.string)
+    num_elements = tf.constant(1, dtype=tf.int32)
+    component_types = [tf.quint8]
+    allow_small_batch = False
+    wait_for_incomplete = False
+    timeout_ms = -1
+
+    input_dict = {
+        "handle": handle,
+        "num_elements": num_elements,
+        "component_types": component_types,
+        "allow_small_batch": allow_small_batch,
+        "wait_for_incomplete": wait_for_incomplete,
+        "timeout_ms": timeout_ms,
+        "name": None
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 15
+    handle = tf.constant("barrier_15", dtype=tf.string)
+    num_elements = tf.constant(1, dtype=tf.int32)
+    component_types = [tf.qint32]
+    allow_small_batch = False
+    wait_for_incomplete = False
+    timeout_ms = -1
+
+    input_dict = {
+        "handle": handle,
+        "num_elements": num_elements,
+        "component_types": component_types,
+        "allow_small_batch": allow_small_batch,
+        "wait_for_incomplete": wait_for_incomplete,
+        "timeout_ms": timeout_ms,
+        "name": None
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
     return list_of_inputs
 
-generated_inputs["tf.raw_ops.BarrierTakeMany"] = tf_raw_ops_barriertakemany_inputs()
+generated_inputs = {}
+generated_inputs["tf.raw_ops.BarrierTakeMany"] = tf_raw_ops_barrier_take_many_inputs()
 
 def check_valid(api, list_of_inputs, lib="tf", suffix=0):
     for idx, input_dict in enumerate(list_of_inputs):
@@ -109,5 +316,9 @@ def check_valid(api, list_of_inputs, lib="tf", suffix=0):
 
 if 'tf.raw_ops.BarrierTakeMany' not in generated_inputs:
     raise Exception("Output of the input generating function was not assigned to the generated_inputs dictionary to the key 'tf.raw_ops.BarrierTakeMany'.")
+
+
+tf.config.experimental.enable_op_determinism()
+tf.random.set_seed(42)
 
 check_valid('tf.raw_ops.BarrierTakeMany', generated_inputs['tf.raw_ops.BarrierTakeMany'], lib="tf", suffix=0)

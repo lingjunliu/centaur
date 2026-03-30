@@ -8,114 +8,56 @@ import tensorflow as tf
 import numpy as np
 import copy
 
+tf.config.experimental.enable_op_determinism()
+tf.random.set_seed(42)
+
 def tf_raw_ops_assign_add_inputs():
-  """
-  Generates a list of valid inputs for the tf.raw_ops.AssignAdd operation.
-  Note: This raw op is designed for graph-mode and will raise a RuntimeError
-  in eager execution. The inputs provided are valid for the op's signature
-  and would work in a graph context (e.g., inside a @tf.function).
-  """
-  list_of_inputs = []
-  bfloat16_dtype = tf.bfloat16.as_numpy_dtype
+    list_of_inputs = []
 
-  # The execution harness requires a `.size` attribute, which we add to the variable.
-  def create_variable_with_size(np_array):
-    var = tf.Variable(np_array)
-    var.size = np_array.size
-    return var
+    # Input 1: float32, 1D
+    ref = tf.Variable(np.array([1.0, 2.0, 3.0], dtype=np.float32))
+    value = tf.constant(np.array([0.5, 1.0, 1.5], dtype=np.float32))
+    input_dict = {"ref": ref, "value": value, "use_locking": False, "name": "add1"}
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-  # Input 1: Basic float32 addition
-  input_1 = {
-      'ref': create_variable_with_size(np.array([1.0, 2.0, 3.0], dtype=np.float32)),
-      'value': np.array([0.5, 0.5, 0.5], dtype=np.float32),
-      'use_locking': False,
-      'name': 'add_float32'
-  }
-  list_of_inputs.append(input_1)
+    # Input 2: int32, 2D
+    ref = tf.Variable(np.array([[1, 2], [3, 4]], dtype=np.int32))
+    value = tf.constant(np.array([[5, 6], [7, 8]], dtype=np.int32))
+    input_dict = {"ref": ref, "value": value, "use_locking": True, "name": "add2"}
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-  # Input 2: 2D int32 with negative values and locking
-  input_2 = {
-      'ref': create_variable_with_size(np.array([[10, -20], [30, -40]], dtype=np.int32)),
-      'value': np.array([[-5, 25], [-15, 45]], dtype=np.int32),
-      'use_locking': True,
-      'name': 'add_int32_2d_locked'
-  }
-  list_of_inputs.append(input_2)
+    # Input 3: float64, 0D
+    ref = tf.Variable(np.array(10.0, dtype=np.float64))
+    value = tf.constant(np.array(5.0, dtype=np.float64))
+    input_dict = {"ref": ref, "value": value, "use_locking": False, "name": "add3"}
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-  # Input 3: Scalar int64
-  input_3 = {
-      'ref': create_variable_with_size(np.array(100, dtype=np.int64)),
-      'value': np.array(50, dtype=np.int64),
-      'use_locking': False,
-      'name': 'add_int64_scalar'
-  }
-  list_of_inputs.append(input_3)
+    # Input 4: int64, 3D
+    ref = tf.Variable(np.array([[[1, 2], [3, 4]], [[5, 6], [7, 8]]], dtype=np.int64))
+    value = tf.constant(np.array([[[9, 10], [11, 12]], [[13, 14], [15, 16]]], dtype=np.int64))
+    input_dict = {"ref": ref, "value": value, "use_locking": True, "name": "add4"}
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-  # Input 4: float64 tensors
-  input_4 = {
-      'ref': create_variable_with_size(np.array([1.23e4, 5.67e-2], dtype=np.float64)),
-      'value': np.array([-1.0e4, 4.33e-2], dtype=np.float64),
-      'use_locking': False,
-      'name': 'add_float64'
-  }
-  list_of_inputs.append(input_4)
+    # Input 5: uint8, 1D
+    ref = tf.Variable(np.array([100, 200, 250], dtype=np.uint8))
+    value = tf.constant(np.array([10, 20, 5], dtype=np.uint8))
+    input_dict = {"ref": ref, "value": value, "use_locking": False, "name": "add5"}
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-  # Input 5: uint8 with no optional name
-  input_5 = {
-      'ref': create_variable_with_size(np.array([[0, 10], [250, 100]], dtype=np.uint8)),
-      'value': np.array([[5, 10], [5, 100]], dtype=np.uint8),
-      'use_locking': True,
-      'name': None
-  }
-  list_of_inputs.append(input_5)
+    # Input 6: int16, 2D, negative values
+    ref = tf.Variable(np.array([[-1, -2], [-3, -4]], dtype=np.int16))
+    value = tf.constant(np.array([[5, 6], [7, 8]], dtype=np.int16))
+    input_dict = {"ref": ref, "value": value, "use_locking": True, "name": "add6"}
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-  # Input 6: complex64 addition
-  input_6 = {
-      'ref': create_variable_with_size(np.array([1+2j, 3+4j], dtype=np.complex64)),
-      'value': np.array([5-1j, -2+0j], dtype=np.complex64),
-      'use_locking': False,
-      'name': 'add_complex64'
-  }
-  list_of_inputs.append(input_6)
+    # Input 7: complex64, 1D
+    ref = tf.Variable(np.array([1+1j, 2+2j, 3+3j], dtype=np.complex64))
+    value = tf.constant(np.array([0.5+0.5j, 1.0+1.0j, 1.5+1.5j], dtype=np.complex64))
+    input_dict = {"ref": ref, "value": value, "use_locking": False, "name": "add7"}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    return list_of_inputs
 
-  # Input 7: bfloat16 addition
-  input_7 = {
-      'ref': create_variable_with_size(np.array([1.0, 2.0], dtype=bfloat16_dtype)),
-      'value': np.array([0.125, -0.25], dtype=bfloat16_dtype),
-      'use_locking': True,
-      'name': 'add_bfloat16'
-  }
-  list_of_inputs.append(input_7)
-
-  # Input 8: half (float16) addition
-  input_8 = {
-      'ref': create_variable_with_size(np.array([1.5, -2.5, 0.0], dtype=np.float16)),
-      'value': np.array([0.5, 0.5, 1.0], dtype=np.float16),
-      'use_locking': False,
-      'name': 'add_half'
-  }
-  list_of_inputs.append(input_8)
-
-  # Input 9: 3D int16, adding zero
-  input_9 = {
-      'ref': create_variable_with_size(np.array([[[100], [200]], [[-300], [400]]], dtype=np.int16)),
-      'value': np.array([[[0], [0]], [[0], [0]]], dtype=np.int16),
-      'use_locking': False,
-      'name': 'add_zero_int16'
-  }
-  list_of_inputs.append(input_9)
-
-  # Input 10: large uint32
-  input_10 = {
-      'ref': create_variable_with_size(np.array([2**32 - 100], dtype=np.uint32)),
-      'value': np.array([50], dtype=np.uint32),
-      'use_locking': True,
-      'name': 'add_large_uint32'
-  }
-  list_of_inputs.append(input_10)
-
-  return list_of_inputs
-
+generated_inputs = {}
 generated_inputs["tf.raw_ops.AssignAdd"] = tf_raw_ops_assign_add_inputs()
 
 def check_valid(api, list_of_inputs, lib="tf", suffix=0):
@@ -130,5 +72,9 @@ def check_valid(api, list_of_inputs, lib="tf", suffix=0):
 
 if 'tf.raw_ops.AssignAdd' not in generated_inputs:
     raise Exception("Output of the input generating function was not assigned to the generated_inputs dictionary to the key 'tf.raw_ops.AssignAdd'.")
+
+
+tf.config.experimental.enable_op_determinism()
+tf.random.set_seed(42)
 
 check_valid('tf.raw_ops.AssignAdd', generated_inputs['tf.raw_ops.AssignAdd'], lib="tf", suffix=0)

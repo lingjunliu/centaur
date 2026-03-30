@@ -4,87 +4,281 @@ from generator.input_generators import get_abstract_input
 
 generated_inputs = dict()
 
+import tensorflow as tf
 import numpy as np
 import copy
 
-def generate_sparse_apply_adadelta_inputs():
-    """
-    Generates a list of valid inputs for tf.raw_ops.SparseApplyAdadelta.
+tf.config.experimental.enable_op_determinism()
+tf.random.set_seed(42)
 
-    IMPORTANT NOTE: The error "RuntimeError: sparse_apply_adadelta op does not
-    support eager execution" is fundamental to this specific raw operation.
-    This raw op is designed to mutate a tf.Variable in-place within a
-    TensorFlow graph (e.g., in TF1 or using tf.function in TF2). It cannot be
-    called directly in eager mode, which the testing framework appears to be doing.
-
-    The inputs generated below are syntactically and semantically correct for
-    the operation's signature and would work correctly in a graph-based
-    execution context. The error is not due to the input values but the
-    way the function is being invoked. This code provides valid inputs under
-    the assumption of a correct, graph-based execution environment.
-    """
+def tf_raw_ops_SparseApplyAdadelta_inputs():
     list_of_inputs = []
 
-    def create_input_set(var_shape, indices, dtype=np.float32, index_dtype=np.int32, use_locking=False, name=""):
-        indices_np = np.array(indices, dtype=index_dtype)
-        grad_shape = (len(indices),) + var_shape[1:] if len(var_shape) > 1 else (len(indices),)
-        
-        accum = np.abs(np.random.rand(*var_shape)).astype(dtype) + 1e-5
-        accum_update = np.abs(np.random.rand(*var_shape)).astype(dtype) + 1e-5
-        
-        return {
-            'var': np.random.randn(*var_shape).astype(dtype),
-            'accum': accum,
-            'accum_update': accum_update,
-            'lr': np.array(0.001, dtype=dtype),
-            'rho': np.array(0.95, dtype=dtype),
-            'epsilon': np.array(1e-7, dtype=dtype),
-            'grad': np.random.randn(*grad_shape).astype(dtype),
-            'indices': indices_np,
-            'use_locking': use_locking,
-            'name': name
-        }
+    # Input 1
+    var = np.array([[1.0, 2.0], [3.0, 4.0]], dtype=np.float32)
+    accum = np.array([[0.1, 0.2], [0.3, 0.4]], dtype=np.float32)
+    accum_update = np.array([[0.01, 0.02], [0.03, 0.04]], dtype=np.float32)
+    lr = np.array(0.01, dtype=np.float32)
+    rho = np.array(0.9, dtype=np.float32)
+    epsilon = np.array(1e-6, dtype=np.float32)
+    grad = np.array([0.5, 0.6], dtype=np.float32)
+    indices = np.array([0, 1], dtype=np.int32)
+    use_locking = False
+    name = "sparse_apply_adadelta_1"
 
-    # 1. Standard case: float32, 2D var
-    list_of_inputs.append(create_input_set((10, 4), [2, 5, 8], name="f32_2d"))
+    input_dict = {
+        "var": var,
+        "accum": accum,
+        "accum_update": accum_update,
+        "lr": lr,
+        "rho": rho,
+        "epsilon": epsilon,
+        "grad": grad,
+        "indices": indices,
+        "use_locking": use_locking,
+        "name": name
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # 2. float64 with locking
-    list_of_inputs.append(create_input_set((8, 3), [0, 7], dtype=np.float64, use_locking=True, name="f64_2d_lock"))
-    
-    # 3. half (float16) - Note: epsilon needs to be larger for float16
-    f16_case = create_input_set((12, 2), [1, 6, 11], dtype=np.half, name="f16_2d")
-    f16_case['epsilon'] = np.array(1e-4, dtype=np.half)
-    list_of_inputs.append(f16_case)
+    # Input 2
+    var = np.array([[1.0, 2.0], [3.0, 4.0]], dtype=np.float32)
+    accum = np.array([[0.1, 0.2], [0.3, 0.4]], dtype=np.float32)
+    accum_update = np.array([[0.01, 0.02], [0.03, 0.04]], dtype=np.float32)
+    lr = np.array(0.01, dtype=np.float32)
+    rho = np.array(0.9, dtype=np.float32)
+    epsilon = np.array(1e-6, dtype=np.float32)
+    grad = np.array([0.5, 0.6], dtype=np.float32)
+    indices = np.array([0, 1], dtype=np.int32)
+    use_locking = True
+    name = "sparse_apply_adadelta_2"
 
-    # 4. 1D var
-    list_of_inputs.append(create_input_set((20,), [3, 13], use_locking=True, name="f32_1d_lock"))
+    input_dict = {
+        "var": var,
+        "accum": accum,
+        "accum_update": accum_update,
+        "lr": lr,
+        "rho": rho,
+        "epsilon": epsilon,
+        "grad": grad,
+        "indices": indices,
+        "use_locking": use_locking,
+        "name": name
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # 5. int64 indices
-    list_of_inputs.append(create_input_set((10, 5), [1, 9], index_dtype=np.int64, name="f32_int64_indices"))
+    # Input 3 - different type, int32
+    var = np.array([[1, 2], [3, 4]], dtype=np.int32)
+    accum = np.array([[0, 1], [2, 3]], dtype=np.int32)
+    accum_update = np.array([[0, 0], [1, 1]], dtype=np.int32)
+    lr = np.array(1, dtype=np.int32)
+    rho = np.array(0, dtype=np.int32)
+    epsilon = np.array(0, dtype=np.int32)
+    grad = np.array([1, 1], dtype=np.int32)
+    indices = np.array([0, 1], dtype=np.int32)
+    use_locking = False
+    name = "sparse_apply_adadelta_3"
 
-    # 6. Single index update
-    list_of_inputs.append(create_input_set((7, 7), [4], name="f32_single_index"))
-    
-    # 7. Empty update (no indices)
-    list_of_inputs.append(create_input_set((5, 6), [], name="empty_update"))
-    
-    # 8. All indices update
-    list_of_inputs.append(create_input_set((4, 4), [0, 1, 2, 3], name="all_indices"))
-    
-    # 9. Zero gradient
-    zero_grad_case = create_input_set((6, 3), [2, 4], dtype=np.float64, use_locking=True, name="f64_zero_grad_lock")
-    zero_grad_case['grad'] = np.zeros_like(zero_grad_case['grad'])
-    list_of_inputs.append(zero_grad_case)
-    
-    # 10. Different hyperparameters
-    hyper_case = create_input_set((10, 10), [0, 5, 9], name="hyperparams")
-    hyper_case['lr'] = np.array(0.1, dtype=np.float32)
-    hyper_case['rho'] = np.array(0.8, dtype=np.float32)
-    list_of_inputs.append(hyper_case)
-    
-    return [copy.deepcopy(case) for case in list_of_inputs]
+    input_dict = {
+        "var": var,
+        "accum": accum,
+        "accum_update": accum_update,
+        "lr": lr,
+        "rho": rho,
+        "epsilon": epsilon,
+        "grad": grad,
+        "indices": indices,
+        "use_locking": use_locking,
+        "name": name
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-generated_inputs["tf.raw_ops.SparseApplyAdadelta"] = generate_sparse_apply_adadelta_inputs()
+   # Input 4 - int64 indices
+    var = np.array([[1.0, 2.0], [3.0, 4.0]], dtype=np.float32)
+    accum = np.array([[0.1, 0.2], [0.3, 0.4]], dtype=np.float32)
+    accum_update = np.array([[0.01, 0.02], [0.03, 0.04]], dtype=np.float32)
+    lr = np.array(0.01, dtype=np.float32)
+    rho = np.array(0.9, dtype=np.float32)
+    epsilon = np.array(1e-6, dtype=np.float32)
+    grad = np.array([0.5, 0.6], dtype=np.float32)
+    indices = np.array([0, 1], dtype=np.int64)
+    use_locking = True
+    name = "sparse_apply_adadelta_4"
+
+    input_dict = {
+        "var": var,
+        "accum": accum,
+        "accum_update": accum_update,
+        "lr": lr,
+        "rho": rho,
+        "epsilon": epsilon,
+        "grad": grad,
+        "indices": indices,
+        "use_locking": use_locking,
+        "name": name
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 5 - different scalar values
+    var = np.array([[1.0, 2.0], [3.0, 4.0]], dtype=np.float32)
+    accum = np.array([[0.1, 0.2], [0.3, 0.4]], dtype=np.float32)
+    accum_update = np.array([[0.01, 0.02], [0.03, 0.04]], dtype=np.float32)
+    lr = np.array(0.1, dtype=np.float32)
+    rho = np.array(0.5, dtype=np.float32)
+    epsilon = np.array(1e-8, dtype=np.float32)
+    grad = np.array([0.5, 0.6], dtype=np.float32)
+    indices = np.array([0, 1], dtype=np.int32)
+    use_locking = False
+    name = "sparse_apply_adadelta_5"
+
+    input_dict = {
+        "var": var,
+        "accum": accum,
+        "accum_update": accum_update,
+        "lr": lr,
+        "rho": rho,
+        "epsilon": epsilon,
+        "grad": grad,
+        "indices": indices,
+        "use_locking": use_locking,
+        "name": name
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 6 - single index and grad.
+    var = np.array([[1.0, 2.0], [3.0, 4.0]], dtype=np.float32)
+    accum = np.array([[0.1, 0.2], [0.3, 0.4]], dtype=np.float32)
+    accum_update = np.array([[0.01, 0.02], [0.03, 0.04]], dtype=np.float32)
+    lr = np.array(0.01, dtype=np.float32)
+    rho = np.array(0.9, dtype=np.float32)
+    epsilon = np.array(1e-6, dtype=np.float32)
+    grad = np.array([0.6], dtype=np.float32)
+    indices = np.array([1], dtype=np.int32)
+    use_locking = True
+    name = "sparse_apply_adadelta_6"
+
+    input_dict = {
+        "var": var,
+        "accum": accum,
+        "accum_update": accum_update,
+        "lr": lr,
+        "rho": rho,
+        "epsilon": epsilon,
+        "grad": grad,
+        "indices": indices,
+        "use_locking": use_locking,
+        "name": name
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 7 - Float64 type and grad
+    var = np.array([[1.0, 2.0], [3.0, 4.0]], dtype=np.float64)
+    accum = np.array([[0.1, 0.2], [0.3, 0.4]], dtype=np.float64)
+    accum_update = np.array([[0.01, 0.02], [0.03, 0.04]], dtype=np.float64)
+    lr = np.array(0.01, dtype=np.float64)
+    rho = np.array(0.9, dtype=np.float64)
+    epsilon = np.array(1e-6, dtype=np.float64)
+    grad = np.array([0.5], dtype=np.float64)
+    indices = np.array([0], dtype=np.int32)
+    use_locking = False
+    name = "sparse_apply_adadelta_7"
+
+    input_dict = {
+        "var": var,
+        "accum": accum,
+        "accum_update": accum_update,
+        "lr": lr,
+        "rho": rho,
+        "epsilon": epsilon,
+        "grad": grad,
+        "indices": indices,
+        "use_locking": use_locking,
+        "name": name
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 8 - lr=0, rho=0, epsilon=0 and grad
+    var = np.array([[1.0, 2.0], [3.0, 4.0]], dtype=np.float32)
+    accum = np.array([[0.1, 0.2], [0.3, 0.4]], dtype=np.float32)
+    accum_update = np.array([[0.01, 0.02], [0.03, 0.04]], dtype=np.float32)
+    lr = np.array(0.0, dtype=np.float32)
+    rho = np.array(0.0, dtype=np.float32)
+    epsilon = np.array(0.0, dtype=np.float32)
+    grad = np.array([0.5], dtype=np.float32)
+    indices = np.array([0], dtype=np.int32)
+    use_locking = False
+    name = "sparse_apply_adadelta_8"
+
+    input_dict = {
+        "var": var,
+        "accum": accum,
+        "accum_update": accum_update,
+        "lr": lr,
+        "rho": rho,
+        "epsilon": epsilon,
+        "grad": grad,
+        "indices": indices,
+        "use_locking": use_locking,
+        "name": name
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 9 - multi-dimensional var. Removing because it seems to have caused shape mismatch issues
+    # var = np.array([[[1.0, 2.0], [3.0, 4.0]], [[5.0, 6.0], [7.0, 8.0]]], dtype=np.float32)
+    # accum = np.array([[[0.1, 0.2], [0.3, 0.4]], [[0.5, 0.6], [0.7, 0.8]]], dtype=np.float32)
+    # accum_update = np.array([[[0.01, 0.02], [0.03, 0.04]], [[0.05, 0.06], [0.07, 0.08]]], dtype=np.float32)
+    # lr = np.array(0.01, dtype=np.float32)
+    # rho = np.array(0.9, dtype=np.float32)
+    # epsilon = np.array(1e-6, dtype=np.float32)
+    # grad = np.array([[[0.5, 0.6], [0.7, 0.8]]], dtype=np.float32)
+    # indices = np.array([0], dtype=np.int32)
+    # use_locking = False
+    # name = "sparse_apply_adadelta_9"
+    
+    # input_dict = {
+    #     "var": var,
+    #     "accum": accum,
+    #     "accum_update": accum_update,
+    #     "lr": lr,
+    #     "rho": rho,
+    #     "epsilon": epsilon,
+    #     "grad": grad,
+    #     "indices": indices,
+    #     "use_locking": use_locking,
+    #     "name": name
+    # }
+    # list_of_inputs.append(copy.deepcopy(input_dict))
+
+    #Input 10 - match shape to var
+    var = np.array([[1.0, 2.0], [3.0, 4.0]], dtype=np.float32)
+    accum = np.array([[0.1, 0.2], [0.3, 0.4]], dtype=np.float32)
+    accum_update = np.array([[0.01, 0.02], [0.03, 0.04]], dtype=np.float32)
+    lr = np.array(0.01, dtype=np.float32)
+    rho = np.array(0.9, dtype=np.float32)
+    epsilon = np.array(1e-6, dtype=np.float32)
+    grad = np.array([0.5, 0.6], dtype=np.float32)
+    indices = np.array([0,1], dtype=np.int32)
+    use_locking = False
+    name = "sparse_apply_adadelta_10"
+    
+    input_dict = {
+        "var": var,
+        "accum": accum,
+        "accum_update": accum_update,
+        "lr": lr,
+        "rho": rho,
+        "epsilon": epsilon,
+        "grad": grad,
+        "indices": indices,
+        "use_locking": use_locking,
+        "name": name
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    
+    return list_of_inputs
+
+generated_inputs = {}
+generated_inputs["tf.raw_ops.SparseApplyAdadelta"] = tf_raw_ops_SparseApplyAdadelta_inputs()
 
 def check_valid(api, list_of_inputs, lib="tf", suffix=0):
     for idx, input_dict in enumerate(list_of_inputs):
@@ -98,5 +292,9 @@ def check_valid(api, list_of_inputs, lib="tf", suffix=0):
 
 if 'tf.raw_ops.SparseApplyAdadelta' not in generated_inputs:
     raise Exception("Output of the input generating function was not assigned to the generated_inputs dictionary to the key 'tf.raw_ops.SparseApplyAdadelta'.")
+
+
+tf.config.experimental.enable_op_determinism()
+tf.random.set_seed(42)
 
 check_valid('tf.raw_ops.SparseApplyAdadelta', generated_inputs['tf.raw_ops.SparseApplyAdadelta'], lib="tf", suffix=0)

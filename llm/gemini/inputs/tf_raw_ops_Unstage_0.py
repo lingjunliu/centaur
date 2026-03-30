@@ -5,46 +5,22 @@ from generator.input_generators import get_abstract_input
 generated_inputs = dict()
 
 import tensorflow as tf
+import numpy as np
 import copy
 
 def tf_raw_ops_unstage_inputs():
-    """
-    Generates inputs for tf.raw_ops.Unstage.
-
-    The Unstage op is a blocking operation that waits for data. In an isolated
-    execution without a corresponding Stage op, this will inherently cause a
-    timeout. The provided inputs are syntactically correct. The timeout is an
-    expected runtime behavior of the op itself in this context. This list is
-    kept minimal to provide valid, representative examples without exacerbating
-    timeout issues in the test runner.
-    """
     list_of_inputs = []
 
-    # Input 1: The most basic valid input with a single float dtype.
-    input_dict_1 = {
-        'dtypes': [tf.float32],
-        'capacity': 0,
-        'memory_limit': 0,
-        'container': '',
-        'shared_name': '',
-        'name': 'unstage_minimal_float'
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict_1))
-
-    # Input 2: A basic valid input with a single integer dtype.
-    input_dict_2 = {
-        'dtypes': [tf.int32],
-        'capacity': 0,
-        'memory_limit': 0,
-        'container': '',
-        'shared_name': '',
-        'name': 'unstage_minimal_int'
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict_2))
-
+    # Input 1
+    dtypes = [tf.float32]
+    capacity = 10
+    memory_limit = 1024
+    container = "container1"
+    shared_name = "shared1"
+    name = "unstage1"
+    input_dict = {"dtypes": dtypes, "capacity": capacity, "memory_limit": memory_limit, "container": container, "shared_name": shared_name, "name": name}
+    list_of_inputs.append(copy.deepcopy(input_dict))
     return list_of_inputs
-
-generated_inputs["tf.raw_ops.Unstage"] = tf_raw_ops_unstage_inputs()
 
 def check_valid(api, list_of_inputs, lib="tf", suffix=0):
     for idx, input_dict in enumerate(list_of_inputs):
@@ -58,5 +34,9 @@ def check_valid(api, list_of_inputs, lib="tf", suffix=0):
 
 if 'tf.raw_ops.Unstage' not in generated_inputs:
     raise Exception("Output of the input generating function was not assigned to the generated_inputs dictionary to the key 'tf.raw_ops.Unstage'.")
+
+
+tf.config.experimental.enable_op_determinism()
+tf.random.set_seed(42)
 
 check_valid('tf.raw_ops.Unstage', generated_inputs['tf.raw_ops.Unstage'], lib="tf", suffix=0)

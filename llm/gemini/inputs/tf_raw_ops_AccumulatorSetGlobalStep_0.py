@@ -9,103 +9,81 @@ import numpy as np
 import copy
 
 def tf_raw_ops_accumulator_set_global_step_inputs():
-  """
-  Generates a list of valid inputs for tf.raw_ops.AccumulatorSetGlobalStep.
-  NOTE: This operation is not compatible with eager execution. The provided
-  inputs are structurally valid according to the API signature but are
-  expected to fail with a RuntimeError if executed in an eager context, as
-  the 'handle' argument is a 'ref' type specific to TensorFlow's graph mode.
-  """
-  list_of_inputs = []
+    list_of_inputs = []
 
-  # The 'handle' argument requires a 'ref' tensor, which is not supported
-  # in eager execution. The following inputs conform to the signature but will
-  # trigger the known RuntimeError in an eager environment.
-  # We use np.array with dtype=object for the string tensor as it is the most
-  # compatible format for the testing harness.
+    # Input 1
+    handle_str = "accumulator_handle_1"
+    handle = tf.constant(handle_str, dtype=tf.string)
+    new_global_step = tf.constant(10, dtype=tf.int64)
+    input_dict = {"handle": handle, "new_global_step": new_global_step, "name": "op_1"}
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-  # Case 1: Basic case
-  input_dict1 = {
-      'handle': np.array('handle_string_1', dtype=object),
-      'new_global_step': np.array(0, dtype=np.int64),
-      'name': 'step_0'
-  }
-  list_of_inputs.append(copy.deepcopy(input_dict1))
+    # Input 2
+    handle_str = "accumulator_handle_2"
+    handle = tf.constant(handle_str, dtype=tf.string)
+    new_global_step = tf.constant(100, dtype=tf.int64)
+    input_dict = {"handle": handle, "new_global_step": new_global_step, "name": "op_2"}
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-  # Case 2: Positive step
-  input_dict2 = {
-      'handle': np.array('handle_string_2', dtype=object),
-      'new_global_step': np.array(100, dtype=np.int64),
-      'name': None
-  }
-  list_of_inputs.append(copy.deepcopy(input_dict2))
+    # Input 3
+    handle_str = "accumulator_handle_3"
+    handle = tf.constant(handle_str, dtype=tf.string)
+    new_global_step = tf.constant(0, dtype=tf.int64)
+    input_dict = {"handle": handle, "new_global_step": new_global_step, "name": "op_3"}
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-  # Case 3: Larger step value
-  input_dict3 = {
-      'handle': np.array('handle_string_3', dtype=object),
-      'new_global_step': np.array(98765, dtype=np.int64),
-      'name': 'large_step'
-  }
-  list_of_inputs.append(copy.deepcopy(input_dict3))
+    # Input 4
+    handle_str = "accumulator_handle_4"
+    handle = tf.constant(handle_str, dtype=tf.string)
+    new_global_step = tf.constant(-10, dtype=tf.int64)
+    input_dict = {"handle": handle, "new_global_step": new_global_step, "name": "op_4"}
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-  # Case 4: Step value 1
-  input_dict4 = {
-      'handle': np.array('handle_string_4', dtype=object),
-      'new_global_step': np.array(1, dtype=np.int64),
-      'name': 'step_1'
-  }
-  list_of_inputs.append(copy.deepcopy(input_dict4))
+    # Input 5
+    handle_str = "accumulator_handle_5"
+    handle = tf.constant(handle_str, dtype=tf.string)
+    new_global_step = tf.constant(2**31 - 1, dtype=tf.int64)
+    input_dict = {"handle": handle, "new_global_step": new_global_step, "name": "op_5"}
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-  # Case 5: Max int64 step value
-  input_dict5 = {
-      'handle': np.array('handle_string_5', dtype=object),
-      'new_global_step': np.array(np.iinfo(np.int64).max, dtype=np.int64),
-      'name': 'max_step'
-  }
-  list_of_inputs.append(copy.deepcopy(input_dict5))
+    # Input 6
+    handle_str = "accumulator_handle_6"
+    handle = tf.constant(handle_str, dtype=tf.string)
+    new_global_step = tf.constant(-(2**31), dtype=tf.int64)
+    input_dict = {"handle": handle, "new_global_step": new_global_step, "name": "op_6"}
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-  # Case 6: Different handle string
-  input_dict6 = {
-      'handle': np.array('some_other_accumulator_handle', dtype=object),
-      'new_global_step': np.array(555, dtype=np.int64),
-      'name': 'another_op_name'
-  }
-  list_of_inputs.append(copy.deepcopy(input_dict6))
+    # Input 7
+    handle_str = "accumulator_handle_7"
+    handle = tf.constant(handle_str, dtype=tf.string)
+    new_global_step = tf.constant(5, dtype=tf.int64)
+    input_dict = {"handle": handle, "new_global_step": new_global_step, "name": "op_7"}
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-  # Case 7: Name with slashes for scoping
-  input_dict7 = {
-      'handle': np.array('handle_string_7', dtype=object),
-      'new_global_step': np.array(1024, dtype=np.int64),
-      'name': 'my_scope/my_op'
-  }
-  list_of_inputs.append(copy.deepcopy(input_dict7))
+    # Input 8
+    handle_str = "accumulator_handle_8"
+    handle = tf.constant(handle_str, dtype=tf.string)
+    new_global_step = tf.constant(1000, dtype=tf.int64)
+    input_dict = {"handle": handle, "new_global_step": new_global_step, "name": "op_8"}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 9
+    handle_str = "accumulator_handle_9"
+    handle = tf.constant(handle_str, dtype=tf.string)
+    new_global_step = tf.constant(-1000, dtype=tf.int64)
+    input_dict = {"handle": handle, "new_global_step": new_global_step, "name": "op_9"}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 10
+    handle_str = "accumulator_handle_10"
+    handle = tf.constant(handle_str, dtype=tf.string)
+    new_global_step = tf.constant(0, dtype=tf.int64)
+    input_dict = {"handle": handle, "new_global_step": new_global_step, "name": "op_10"}
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-  # Case 8: Another high value
-  input_dict8 = {
-      'handle': np.array('handle_string_8', dtype=object),
-      'new_global_step': np.array(2000000, dtype=np.int64),
-      'name': 'two_million_step'
-  }
-  list_of_inputs.append(copy.deepcopy(input_dict8))
+    return list_of_inputs
 
-  # Case 9: Empty string for name
-  input_dict9 = {
-      'handle': np.array('handle_string_9', dtype=object),
-      'new_global_step': np.array(42, dtype=np.int64),
-      'name': ''
-  }
-  list_of_inputs.append(copy.deepcopy(input_dict9))
-
-  # Case 10: Handle with special chars
-  input_dict10 = {
-      'handle': np.array('handle/with/slashes_10', dtype=object),
-      'new_global_step': np.array(314, dtype=np.int64),
-      'name': 'pi_step'
-  }
-  list_of_inputs.append(copy.deepcopy(input_dict10))
-
-  return list_of_inputs
-
+generated_inputs = {}
 generated_inputs["tf.raw_ops.AccumulatorSetGlobalStep"] = tf_raw_ops_accumulator_set_global_step_inputs()
 
 def check_valid(api, list_of_inputs, lib="tf", suffix=0):
@@ -120,5 +98,9 @@ def check_valid(api, list_of_inputs, lib="tf", suffix=0):
 
 if 'tf.raw_ops.AccumulatorSetGlobalStep' not in generated_inputs:
     raise Exception("Output of the input generating function was not assigned to the generated_inputs dictionary to the key 'tf.raw_ops.AccumulatorSetGlobalStep'.")
+
+
+tf.config.experimental.enable_op_determinism()
+tf.random.set_seed(42)
 
 check_valid('tf.raw_ops.AccumulatorSetGlobalStep', generated_inputs['tf.raw_ops.AccumulatorSetGlobalStep'], lib="tf", suffix=0)

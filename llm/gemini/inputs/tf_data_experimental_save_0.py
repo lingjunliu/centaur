@@ -6,152 +6,150 @@ generated_inputs = dict()
 
 import tensorflow as tf
 import numpy as np
-import os
-import tempfile
 import copy
+import os
 
 def tf_data_experimental_save_inputs():
     list_of_inputs = []
 
-    # The testing framework expects a '.shape' attribute on the 'dataset' object,
-    # but the API requires a `tf.data.Dataset` instance, which lacks this attribute.
-    # To resolve this, we create a valid dataset and then add a '.shape' attribute
-    # to it to satisfy the test harness.
-    #
-    # Additionally, the provided signature has incorrect types for `shard_func` ('tensor')
-    # and `checkpoint_args` ('list'). We provide dummy values to match the signature.
-    dummy_shard_func_tensor = np.array(0, dtype=np.int64)
-    dummy_checkpoint_args_list = []
+    # Input 1
+    dataset = np.array([1, 2, 3, 4, 5])
+    path = os.path.join(os.getcwd(), "saved_dataset_1")
+    compression = "NONE"
+    shard_func = lambda x: np.int64(x % 2)
 
-    def create_dataset_with_shape(numpy_array):
-        """Creates a tf.data.Dataset and monkey-patches a .shape attribute onto it."""
-        ds = tf.data.Dataset.from_tensor_slices(numpy_array)
-        ds.shape = numpy_array.shape
-        return ds
-
-    # Input 1: Basic case
-    data_1 = np.arange(10, dtype=np.int64)
-    input_dict_1 = {
-        'dataset': create_dataset_with_shape(data_1),
-        'path': os.path.join(tempfile.gettempdir(), "save1"),
-        'compression': 'NONE',
-        'shard_func': dummy_shard_func_tensor,
-        'checkpoint_args': dummy_checkpoint_args_list,
+    input_dict = {
+        "dataset": dataset,
+        "path": path,
+        "compression": compression,
+        "shard_func": shard_func,
+        "checkpoint_args": []
     }
-    list_of_inputs.append(input_dict_1)
+    list_of_inputs.append(input_dict)
 
-    # Input 2: GZIP compression with float data
-    data_2 = np.linspace(0.0, 1.0, 20, dtype=np.float32)
-    input_dict_2 = {
-        'dataset': create_dataset_with_shape(data_2),
-        'path': os.path.join(tempfile.gettempdir(), "save2"),
-        'compression': 'GZIP',
-        'shard_func': dummy_shard_func_tensor,
-        'checkpoint_args': dummy_checkpoint_args_list,
-    }
-    list_of_inputs.append(input_dict_2)
+    # Input 2
+    dataset = np.array([[1, 2], [3, 4], [5, 6]])
+    path = os.path.join(os.getcwd(), "saved_dataset_2")
+    compression = "GZIP"
+    shard_func = lambda x: np.int64(0)
 
-    # Input 3: 'NONE' compression with string data
-    data_3 = np.array([b"hello", b"tensorflow", b"world"])
-    input_dict_3 = {
-        'dataset': create_dataset_with_shape(data_3),
-        'path': os.path.join(tempfile.gettempdir(), "save3"),
-        'compression': 'NONE',
-        'shard_func': dummy_shard_func_tensor,
-        'checkpoint_args': dummy_checkpoint_args_list,
+    input_dict = {
+        "dataset": dataset,
+        "path": path,
+        "compression": compression,
+        "shard_func": shard_func,
+        "checkpoint_args": []
     }
-    list_of_inputs.append(input_dict_3)
+    list_of_inputs.append(input_dict)
 
-    # Input 4: 2D float64 data
-    data_4 = np.random.rand(8, 3).astype(np.float64)
-    input_dict_4 = {
-        'dataset': create_dataset_with_shape(data_4),
-        'path': os.path.join(tempfile.gettempdir(), "save4"),
-        'compression': 'GZIP',
-        'shard_func': dummy_shard_func_tensor,
-        'checkpoint_args': dummy_checkpoint_args_list,
-    }
-    list_of_inputs.append(input_dict_4)
+    # Input 3
+    dataset = np.array(range(10))
+    path = os.path.join(os.getcwd(), "saved_dataset_3")
+    compression = "NONE"
+    shard_func = lambda x: np.int64(x // 3)
 
-    # Input 5: Empty dataset
-    data_5 = np.array([], dtype=np.float32)
-    input_dict_5 = {
-        'dataset': create_dataset_with_shape(data_5),
-        'path': os.path.join(tempfile.gettempdir(), "save5"),
-        'compression': 'GZIP',
-        'shard_func': dummy_shard_func_tensor,
-        'checkpoint_args': dummy_checkpoint_args_list,
+    input_dict = {
+        "dataset": dataset,
+        "path": path,
+        "compression": compression,
+        "shard_func": shard_func,
+        "checkpoint_args": []
     }
-    list_of_inputs.append(input_dict_5)
+    list_of_inputs.append(input_dict)
 
-    # Input 6: High-dimensional data
-    data_6 = np.zeros((4, 8, 8, 3), dtype=np.uint8)
-    input_dict_6 = {
-        'dataset': create_dataset_with_shape(data_6),
-        'path': os.path.join(tempfile.gettempdir(), "save6"),
-        'compression': 'NONE',
-        'shard_func': dummy_shard_func_tensor,
-        'checkpoint_args': dummy_checkpoint_args_list,
-    }
-    list_of_inputs.append(input_dict_6)
+   # Input 4
+    dataset = np.array([[-1, -2], [-3, -4]])
+    path = os.path.join(os.getcwd(), "saved_dataset_4")
+    compression = "GZIP"
+    shard_func = lambda x: np.int64(1)
 
-    # Input 7: Boolean data
-    data_7 = np.array([True, False, True, True])
-    input_dict_7 = {
-        'dataset': create_dataset_with_shape(data_7),
-        'path': os.path.join(tempfile.gettempdir(), "save7"),
-        'compression': 'GZIP',
-        'shard_func': dummy_shard_func_tensor,
-        'checkpoint_args': dummy_checkpoint_args_list,
+    input_dict = {
+        "dataset": dataset,
+        "path": path,
+        "compression": compression,
+        "shard_func": shard_func,
+        "checkpoint_args": []
     }
-    list_of_inputs.append(input_dict_7)
+    list_of_inputs.append(input_dict)
 
-    # Input 8: 3D data with negative values
-    data_8 = np.arange(-12, 12, 1, dtype=np.int16).reshape((2, 3, 4))
-    input_dict_8 = {
-        'dataset': create_dataset_with_shape(data_8),
-        'path': os.path.join(tempfile.gettempdir(), "save8"),
-        'compression': 'NONE',
-        'shard_func': dummy_shard_func_tensor,
-        'checkpoint_args': dummy_checkpoint_args_list,
-    }
-    list_of_inputs.append(input_dict_8)
+    # Input 5
+    dataset = np.array([1.0, 2.0, 3.0])
+    path = os.path.join(os.getcwd(), "saved_dataset_5")
+    compression = "NONE"
+    shard_func = lambda x: np.int64(x)
 
-    # Input 9: Single element dataset
-    data_9 = np.array([42.0], dtype=np.float32)
-    input_dict_9 = {
-        'dataset': create_dataset_with_shape(data_9),
-        'path': os.path.join(tempfile.gettempdir(), "save9"),
-        'compression': 'GZIP',
-        'shard_func': dummy_shard_func_tensor,
-        'checkpoint_args': dummy_checkpoint_args_list,
+    input_dict = {
+        "dataset": dataset,
+        "path": path,
+        "compression": compression,
+        "shard_func": shard_func,
+        "checkpoint_args": []
     }
-    list_of_inputs.append(input_dict_9)
+    list_of_inputs.append(input_dict)
 
-    # Input 10: Complex numbers
-    data_10 = np.array([1 + 2j, 3 + 4j, 5 + 6j], dtype=np.complex64)
-    input_dict_10 = {
-        'dataset': create_dataset_with_shape(data_10),
-        'path': os.path.join(tempfile.gettempdir(), "save10"),
-        'compression': 'NONE',
-        'shard_func': dummy_shard_func_tensor,
-        'checkpoint_args': dummy_checkpoint_args_list,
-    }
-    list_of_inputs.append(input_dict_10)
+    # Input 6
+    dataset = np.array(["a", "b", "c"])
+    path = os.path.join(os.getcwd(), "saved_dataset_6")
+    compression = "GZIP"
+    shard_func = lambda x: np.int64(0 if x == "a" else 1)
 
-    # Input 11: A larger dataset
-    data_11 = np.arange(500, dtype=np.int32)
-    input_dict_11 = {
-        'dataset': create_dataset_with_shape(data_11),
-        'path': os.path.join(tempfile.gettempdir(), "save11"),
-        'compression': 'GZIP',
-        'shard_func': dummy_shard_func_tensor,
-        'checkpoint_args': dummy_checkpoint_args_list,
+    input_dict = {
+        "dataset": dataset,
+        "path": path,
+        "compression": compression,
+        "shard_func": shard_func,
+        "checkpoint_args": []
     }
-    list_of_inputs.append(input_dict_11)
+    list_of_inputs.append(input_dict)
+
+    # Input 8: Empty dataset
+    dataset = np.array([])
+    path = os.path.join(os.getcwd(), "saved_dataset_8")
+    compression = "GZIP"
+    shard_func = lambda x: np.int64(0) if len(x)>0 else np.int64(0)
+
+    input_dict = {
+        "dataset": dataset,
+        "path": path,
+        "compression": compression,
+        "shard_func": shard_func,
+        "checkpoint_args": []
+    }
+    list_of_inputs.append(input_dict)
+
+   # Input 9: Larger Dataset with complex sharding
+    dataset = np.array(range(100))
+    path = os.path.join(os.getcwd(), "saved_dataset_9")
+    compression = "NONE"
+    shard_func = lambda x: np.int64(x % 10)
+
+    input_dict = {
+        "dataset": dataset,
+        "path": path,
+        "compression": compression,
+        "shard_func": shard_func,
+        "checkpoint_args": []
+    }
+    list_of_inputs.append(input_dict)
+
+    # Input 10: Strings
+    dataset = np.array(["test1", "test2", "test3"])
+    path = os.path.join(os.getcwd(), "saved_dataset_10")
+    compression = "NONE"
+    shard_func = lambda x: np.int64(len(x) % 2)
+
+    input_dict = {
+        "dataset": dataset,
+        "path": path,
+        "compression": compression,
+        "shard_func": shard_func,
+        "checkpoint_args": []
+    }
+    list_of_inputs.append(input_dict)
 
     return list_of_inputs
 
+generated_inputs = {}
 generated_inputs["tf.data.experimental.save"] = tf_data_experimental_save_inputs()
 
 def check_valid(api, list_of_inputs, lib="tf", suffix=0):
@@ -166,5 +164,9 @@ def check_valid(api, list_of_inputs, lib="tf", suffix=0):
 
 if 'tf.data.experimental.save' not in generated_inputs:
     raise Exception("Output of the input generating function was not assigned to the generated_inputs dictionary to the key 'tf.data.experimental.save'.")
+
+
+tf.config.experimental.enable_op_determinism()
+tf.random.set_seed(42)
 
 check_valid('tf.data.experimental.save', generated_inputs['tf.data.experimental.save'], lib="tf", suffix=0)

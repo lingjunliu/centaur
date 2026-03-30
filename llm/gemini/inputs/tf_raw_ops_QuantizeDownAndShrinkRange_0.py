@@ -4,109 +4,170 @@ from generator.input_generators import get_abstract_input
 
 generated_inputs = dict()
 
-import numpy as np
 import tensorflow as tf
+import numpy as np
 import copy
 
-def tf_raw_ops_quantizedownandshrinkrange_inputs():
+tf.config.experimental.enable_op_determinism()
+tf.random.set_seed(42)
+
+def tf_raw_ops_QuantizeDownAndShrinkRange_inputs():
     list_of_inputs = []
 
-    def _generate_quantized_input(target_type, shape=(4, 5)):
-        """
-        Generates a quantized tensor of a specific type and its float range.
-        This helper now uses QuantizeDownAndShrinkRange itself to create
-        intermediate quantized types like qint16/quint16 which are hard
-        to generate due to missing CPU kernels in other ops.
-        """
-        with tf.device('/CPU:0'):
-            # Step 1: Create a base qint32 tensor using QuantizedMatMul, which is reliable.
-            original_shape = shape
-            num_elements = np.prod(original_shape)
-            shape_2d = (1, num_elements)
-            K = 5
-            
-            a_shape = (shape_2d[0], K)
-            b_shape = (K, shape_2d[1])
-            
-            a_float = np.random.uniform(low=0.0, high=1.0, size=a_shape).astype(np.float32)
-            b_float = np.random.uniform(low=0.0, high=1.0, size=b_shape).astype(np.float32)
+    # Input 1: quint8 to quint8, minimal range
+    input_tensor = np.array([[1, 2], [3, 4]], dtype=np.uint8)
+    input_min_tensor = np.array(0.0, dtype=np.float32)
+    input_max_tensor = np.array(5.0, dtype=np.float32)
+    out_type_val = tf.quint8
 
-            a_quant, a_min, a_max = tf.quantization.quantize(a_float, 0.0, 1.0, T=tf.quint8)
-            b_quant, b_min, b_max = tf.quantization.quantize(b_float, 0.0, 1.0, T=tf.quint8)
-
-            qint32_out, qint32_min, qint32_max = tf.raw_ops.QuantizedMatMul(
-                a=a_quant, b=b_quant, min_a=a_min, max_a=a_max, min_b=b_min, max_b=b_max, Toutput=tf.qint32
-            )
-            
-            # Step 2: If the target type is not qint32, down-quantize to it.
-            if target_type == tf.qint32:
-                final_out = qint32_out
-                final_min = qint32_min
-                final_max = qint32_max
-            else:
-                # Use QuantizeDownAndShrinkRange to get the desired input type.
-                final_out, final_min, final_max = tf.raw_ops.QuantizeDownAndShrinkRange(
-                    input=qint32_out,
-                    input_min=qint32_min,
-                    input_max=qint32_max,
-                    out_type=target_type
-                )
-            
-            reshaped_out = tf.reshape(final_out, original_shape)
-            
-            return reshaped_out.numpy(), final_min.numpy(), final_max.numpy()
-
-    # Valid combinations of (input_type, output_type) where output has lower or equal bit-depth.
-    test_combinations = [
-        (tf.qint32, tf.qint16),
-        (tf.qint32, tf.quint16),
-        (tf.qint32, tf.qint8),
-        (tf.qint32, tf.quint8),
-        (tf.qint16, tf.qint8),
-        (tf.qint16, tf.quint8),
-        (tf.quint16, tf.qint8),
-        (tf.quint16, tf.quint8),
-        (tf.qint8, tf.qint8), 
-    ]
-
-    for i, (in_type, out_type) in enumerate(test_combinations):
-        # Generate the input tensor of type `in_type`
-        input_val, input_min_val, input_max_val = _generate_quantized_input(in_type, shape=(4, 5))
-        
-        # Prepare the dictionary for the API call
-        input_dict = {
-            'input': input_val,
-            'input_min': np.array(input_min_val, dtype=np.float32),
-            'input_max': np.array(input_max_val, dtype=np.float32),
-            'out_type': out_type,
-            'name': f'test_{in_type.name}_to_{out_type.name}_{i}'
-        }
-        list_of_inputs.append(copy.deepcopy(input_dict))
-        
-    # Additional test cases with different shapes
-    q_input, q_min, q_max = _generate_quantized_input(tf.qint32, shape=(1, 2, 3, 4))
     input_dict = {
-        'input': q_input,
-        'input_min': np.array(q_min, dtype=np.float32),
-        'input_max': np.array(q_max, dtype=np.float32),
-        'out_type': tf.qint8,
-        'name': '4d_qint32_to_qint8'
+        "name": "quantize_down_and_shrink_range_1",
+        "input": tf.constant(input_tensor, dtype=tf.quint8),
+        "input_min": input_min_tensor,
+        "input_max": input_max_tensor,
+        "out_type": out_type_val
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    q_input, q_min, q_max = _generate_quantized_input(tf.quint16, shape=(1000,))
+    # Input 2: qint8 to quint8, negative range
+    input_tensor = np.array([[-1, 0], [1, 2]], dtype=np.int8)
+    input_min_tensor = np.array(-2.0, dtype=np.float32)
+    input_max_tensor = np.array(3.0, dtype=np.float32)
+    out_type_val = tf.quint8
+
     input_dict = {
-        'input': q_input,
-        'input_min': np.array(q_min, dtype=np.float32),
-        'input_max': np.array(q_max, dtype=np.float32),
-        'out_type': tf.quint8,
-        'name': 'large_1d_quint16_to_quint8'
+        "name": "quantize_down_and_shrink_range_2",
+        "input": tf.constant(input_tensor, dtype=tf.qint8),
+        "input_min": input_min_tensor,
+        "input_max": input_max_tensor,
+        "out_type": out_type_val
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 3: quint16 to quint8, wider range
+    input_tensor = np.array([[1000, 2000], [3000, 4000]], dtype=np.uint16)
+    input_min_tensor = np.array(0.0, dtype=np.float32)
+    input_max_tensor = np.array(5000.0, dtype=np.float32)
+    out_type_val = tf.quint8
+
+    input_dict = {
+        "name": "quantize_down_and_shrink_range_3",
+        "input": tf.constant(input_tensor, dtype=tf.quint16),
+        "input_min": input_min_tensor,
+        "input_max": input_max_tensor,
+        "out_type": out_type_val
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 4: qint32 to qint8, negative range
+    input_tensor = np.array([[-1000, 0], [1000, 2000]], dtype=np.int32)
+    input_min_tensor = np.array(-2000.0, dtype=np.float32)
+    input_max_tensor = np.array(3000.0, dtype=np.float32)
+    out_type_val = tf.qint8
+
+    input_dict = {
+        "name": "quantize_down_and_shrink_range_4",
+        "input": tf.constant(input_tensor, dtype=tf.qint32),
+        "input_min": input_min_tensor,
+        "input_max": input_max_tensor,
+        "out_type": out_type_val
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+     # Input 5: quint8 to qint8, zero range
+    input_tensor = np.array([[1, 2], [3, 4]], dtype=np.uint8)
+    input_min_tensor = np.array(0.0, dtype=np.float32)
+    input_max_tensor = np.array(0.0, dtype=np.float32)
+    out_type_val = tf.qint8
+
+    input_dict = {
+        "name": "quantize_down_and_shrink_range_5",
+        "input": tf.constant(input_tensor, dtype=tf.quint8),
+        "input_min": input_min_tensor,
+        "input_max": input_max_tensor,
+        "out_type": out_type_val
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 6: qint16 to quint8, 3D tensor
+    input_tensor = np.array([[[1, 2], [3, 4]], [[5, 6], [7, 8]]], dtype=np.int16)
+    input_min_tensor = np.array(-10.0, dtype=np.float32)
+    input_max_tensor = np.array(10.0, dtype=np.float32)
+    out_type_val = tf.quint8
+
+    input_dict = {
+        "name": "quantize_down_and_shrink_range_6",
+        "input": tf.constant(input_tensor, dtype=tf.qint16),
+        "input_min": input_min_tensor,
+        "input_max": input_max_tensor,
+        "out_type": out_type_val
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 7: quint8 to qint16
+    input_tensor = np.array([[1, 2], [3, 4]], dtype=np.uint8)
+    input_min_tensor = np.array(0.0, dtype=np.float32)
+    input_max_tensor = np.array(255.0, dtype=np.float32)
+    out_type_val = tf.qint16
+
+    input_dict = {
+        "name": "quantize_down_and_shrink_range_7",
+        "input": tf.constant(input_tensor, dtype=tf.quint8),
+        "input_min": input_min_tensor,
+        "input_max": input_max_tensor,
+        "out_type": out_type_val
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 8: qint8 to qint16, 1D tensor
+    input_tensor = np.array([-1, 0, 1, 2], dtype=np.int8)
+    input_min_tensor = np.array(-128.0, dtype=np.float32)
+    input_max_tensor = np.array(127.0, dtype=np.float32)
+    out_type_val = tf.qint16
+
+    input_dict = {
+        "name": "quantize_down_and_shrink_range_8",
+        "input": tf.constant(input_tensor, dtype=tf.qint8),
+        "input_min": input_min_tensor,
+        "input_max": input_max_tensor,
+        "out_type": out_type_val
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 9: quint16 to qint8
+    input_tensor = np.array([[1000, 2000], [3000, 4000]], dtype=np.uint16)
+    input_min_tensor = np.array(0.0, dtype=np.float32)
+    input_max_tensor = np.array(65535.0, dtype=np.float32)
+    out_type_val = tf.qint8
+
+    input_dict = {
+        "name": "quantize_down_and_shrink_range_9",
+        "input": tf.constant(input_tensor, dtype=tf.quint16),
+        "input_min": input_min_tensor,
+        "input_max": input_max_tensor,
+        "out_type": out_type_val
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 10: qint32 to qint16, large range, multiple dimensions
+    input_tensor = np.array([[[1, -2], [3, -4]], [[5, -6], [7, -8]]], dtype=np.int32)
+    input_min_tensor = np.array(-100000.0, dtype=np.float32)
+    input_max_tensor = np.array(100000.0, dtype=np.float32)
+    out_type_val = tf.qint16
+
+    input_dict = {
+        "name": "quantize_down_and_shrink_range_10",
+        "input": tf.constant(input_tensor, dtype=tf.qint32),
+        "input_min": input_min_tensor,
+        "input_max": input_max_tensor,
+        "out_type": out_type_val
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs
 
-generated_inputs["tf.raw_ops.QuantizeDownAndShrinkRange"] = tf_raw_ops_quantizedownandshrinkrange_inputs()
+generated_inputs = {}
+generated_inputs["tf.raw_ops.QuantizeDownAndShrinkRange"] = tf_raw_ops_QuantizeDownAndShrinkRange_inputs()
 
 def check_valid(api, list_of_inputs, lib="tf", suffix=0):
     for idx, input_dict in enumerate(list_of_inputs):
@@ -120,5 +181,9 @@ def check_valid(api, list_of_inputs, lib="tf", suffix=0):
 
 if 'tf.raw_ops.QuantizeDownAndShrinkRange' not in generated_inputs:
     raise Exception("Output of the input generating function was not assigned to the generated_inputs dictionary to the key 'tf.raw_ops.QuantizeDownAndShrinkRange'.")
+
+
+tf.config.experimental.enable_op_determinism()
+tf.random.set_seed(42)
 
 check_valid('tf.raw_ops.QuantizeDownAndShrinkRange', generated_inputs['tf.raw_ops.QuantizeDownAndShrinkRange'], lib="tf", suffix=0)

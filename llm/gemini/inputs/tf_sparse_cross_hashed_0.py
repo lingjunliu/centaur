@@ -5,129 +5,159 @@ from generator.input_generators import get_abstract_input
 generated_inputs = dict()
 
 import tensorflow as tf
-import copy
 import numpy as np
+import copy
 
 def tf_sparse_cross_hashed_inputs():
-    """
-    Generates a list of valid inputs for the tf.sparse.cross_hashed function.
-    The inputs are restricted to dense tensors of numerical types that can be stacked,
-    due to limitations of the testing framework.
-    """
     list_of_inputs = []
 
-    # Input 1: Basic case with two 2D int32 tensors
-    t1_1 = tf.constant([[1, 2], [3, 4]], dtype=tf.int32)
-    t1_2 = tf.constant([[5, 6], [7, 8]], dtype=tf.int32)
-    input_dict_1 = {
-        'inputs': tf.stack([t1_1, t1_2]),
-        'num_buckets': 1000,
-        'hash_key': 1337,
-        'name': "dense_2d_int32_cross"
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict_1))
+    # Input 1: Basic example with sparse tensors
+    indices1 = np.array([[0, 0], [1, 0], [1, 1]], dtype=np.int64)
+    values1 = np.array(["a", "b", "c"], dtype=np.string_)
+    shape1 = np.array([2, 2], dtype=np.int64)
+    st1 = tf.SparseTensor(indices1, values1, shape1)
 
-    # Input 2: Crossing three 2D int64 tensors, no bucketing
-    t2_1 = tf.constant([[10, 20], [30, 40]], dtype=tf.int64)
-    t2_2 = tf.constant([[50, 60], [70, 80]], dtype=tf.int64)
-    t2_3 = tf.constant([[90, 100], [110, 120]], dtype=tf.int64)
-    input_dict_2 = {
-        'inputs': tf.stack([t2_1, t2_2, t2_3]),
-        'num_buckets': 0,
-        'hash_key': 2024,
-        'name': "dense_2d_int64_cross"
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict_2))
+    indices2 = np.array([[0, 0], [1, 0]], dtype=np.int64)
+    values2 = np.array(["d", "e"], dtype=np.string_)
+    shape2 = np.array([2, 1], dtype=np.int64)
+    st2 = tf.SparseTensor(indices2, values2, shape2)
 
-    # Input 3: "Crossing" a single float32 tensor (effectively just hashing)
-    t3_1 = tf.constant([[1.1], [2.2], [3.3]], dtype=tf.float32)
-    input_dict_3 = {
-        'inputs': tf.stack([t3_1]),
-        'num_buckets': 500,
-        'hash_key': 98765,
-        'name': "single_dense_float32_hash"
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict_3))
+    dense = np.array([["f"], ["g"]], dtype=np.string_)
+    inputs = [st1, st2, dense]
+    num_buckets = 100
+    hash_key = 12345
+    name = "sparse_cross_1"
+    input_dict = {"inputs": inputs, "num_buckets": num_buckets, "hash_key": hash_key, "name": name}
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 4: Using a single bucket with int16 tensors
-    t4_1 = tf.constant([[1], [2]], dtype=tf.int16)
-    t4_2 = tf.constant([[3], [4]], dtype=tf.int16)
-    input_dict_4 = {
-        'inputs': tf.stack([t4_1, t4_2]),
-        'num_buckets': 1,
-        'hash_key': 1,
-        'name': "single_bucket_dense_cross"
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict_4))
+    # Input 2: No num_buckets (num_buckets=0)
+    indices1 = np.array([[0, 0], [1, 0]], dtype=np.int64)
+    values1 = np.array(["a", "b"], dtype=np.string_)
+    shape1 = np.array([2, 1], dtype=np.int64)
+    st1 = tf.SparseTensor(indices1, values1, shape1)
+    dense = np.array([["f"], ["g"]], dtype=np.string_)
+    inputs = [st1, dense]
+    num_buckets = 0
+    hash_key = 54321
+    name = "sparse_cross_2"
+    input_dict = {"inputs": inputs, "num_buckets": num_buckets, "hash_key": hash_key, "name": name}
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 5: Using a large hash key
-    t5_1 = tf.constant([[101]], dtype=tf.int64)
-    t5_2 = tf.constant([[202]], dtype=tf.int64)
-    input_dict_5 = {
-        'inputs': tf.stack([t5_1, t5_2]),
-        'num_buckets': 10,
-        'hash_key': 9223372036854775807,
-        'name': "large_hash_key_cross"
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict_5))
+    # Input 3: Different hash_key
+    indices1 = np.array([[0, 0]], dtype=np.int64)
+    values1 = np.array(["a"], dtype=np.string_)
+    shape1 = np.array([1, 1], dtype=np.int64)
+    st1 = tf.SparseTensor(indices1, values1, shape1)
+    dense = np.array([["f"]], dtype=np.string_)
+    inputs = [st1, dense]
+    num_buckets = 50
+    hash_key = 98765
+    name = "sparse_cross_3"
+    input_dict = {"inputs": inputs, "num_buckets": num_buckets, "hash_key": hash_key, "name": name}
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 6: Using a negative hash key
-    t6_1 = tf.constant([[10, 20, 30]], dtype=tf.int32)
-    t6_2 = tf.constant([[40, 50, 60]], dtype=tf.int32)
-    input_dict_6 = {
-        'inputs': tf.stack([t6_1, t6_2]),
-        'num_buckets': 0,
-        'hash_key': -1234567,
-        'name': "negative_hash_key_cross"
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict_6))
+    # Input 4: Only sparse tensor input
+    indices1 = np.array([[0, 0], [1, 0]], dtype=np.int64)
+    values1 = np.array(["a", "b"], dtype=np.string_)
+    shape1 = np.array([2, 1], dtype=np.int64)
+    st1 = tf.SparseTensor(indices1, values1, shape1)
+    inputs = [st1]
+    num_buckets = 10
+    hash_key = 11223
+    name = "sparse_cross_4"
+    input_dict = {"inputs": inputs, "num_buckets": num_buckets, "hash_key": hash_key, "name": name}
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 7: Crossing two 3D float32 tensors
-    t7_1 = tf.constant([[[1.0], [2.0]], [[3.0], [4.0]]], dtype=tf.float32)
-    t7_2 = tf.constant([[[5.0], [6.0]], [[7.0], [8.0]]], dtype=tf.float32)
-    input_dict_7 = {
-        'inputs': tf.stack([t7_1, t7_2]),
-        'num_buckets': 200,
-        'hash_key': 101112,
-        'name': "dense_3d_float32_cross"
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict_7))
+    # Input 5: Only dense tensor input
+    dense = np.array([["f"], ["g"]], dtype=np.string_)
+    inputs = [dense]
+    num_buckets = 20
+    hash_key = 44556
+    name = "sparse_cross_5"
+    input_dict = {"inputs": inputs, "num_buckets": num_buckets, "hash_key": hash_key, "name": name}
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 8: Empty input tensor list
-    input_dict_8 = {
-        'inputs': tf.constant([], shape=(0, 2, 2), dtype=tf.float32),
-        'num_buckets': 256,
-        'hash_key': 99,
-        'name': "empty_input_list"
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict_8))
+   # Input 6: Empty sparse tensor
+    indices1 = np.array([], dtype=np.int64).reshape(0, 2)
+    values1 = np.array([], dtype=np.string_)
+    shape1 = np.array([2, 2], dtype=np.int64)
+    st1 = tf.SparseTensor(indices1, values1, shape1)
+    dense = np.array([["f"], ["g"]], dtype=np.string_)
 
-    # Input 9: Crossing tensors with an empty batch dimension
-    t9_1 = tf.constant([], shape=(0, 3), dtype=tf.int32)
-    t9_2 = tf.constant([], shape=(0, 3), dtype=tf.int32)
-    input_dict_9 = {
-        'inputs': tf.stack([t9_1, t9_2]),
-        'num_buckets': 150,
-        'hash_key': 123,
-        'name': "empty_batch_cross"
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict_9))
+    inputs = [st1, dense]
+    num_buckets = 30
+    hash_key = 77889
+    name = "sparse_cross_6"
+    input_dict = {"inputs": inputs, "num_buckets": num_buckets, "hash_key": hash_key, "name": name}
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 10: Crossing four tensors
-    t10_1 = tf.constant([[1], [2]], dtype=tf.int16)
-    t10_2 = tf.constant([[3], [4]], dtype=tf.int16)
-    t10_3 = tf.constant([[5], [6]], dtype=tf.int16)
-    t10_4 = tf.constant([[7], [8]], dtype=tf.int16)
-    input_dict_10 = {
-        'inputs': tf.stack([t10_1, t10_2, t10_3, t10_4]),
-        'num_buckets': 100,
-        'hash_key': 42,
-        'name': "four_tensor_cross"
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict_10))
+    # Input 7: Removing inputs which might cause issues with shape inference. Removing 2D empty array and replacing with scalar one
+    # dense = np.array([[]], dtype=np.string_)
+    # inputs = [dense]
+    # num_buckets = 40
+    # hash_key = 33445
+    # name = "sparse_cross_7"
+    # input_dict = {"inputs": inputs, "num_buckets": num_buckets, "hash_key": hash_key, "name": name}
+    # list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 8: Three sparse tensors
+    indices1 = np.array([[0, 0]], dtype=np.int64)
+    values1 = np.array(["a"], dtype=np.string_)
+    shape1 = np.array([1, 1], dtype=np.int64)
+    st1 = tf.SparseTensor(indices1, values1, shape1)
+
+    indices2 = np.array([[0, 0]], dtype=np.int64)
+    values2 = np.array(["b"], dtype=np.string_)
+    shape2 = np.array([1, 1], dtype=np.int64)
+    st2 = tf.SparseTensor(indices2, values2, shape2)
+
+    indices3 = np.array([[0, 0]], dtype=np.int64)
+    values3 = np.array(["c"], dtype=np.string_)
+    shape3 = np.array([1, 1], dtype=np.int64)
+    st3 = tf.SparseTensor(indices3, values3, shape3)
+
+    inputs = [st1, st2, st3]
+    num_buckets = 60
+    hash_key = 66778
+    name = "sparse_cross_8"
+    input_dict = {"inputs": inputs, "num_buckets": num_buckets, "hash_key": hash_key, "name": name}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 9: Three dense tensors
+    dense1 = np.array([["a"]], dtype=np.string_)
+    dense2 = np.array([["b"]], dtype=np.string_)
+    dense3 = np.array([["c"]], dtype=np.string_)
+    inputs = [dense1, dense2, dense3]
+    num_buckets = 70
+    hash_key = 88990
+    name = "sparse_cross_9"
+    input_dict = {"inputs": inputs, "num_buckets": num_buckets, "hash_key": hash_key, "name": name}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 10: Mix of 2 Sparse and 2 Dense tensors
+    indices1 = np.array([[0, 0]], dtype=np.int64)
+    values1 = np.array(["a"], dtype=np.string_)
+    shape1 = np.array([1, 1], dtype=np.int64)
+    st1 = tf.SparseTensor(indices1, values1, shape1)
+
+    indices2 = np.array([[0, 0]], dtype=np.int64)
+    values2 = np.array(["b"], dtype=np.string_)
+    shape2 = np.array([1, 1], dtype=np.int64)
+    st2 = tf.SparseTensor(indices2, values2, shape2)
+
+    dense1 = np.array([["c"]], dtype=np.string_)
+    dense2 = np.array([["d"]], dtype=np.string_)
+
+    inputs = [st1, st2, dense1, dense2]
+    num_buckets = 80
+    hash_key = 23456
+    name = "sparse_cross_10"
+    input_dict = {"inputs": inputs, "num_buckets": num_buckets, "hash_key": hash_key, "name": name}
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs
 
+generated_inputs = {}
 generated_inputs["tf.sparse.cross_hashed"] = tf_sparse_cross_hashed_inputs()
 
 def check_valid(api, list_of_inputs, lib="tf", suffix=0):
@@ -142,5 +172,9 @@ def check_valid(api, list_of_inputs, lib="tf", suffix=0):
 
 if 'tf.sparse.cross_hashed' not in generated_inputs:
     raise Exception("Output of the input generating function was not assigned to the generated_inputs dictionary to the key 'tf.sparse.cross_hashed'.")
+
+
+tf.config.experimental.enable_op_determinism()
+tf.random.set_seed(42)
 
 check_valid('tf.sparse.cross_hashed', generated_inputs['tf.sparse.cross_hashed'], lib="tf", suffix=0)

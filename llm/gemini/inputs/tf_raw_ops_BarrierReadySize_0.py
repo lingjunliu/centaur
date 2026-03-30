@@ -4,67 +4,72 @@ from generator.input_generators import get_abstract_input
 
 generated_inputs = dict()
 
+import tensorflow as tf
 import numpy as np
 import copy
 
-def tf_raw_ops_BarrierReadySize_inputs():
-    """
-    Generates a list of valid inputs for the tf.raw_ops.BarrierReadySize function.
-    
-    NOTE: This operation is not compatible with eager execution and is expected to
-    raise a RuntimeError when called in that context. The provided inputs are
-    syntactically correct based on the API signature.
-    """
+def tf_raw_ops_barrier_ready_size_inputs():
     list_of_inputs = []
 
-    # The 'handle' is a scalar string tensor. We use dtype=np.object_ to ensure
-    # compatibility with the testing framework's supported dtypes.
+    # Input 1
+    handle = tf.constant("barrier_handle_1", dtype=tf.string)
+    input_dict = {"handle": handle, "name": "barrier_ready_size_op_1"}
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 1: Basic case with a simple handle and name.
-    input_dict_1 = {
-        'handle': np.array("barrier_handle_1", dtype=np.object_),
-        'name': 'test_case_1'
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict_1))
+    # Input 2
+    handle = tf.constant("barrier_handle_2", dtype=tf.string)
+    input_dict = {"handle": handle, "name": None}
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 2: No optional name provided.
-    input_dict_2 = {
-        'handle': np.array("barrier_handle_2", dtype=np.object_),
-        'name': None
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict_2))
+    # Input 3
+    handle = tf.constant("another_barrier", dtype=tf.string)
+    input_dict = {"handle": handle, "name": "specific_name"}
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 3: Handle with numbers and special characters.
-    input_dict_3 = {
-        'handle': np.array("barrier-123_xyz", dtype=np.object_),
-        'name': 'special_handle_name'
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict_3))
+    # Input 4
+    handle = tf.constant("yet_another_barrier", dtype=tf.string)
+    input_dict = {"handle": handle, "name": None}
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 4: Empty string as handle.
-    input_dict_4 = {
-        'handle': np.array("", dtype=np.object_),
-        'name': 'empty_handle'
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict_4))
+    # Input 5
+    handle = tf.constant("barrier5", dtype=tf.string)
+    input_dict = {"handle": handle, "name": "b5"}
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 5: Empty string for the optional name.
-    input_dict_5 = {
-        'handle': np.array("another_handle_for_testing", dtype=np.object_),
-        'name': ''
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict_5))
-    
-    # Input 6: A handle that looks like a path.
-    input_dict_6 = {
-        'handle': np.array("/tmp/barrier/resource/0", dtype=np.object_),
-        'name': 'path_like_handle'
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict_6))
+    # Input 6
+    handle = tf.constant("barrier6", dtype=tf.string)
+    input_dict = {"handle": handle, "name": None}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 7
+    handle = tf.constant("long_barrier_name_7", dtype=tf.string)
+    input_dict = {"handle": handle, "name": "long_name"}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 8
+    handle = tf.constant("barrier_8", dtype=tf.string)
+    input_dict = {"handle": handle, "name": None}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 9
+    handle = tf.constant("a9", dtype=tf.string)
+    input_dict = {"handle": handle, "name": "a9"}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 10
+    handle = tf.constant("b10", dtype=tf.string)
+    input_dict = {"handle": handle, "name": None}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 11
+    handle = tf.constant("barrier11", dtype=tf.string)
+    input_dict = {"handle": handle, "name": "test"}
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs
 
-generated_inputs["tf.raw_ops.BarrierReadySize"] = tf_raw_ops_BarrierReadySize_inputs()
+generated_inputs = {}
+generated_inputs["tf.raw_ops.BarrierReadySize"] = tf_raw_ops_barrier_ready_size_inputs()
 
 def check_valid(api, list_of_inputs, lib="tf", suffix=0):
     for idx, input_dict in enumerate(list_of_inputs):
@@ -78,5 +83,9 @@ def check_valid(api, list_of_inputs, lib="tf", suffix=0):
 
 if 'tf.raw_ops.BarrierReadySize' not in generated_inputs:
     raise Exception("Output of the input generating function was not assigned to the generated_inputs dictionary to the key 'tf.raw_ops.BarrierReadySize'.")
+
+
+tf.config.experimental.enable_op_determinism()
+tf.random.set_seed(42)
 
 check_valid('tf.raw_ops.BarrierReadySize', generated_inputs['tf.raw_ops.BarrierReadySize'], lib="tf", suffix=0)

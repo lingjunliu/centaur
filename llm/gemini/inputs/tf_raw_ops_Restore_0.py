@@ -7,89 +7,176 @@ generated_inputs = dict()
 import tensorflow as tf
 import numpy as np
 import copy
-import os
-import shutil
 
-def get_tf_raw_ops_restore_inputs():
-    """
-    Generates valid inputs for tf.raw_ops.Restore.
-    This involves creating physical checkpoint files on disk for the op to read.
-    """
+tf.config.experimental.enable_op_determinism()
+tf.random.set_seed(42)
 
-    # Helper to create a V1 checkpoint, which is what tf.raw_ops.Restore expects.
-    def _create_v1_checkpoint(path_prefix, tensor_name, tensor_value):
-        # Use a new graph and session for each save to ensure statelessness.
-        graph = tf.Graph()
-        with graph.as_default():
-            # The name of the tf.Variable becomes the tensor_name in the checkpoint.
-            var = tf.Variable(initial_value=tensor_value, name=tensor_name)
-            # Saver needs to know which variable to save under which name.
-            saver = tf.compat.v1.train.Saver({tensor_name: var})
-            with tf.compat.v1.Session() as sess:
-                # Initialize the variable before saving.
-                sess.run(tf.compat.v1.global_variables_initializer())
-                # The save op returns the full path to the checkpoint prefix.
-                saved_path = saver.save(sess, path_prefix, write_meta_graph=False)
-        return saved_path
-
-    # Use a local directory in the current working directory for the checkpoints.
-    # This avoids potential issues with temporary directories being cleaned up
-    # by the OS or test harness between input generation and execution.
-    ckpt_dir = "tf_restore_op_checkpoints"
-    
-    # Always start with a clean directory.
-    if os.path.exists(ckpt_dir):
-        shutil.rmtree(ckpt_dir)
-    os.makedirs(ckpt_dir)
-    
-    # Use absolute paths to be robust against CWD changes.
-    abs_ckpt_dir = os.path.abspath(ckpt_dir)
-
-    test_cases = [
-        # (name_suffix, numpy_value, preferred_shard)
-        ("f32", np.array([1.0, 2.0], dtype=np.float32), -1),
-        ("i32", np.array([[1, 2], [3, 4]], dtype=np.int32), 0),
-        ("f64", np.array([3.14], dtype=np.float64), -1),
-        ("b", np.array(True, dtype=np.bool_), 1),
-        ("c64", np.array([1+2j], dtype=np.complex64), -1),
-        ("i64", np.array([2**40], dtype=np.int64), -1),
-        ("u8", np.array([0, 255], dtype=np.uint8), -1),
-        ("f16", np.array([0.5, -0.5], dtype=np.float16), -1),
-        ("s", np.array([b"abc", b"def"]), -1),
-        ("i16", np.array([-100, 100], dtype=np.int16), -1),
-    ]
-
+def tf_raw_ops_restore_inputs():
     list_of_inputs = []
-    for i, (name_suffix, value, shard) in enumerate(test_cases):
-        tensor_name = f"var_{name_suffix}"
-        path_prefix = os.path.join(abs_ckpt_dir, f"model_{i}.ckpt")
-        
-        try:
-            # Create the actual checkpoint files on disk.
-            saved_path = _create_v1_checkpoint(path_prefix, tensor_name, value)
 
-            # TF's 'string' type corresponds to multiple numpy types.
-            dt_val = value.dtype
-            if dt_val.type in (np.bytes_, np.object_, np.string_):
-                dt_val = np.string_
+    # Input 1
+    file_pattern = "checkpoint_file"
+    tensor_name = "tensor_0"
+    dt = np.float32
+    preferred_shard = -1
+    name = "restore_op_1"
 
-            # Construct the input dictionary for the op.
-            input_dict = {
-                'file_pattern': np.array([saved_path], dtype=object),
-                'tensor_name': np.array([tensor_name], dtype=object),
-                'dt': dt_val,
-                'preferred_shard': shard,
-                'name': f'restore_{tensor_name}'
-            }
-            list_of_inputs.append(copy.deepcopy(input_dict))
+    input_dict = {
+        "file_pattern": tf.constant(file_pattern),
+        "tensor_name": tf.constant(tensor_name),
+        "dt": dt,
+        "preferred_shard": preferred_shard,
+        "name": name
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-        except Exception:
-            # If a specific checkpoint fails to be created, skip it.
-            continue
-            
+    # Input 2
+    file_pattern = "checkpoint_*"
+    tensor_name = "tensor_1"
+    dt = np.int32
+    preferred_shard = 0
+    name = "restore_op_2"
+
+    input_dict = {
+        "file_pattern": tf.constant(file_pattern),
+        "tensor_name": tf.constant(tensor_name),
+        "dt": dt,
+        "preferred_shard": preferred_shard,
+        "name": name
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 3
+    file_pattern = "checkpoint_?.data"
+    tensor_name = "tensor_2"
+    dt = np.int64
+    preferred_shard = 1
+    name = "restore_op_3"
+
+    input_dict = {
+        "file_pattern": tf.constant(file_pattern),
+        "tensor_name": tf.constant(tensor_name),
+        "dt": dt,
+        "preferred_shard": preferred_shard,
+        "name": name
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 4
+    file_pattern = "data-*"
+    tensor_name = "tensor_3"
+    dt = np.float64
+    preferred_shard = 2
+    name = "restore_op_4"
+
+    input_dict = {
+        "file_pattern": tf.constant(file_pattern),
+        "tensor_name": tf.constant(tensor_name),
+        "dt": dt,
+        "preferred_shard": preferred_shard,
+        "name": name
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+   # Input 5
+    file_pattern = "my_model.ckpt"
+    tensor_name = "dense/kernel"
+    dt = np.float16
+    preferred_shard = -1
+    name = "restore_op_5"
+
+    input_dict = {
+        "file_pattern": tf.constant(file_pattern),
+        "tensor_name": tf.constant(tensor_name),
+        "dt": dt,
+        "preferred_shard": preferred_shard,
+        "name": name
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 6
+    file_pattern = "model.ckpt-1000"
+    tensor_name = "layer1/bias"
+    dt = np.bool_
+    preferred_shard = 0
+    name = "restore_op_6"
+
+    input_dict = {
+        "file_pattern": tf.constant(file_pattern),
+        "tensor_name": tf.constant(tensor_name),
+        "dt": dt,
+        "preferred_shard": preferred_shard,
+        "name": name
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 7
+    file_pattern = "training_checkpoints/ckpt-5"
+    tensor_name = "optimizer/beta1_power"
+    dt = np.complex64
+    preferred_shard = -1
+    name = "restore_op_7"
+
+    input_dict = {
+        "file_pattern": tf.constant(file_pattern),
+        "tensor_name": tf.constant(tensor_name),
+        "dt": dt,
+        "preferred_shard": preferred_shard,
+        "name": name
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+   # Input 8
+    file_pattern = "variables/variables"
+    tensor_name = "embedding/embeddings"
+    dt = np.complex128
+    preferred_shard = 1
+    name = "restore_op_8"
+
+    input_dict = {
+        "file_pattern": tf.constant(file_pattern),
+        "tensor_name": tf.constant(tensor_name),
+        "dt": dt,
+        "preferred_shard": preferred_shard,
+        "name": name
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 9
+    file_pattern = "best_model.data-00000-of-00001"
+    tensor_name = "global_step"
+    dt = np.int8
+    preferred_shard = -1
+    name = "restore_op_9"
+
+    input_dict = {
+        "file_pattern": tf.constant(file_pattern),
+        "tensor_name": tf.constant(tensor_name),
+        "dt": dt,
+        "preferred_shard": preferred_shard,
+        "name": name
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 10
+    file_pattern = "model_snapshot"
+    tensor_name = "moving_average/decay"
+    dt = np.uint8
+    preferred_shard = 0
+    name = "restore_op_10"
+
+    input_dict = {
+        "file_pattern": tf.constant(file_pattern),
+        "tensor_name": tf.constant(tensor_name),
+        "dt": dt,
+        "preferred_shard": preferred_shard,
+        "name": name
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
     return list_of_inputs
 
-generated_inputs["tf.raw_ops.Restore"] = get_tf_raw_ops_restore_inputs()
+generated_inputs["tf.raw_ops.Restore"] = tf_raw_ops_restore_inputs()
 
 def check_valid(api, list_of_inputs, lib="tf", suffix=0):
     for idx, input_dict in enumerate(list_of_inputs):
@@ -103,5 +190,9 @@ def check_valid(api, list_of_inputs, lib="tf", suffix=0):
 
 if 'tf.raw_ops.Restore' not in generated_inputs:
     raise Exception("Output of the input generating function was not assigned to the generated_inputs dictionary to the key 'tf.raw_ops.Restore'.")
+
+
+tf.config.experimental.enable_op_determinism()
+tf.random.set_seed(42)
 
 check_valid('tf.raw_ops.Restore', generated_inputs['tf.raw_ops.Restore'], lib="tf", suffix=0)

@@ -4,148 +4,187 @@ from generator.input_generators import get_abstract_input
 
 generated_inputs = dict()
 
+import tensorflow as tf
 import numpy as np
 import copy
 
 def tf_queue_RandomShuffleQueue_inputs():
-    """
-    Generates a list of valid inputs for the tf.queue.RandomShuffleQueue function.
-    """
     list_of_inputs = []
 
-    # Input 1: Basic case with a single float tensor type.
-    input_dict_1 = {
-        'capacity': 100,
-        'min_after_dequeue': 10,
-        'dtypes': [np.float32],
-        'shapes': [[10, 2]],
-        'names': [1],
-        'seed': 1,
-        'shared_name': 'q1',
-        'name': 'basic_queue'
+    # Input 1
+    input_dict = {
+        "capacity": 10,
+        "min_after_dequeue": 5,
+        "dtypes": [np.int32],
+        "shapes": [(2, 2)],
+        "names": ['a'],
+        "seed": 123,
+        "shared_name": "queue1",
+        "name": "random_queue_1"
     }
-    list_of_inputs.append(copy.deepcopy(input_dict_1))
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 2: Multiple data types. names is a list of integers.
-    input_dict_2 = {
-        'capacity': 50,
-        'min_after_dequeue': 20,
-        'dtypes': [np.int64, np.string_],
-        'shapes': [[5], []],
-        'names': [10, 20],
-        'seed': 2,
-        'shared_name': 'q2',
-        'name': 'multi_dtype_queue'
+    # Input 2
+    input_dict = {
+        "capacity": 20,
+        "min_after_dequeue": 10,
+        "dtypes": [np.float32, np.int64],
+        "shapes": [(3, 3), ()],
+        "names": ['b', 'c'],
+        "seed": 456,
+        "shared_name": "queue2",
+        "name": "random_queue_2"
     }
-    list_of_inputs.append(copy.deepcopy(input_dict_2))
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 3: Scalar string.
-    input_dict_3 = {
-        'capacity': 25,
-        'min_after_dequeue': 5,
-        'dtypes': [np.string_],
-        'shapes': [[]],
-        'names': [3],
-        'seed': 3,
-        'shared_name': 'q3',
-        'name': 'string_queue'
+    # Input 3
+    input_dict = {
+        "capacity": 5,
+        "min_after_dequeue": 2,
+        "dtypes": [tf.string],
+        "shapes": [(1,)],
+        "names": ['d'],
+        "seed": 789,
+        "shared_name": "queue3",
+        "name": "random_queue_3"
     }
-    list_of_inputs.append(copy.deepcopy(input_dict_3))
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 4: Double-precision float.
-    input_dict_4 = {
-        'capacity': 20,
-        'min_after_dequeue': 5,
-        'dtypes': [np.float64],
-        'shapes': [[1, 3, 4]],
-        'names': [4],
-        'seed': 4,
-        'shared_name': 'q4',
-        'name': 'double_queue'
+    # Input 4
+    input_dict = {
+        "capacity": 15,
+        "min_after_dequeue": 7,
+        "dtypes": [np.bool_],
+        "shapes": [(4, 4, 4)],
+        "names": ['e'],
+        "seed": 101,
+        "shared_name": "queue4",
+        "name": "random_queue_4"
     }
-    list_of_inputs.append(copy.deepcopy(input_dict_4))
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 5: Scalar int32.
-    input_dict_5 = {
-        'capacity': 30,
-        'min_after_dequeue': 15,
-        'dtypes': [np.int32],
-        'shapes': [[]],
-        'names': [5],
-        'seed': 5,
-        'shared_name': 'q5',
-        'name': 'scalar_int_queue'
+    # Input 5
+    input_dict = {
+        "capacity": 8,
+        "min_after_dequeue": 3,
+        "dtypes": [np.int8, np.float64, tf.string],
+        "shapes": [(), (2,), (1, 1)],
+        "names": ['f', 'g', 'h'],
+        "seed": 202,
+        "shared_name": "queue5",
+        "name": "random_queue_5"
     }
-    list_of_inputs.append(copy.deepcopy(input_dict_5))
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 6: Image-like uint8 tensor. min_after_dequeue is 0.
-    input_dict_6 = {
-        'capacity': 100,
-        'min_after_dequeue': 0,
-        'dtypes': [np.uint8],
-        'shapes': [[28, 28, 3]],
-        'names': [6],
-        'seed': 42,
-        'shared_name': 'q6',
-        'name': 'seeded_image_queue'
+    # Input 6
+    input_dict = {
+        "capacity": 12,
+        "min_after_dequeue": 6,
+        "dtypes": [np.uint16],
+        "shapes": [(5,)],
+        "names": ['i'],
+        "seed": 303,
+        "shared_name": "queue6",
+        "name": "random_queue_6"
     }
-    list_of_inputs.append(copy.deepcopy(input_dict_6))
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 7: Large capacity int16 vector.
-    input_dict_7 = {
-        'capacity': 2000,
-        'min_after_dequeue': 1000,
-        'dtypes': [np.int16],
-        'shapes': [[128]],
-        'names': [7],
-        'seed': 7,
-        'shared_name': 'global_feature_queue',
-        'name': 'large_cap_queue'
+    # Input 7
+    input_dict = {
+        "capacity": 30,
+        "min_after_dequeue": 15,
+        "dtypes": [np.complex64],
+        "shapes": [(6, 6)],
+        "names": ['j'],
+        "seed": 404,
+        "shared_name": "queue7",
+        "name": "random_queue_7"
     }
-    list_of_inputs.append(copy.deepcopy(input_dict_7))
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 8: Multiple components with bool and complex types.
-    input_dict_8 = {
-        'capacity': 500,
-        'min_after_dequeue': 100,
-        'dtypes': [np.bool_, np.complex64],
-        'shapes': [[], [2, 2]],
-        'names': [81, 82],
-        'seed': -99,
-        'shared_name': 'multi_comp_shared_queue',
-        'name': 'boolean_complex_queue'
+    # Input 8
+    input_dict = {
+        "capacity": 7,
+        "min_after_dequeue": 1,
+        "dtypes": [np.int16],
+        "shapes": [(7, 7, 7, 7)],
+        "names": ['k'],
+        "seed": 505,
+        "shared_name": "queue8",
+        "name": "random_queue_8"
     }
-    list_of_inputs.append(copy.deepcopy(input_dict_8))
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 9: Complex number matrix.
-    input_dict_9 = {
-        'capacity': 2,
-        'min_after_dequeue': 1,
-        'dtypes': [np.complex128],
-        'shapes': [[2, 2]],
-        'names': [9],
-        'seed': 9,
-        'shared_name': 'q9',
-        'name': 'minimal_complex_queue'
+    # Input 9
+    input_dict = {
+        "capacity": 25,
+        "min_after_dequeue": 12,
+        "dtypes": [np.float16, np.int32],
+        "shapes": [(), ()],
+        "names": ['l', 'm'],
+        "seed": 606,
+        "shared_name": "queue9",
+        "name": "random_queue_9"
     }
-    list_of_inputs.append(copy.deepcopy(input_dict_9))
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 10: High-rank float16 tensor.
-    input_dict_10 = {
-        'capacity': 10000,
-        'min_after_dequeue': 5000,
-        'dtypes': [np.float16],
-        'shapes': [[2, 3, 4, 5, 6]],
-        'names': [10],
-        'seed': 2023,
-        'shared_name': 'q10',
-        'name': 'high_rank_queue'
+    # Input 10
+    input_dict = {
+        "capacity": 3,
+        "min_after_dequeue": 1,
+        "dtypes": [np.uint32],
+        "shapes": [(8,)],
+        "names": ['n'],
+        "seed": 707,
+        "shared_name": "queue10",
+        "name": "random_queue_10"
     }
-    list_of_inputs.append(copy.deepcopy(input_dict_10))
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs
 
+generated_inputs = {}
 generated_inputs["tf.queue.RandomShuffleQueue"] = tf_queue_RandomShuffleQueue_inputs()
+
+def check_valid(api, inputs, lib="tf", suffix=0):
+    import inspect
+    api_func = eval(api)
+    sig = inspect.signature(api_func)
+    parameters = sig.parameters
+    anno = {}
+    for param in parameters:
+        anno[param] = str(parameters[param].annotation)
+    return anno
+
+    def get_ll(domain, value):
+        import numpy as np
+        if type(value) == str:
+            return f'"{value}"'
+        if type(value) == bool:
+            return "True" if value else "False"
+        if type(value) == int or type(value) == np.int32 or type(value) == np.int64:
+            return str(value)
+        if type(value) == float or type(value) == np.float32 or type(value) == np.float64:
+            return str(value)
+        if value is tf.string:
+            return "tf.string"
+        if type(value) == list:
+            return "[" + ",".join([get_ll(domain, i) for i in value]) + "]"
+        if type(value) == tuple:
+            return "[" + ",".join([get_ll(domain, i) for i in value]) + "]"
+        if type(value) == np.dtype:
+            return "np." + str(value)
+        return "None"
+
+    def get_abstract_input(concrete, signature):
+        abstract = {}
+        for arg in signature:
+            domain = signature[arg]
+            if arg not in concrete:
+                continue
+            value = concrete[arg]
+            abstract[arg] = get_ll(domain, value)
+        return abstract
 
 def check_valid(api, list_of_inputs, lib="tf", suffix=0):
     for idx, input_dict in enumerate(list_of_inputs):
@@ -159,5 +198,9 @@ def check_valid(api, list_of_inputs, lib="tf", suffix=0):
 
 if 'tf.queue.RandomShuffleQueue' not in generated_inputs:
     raise Exception("Output of the input generating function was not assigned to the generated_inputs dictionary to the key 'tf.queue.RandomShuffleQueue'.")
+
+
+tf.config.experimental.enable_op_determinism()
+tf.random.set_seed(42)
 
 check_valid('tf.queue.RandomShuffleQueue', generated_inputs['tf.queue.RandomShuffleQueue'], lib="tf", suffix=0)

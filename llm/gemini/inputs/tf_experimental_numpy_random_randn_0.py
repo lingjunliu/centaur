@@ -5,81 +5,58 @@ from generator.input_generators import get_abstract_input
 generated_inputs = dict()
 
 import tensorflow as tf
-import numpy as np
 import copy
+import numpy as np
+
+tf.config.experimental.enable_op_determinism()
+tf.random.set_seed(42)
 
 def tf_experimental_numpy_random_randn_inputs():
     list_of_inputs = []
 
-    # The error "shape must be a vector ..., got shape [1,N]" suggests
-    # the execution environment incorrectly handles variadic arguments (*args).
-    # Instead of calling `randn(d1, d2)`, it likely calls `randn((d1, d2))`,
-    # which causes TensorFlow to interpret the shape as a 2D tensor, failing the check.
-    # The only input that would not trigger this is `()`, but the prompt requires more.
-    # The following inputs are correct according to the API documentation.
-
-    # Input 1: Standard 2D shape
-    input_dict = {
-        'args': (3, 4)
-    }
+    # Input 1: Empty shape
+    input_dict = {"args": ()}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 2: 1D shape
-    input_dict = {
-        'args': (8,)
-    }
+    # Input 2: Single integer
+    input_dict = {"args": (np.int64(5),)}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 3: Standard 3D shape
-    input_dict = {
-        'args': (2, 3, 2)
-    }
+    # Input 3: Two integers
+    input_dict = {"args": (np.int64(2), np.int64(3))}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 4: Scalar output
-    input_dict = {
-        'args': ()
-    }
+    # Input 4: Three integers
+    input_dict = {"args": (np.int64(2), np.int64(3), np.int64(4))}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 5: Higher 4D shape
-    input_dict = {
-        'args': (1, 4, 1, 3)
-    }
+    # Input 5: Shape with 1
+    input_dict = {"args": (np.int64(1),)}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 6: Shape with a dimension of 1
-    input_dict = {
-        'args': (1, 9)
-    }
+    # Input 6: Larger shape
+    input_dict = {"args": (np.int64(10), np.int64(10))}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 7: Shape with a dimension of 0
-    input_dict = {
-        'args': (0, 5)
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 8: Larger 1D shape
-    input_dict = {
-        'args': (64,)
-    }
+    # Input 7: Shape with zero
+    input_dict = {"args": (np.int64(0),)}
     list_of_inputs.append(copy.deepcopy(input_dict))
     
-    # Input 9: A different 3D shape
-    input_dict = {
-        'args': (4, 4, 4)
-    }
+    # Input 8: Shape with a mix of large and small values
+    input_dict = {"args": (np.int64(100), np.int64(1), np.int64(5))}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 10: A different 2D shape
-    input_dict = {
-        'args': (6, 5)
-    }
+    # Input 9: Shape with a very large number
+    input_dict = {"args": (np.int64(1000),)}
     list_of_inputs.append(copy.deepcopy(input_dict))
-    
+
+    # Input 10: Higher dimension shape
+    input_dict = {"args": (np.int64(2), np.int64(2), np.int64(2), np.int64(2))}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
     return list_of_inputs
 
+generated_inputs = {}
 generated_inputs["tf.experimental.numpy.random.randn"] = tf_experimental_numpy_random_randn_inputs()
 
 def check_valid(api, list_of_inputs, lib="tf", suffix=0):
@@ -94,5 +71,9 @@ def check_valid(api, list_of_inputs, lib="tf", suffix=0):
 
 if 'tf.experimental.numpy.random.randn' not in generated_inputs:
     raise Exception("Output of the input generating function was not assigned to the generated_inputs dictionary to the key 'tf.experimental.numpy.random.randn'.")
+
+
+tf.config.experimental.enable_op_determinism()
+tf.random.set_seed(42)
 
 check_valid('tf.experimental.numpy.random.randn', generated_inputs['tf.experimental.numpy.random.randn'], lib="tf", suffix=0)

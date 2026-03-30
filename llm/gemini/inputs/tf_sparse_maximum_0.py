@@ -8,93 +8,152 @@ import tensorflow as tf
 import numpy as np
 import copy
 
+tf.config.experimental.enable_op_determinism()
+tf.random.set_seed(42)
+
 def tf_sparse_maximum_inputs():
-    """
-    Generates a list of valid inputs for the tf.sparse.maximum function.
-    The inputs are provided as dense numpy arrays, which have the .size attribute,
-    to resolve the issue with the execution framework's pre-check.
-    The framework is expected to handle the conversion to SparseTensors if needed.
-    """
     list_of_inputs = []
 
-    def to_dense(indices, values, shape, dtype):
-        dense = np.zeros(shape, dtype=dtype)
-        if indices.shape[0] > 0:
-            dense[tuple(indices.T)] = values
-        return dense
+    # Input 1
+    indices_a = np.array([[0], [2]])
+    values_a = np.array([1, 5], dtype=np.int32)
+    dense_shape_a = np.array([5])
+    sp_a = tf.sparse.SparseTensor(indices_a, values_a, dense_shape_a)
 
-    # Case 1: Basic 1D Tensors with overlapping indices
-    shape1 = (5,)
-    dtype1 = np.int32
-    sp_a_1 = to_dense(np.array([[1], [3]]), np.array([10, 30], dtype=dtype1), shape1, dtype1)
-    sp_b_1 = to_dense(np.array([[1], [4]]), np.array([20, 40], dtype=dtype1), shape1, dtype1)
-    list_of_inputs.append(copy.deepcopy({'sp_a': sp_a_1, 'sp_b': sp_b_1, 'name': 'basic_1d'}))
+    indices_b = np.array([[1], [2]])
+    values_b = np.array([2, 3], dtype=np.int32)
+    dense_shape_b = np.array([5])
+    sp_b = tf.sparse.SparseTensor(indices_b, values_b, dense_shape_b)
 
-    # Case 2: Basic 2D Tensors
-    shape2 = (3, 4)
-    dtype2 = np.int32
-    sp_a_2 = to_dense(np.array([[0, 1], [1, 2]]), np.array([1, 2], dtype=dtype2), shape2, dtype2)
-    sp_b_2 = to_dense(np.array([[0, 1], [2, 0]]), np.array([3, 4], dtype=dtype2), shape2, dtype2)
-    list_of_inputs.append(copy.deepcopy({'sp_a': sp_a_2, 'sp_b': sp_b_2, 'name': 'basic_2d'}))
+    input_dict = {"sp_a": sp_a, "sp_b": sp_b, "name": "sparse_max_1"}
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Case 3: Negative values
-    shape3 = (4,)
-    dtype3 = np.int32
-    sp_a_3 = to_dense(np.array([[0], [2]]), np.array([-5, 5], dtype=dtype3), shape3, dtype3)
-    sp_b_3 = to_dense(np.array([[0], [1]]), np.array([-10, -2], dtype=dtype3), shape3, dtype3)
-    list_of_inputs.append(copy.deepcopy({'sp_a': sp_a_3, 'sp_b': sp_b_3, 'name': 'negative_values'}))
+    # Input 2
+    indices_a = np.array([[0, 0], [0, 1]])
+    values_a = np.array([1, 2], dtype=np.int32)
+    dense_shape_a = np.array([2, 2])
+    sp_a = tf.sparse.SparseTensor(indices_a, values_a, dense_shape_a)
 
-    # Case 4: Float dtype
-    shape4 = (2, 2)
-    dtype4 = np.float32
-    sp_a_4 = to_dense(np.array([[0, 0], [1, 1]]), np.array([1.5, -2.5], dtype=dtype4), shape4, dtype4)
-    sp_b_4 = to_dense(np.array([[0, 0], [0, 1]]), np.array([-1.0, 3.5], dtype=dtype4), shape4, dtype4)
-    list_of_inputs.append(copy.deepcopy({'sp_a': sp_a_4, 'sp_b': sp_b_4, 'name': 'float_dtype'}))
+    indices_b = np.array([[0, 1], [1, 0]])
+    values_b = np.array([3, 4], dtype=np.int32)
+    dense_shape_b = np.array([2, 2])
+    sp_b = tf.sparse.SparseTensor(indices_b, values_b, dense_shape_b)
 
-    # Case 5: One tensor is empty
-    shape5 = (5,)
-    dtype5 = np.int32
-    sp_a_5 = to_dense(np.array([[0], [2]]), np.array([10, 20], dtype=dtype5), shape5, dtype5)
-    sp_b_5 = to_dense(np.empty((0, 1)), np.array([], dtype=dtype5), shape5, dtype5)
-    list_of_inputs.append(copy.deepcopy({'sp_a': sp_a_5, 'sp_b': sp_b_5, 'name': 'one_empty'}))
+    input_dict = {"sp_a": sp_a, "sp_b": sp_b, "name": "sparse_max_2"}
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Case 6: Both tensors are empty
-    shape6 = (3, 3)
-    dtype6 = np.int32
-    sp_a_6 = to_dense(np.empty((0, 2)), np.array([], dtype=dtype6), shape6, dtype6)
-    sp_b_6 = to_dense(np.empty((0, 2)), np.array([], dtype=dtype6), shape6, dtype6)
-    list_of_inputs.append(copy.deepcopy({'sp_a': sp_a_6, 'sp_b': sp_b_6, 'name': 'both_empty'}))
+    # Input 3
+    indices_a = np.array([[0], [1], [2]])
+    values_a = np.array([-1, -2, -3], dtype=np.int32)
+    dense_shape_a = np.array([5])
+    sp_a = tf.sparse.SparseTensor(indices_a, values_a, dense_shape_a)
 
-    # Case 7: Identical tensors
-    shape7 = (3, 3)
-    dtype7 = np.int32
-    sp_a_7 = to_dense(np.array([[0, 1], [2, 2]]), np.array([5, 9], dtype=dtype7), shape7, dtype7)
-    sp_b_7 = copy.deepcopy(sp_a_7)
-    list_of_inputs.append(copy.deepcopy({'sp_a': sp_a_7, 'sp_b': sp_b_7, 'name': 'identical_tensors'}))
+    indices_b = np.array([[0], [2], [3]])
+    values_b = np.array([-4, -5, -6], dtype=np.int32)
+    dense_shape_b = np.array([5])
+    sp_b = tf.sparse.SparseTensor(indices_b, values_b, dense_shape_b)
 
-    # Case 8: No overlapping indices
-    shape8 = (2, 2)
-    dtype8 = np.int32
-    sp_a_8 = to_dense(np.array([[0, 0], [1, 1]]), np.array([1, 2], dtype=dtype8), shape8, dtype8)
-    sp_b_8 = to_dense(np.array([[0, 1], [1, 0]]), np.array([3, 4], dtype=dtype8), shape8, dtype8)
-    list_of_inputs.append(copy.deepcopy({'sp_a': sp_a_8, 'sp_b': sp_b_8, 'name': 'no_overlap'}))
+    input_dict = {"sp_a": sp_a, "sp_b": sp_b, "name": "sparse_max_3"}
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Case 9: 3D tensors
-    shape9 = (2, 2, 2)
-    dtype9 = np.int32
-    sp_a_9 = to_dense(np.array([[0, 0, 1], [1, 1, 0]]), np.array([1, 2], dtype=dtype9), shape9, dtype9)
-    sp_b_9 = to_dense(np.array([[0, 0, 1], [1, 0, 1]]), np.array([3, 4], dtype=dtype9), shape9, dtype9)
-    list_of_inputs.append(copy.deepcopy({'sp_a': sp_a_9, 'sp_b': sp_b_9, 'name': '3d_tensors'}))
+    # Input 4
+    indices_a = np.array([[0, 0], [1, 1]])
+    values_a = np.array([1.5, 2.5], dtype=np.float32)
+    dense_shape_a = np.array([3, 3])
+    sp_a = tf.sparse.SparseTensor(indices_a, values_a, dense_shape_a)
 
-    # Case 10: Using float64 dtype
-    shape10 = (2, 2)
-    dtype10 = np.float64
-    sp_a_10 = to_dense(np.array([[0, 1]]), np.array([1e10], dtype=dtype10), shape10, dtype10)
-    sp_b_10 = to_dense(np.array([[0, 1]]), np.array([1e10 - 1], dtype=dtype10), shape10, dtype10)
-    list_of_inputs.append(copy.deepcopy({'sp_a': sp_a_10, 'sp_b': sp_b_10, 'name': 'float64_dtype'}))
+    indices_b = np.array([[0, 1], [1, 1], [2, 2]])
+    values_b = np.array([3.5, 0.5, 4.5], dtype=np.float32)
+    dense_shape_b = np.array([3, 3])
+    sp_b = tf.sparse.SparseTensor(indices_b, values_b, dense_shape_b)
+
+    input_dict = {"sp_a": sp_a, "sp_b": sp_b, "name": "sparse_max_4"}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 5
+    indices_a = np.array([[0, 0, 0], [0, 0, 1]])
+    values_a = np.array([1, 2], dtype=np.int32)
+    dense_shape_a = np.array([1, 1, 2])
+    sp_a = tf.sparse.SparseTensor(indices_a, values_a, dense_shape_a)
+
+    indices_b = np.array([[0, 0, 1]])
+    values_b = np.array([3], dtype=np.int32)
+    dense_shape_b = np.array([1, 1, 2])
+    sp_b = tf.sparse.SparseTensor(indices_b, values_b, dense_shape_b)
+
+    input_dict = {"sp_a": sp_a, "sp_b": sp_b, "name": "sparse_max_5"}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 6
+    indices_a = np.array([[0]])
+    values_a = np.array([1], dtype=np.int64)
+    dense_shape_a = np.array([1])
+    sp_a = tf.sparse.SparseTensor(indices_a, values_a, dense_shape_a)
+
+    indices_b = np.array([[0]])
+    values_b = np.array([2], dtype=np.int64)
+    dense_shape_b = np.array([1])
+    sp_b = tf.sparse.SparseTensor(indices_b, values_b, dense_shape_b)
+
+    input_dict = {"sp_a": sp_a, "sp_b": sp_b, "name": "sparse_max_6"}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 7
+    indices_a = np.array([[0, 0], [0, 1], [1, 0], [1, 1]])
+    values_a = np.array([1, 2, 3, 4], dtype=np.int32)
+    dense_shape_a = np.array([2, 2])
+    sp_a = tf.sparse.SparseTensor(indices_a, values_a, dense_shape_a)
+
+    indices_b = np.array([[0, 0], [0, 1], [1, 0], [1, 1]])
+    values_b = np.array([5, 6, 7, 8], dtype=np.int32)
+    dense_shape_b = np.array([2, 2])
+    sp_b = tf.sparse.SparseTensor(indices_b, values_b, dense_shape_b)
+    input_dict = {"sp_a": sp_a, "sp_b": sp_b, "name": "sparse_max_7"}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 8
+    indices_a = np.array([[0, 0], [1, 1]])
+    values_a = np.array([-1, -2], dtype=np.int32)
+    dense_shape_a = np.array([2, 2])
+    sp_a = tf.sparse.SparseTensor(indices_a, values_a, dense_shape_a)
+
+    indices_b = np.array([[0, 1], [1, 0]])
+    values_b = np.array([-3, -4], dtype=np.int32)
+    dense_shape_b = np.array([2, 2])
+    sp_b = tf.sparse.SparseTensor(indices_b, values_b, dense_shape_b)
+    input_dict = {"sp_a": sp_a, "sp_b": sp_b, "name": "sparse_max_8"}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 9
+    indices_a = np.array([[0], [1]])
+    values_a = np.array([1, 2], dtype=np.float64)
+    dense_shape_a = np.array([3])
+    sp_a = tf.sparse.SparseTensor(indices_a, values_a, dense_shape_a)
+
+    indices_b = np.array([[1], [2]])
+    values_b = np.array([3, 4], dtype=np.float64)
+    dense_shape_b = np.array([3])
+    sp_b = tf.sparse.SparseTensor(indices_b, values_b, dense_shape_b)
+    input_dict = {"sp_a": sp_a, "sp_b": sp_b, "name": "sparse_max_9"}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 10
+    indices_a = np.array([[0, 0], [0, 1]])
+    values_a = np.array([0, 0], dtype=np.int32)
+    dense_shape_a = np.array([1, 2])
+    sp_a = tf.sparse.SparseTensor(indices_a, values_a, dense_shape_a)
+
+    indices_b = np.array([[0, 0], [0, 1]])
+    values_b = np.array([0, 0], dtype=np.int32)
+    dense_shape_b = np.array([1, 2])
+    sp_b = tf.sparse.SparseTensor(indices_b, values_b, dense_shape_b)
+    input_dict = {"sp_a": sp_a, "sp_b": sp_b, "name": "sparse_max_10"}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
 
     return list_of_inputs
 
+generated_inputs = {}
 generated_inputs["tf.sparse.maximum"] = tf_sparse_maximum_inputs()
 
 def check_valid(api, list_of_inputs, lib="tf", suffix=0):
@@ -109,5 +168,9 @@ def check_valid(api, list_of_inputs, lib="tf", suffix=0):
 
 if 'tf.sparse.maximum' not in generated_inputs:
     raise Exception("Output of the input generating function was not assigned to the generated_inputs dictionary to the key 'tf.sparse.maximum'.")
+
+
+tf.config.experimental.enable_op_determinism()
+tf.random.set_seed(42)
 
 check_valid('tf.sparse.maximum', generated_inputs['tf.sparse.maximum'], lib="tf", suffix=0)

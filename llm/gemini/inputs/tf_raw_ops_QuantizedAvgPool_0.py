@@ -8,96 +8,206 @@ import tensorflow as tf
 import numpy as np
 import copy
 
-def tf_raw_ops_quantizedavgpool_inputs():
-    """
-    Generates a list of valid inputs for the tf.raw_ops.QuantizedAvgPool function.
-    """
+tf.config.experimental.enable_op_determinism()
+tf.random.set_seed(42)
+
+def tf_raw_ops_quantized_avg_pool_inputs():
     list_of_inputs = []
 
-    def generate_input_case(shape, dtype, min_float, max_float, ksize, strides, padding, name=None):
-        # This operation requires a tensor with a specific quantized dtype (e.g., tf.qint8),
-        # which cannot be represented by a standard NumPy array. The op will fail if given
-        # a standard integer array. Therefore, we must provide tf.Tensor objects directly.
-        float_input = tf.constant(np.random.uniform(min_float, max_float, size=shape), dtype=tf.float32)
-        
-        quantized_tensor, min_input_tensor, max_input_tensor = tf.quantization.quantize(
-            float_input, min_range=min_float, max_range=max_float, T=dtype, mode='MIN_FIRST'
-        )
+    # Input 1
+    input_tensor = np.array([[[[1, 2]], [[3, 4]]]], dtype=np.qint8)
+    min_input = np.array(-1.0, dtype=np.float32)
+    max_input = np.array(1.0, dtype=np.float32)
+    ksize = [1, 2, 2, 1]
+    strides = [1, 1, 1, 1]
+    padding = "VALID"
 
-        input_dict = {
-            'input': quantized_tensor,
-            'min_input': min_input_tensor,
-            'max_input': max_input_tensor,
-            'ksize': ksize,
-            'strides': strides,
-            'padding': padding,
-            'name': name
-        }
-        return input_dict
+    input_dict = {
+        "input": input_tensor,
+        "min_input": min_input,
+        "max_input": max_input,
+        "ksize": ksize,
+        "strides": strides,
+        "padding": padding,
+        "name": "quantized_avg_pool_1"
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 1: Basic case with qint8, VALID padding
-    list_of_inputs.append(copy.deepcopy(generate_input_case(
-        shape=(1, 4, 4, 1), dtype=tf.qint8, min_float=-10.0, max_float=10.0,
-        ksize=[1, 2, 2, 1], strides=[1, 2, 2, 1], padding='VALID', name='qint8_valid_padding'
-    )))
+    # Input 2
+    input_tensor = np.array([[[[1, 2, 3], [4, 5, 6]], [[7, 8, 9], [10, 11, 12]]]], dtype=np.quint8)
+    min_input = np.array(0.0, dtype=np.float32)
+    max_input = np.array(255.0, dtype=np.float32)
+    ksize = [1, 2, 3, 1]
+    strides = [1, 1, 1, 1]
+    padding = "VALID"
 
-    # Input 2: quint8, SAME padding, larger strides
-    list_of_inputs.append(copy.deepcopy(generate_input_case(
-        shape=(1, 5, 5, 3), dtype=tf.quint8, min_float=0.0, max_float=25.5,
-        ksize=[1, 3, 3, 1], strides=[1, 2, 2, 1], padding='SAME', name='quint8_same_padding'
-    )))
-    
-    # Input 3: qint16, non-square ksize
-    list_of_inputs.append(copy.deepcopy(generate_input_case(
-        shape=(1, 8, 6, 2), dtype=tf.qint16, min_float=-500.0, max_float=500.0,
-        ksize=[1, 3, 2, 1], strides=[1, 1, 1, 1], padding='VALID'
-    )))
+    input_dict = {
+        "input": input_tensor,
+        "min_input": min_input,
+        "max_input": max_input,
+        "ksize": ksize,
+        "strides": strides,
+        "padding": padding,
+        "name": "quantized_avg_pool_2"
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 4: quint16, larger batch size
-    list_of_inputs.append(copy.deepcopy(generate_input_case(
-        shape=(4, 6, 6, 1), dtype=tf.quint16, min_float=0.0, max_float=6553.5,
-        ksize=[1, 2, 2, 1], strides=[1, 2, 2, 1], padding='SAME'
-    )))
-    
-    # Input 5: qint32 case
-    list_of_inputs.append(copy.deepcopy(generate_input_case(
-        shape=(1, 10, 10, 1), dtype=tf.qint32, min_float=-10000.0, max_float=10000.0,
-        ksize=[1, 5, 5, 1], strides=[1, 5, 5, 1], padding='VALID', name='qint32_large_range'
-    )))
+    # Input 3
+    input_tensor = np.array([[[[1, 2], [3, 4]], [[5, 6], [7, 8]]]], dtype=np.qint32)
+    min_input = np.array(-100.0, dtype=np.float32)
+    max_input = np.array(100.0, dtype=np.float32)
+    ksize = [1, 1, 1, 1]
+    strides = [1, 1, 1, 1]
+    padding = "SAME"
 
-    # Input 6: Strides larger than ksize, SAME padding
-    list_of_inputs.append(copy.deepcopy(generate_input_case(
-        shape=(1, 7, 7, 1), dtype=tf.qint8, min_float=-1.0, max_float=1.0,
-        ksize=[1, 2, 2, 1], strides=[1, 3, 3, 1], padding='SAME'
-    )))
+    input_dict = {
+        "input": input_tensor,
+        "min_input": min_input,
+        "max_input": max_input,
+        "ksize": ksize,
+        "strides": strides,
+        "padding": padding,
+        "name": "quantized_avg_pool_3"
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 7: Identity-like pooling (ksize=1, strides=1)
-    list_of_inputs.append(copy.deepcopy(generate_input_case(
-        shape=(2, 3, 3, 4), dtype=tf.quint8, min_float=0.0, max_float=128.0,
-        ksize=[1, 1, 1, 1], strides=[1, 1, 1, 1], padding='VALID', name='identity_pooling'
-    )))
+    # Input 4
+    input_tensor = np.array([[[[1, 2], [3, 4]], [[5, 6], [7, 8]]]], dtype=np.qint16)
+    min_input = np.array(-50.0, dtype=np.float32)
+    max_input = np.array(50.0, dtype=np.float32)
+    ksize = [1, 2, 2, 1]
+    strides = [1, 2, 2, 1]
+    padding = "SAME"
 
-    # Input 8: Global average pooling simulation (ksize matches input H/W)
-    list_of_inputs.append(copy.deepcopy(generate_input_case(
-        shape=(1, 8, 8, 16), dtype=tf.qint16, min_float=-256.0, max_float=256.0,
-        ksize=[1, 8, 8, 1], strides=[1, 1, 1, 1], padding='VALID', name='global_avg_pool'
-    )))
-    
-    # Input 9: Non-uniform strides
-    list_of_inputs.append(copy.deepcopy(generate_input_case(
-        shape=(1, 10, 5, 1), dtype=tf.qint8, min_float=-5.0, max_float=5.0,
-        ksize=[1, 2, 2, 1], strides=[1, 3, 1, 1], padding='SAME', name='non_uniform_strides'
-    )))
+    input_dict = {
+        "input": input_tensor,
+        "min_input": min_input,
+        "max_input": max_input,
+        "ksize": ksize,
+        "strides": strides,
+        "padding": padding,
+        "name": "quantized_avg_pool_4"
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 10: Input shape where SAME padding adds padding
-    list_of_inputs.append(copy.deepcopy(generate_input_case(
-        shape=(1, 5, 5, 1), dtype=tf.quint8, min_float=0.0, max_float=100.0,
-        ksize=[1, 2, 2, 1], strides=[1, 2, 2, 1], padding='SAME', name='same_padding_effect'
-    )))
+    # Input 5
+    input_tensor = np.array([[[[1, 2], [3, 4]], [[5, 6], [7, 8]]]], dtype=np.quint16)
+    min_input = np.array(0.0, dtype=np.float32)
+    max_input = np.array(1000.0, dtype=np.float32)
+    ksize = [1, 1, 1, 1]
+    strides = [1, 1, 1, 1]
+    padding = "VALID"
+
+    input_dict = {
+        "input": input_tensor,
+        "min_input": min_input,
+        "max_input": max_input,
+        "ksize": ksize,
+        "strides": strides,
+        "padding": padding,
+        "name": "quantized_avg_pool_5"
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 6: different batch size
+    input_tensor = np.array([[[[1, 2]], [[3, 4]]], [[[5, 6]], [[7, 8]]]], dtype=np.qint8)
+    min_input = np.array(-20.0, dtype=np.float32)
+    max_input = np.array(20.0, dtype=np.float32)
+    ksize = [1, 2, 2, 1]
+    strides = [1, 1, 1, 1]
+    padding = "VALID"
+
+    input_dict = {
+        "input": input_tensor,
+        "min_input": min_input,
+        "max_input": max_input,
+        "ksize": ksize,
+        "strides": strides,
+        "padding": padding,
+        "name": "quantized_avg_pool_6"
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 7
+    input_tensor = np.array([[[[1, 2, 3], [4, 5, 6]], [[7, 8, 9], [10, 11, 12]]]], dtype=np.qint32)
+    min_input = np.array(-1000.0, dtype=np.float32)
+    max_input = np.array(1000.0, dtype=np.float32)
+    ksize = [1, 1, 1, 1]
+    strides = [1, 1, 1, 1]
+    padding = "SAME"
+
+    input_dict = {
+        "input": input_tensor,
+        "min_input": min_input,
+        "max_input": max_input,
+        "ksize": ksize,
+        "strides": strides,
+        "padding": padding,
+        "name": "quantized_avg_pool_7"
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+     # Input 8
+    input_tensor = np.array([[[[1, 2]], [[3, 4]]], [[[5, 6]], [[7, 8]]]], dtype=np.quint8)
+    min_input = np.array(0.0, dtype=np.float32)
+    max_input = np.array(255.0, dtype=np.float32)
+    ksize = [1, 1, 1, 1]
+    strides = [1, 1, 1, 1]
+    padding = "SAME"
+
+    input_dict = {
+        "input": input_tensor,
+        "min_input": min_input,
+        "max_input": max_input,
+        "ksize": ksize,
+        "strides": strides,
+        "padding": padding,
+        "name": "quantized_avg_pool_8"
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 9
+    input_tensor = np.array([[[[1, 2], [3, 4]], [[5, 6], [7, 8]]]], dtype=np.qint8)
+    min_input = np.array(-20.0, dtype=np.float32)
+    max_input = np.array(20.0, dtype=np.float32)
+    ksize = [1, 1, 1, 1]
+    strides = [1, 2, 2, 1]
+    padding = "VALID"
+
+    input_dict = {
+        "input": input_tensor,
+        "min_input": min_input,
+        "max_input": max_input,
+        "ksize": ksize,
+        "strides": strides,
+        "padding": padding,
+        "name": "quantized_avg_pool_9"
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+     # Input 10
+    input_tensor = np.array([[[[1, 2], [3, 4]], [[5, 6], [7, 8]]]], dtype=np.quint8)
+    min_input = np.array(0.0, dtype=np.float32)
+    max_input = np.array(100.0, dtype=np.float32)
+    ksize = [1, 2, 2, 1]
+    strides = [1, 1, 1, 1]
+    padding = "SAME"
+
+    input_dict = {
+        "input": input_tensor,
+        "min_input": min_input,
+        "max_input": max_input,
+        "ksize": ksize,
+        "strides": strides,
+        "padding": padding,
+        "name": "quantized_avg_pool_10"
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs
 
-generated_inputs["tf.raw_ops.QuantizedAvgPool"] = tf_raw_ops_quantizedavgpool_inputs()
+generated_inputs = {}
+generated_inputs["tf.raw_ops.QuantizedAvgPool"] = tf_raw_ops_quantized_avg_pool_inputs()
 
 def check_valid(api, list_of_inputs, lib="tf", suffix=0):
     for idx, input_dict in enumerate(list_of_inputs):
@@ -111,5 +221,9 @@ def check_valid(api, list_of_inputs, lib="tf", suffix=0):
 
 if 'tf.raw_ops.QuantizedAvgPool' not in generated_inputs:
     raise Exception("Output of the input generating function was not assigned to the generated_inputs dictionary to the key 'tf.raw_ops.QuantizedAvgPool'.")
+
+
+tf.config.experimental.enable_op_determinism()
+tf.random.set_seed(42)
 
 check_valid('tf.raw_ops.QuantizedAvgPool', generated_inputs['tf.raw_ops.QuantizedAvgPool'], lib="tf", suffix=0)

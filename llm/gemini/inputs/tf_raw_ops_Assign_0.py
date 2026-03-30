@@ -4,62 +4,180 @@ from generator.input_generators import get_abstract_input
 
 generated_inputs = dict()
 
+import tensorflow as tf
 import numpy as np
 import copy
 
-def generate_tf_raw_ops_assign_inputs():
-    # The error `RuntimeError: assign op does not support eager execution` is
-    # fundamental to `tf.raw_ops.Assign`. This op is a legacy component from
-    # TensorFlow 1.x designed for graph mode and is incompatible with the default
-    # eager execution mode of TensorFlow 2.x. No change to the numpy input values
-    # can resolve this error, as it stems from an incompatibility between the op
-    # and the execution environment. The inputs provided are valid according to the
-    # function's signature for a graph-based context.
+tf.config.experimental.enable_op_determinism()
+tf.random.set_seed(42)
+
+def tf_raw_ops_assign_inputs():
     list_of_inputs = []
 
-    # Input 1: Basic 1D float assignment
-    input_dict_1 = {
-        'ref': np.array([1.0, 2.0, 3.0], dtype=np.float32),
-        'value': np.array([4.0, 5.0, 6.0], dtype=np.float32),
-        'validate_shape': True,
-        'use_locking': True,
-        'name': 'assign_float_1d'
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict_1))
+    # Input 1
+    ref = tf.Variable(np.array(1, dtype=np.int32)).handle
+    value = tf.constant(np.array(2, dtype=np.int32))
+    validate_shape = True
+    use_locking = True
+    name = "assign_op_1"
 
-    # Input 2: 2D integer assignment
-    input_dict_2 = {
-        'ref': np.array([[1, 2], [3, 4]], dtype=np.int32),
-        'value': np.array([[-1, -2], [-3, -4]], dtype=np.int32),
-        'validate_shape': True,
-        'use_locking': True,
-        'name': 'assign_int_2d'
+    input_dict = {
+        "ref": ref,
+        "value": value,
+        "validate_shape": validate_shape,
+        "use_locking": use_locking,
+        "name": name
     }
-    list_of_inputs.append(copy.deepcopy(input_dict_2))
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 3: Scalar assignment with locking disabled
-    input_dict_3 = {
-        'ref': np.array(100, dtype=np.int32),
-        'value': np.array(-200, dtype=np.int32),
-        'validate_shape': True,
-        'use_locking': False,
-        'name': 'assign_scalar_no_lock'
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict_3))
+    # Input 2
+    ref = tf.Variable(np.array([1, 2, 3], dtype=np.float32)).handle
+    value = tf.constant(np.array([4, 5, 6], dtype=np.float32))
+    validate_shape = False
+    use_locking = False
+    name = "assign_op_2"
 
-    # Input 4: Shape validation disabled
-    input_dict_4 = {
-        'ref': np.array([1, 2, 3, 4], dtype=np.int32),
-        'value': np.array([[5, 6], [7, 8]], dtype=np.int32),
-        'validate_shape': False,
-        'use_locking': True,
-        'name': 'assign_reshape'
+    input_dict = {
+        "ref": ref,
+        "value": value,
+        "validate_shape": validate_shape,
+        "use_locking": use_locking,
+        "name": name
     }
-    list_of_inputs.append(copy.deepcopy(input_dict_4))
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 3
+    ref = tf.Variable(np.array([[1, 2], [3, 4]], dtype=np.int64)).handle
+    value = tf.constant(np.array([[5, 6], [7, 8]], dtype=np.int64))
+    validate_shape = True
+    use_locking = False
+    name = "assign_op_3"
+
+    input_dict = {
+        "ref": ref,
+        "value": value,
+        "validate_shape": validate_shape,
+        "use_locking": use_locking,
+        "name": name
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 4
+    ref = tf.Variable(np.array([[[1, 2], [3, 4]], [[5, 6], [7, 8]]], dtype=np.float64)).handle
+    value = tf.constant(np.array([[[9, 10], [11, 12]], [[13, 14], [15, 16]]], dtype=np.float64))
+    validate_shape = False
+    use_locking = True
+    name = "assign_op_4"
+
+    input_dict = {
+        "ref": ref,
+        "value": value,
+        "validate_shape": validate_shape,
+        "use_locking": use_locking,
+        "name": name
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 5
+    ref = tf.Variable(np.array([-1, -2, -3], dtype=np.int32)).handle
+    value = tf.constant(np.array([-4, -5, -6], dtype=np.int32))
+    validate_shape = True
+    use_locking = True
+    name = "assign_op_5"
+
+    input_dict = {
+        "ref": ref,
+        "value": value,
+        "validate_shape": validate_shape,
+        "use_locking": use_locking,
+        "name": name
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 6
+    ref = tf.Variable(np.array([1.5, 2.5, 3.5], dtype=np.float32)).handle
+    value = tf.constant(np.array([4.5, 5.5, 6.5], dtype=np.float32))
+    validate_shape = False
+    use_locking = False
+    name = "assign_op_6"
+
+    input_dict = {
+        "ref": ref,
+        "value": value,
+        "validate_shape": validate_shape,
+        "use_locking": use_locking,
+        "name": name
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 7
+    ref = tf.Variable(np.array([[1, 2], [3, 4]], dtype=np.int32)).handle
+    value = tf.constant(np.array([[5, 6], [7, 8]], dtype=np.int32))
+    validate_shape = True
+    use_locking = True
+    name = "assign_op_7"
+
+    input_dict = {
+        "ref": ref,
+        "value": value,
+        "validate_shape": validate_shape,
+        "use_locking": use_locking,
+        "name": name
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 8
+    ref = tf.Variable(np.array(10, dtype=np.int64)).handle
+    value = tf.constant(np.array(-5, dtype=np.int64))
+    validate_shape = False
+    use_locking = False
+    name = "assign_op_8"
+
+    input_dict = {
+        "ref": ref,
+        "value": value,
+        "validate_shape": validate_shape,
+        "use_locking": use_locking,
+        "name": name
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+   # Input 9
+    ref = tf.Variable(np.array([1, 2, 3, 4, 5], dtype=np.float64)).handle
+    value = tf.constant(np.array([6, 7, 8, 9, 10], dtype=np.float64))
+    validate_shape = True
+    use_locking = True
+    name = "assign_op_9"
+
+    input_dict = {
+        "ref": ref,
+        "value": value,
+        "validate_shape": validate_shape,
+        "use_locking": use_locking,
+        "name": name
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 10
+    ref = tf.Variable(np.array([[1.1, 2.2], [3.3, 4.4]], dtype=np.float32)).handle
+    value = tf.constant(np.array([[5.5, 6.6], [7.7, 8.8]], dtype=np.float32))
+    validate_shape = False
+    use_locking = False
+    name = "assign_op_10"
+
+    input_dict = {
+        "ref": ref,
+        "value": value,
+        "validate_shape": validate_shape,
+        "use_locking": use_locking,
+        "name": name
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs
 
-generated_inputs["tf.raw_ops.Assign"] = generate_tf_raw_ops_assign_inputs()
+generated_inputs = {}
+generated_inputs["tf.raw_ops.Assign"] = tf_raw_ops_assign_inputs()
 
 def check_valid(api, list_of_inputs, lib="tf", suffix=0):
     for idx, input_dict in enumerate(list_of_inputs):
@@ -73,5 +191,9 @@ def check_valid(api, list_of_inputs, lib="tf", suffix=0):
 
 if 'tf.raw_ops.Assign' not in generated_inputs:
     raise Exception("Output of the input generating function was not assigned to the generated_inputs dictionary to the key 'tf.raw_ops.Assign'.")
+
+
+tf.config.experimental.enable_op_determinism()
+tf.random.set_seed(42)
 
 check_valid('tf.raw_ops.Assign', generated_inputs['tf.raw_ops.Assign'], lib="tf", suffix=0)

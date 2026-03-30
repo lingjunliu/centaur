@@ -4,111 +4,195 @@ from generator.input_generators import get_abstract_input
 
 generated_inputs = dict()
 
+import tensorflow as tf
 import numpy as np
 import copy
 
+tf.config.experimental.enable_op_determinism()
+tf.random.set_seed(42)
+
 def tf_raw_ops_scatter_add_inputs():
-    # This raw op is not compatible with eager execution, which is the
-    # default in modern TensorFlow. It requires a `ref` from a `tf.Variable`
-    # node and is intended for use in a `tf.Graph`. Any attempt to call it
-    # directly in an eager context will result in a RuntimeError. The inputs
-    # provided below are valid according to the API's documentation but will
-    # likely fail in the testing environment for this reason.
     list_of_inputs = []
 
-    # Case 1: 1D float32
-    list_of_inputs.append({
-        'ref': np.array([1.0, 2.0, 3.0, 4.0], dtype=np.float32),
-        'indices': np.array([1, 3], dtype=np.int32),
-        'updates': np.array([10.0, 20.0], dtype=np.float32),
-        'use_locking': False,
-        'name': 'case_1'
-    })
+    # Input 1: Basic example with int32 ref, int32 indices, and int32 updates
+    ref = tf.Variable(np.array([1, 2, 3, 4, 5], dtype=np.int32))
+    indices = np.array([0, 2, 4], dtype=np.int32)
+    updates = np.array([10, 20, 30], dtype=np.int32)
+    use_locking = False
+    name = None
 
-    # Case 2: 1D int32 with duplicate indices
-    list_of_inputs.append({
-        'ref': np.array([0, 0, 0, 0], dtype=np.int32),
-        'indices': np.array([0, 2, 0, 3], dtype=np.int32),
-        'updates': np.array([1, 2, 3, 4], dtype=np.int32),
-        'use_locking': True,
-        'name': 'case_2'
-    })
+    input_dict = {
+        "ref": ref.value(),
+        "indices": indices,
+        "updates": updates,
+        "use_locking": use_locking,
+        "name": name
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Case 3: 2D float32
-    list_of_inputs.append({
-        'ref': np.zeros((3, 2), dtype=np.float32),
-        'indices': np.array([0, 2], dtype=np.int32),
-        'updates': np.array([[1.0, 2.0], [3.0, 4.0]], dtype=np.float32),
-        'use_locking': False,
-        'name': 'case_3'
-    })
+    # Input 2: float32 ref, int64 indices, and float32 updates
+    ref = tf.Variable(np.array([1.0, 2.0, 3.0, 4.0, 5.0], dtype=np.float32))
+    indices = np.array([1, 3], dtype=np.int64)
+    updates = np.array([10.0, 20.0], dtype=np.float32)
+    use_locking = True
+    name = "scatter_add_example_2"
 
-    # Case 4: 2D int32 with duplicate indices
-    list_of_inputs.append({
-        'ref': np.ones((4, 3), dtype=np.int32),
-        'indices': np.array([1, 3, 1], dtype=np.int64),
-        'updates': np.array([[5, 5, 5], [6, 6, 6], [7, 7, 7]], dtype=np.int32),
-        'use_locking': True,
-        'name': 'case_4'
-    })
+    input_dict = {
+        "ref": ref.value(),
+        "indices": indices,
+        "updates": updates,
+        "use_locking": use_locking,
+        "name": name
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Case 5: 1D float64
-    list_of_inputs.append({
-        'ref': np.array([1.0, 2.0, 3.0], dtype=np.float64),
-        'indices': np.array([0], dtype=np.int64),
-        'updates': np.array([-10.5], dtype=np.float64),
-        'use_locking': False,
-        'name': 'case_5'
-    })
+    # Input 3: int64 ref, int32 indices, and int64 updates (duplicates)
+    ref = tf.Variable(np.array([1, 2, 3, 4, 5], dtype=np.int64))
+    indices = np.array([0, 0, 2], dtype=np.int32)
+    updates = np.array([10, 20, 30], dtype=np.int64)
+    use_locking = False
+    name = "scatter_add_example_3"
 
-    # Case 6: 1D int64
-    list_of_inputs.append({
-        'ref': np.array([100, 200, 300, 400, 500], dtype=np.int64),
-        'indices': np.array([4, 1, 0], dtype=np.int64),
-        'updates': np.array([-10, -20, -30], dtype=np.int64),
-        'use_locking': False,
-        'name': 'case_6'
-    })
+    input_dict = {
+        "ref": ref.value(),
+        "indices": indices,
+        "updates": updates,
+        "use_locking": use_locking,
+        "name": name
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Case 7: 1D uint8
-    list_of_inputs.append({
-        'ref': np.zeros(5, dtype=np.uint8),
-        'indices': np.array([0, 1, 2, 3, 4], dtype=np.int32),
-        'updates': np.array([10, 20, 30, 40, 50], dtype=np.uint8),
-        'use_locking': False,
-        'name': 'case_7'
-    })
+    # Input 4: 2D ref, 1D indices, and 2D updates
+    ref = tf.Variable(np.array([[1, 2], [3, 4], [5, 6]], dtype=np.float32))
+    indices = np.array([0, 2], dtype=np.int32)
+    updates = np.array([[10, 20], [30, 40]], dtype=np.float32)
+    use_locking = True
+    name = "scatter_add_example_4"
 
-    # Case 8: `half` (float16) dtype
-    list_of_inputs.append({
-        'ref': np.ones(8, dtype=np.float16),
-        'indices': np.array([7, 0, 7], dtype=np.int32),
-        'updates': np.array([1.0, 2.0, 3.0], dtype=np.float16),
-        'use_locking': True,
-        'name': 'case_8'
-    })
+    input_dict = {
+        "ref": ref.value(),
+        "indices": indices,
+        "updates": updates,
+        "use_locking": use_locking,
+        "name": name
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Case 9: Empty indices and updates
-    list_of_inputs.append({
-        'ref': np.array([1, 2, 3], dtype=np.int32),
-        'indices': np.array([], dtype=np.int32),
-        'updates': np.array([], dtype=np.int32),
-        'use_locking': False,
-        'name': 'case_9'
-    })
+    # Input 5: complex64 ref, int32 indices, and complex64 updates
+    ref = tf.Variable(np.array([1 + 1j, 2 + 2j, 3 + 3j], dtype=np.complex64))
+    indices = np.array([0, 2], dtype=np.int32)
+    updates = np.array([10 + 10j, 30 + 30j], dtype=np.complex64)
+    use_locking = False
+    name = "scatter_add_example_5"
 
-    # Case 10: Scalar update
-    list_of_inputs.append({
-        'ref': np.zeros(5, dtype=np.int32),
-        'indices': np.array([0, 1, 2, 3, 4], dtype=np.int32),
-        'updates': np.array(7, dtype=np.int32),
-        'use_locking': False,
-        'name': 'case_10'
-    })
+    input_dict = {
+        "ref": ref.value(),
+        "indices": indices,
+        "updates": updates,
+        "use_locking": use_locking,
+        "name": name
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 6: qint8 ref, int32 indices, and qint8 updates
+    ref = tf.Variable(np.array([1, 2, 3], dtype=np.int8))
+    indices = np.array([0, 2], dtype=np.int32)
+    updates = np.array([10, 30], dtype=np.int8)
+    use_locking = False
+    name = "scatter_add_example_6"
+
+    input_dict = {
+        "ref": ref.value(),
+        "indices": indices,
+        "updates": updates,
+        "use_locking": use_locking,
+        "name": name
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+   # Input 7:  uint8 ref, int32 indices, and uint8 updates
+    ref = tf.Variable(np.array([1, 2, 3, 4, 5], dtype=np.uint8))
+    indices = np.array([0, 2, 4], dtype=np.int32)
+    updates = np.array([10, 20, 30], dtype=np.uint8)
+    use_locking = False
+    name = None
+
+    input_dict = {
+        "ref": ref.value(),
+        "indices": indices,
+        "updates": updates,
+        "use_locking": use_locking,
+        "name": name
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 8: bfloat16 ref, int64 indices, and bfloat16 updates
+    ref = tf.Variable(np.array([1.0, 2.0, 3.0, 4.0, 5.0], dtype=np.float16))
+    indices = np.array([1, 3], dtype=np.int64)
+    updates = np.array([10.0, 20.0], dtype=np.float16)
+    use_locking = True
+    name = "scatter_add_example_8"
+
+    input_dict = {
+        "ref": ref.value(),
+        "indices": indices,
+        "updates": updates,
+        "use_locking": use_locking,
+        "name": name
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 9: uint32 ref, int32 indices, and uint32 updates (duplicates)
+    ref = tf.Variable(np.array([1, 2, 3, 4, 5], dtype=np.uint32))
+    indices = np.array([0, 0, 2], dtype=np.int32)
+    updates = np.array([10, 20, 30], dtype=np.uint32)
+    use_locking = False
+    name = "scatter_add_example_9"
+
+    input_dict = {
+        "ref": ref.value(),
+        "indices": indices,
+        "updates": updates,
+        "use_locking": use_locking,
+        "name": name
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+     # Input 10: half ref, int64 indices, and half updates
+    ref = tf.Variable(np.array([1.0, 2.0, 3.0, 4.0, 5.0], dtype=np.float16))
+    indices = np.array([1, 3], dtype=np.int64)
+    updates = np.array([10.0, 20.0], dtype=np.float16)
+    use_locking = False
+    name = "scatter_add_example_10"
+
+    input_dict = {
+        "ref": ref.value(),
+        "indices": indices,
+        "updates": updates,
+        "use_locking": use_locking,
+        "name": name
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
     
-    final_list = [copy.deepcopy(d) for d in list_of_inputs]
-    return final_list
+    # Input 11: uint64 ref, int32 indices, and uint64 updates (duplicates)
+    ref = tf.Variable(np.array([1, 2, 3, 4, 5], dtype=np.uint64))
+    indices = np.array([0, 0, 2], dtype=np.int32)
+    updates = np.array([10, 20, 30], dtype=np.uint64)
+    use_locking = False
+    name = "scatter_add_example_11"
 
+    input_dict = {
+        "ref": ref.value(),
+        "indices": indices,
+        "updates": updates,
+        "use_locking": use_locking,
+        "name": name
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    return list_of_inputs
+
+generated_inputs = {}
 generated_inputs["tf.raw_ops.ScatterAdd"] = tf_raw_ops_scatter_add_inputs()
 
 def check_valid(api, list_of_inputs, lib="tf", suffix=0):
@@ -123,5 +207,9 @@ def check_valid(api, list_of_inputs, lib="tf", suffix=0):
 
 if 'tf.raw_ops.ScatterAdd' not in generated_inputs:
     raise Exception("Output of the input generating function was not assigned to the generated_inputs dictionary to the key 'tf.raw_ops.ScatterAdd'.")
+
+
+tf.config.experimental.enable_op_determinism()
+tf.random.set_seed(42)
 
 check_valid('tf.raw_ops.ScatterAdd', generated_inputs['tf.raw_ops.ScatterAdd'], lib="tf", suffix=0)

@@ -8,72 +8,185 @@ import tensorflow as tf
 import numpy as np
 import copy
 
-def get_sparse_dense_matmul_inputs():
+def tf_sparse_sparse_dense_matmul_inputs():
     list_of_inputs = []
 
-    # Case 1: sp_a is sparse, b is dense. dtype=float32.
-    sp_a_1 = tf.SparseTensor(indices=[[0, 0], [1, 2]], values=[1.0, 2.0], dense_shape=[2, 3])
-    b_1 = np.array([[10., 11.], [20., 21.], [30., 31.]], dtype=np.float32)
-    input_dict_1 = {'sp_a': sp_a_1, 'b': b_1, 'adjoint_a': False, 'adjoint_b': False, 'name': 'case1'}
-    list_of_inputs.append(copy.deepcopy(input_dict_1))
+    # Input 1
+    indices = np.array([[0, 0], [1, 2]], dtype=np.int64)
+    values = np.array([1, 2], dtype=np.float32)
+    dense_shape = (2, 3)
+    sp_a = tf.SparseTensor(indices, values, dense_shape)
+    b = np.array([[1, 2], [3, 4], [5, 6]], dtype=np.float32)
+    adjoint_a = False
+    adjoint_b = False
+    name = "test1"
 
-    # Case 2: sp_a is dense, b is sparse. dtype=float32.
-    sp_a_2 = np.array([[1., 2., 3.], [4., 5., 6.]], dtype=np.float32)
-    b_2 = tf.SparseTensor(indices=[[0, 1], [2, 0]], values=[10.0, 20.0], dense_shape=[3, 2])
-    input_dict_2 = {'sp_a': sp_a_2, 'b': b_2, 'adjoint_a': False, 'adjoint_b': False, 'name': 'case2'}
-    list_of_inputs.append(copy.deepcopy(input_dict_2))
+    input_dict = {
+        "sp_a": sp_a,
+        "b": b,
+        "adjoint_a": adjoint_a,
+        "adjoint_b": adjoint_b,
+        "name": name
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Case 3: sp_a is sparse, b is dense. dtype=int32.
-    sp_a_3 = tf.SparseTensor(indices=[[0, 1], [2, 1]], values=[3, 4], dense_shape=[3, 2])
-    b_3 = np.array([[10, 11, 12], [20, 21, 22]], dtype=np.int32)
-    input_dict_3 = {'sp_a': sp_a_3, 'b': b_3, 'adjoint_a': False, 'adjoint_b': False, 'name': 'case3'}
-    list_of_inputs.append(copy.deepcopy(input_dict_3))
+    # Input 2
+    indices = np.array([[0, 0], [1, 1], [2, 2]], dtype=np.int64)
+    values = np.array([1, 2, 3], dtype=np.float64)
+    dense_shape = (3, 3)
+    sp_a = tf.SparseTensor(indices, values, dense_shape)
+    b = np.array([[1, 2, 3], [4, 5, 6], [7, 8, 9]], dtype=np.float64)
+    adjoint_a = True
+    adjoint_b = True
+    name = "test2"
 
-    # Case 4: sp_a is dense, b is sparse. dtype=int32.
-    sp_a_4 = np.array([[1, 2], [3, 4], [5, 6]], dtype=np.int32)
-    b_4 = tf.SparseTensor(indices=[[0, 0], [1, 2]], values=[10, 20], dense_shape=[2, 3])
-    input_dict_4 = {'sp_a': sp_a_4, 'b': b_4, 'adjoint_a': False, 'adjoint_b': False, 'name': 'case4'}
-    list_of_inputs.append(copy.deepcopy(input_dict_4))
+    input_dict = {
+        "sp_a": sp_a,
+        "b": b,
+        "adjoint_a": adjoint_a,
+        "adjoint_b": adjoint_b,
+        "name": name
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Case 5: With adjoint_a=True. sp_a [3,2] becomes [2,3] and multiplies b [3,1].
-    sp_a_5 = tf.SparseTensor(indices=[[0, 1], [2, 0]], values=[1.0, 2.0], dense_shape=[3, 2])
-    b_5 = np.array([[10.], [20.], [30.]], dtype=np.float32)
-    input_dict_5 = {'sp_a': sp_a_5, 'b': b_5, 'adjoint_a': True, 'adjoint_b': False, 'name': 'case5'}
-    list_of_inputs.append(copy.deepcopy(input_dict_5))
+    # Input 3
+    indices = np.array([[0, 1], [1, 0], [2, 2]], dtype=np.int64)
+    values = np.array([4, 5, 6], dtype=np.int32)
+    dense_shape = (3, 3)
+    sp_a = tf.SparseTensor(indices, values, dense_shape)
+    b = np.array([[7, 8, 9], [10, 11, 12], [13, 14, 15]], dtype=np.int32)
+    adjoint_a = False
+    adjoint_b = True
+    name = "test3"
 
-    # Case 6: With adjoint_b=True. sp_a [2,3] multiplies b [4,3] which becomes [3,4].
-    sp_a_6 = tf.SparseTensor(indices=[[0, 0], [1, 2]], values=[1.0, 2.0], dense_shape=[2, 3])
-    b_6 = np.arange(12, dtype=np.float32).reshape(4, 3)
-    input_dict_6 = {'sp_a': sp_a_6, 'b': b_6, 'adjoint_a': False, 'adjoint_b': True, 'name': 'case6'}
-    list_of_inputs.append(copy.deepcopy(input_dict_6))
+    input_dict = {
+        "sp_a": sp_a,
+        "b": b,
+        "adjoint_a": adjoint_a,
+        "adjoint_b": adjoint_b,
+        "name": name
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Case 7: Complex numbers, sp_a is sparse.
-    sp_a_7 = tf.SparseTensor(indices=[[0,1]], values=[(1+2j)], dense_shape=[2,2])
-    b_7 = np.array([[(1+1j), (2+2j)], [(3+3j), (4+4j)]], dtype=np.complex64)
-    input_dict_7 = {'sp_a': sp_a_7, 'b': b_7, 'adjoint_a': False, 'adjoint_b': False, 'name': 'case7'}
-    list_of_inputs.append(copy.deepcopy(input_dict_7))
+    # Input 4
+    indices = np.array([[0, 0], [0, 1], [1, 0], [1, 1]], dtype=np.int64)
+    values = np.array([1, 2, 3, 4], dtype=np.float32)
+    dense_shape = (2, 2)
+    sp_a = tf.SparseTensor(indices, values, dense_shape)
+    b = np.array([[5, 6], [7, 8]], dtype=np.float32)
+    adjoint_a = True
+    adjoint_b = False
+    name = "test4"
 
-    # Case 8: Complex numbers, b is sparse.
-    sp_a_8 = np.array([[(1+1j), (2+2j)], [(3+3j), (4+4j)]], dtype=np.complex64)
-    b_8 = tf.SparseTensor(indices=[[1,0]], values=[(5-5j)], dense_shape=[2,1])
-    input_dict_8 = {'sp_a': sp_a_8, 'b': b_8, 'adjoint_a': False, 'adjoint_b': False, 'name': 'case8'}
-    list_of_inputs.append(copy.deepcopy(input_dict_8))
+    input_dict = {
+        "sp_a": sp_a,
+        "b": b,
+        "adjoint_a": adjoint_a,
+        "adjoint_b": adjoint_b,
+        "name": name
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Case 9: Empty sparse tensor
-    sp_a_9 = tf.SparseTensor(indices=np.empty((0, 2), dtype=np.int64), values=[], dense_shape=[4, 5])
-    b_9 = np.random.rand(5, 6).astype(np.float32)
-    input_dict_9 = {'sp_a': sp_a_9, 'b': b_9, 'adjoint_a': False, 'adjoint_b': False, 'name': 'case9'}
-    list_of_inputs.append(copy.deepcopy(input_dict_9))
+     # Input 5
+    indices = np.array([[0, 0], [1, 2]], dtype=np.int64)
+    values = np.array([-1, 2], dtype=np.float32)
+    dense_shape = (2, 3)
+    sp_a = tf.SparseTensor(indices, values, dense_shape)
+    b = np.array([[1, 2], [3, 4], [5, 6]], dtype=np.float32)
+    adjoint_a = False
+    adjoint_b = False
+    name = "test5"
 
-    # Case 10: Matrix-vector multiplication
-    sp_a_10 = tf.SparseTensor(indices=[[0,1], [3,0]], values=[1., -1.], dense_shape=[4, 2])
-    b_10 = np.array([[100.], [200.]], dtype=np.float32)
-    input_dict_10 = {'sp_a': sp_a_10, 'b': b_10, 'adjoint_a': False, 'adjoint_b': False, 'name': 'case10'}
-    list_of_inputs.append(copy.deepcopy(input_dict_10))
+    input_dict = {
+        "sp_a": sp_a,
+        "b": b,
+        "adjoint_a": adjoint_a,
+        "adjoint_b": adjoint_b,
+        "name": name
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 7 (different data type)
+    indices = np.array([[0, 0], [1, 2]], dtype=np.int64)
+    values = np.array([1, 2], dtype=np.int32)
+    dense_shape = (2, 3)
+    sp_a = tf.SparseTensor(indices, values, dense_shape)
+    b = np.array([[1, 2], [3, 4], [5, 6]], dtype=np.int32)
+    adjoint_a = False
+    adjoint_b = False
+    name = "test7"
+
+    input_dict = {
+        "sp_a": sp_a,
+        "b": b,
+        "adjoint_a": adjoint_a,
+        "adjoint_b": adjoint_b,
+        "name": name
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 8
+    indices = np.array([[0, 0], [1, 1]], dtype=np.int64)
+    values = np.array([1+1j, 2+2j], dtype=np.complex64)
+    dense_shape = (2, 2)
+    sp_a = tf.SparseTensor(indices, values, dense_shape)
+    b = np.array([[3+3j, 4+4j], [5+5j, 6+6j]], dtype=np.complex64)
+    adjoint_a = True
+    adjoint_b = True
+    name = "test8"
+
+    input_dict = {
+        "sp_a": sp_a,
+        "b": b,
+        "adjoint_a": adjoint_a,
+        "adjoint_b": adjoint_b,
+        "name": name
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 9
+    indices = np.array([[0, 0], [1, 1], [2, 0]], dtype=np.int64)
+    values = np.array([1, 2, 3], dtype=np.float32)
+    dense_shape = (3, 2)
+    sp_a = tf.SparseTensor(indices, values, dense_shape)
+    b = np.array([[1,2,3],[4,5,6]], dtype=np.float32)
+    adjoint_a = False
+    adjoint_b = False
+    name = "test9"
+
+    input_dict = {
+        "sp_a": sp_a,
+        "b": b,
+        "adjoint_a": adjoint_a,
+        "adjoint_b": adjoint_b,
+        "name": name
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    
+    # Input 11
+    indices = np.array([[0, 0], [0, 1], [0, 2], [1, 0], [1, 1], [1, 2]], dtype=np.int64)
+    values = np.array([1, 2, 3, 4, 5, 6], dtype=np.float32)
+    dense_shape = (2, 3)
+    sp_a = tf.SparseTensor(indices, values, dense_shape)
+    b = np.array([[1, 2, 3], [4, 5, 6], [7, 8, 9]], dtype=np.float32)
+    adjoint_a = False
+    adjoint_b = False
+    name = "test11"
+
+    input_dict = {
+        "sp_a": sp_a,
+        "b": b,
+        "adjoint_a": adjoint_a,
+        "adjoint_b": adjoint_b,
+        "name": name
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs
 
-generated_inputs["tf.sparse.sparse_dense_matmul"] = get_sparse_dense_matmul_inputs()
+generated_inputs = {}
+generated_inputs["tf.sparse.sparse_dense_matmul"] = tf_sparse_sparse_dense_matmul_inputs()
 
 def check_valid(api, list_of_inputs, lib="tf", suffix=0):
     for idx, input_dict in enumerate(list_of_inputs):
@@ -87,5 +200,9 @@ def check_valid(api, list_of_inputs, lib="tf", suffix=0):
 
 if 'tf.sparse.sparse_dense_matmul' not in generated_inputs:
     raise Exception("Output of the input generating function was not assigned to the generated_inputs dictionary to the key 'tf.sparse.sparse_dense_matmul'.")
+
+
+tf.config.experimental.enable_op_determinism()
+tf.random.set_seed(42)
 
 check_valid('tf.sparse.sparse_dense_matmul', generated_inputs['tf.sparse.sparse_dense_matmul'], lib="tf", suffix=0)

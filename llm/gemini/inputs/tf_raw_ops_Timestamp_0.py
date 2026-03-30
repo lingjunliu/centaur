@@ -5,27 +5,19 @@ from generator.input_generators import get_abstract_input
 generated_inputs = dict()
 
 import tensorflow as tf
-import numpy as np
 import copy
 
 def tf_raw_ops_timestamp_inputs():
-    """
-    Generates a list of valid inputs for tf.raw_ops.Timestamp.
-
-    NOTE: The tf.raw_ops.Timestamp API is inherently non-deterministic as it
-    returns the current system time. The execution environment appears to have
-    op determinism enabled, which explicitly forbids such non-deterministic
-    operations, causing a `FailedPreconditionError`. This error is independent
-    of the input provided (since the only input `name` is just an identifier)
-    and is a fundamental incompatibility between the API and the execution
-    configuration.
-
-    Therefore, no valid input can be successfully executed under these
-    conditions. Returning an empty list to prevent the inevitable crash.
-    """
     list_of_inputs = []
+
+    input_dict = {
+        "name": None
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
     return list_of_inputs
 
+generated_inputs = {}
 generated_inputs["tf.raw_ops.Timestamp"] = tf_raw_ops_timestamp_inputs()
 
 def check_valid(api, list_of_inputs, lib="tf", suffix=0):
@@ -40,5 +32,9 @@ def check_valid(api, list_of_inputs, lib="tf", suffix=0):
 
 if 'tf.raw_ops.Timestamp' not in generated_inputs:
     raise Exception("Output of the input generating function was not assigned to the generated_inputs dictionary to the key 'tf.raw_ops.Timestamp'.")
+
+
+tf.config.experimental.enable_op_determinism()
+tf.random.set_seed(42)
 
 check_valid('tf.raw_ops.Timestamp', generated_inputs['tf.raw_ops.Timestamp'], lib="tf", suffix=0)

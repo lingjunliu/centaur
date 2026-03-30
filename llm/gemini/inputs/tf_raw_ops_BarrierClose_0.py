@@ -4,55 +4,89 @@ from generator.input_generators import get_abstract_input
 
 generated_inputs = dict()
 
+import tensorflow as tf
 import numpy as np
 import copy
 
+tf.config.experimental.enable_op_determinism()
+tf.random.set_seed(42)
+
 def tf_raw_ops_barrierclose_inputs():
     list_of_inputs = []
-    # This operation is fundamentally incompatible with the eager execution
-    # environment in which it is being tested. It requires a 'tf.string_ref'
-    # handle from TensorFlow's graph mode, and it is impossible to create
-    # such a handle from a NumPy array in an eager context. Therefore, any
-    # input that correctly follows the API's signature will inevitably
-    # raise the "does not support eager execution" RuntimeError. The following
-    # inputs are provided to meet the generation requirement, with the
-    # understanding that this error is an unavoidable consequence of the op's
-    # design.
 
-    # Input 1: Basic case with cancel_pending_enqueues=False
-    input_dict = {
-        'handle': np.array("barrier_handle_A", dtype=object),
-        'cancel_pending_enqueues': False,
-        'name': 'close_op_A'
-    }
+    # Input 1
+    handle = tf.Variable(np.array("handle1").astype(np.object_), dtype=tf.string)
+    cancel_pending_enqueues = False
+    name = "barrier_close_1"
+    input_dict = {"handle": handle, "cancel_pending_enqueues": cancel_pending_enqueues, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 2: Basic case with cancel_pending_enqueues=True
-    input_dict = {
-        'handle': np.array("barrier_handle_B", dtype=object),
-        'cancel_pending_enqueues': True,
-        'name': 'close_op_B'
-    }
+    # Input 2
+    handle = tf.Variable(np.array("handle2").astype(np.object_), dtype=tf.string)
+    cancel_pending_enqueues = True
+    name = "barrier_close_2"
+    input_dict = {"handle": handle, "cancel_pending_enqueues": cancel_pending_enqueues, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 3: Empty string for handle
-    input_dict = {
-        'handle': np.array("", dtype=object),
-        'cancel_pending_enqueues': False,
-        'name': 'close_op_C_empty_handle'
-    }
+    # Input 3
+    handle = tf.Variable(np.array("very_long_handle_name_3").astype(np.object_), dtype=tf.string)
+    cancel_pending_enqueues = False
+    name = None
+    input_dict = {"handle": handle, "cancel_pending_enqueues": cancel_pending_enqueues, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 4: Empty string for name
-    input_dict = {
-        'handle': np.array("barrier_handle_D", dtype=object),
-        'cancel_pending_enqueues': True,
-        'name': ''
-    }
+    # Input 4
+    handle = tf.Variable(np.array("handle4").astype(np.object_), dtype=tf.string)
+    cancel_pending_enqueues = True
+    name = ""
+    input_dict = {"handle": handle, "cancel_pending_enqueues": cancel_pending_enqueues, "name": name}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 5
+    handle = tf.Variable(np.array("handle5").astype(np.object_), dtype=tf.string)
+    cancel_pending_enqueues = False
+    name = "barrier_close_5"
+    input_dict = {"handle": handle, "cancel_pending_enqueues": cancel_pending_enqueues, "name": name}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 6
+    handle = tf.Variable(np.array("handle6").astype(np.object_), dtype=tf.string)
+    cancel_pending_enqueues = True
+    name = "barrier_close_6"
+    input_dict = {"handle": handle, "cancel_pending_enqueues": cancel_pending_enqueues, "name": name}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 7
+    handle = tf.Variable(np.array("handle7").astype(np.object_), dtype=tf.string)
+    cancel_pending_enqueues = False
+    name = "barrier_close_7"
+    input_dict = {"handle": handle, "cancel_pending_enqueues": cancel_pending_enqueues, "name": name}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 8
+    handle = tf.Variable(np.array("handle8").astype(np.object_), dtype=tf.string)
+    cancel_pending_enqueues = True
+    name = "barrier_close_8"
+    input_dict = {"handle": handle, "cancel_pending_enqueues": cancel_pending_enqueues, "name": name}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 9
+    handle = tf.Variable(np.array("handle9").astype(np.object_), dtype=tf.string)
+    cancel_pending_enqueues = False
+    name = "barrier_close_9"
+    input_dict = {"handle": handle, "cancel_pending_enqueues": cancel_pending_enqueues, "name": name}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 10
+    handle = tf.Variable(np.array("handle10").astype(np.object_), dtype=tf.string)
+    cancel_pending_enqueues = True
+    name = "barrier_close_10"
+    input_dict = {"handle": handle, "cancel_pending_enqueues": cancel_pending_enqueues, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs
 
+generated_inputs = {}
 generated_inputs["tf.raw_ops.BarrierClose"] = tf_raw_ops_barrierclose_inputs()
 
 def check_valid(api, list_of_inputs, lib="tf", suffix=0):
@@ -67,5 +101,9 @@ def check_valid(api, list_of_inputs, lib="tf", suffix=0):
 
 if 'tf.raw_ops.BarrierClose' not in generated_inputs:
     raise Exception("Output of the input generating function was not assigned to the generated_inputs dictionary to the key 'tf.raw_ops.BarrierClose'.")
+
+
+tf.config.experimental.enable_op_determinism()
+tf.random.set_seed(42)
 
 check_valid('tf.raw_ops.BarrierClose', generated_inputs['tf.raw_ops.BarrierClose'], lib="tf", suffix=0)

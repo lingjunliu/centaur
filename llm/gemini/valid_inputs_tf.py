@@ -4,6 +4,7 @@ import tensorflow as tf
 tf.config.experimental.enable_op_determinism()
 tf.random.set_seed(42)
 import copy
+import numpy as np
 
 def tf_critical_section_inputs():
     list_of_inputs = []
@@ -104,8 +105,8 @@ def tf_critical_section_inputs():
 generated_inputs["tf.CriticalSection"] = tf_critical_section_inputs()
 
 
-import copy
-import numpy as np
+
+
 
 def tf_GradientTape_inputs():
     list_of_inputs = []
@@ -193,7 +194,7 @@ def tf_GradientTape_inputs():
 generated_inputs["tf.GradientTape"] = tf_GradientTape_inputs()
 
 
-import copy
+
 
 def tf_graph_inputs():
     list_of_inputs = []
@@ -244,8 +245,8 @@ def tf_graph_inputs():
 generated_inputs["tf.Graph"] = tf_graph_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_IndexedSlices_inputs():
     list_of_inputs = []
@@ -373,7 +374,7 @@ def tf_IndexedSlices_inputs():
 generated_inputs["tf.IndexedSlices"] = tf_IndexedSlices_inputs()
 
 
-import copy
+
 
 def tf_module_inputs():
     list_of_inputs = []
@@ -423,8 +424,8 @@ def tf_module_inputs():
 generated_inputs["tf.Module"] = tf_module_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_argsort_inputs():
     list_of_inputs = []
@@ -588,8 +589,8 @@ def tf_argsort_inputs():
 generated_inputs["tf.argsort"] = tf_argsort_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_audio_encode_wav_inputs():
     list_of_inputs = []
@@ -672,8 +673,8 @@ def tf_audio_encode_wav_inputs():
 generated_inputs["tf.audio.encode_wav"] = tf_audio_encode_wav_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_batch_to_space_inputs():
     list_of_inputs = []
@@ -827,8 +828,8 @@ for i in range(len(generated_inputs["tf.batch_to_space"])):
     generated_inputs["tf.batch_to_space"][i]["crops"] = generated_inputs["tf.batch_to_space"][i]["crops"].numpy()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_bitwise_invert_inputs():
     list_of_inputs = []
@@ -884,8 +885,8 @@ for i in range(len(generated_inputs["tf.bitwise.invert"])):
     generated_inputs["tf.bitwise.invert"][i]["x"] = generated_inputs["tf.bitwise.invert"][i]["x"].numpy()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_bitwise_left_shift_inputs():
     list_of_inputs = []
@@ -952,8 +953,8 @@ def tf_bitwise_left_shift_inputs():
 generated_inputs["tf.bitwise.left_shift"] = tf_bitwise_left_shift_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_bitwise_right_shift_inputs():
     list_of_inputs = []
@@ -1034,8 +1035,8 @@ def tf_bitwise_right_shift_inputs():
 generated_inputs["tf.bitwise.right_shift"] = tf_bitwise_right_shift_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_boolean_mask_inputs():
     list_of_inputs = []
@@ -1126,8 +1127,8 @@ def tf_boolean_mask_inputs():
 generated_inputs["tf.boolean_mask"] = tf_boolean_mask_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_broadcast_to_inputs():
     list_of_inputs = []
@@ -1208,8 +1209,8 @@ def tf_broadcast_to_inputs():
 generated_inputs["tf.broadcast_to"] = tf_broadcast_to_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_clip_by_norm_inputs():
     list_of_inputs = []
@@ -1289,8 +1290,8 @@ def tf_clip_by_norm_inputs():
 generated_inputs["tf.clip_by_norm"] = tf_clip_by_norm_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_clip_by_value_inputs():
     list_of_inputs = []
@@ -1411,7 +1412,7 @@ def tf_clip_by_value_inputs():
 generated_inputs["tf.clip_by_value"] = tf_clip_by_value_inputs()
 
 
-import copy
+
 
 def tf_compat_as_bytes_inputs():
     list_of_inputs = []
@@ -1482,8 +1483,8 @@ def tf_compat_as_bytes_inputs():
 generated_inputs["tf.compat.as_bytes"] = tf_compat_as_bytes_inputs()
 
 
-import copy
-import numpy as np
+
+
 
 def tf_compat_as_str_inputs():
     list_of_inputs = []
@@ -1535,8 +1536,8 @@ def tf_compat_as_str_inputs():
 generated_inputs["tf.compat.as_str"] = tf_compat_as_str_inputs()
 
 
-import copy
-import numpy as np
+
+
 
 def tf_compat_as_str_any_inputs():
     list_of_inputs = []
@@ -1607,8 +1608,8 @@ def tf_compat_as_str_any_inputs():
 generated_inputs["tf.compat.as_str_any"] = tf_compat_as_str_any_inputs()
 
 
-import copy
-import numpy as np
+
+
 
 def tf_compat_as_text_inputs():
     list_of_inputs = []
@@ -1689,8 +1690,8 @@ def tf_compat_as_text_inputs():
 generated_inputs["tf.compat.as_text"] = tf_compat_as_text_inputs()
 
 
-import copy
-import numpy as np
+
+
 
 def tf_compat_dimension_value_inputs():
     list_of_inputs = []
@@ -1740,8 +1741,8 @@ def tf_compat_dimension_value_inputs():
 generated_inputs["tf.compat.dimension_value"] = tf_compat_dimension_value_inputs()
 
 
-import copy
-import numpy as np
+
+
 import datetime
 
 def tf_compat_forward_compatible_inputs():
@@ -1833,8 +1834,8 @@ def tf_compat_forward_compatible_inputs():
 generated_inputs["tf.compat.forward_compatible"] = tf_compat_forward_compatible_inputs()
 
 
-import copy
-import numpy as np
+
+
 
 def tf_compat_path_to_str_inputs():
     list_of_inputs = []
@@ -1895,8 +1896,8 @@ def tf_compat_path_to_str_inputs():
 generated_inputs["tf.compat.path_to_str"] = tf_compat_path_to_str_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_convert_to_tensor_inputs():
     list_of_inputs = []
@@ -1990,8 +1991,8 @@ def tf_convert_to_tensor_inputs():
 generated_inputs["tf.convert_to_tensor"] = tf_convert_to_tensor_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_data_experimental_counter_inputs():
     list_of_inputs = []
@@ -2072,8 +2073,8 @@ def tf_data_experimental_counter_inputs():
 generated_inputs["tf.data.experimental.Counter"] = tf_data_experimental_counter_inputs()
 
 
-import copy
-import numpy as np
+
+
 
 def tf_data_experimental_distributeoptions_inputs():
     list_of_inputs = []
@@ -2125,8 +2126,8 @@ def tf_data_experimental_distributeoptions_inputs():
 generated_inputs["tf.data.experimental.DistributeOptions"] = tf_data_experimental_distributeoptions_inputs()
 
 
-import copy
-import numpy as np
+
+
 
 def tf_data_experimental_OptimizationOptions_inputs():
     list_of_inputs = []
@@ -2177,8 +2178,8 @@ def tf_data_experimental_OptimizationOptions_inputs():
 generated_inputs["tf.data.experimental.OptimizationOptions"] = tf_data_experimental_OptimizationOptions_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_data_experimental_reducer_inputs():
     list_of_inputs = []
@@ -2364,8 +2365,8 @@ def tf_data_experimental_reducer_inputs():
 generated_inputs["tf.data.experimental.Reducer"] = tf_data_experimental_reducer_inputs()
 
 
-import copy
-import numpy as np
+
+
 
 def tf_data_experimental_tfrecordwriter_inputs():
     list_of_inputs = []
@@ -2446,8 +2447,8 @@ def tf_data_experimental_tfrecordwriter_inputs():
 generated_inputs["tf.data.experimental.TFRecordWriter"] = tf_data_experimental_tfrecordwriter_inputs()
 
 
-import copy
-import numpy as np
+
+
 
 def tf_data_experimental_ThreadingOptions_inputs():
     list_of_inputs = []
@@ -2488,8 +2489,8 @@ def tf_data_experimental_ThreadingOptions_inputs():
 generated_inputs["tf.data.experimental.ThreadingOptions"] = tf_data_experimental_ThreadingOptions_inputs()
 
 
-import copy
-import numpy as np
+
+
 
 def tf_data_experimental_unbatch_inputs():
     list_of_inputs = []
@@ -2508,7 +2509,7 @@ def tf_data_experimental_unbatch_inputs():
 generated_inputs["tf.data.experimental.unbatch"] = tf_data_experimental_unbatch_inputs()
 
 
-import copy
+
 
 def tf_device_inputs():
     list_of_inputs = []
@@ -2574,8 +2575,8 @@ def tf_device_inputs():
 generated_inputs["tf.device"] = tf_device_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_dtypes_as_dtype_inputs():
     list_of_inputs = []
@@ -2626,8 +2627,8 @@ def tf_dtypes_as_dtype_inputs():
 generated_inputs["tf.dtypes.as_dtype"] = tf_dtypes_as_dtype_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_dtypes_complex_inputs():
     list_of_inputs = []
@@ -2762,8 +2763,8 @@ for i in range(len(generated_inputs["tf.dtypes.complex"])):
     generated_inputs["tf.dtypes.complex"][i]["imag"] = generated_inputs["tf.dtypes.complex"][i]["imag"].numpy()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_dynamic_partition_inputs():
     list_of_inputs = []
@@ -2862,7 +2863,7 @@ def tf_dynamic_partition_inputs():
 generated_inputs["tf.dynamic_partition"] = tf_dynamic_partition_inputs()
 
 
-import copy
+
 
 def tf_executing_eagerly_inputs():
     list_of_inputs = []
@@ -2903,8 +2904,8 @@ def tf_executing_eagerly_inputs():
 generated_inputs["tf.executing_eagerly"] = tf_executing_eagerly_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_expand_dims_inputs():
     list_of_inputs = []
@@ -2985,7 +2986,7 @@ def tf_expand_dims_inputs():
 generated_inputs["tf.expand_dims"] = tf_expand_dims_inputs()
 
 
-import copy
+
 
 def tf_experimental_async_clear_error_inputs():
     list_of_inputs = []
@@ -3026,8 +3027,8 @@ def tf_experimental_async_clear_error_inputs():
 generated_inputs["tf.experimental.async_clear_error"] = tf_experimental_async_clear_error_inputs()
 
 
-import copy
-import numpy as np
+
+
 
 def tf_experimental_dlpack_to_dlpack_inputs():
     list_of_inputs = []
@@ -3084,8 +3085,8 @@ tf.experimental.numpy.experimental_enable_numpy_behavior()
 generated_inputs["tf.experimental.dlpack.to_dlpack"] = tf_experimental_dlpack_to_dlpack_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_experimental_numpy_abs_inputs():
     list_of_inputs = []
@@ -3154,8 +3155,8 @@ for input_dict in inputs:
 generated_inputs["tf.experimental.numpy.abs"] = processed_inputs
 
 
-import numpy as np
-import copy
+
+
 
 def tf_experimental_numpy_absolute_inputs():
     list_of_inputs = []
@@ -3212,8 +3213,8 @@ tf.experimental.numpy.experimental_enable_numpy_behavior()
 generated_inputs["tf.experimental.numpy.absolute"] = tf_experimental_numpy_absolute_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_experimental_numpy_add_inputs():
     list_of_inputs = []
@@ -3285,8 +3286,8 @@ tf.experimental.numpy.experimental_enable_numpy_behavior()
 generated_inputs["tf.experimental.numpy.add"] = tf_experimental_numpy_add_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_experimental_numpy_all_inputs():
     list_of_inputs = []
@@ -3367,8 +3368,8 @@ def tf_experimental_numpy_all_inputs():
 generated_inputs["tf.experimental.numpy.all"] = tf_experimental_numpy_all_inputs()
 
 
-import copy
-import numpy as np
+
+
 
 tf.experimental.numpy.experimental_enable_numpy_behavior()
 
@@ -3480,8 +3481,8 @@ def tf_experimental_numpy_allclose_inputs():
 generated_inputs["tf.experimental.numpy.allclose"] = tf_experimental_numpy_allclose_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 tf.experimental.numpy.experimental_enable_numpy_behavior()
 
@@ -3574,8 +3575,8 @@ def tf_experimental_numpy_amax_inputs():
 generated_inputs["tf.experimental.numpy.amax"] = tf_experimental_numpy_amax_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_experimental_numpy_angle_inputs():
     list_of_inputs = []
@@ -3657,8 +3658,8 @@ def tf_experimental_numpy_angle_inputs():
 generated_inputs["tf.experimental.numpy.angle"] = tf_experimental_numpy_angle_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_experimental_numpy_any_inputs():
     list_of_inputs = []
@@ -3740,8 +3741,8 @@ tf.experimental.numpy.experimental_enable_numpy_behavior()
 generated_inputs["tf.experimental.numpy.any"] = tf_experimental_numpy_any_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_experimental_numpy_append_inputs():
     list_of_inputs = []
@@ -3821,8 +3822,8 @@ def tf_experimental_numpy_append_inputs():
 generated_inputs["tf.experimental.numpy.append"] = tf_experimental_numpy_append_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_experimental_numpy_arccos_inputs():
     list_of_inputs = []
@@ -3885,8 +3886,8 @@ tf.experimental.numpy.experimental_enable_numpy_behavior()
 generated_inputs["tf.experimental.numpy.arccos"] = tf_experimental_numpy_arccos_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_experimental_numpy_arccosh_inputs():
     list_of_inputs = []
@@ -3953,8 +3954,8 @@ tf.experimental.numpy.experimental_enable_numpy_behavior()
 generated_inputs["tf.experimental.numpy.arccosh"] = tf_experimental_numpy_arccosh_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_experimental_numpy_arcsinh_inputs():
     list_of_inputs = []
@@ -4016,8 +4017,8 @@ tf.experimental.numpy.experimental_enable_numpy_behavior()
 generated_inputs["tf.experimental.numpy.arcsinh"] = tf_experimental_numpy_arcsinh_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_experimental_numpy_arctan_inputs():
     list_of_inputs = []
@@ -4079,8 +4080,8 @@ tf.experimental.numpy.experimental_enable_numpy_behavior()
 generated_inputs["tf.experimental.numpy.arctan"] = tf_experimental_numpy_arctan_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 tf.experimental.numpy.experimental_enable_numpy_behavior()
 
@@ -4155,8 +4156,8 @@ def tf_experimental_numpy_arctan2_inputs():
 generated_inputs["tf.experimental.numpy.arctan2"] = tf_experimental_numpy_arctan2_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_experimental_numpy_arctanh_inputs():
     list_of_inputs = []
@@ -4218,8 +4219,8 @@ tf.experimental.numpy.experimental_enable_numpy_behavior()
 generated_inputs["tf.experimental.numpy.arctanh"] = tf_experimental_numpy_arctanh_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_experimental_numpy_argmax_inputs():
     list_of_inputs = []
@@ -4291,8 +4292,8 @@ tf.experimental.numpy.experimental_enable_numpy_behavior()
 generated_inputs["tf.experimental.numpy.argmax"] = tf_experimental_numpy_argmax_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_experimental_numpy_argmin_inputs():
     list_of_inputs = []
@@ -4364,8 +4365,8 @@ def tf_experimental_numpy_argmin_inputs():
 generated_inputs["tf.experimental.numpy.argmin"] = tf_experimental_numpy_argmin_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_experimental_numpy_around_inputs():
     list_of_inputs = []
@@ -4443,8 +4444,8 @@ tf.experimental.numpy.experimental_enable_numpy_behavior()
 generated_inputs["tf.experimental.numpy.around"] = tf_experimental_numpy_around_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_experimental_numpy_array_inputs():
     list_of_inputs = []
@@ -4535,8 +4536,8 @@ def tf_experimental_numpy_array_inputs():
 generated_inputs["tf.experimental.numpy.array"] = tf_experimental_numpy_array_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_experimental_numpy_asanyarray_inputs():
     list_of_inputs = []
@@ -4607,8 +4608,8 @@ def tf_experimental_numpy_asanyarray_inputs():
 generated_inputs["tf.experimental.numpy.asanyarray"] = tf_experimental_numpy_asanyarray_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_experimental_numpy_asarray_inputs():
     list_of_inputs = []
@@ -4679,8 +4680,8 @@ def tf_experimental_numpy_asarray_inputs():
 generated_inputs["tf.experimental.numpy.asarray"] = tf_experimental_numpy_asarray_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_experimental_numpy_ascontiguousarray_inputs():
     list_of_inputs = []
@@ -4746,8 +4747,8 @@ tf.experimental.numpy.experimental_enable_numpy_behavior()
 generated_inputs["tf.experimental.numpy.ascontiguousarray"] = tf_experimental_numpy_ascontiguousarray_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_experimental_numpy_average_inputs():
     list_of_inputs = []
@@ -4839,8 +4840,8 @@ tf.experimental.numpy.experimental_enable_numpy_behavior()
 generated_inputs["tf.experimental.numpy.average"] = tf_experimental_numpy_average_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_experimental_numpy_bitwise_and_inputs():
     list_of_inputs = []
@@ -4912,8 +4913,8 @@ tf.experimental.numpy.experimental_enable_numpy_behavior()
 generated_inputs["tf.experimental.numpy.bitwise_and"] = tf_experimental_numpy_bitwise_and_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_experimental_numpy_bitwise_not_inputs():
     list_of_inputs = []
@@ -4975,8 +4976,8 @@ tf.experimental.numpy.experimental_enable_numpy_behavior()
 generated_inputs["tf.experimental.numpy.bitwise_not"] = tf_experimental_numpy_bitwise_not_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_experimental_numpy_bitwise_xor_inputs():
     list_of_inputs = []
@@ -5049,8 +5050,8 @@ tf.experimental.numpy.experimental_enable_numpy_behavior()
 generated_inputs["tf.experimental.numpy.bitwise_xor"] = tf_experimental_numpy_bitwise_xor_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_experimental_numpy_broadcast_to_inputs():
     list_of_inputs = []
@@ -5122,8 +5123,8 @@ tf.experimental.numpy.experimental_enable_numpy_behavior()
 generated_inputs["tf.experimental.numpy.broadcast_to"] = tf_experimental_numpy_broadcast_to_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_experimental_numpy_cbrt_inputs():
     list_of_inputs = []
@@ -5185,8 +5186,8 @@ tf.experimental.numpy.experimental_enable_numpy_behavior()
 generated_inputs["tf.experimental.numpy.cbrt"] = tf_experimental_numpy_cbrt_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_experimental_numpy_ceil_inputs():
     list_of_inputs = []
@@ -5239,8 +5240,8 @@ def tf_experimental_numpy_ceil_inputs():
 generated_inputs["tf.experimental.numpy.ceil"] = tf_experimental_numpy_ceil_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_experimental_numpy_clip_inputs():
     list_of_inputs = []
@@ -5328,8 +5329,8 @@ def tf_experimental_numpy_clip_inputs():
 generated_inputs["tf.experimental.numpy.clip"] = tf_experimental_numpy_clip_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_experimental_numpy_compress_inputs():
     list_of_inputs = []
@@ -5411,8 +5412,8 @@ tf.experimental.numpy.experimental_enable_numpy_behavior()
 generated_inputs["tf.experimental.numpy.compress"] = tf_experimental_numpy_compress_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_experimental_numpy_conj_inputs():
     list_of_inputs = []
@@ -5484,8 +5485,8 @@ def tf_experimental_numpy_conj_inputs():
 generated_inputs["tf.experimental.numpy.conj"] = tf_experimental_numpy_conj_inputs()
 
 
-import copy
-import numpy as np
+
+
 
 def tf_experimental_numpy_copy_inputs():
     list_of_inputs = []
@@ -5542,8 +5543,8 @@ def tf_experimental_numpy_copy_inputs():
 generated_inputs["tf.experimental.numpy.copy"] = tf_experimental_numpy_copy_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_experimental_numpy_cos_inputs():
     list_of_inputs = []
@@ -5608,8 +5609,8 @@ def tf_experimental_numpy_cos_inputs():
 generated_inputs["tf.experimental.numpy.cos"] = tf_experimental_numpy_cos_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_experimental_numpy_cosh_inputs():
     list_of_inputs = []
@@ -5671,8 +5672,8 @@ tf.experimental.numpy.experimental_enable_numpy_behavior()
 generated_inputs["tf.experimental.numpy.cosh"] = tf_experimental_numpy_cosh_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_experimental_numpy_count_nonzero_inputs():
     list_of_inputs = []
@@ -5744,8 +5745,8 @@ def tf_experimental_numpy_count_nonzero_inputs():
 generated_inputs["tf.experimental.numpy.count_nonzero"] = tf_experimental_numpy_count_nonzero_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_experimental_numpy_cumprod_inputs():
     list_of_inputs = []
@@ -5826,8 +5827,8 @@ def tf_experimental_numpy_cumprod_inputs():
 generated_inputs["tf.experimental.numpy.cumprod"] = tf_experimental_numpy_cumprod_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_experimental_numpy_deg2rad_inputs():
     list_of_inputs = []
@@ -5889,8 +5890,8 @@ tf.experimental.numpy.experimental_enable_numpy_behavior()
 generated_inputs["tf.experimental.numpy.deg2rad"] = tf_experimental_numpy_deg2rad_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_experimental_numpy_diag_inputs():
     list_of_inputs = []
@@ -5961,8 +5962,8 @@ def tf_experimental_numpy_diag_inputs():
 generated_inputs["tf.experimental.numpy.diag"] = tf_experimental_numpy_diag_inputs()
 
 
-import copy
-import numpy as np
+
+
 
 def tf_experimental_numpy_diag_indices_inputs():
     list_of_inputs = []
@@ -6039,8 +6040,8 @@ def tf_experimental_numpy_diag_indices_inputs():
 generated_inputs["tf.experimental.numpy.diag_indices"] = tf_experimental_numpy_diag_indices_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_experimental_numpy_diagflat_inputs():
     list_of_inputs = []
@@ -6112,8 +6113,8 @@ tf.experimental.numpy.experimental_enable_numpy_behavior()
 generated_inputs["tf.experimental.numpy.diagflat"] = tf_experimental_numpy_diagflat_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_experimental_numpy_diagonal_inputs():
     list_of_inputs = []
@@ -6205,8 +6206,8 @@ def tf_experimental_numpy_diagonal_inputs():
 generated_inputs["tf.experimental.numpy.diagonal"] = tf_experimental_numpy_diagonal_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_experimental_numpy_diff_inputs():
     list_of_inputs = []
@@ -6289,8 +6290,8 @@ tf.experimental.numpy.experimental_enable_numpy_behavior()
 generated_inputs["tf.experimental.numpy.diff"] = tf_experimental_numpy_diff_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_experimental_numpy_divide_inputs():
     list_of_inputs = []
@@ -6362,8 +6363,8 @@ tf.experimental.numpy.experimental_enable_numpy_behavior()
 generated_inputs["tf.experimental.numpy.divide"] = tf_experimental_numpy_divide_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_experimental_numpy_divmod_inputs():
     list_of_inputs = []
@@ -6443,8 +6444,8 @@ tf.experimental.numpy.experimental_enable_numpy_behavior()
 generated_inputs["tf.experimental.numpy.divmod"] = tf_experimental_numpy_divmod_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_experimental_numpy_dot_inputs():
     list_of_inputs = []
@@ -6516,8 +6517,8 @@ tf.experimental.numpy.experimental_enable_numpy_behavior()
 generated_inputs["tf.experimental.numpy.dot"] = tf_experimental_numpy_dot_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_experimental_numpy_dstack_inputs():
     list_of_inputs = []
@@ -6588,8 +6589,8 @@ def tf_experimental_numpy_dstack_inputs():
 generated_inputs["tf.experimental.numpy.dstack"] = tf_experimental_numpy_dstack_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_experimental_numpy_empty_inputs():
     list_of_inputs = []
@@ -6660,8 +6661,8 @@ def tf_experimental_numpy_empty_inputs():
 generated_inputs["tf.experimental.numpy.empty"] = tf_experimental_numpy_empty_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_experimental_numpy_empty_like_inputs():
     list_of_inputs = []
@@ -6732,8 +6733,8 @@ def tf_experimental_numpy_empty_like_inputs():
 generated_inputs["tf.experimental.numpy.empty_like"] = tf_experimental_numpy_empty_like_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 tf.experimental.numpy.experimental_enable_numpy_behavior()
 
@@ -6796,8 +6797,8 @@ def tf_experimental_numpy_exp_inputs():
 generated_inputs["tf.experimental.numpy.exp"] = tf_experimental_numpy_exp_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_experimental_numpy_exp2_inputs():
     list_of_inputs = []
@@ -6864,8 +6865,8 @@ tf.experimental.numpy.experimental_enable_numpy_behavior()
 generated_inputs["tf.experimental.numpy.exp2"] = tf_experimental_numpy_exp2_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_experimental_numpy_expand_dims_inputs():
     list_of_inputs = []
@@ -6936,8 +6937,8 @@ def tf_experimental_numpy_expand_dims_inputs():
 generated_inputs["tf.experimental.numpy.expand_dims"] = tf_experimental_numpy_expand_dims_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 tf.experimental.numpy.experimental_enable_numpy_behavior()
 
@@ -7011,8 +7012,8 @@ def tf_experimental_numpy_expm1_inputs():
 generated_inputs["tf.experimental.numpy.expm1"] = tf_experimental_numpy_expm1_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_experimental_numpy_eye_inputs():
     list_of_inputs = []
@@ -7113,8 +7114,8 @@ def tf_experimental_numpy_eye_inputs():
 generated_inputs["tf.experimental.numpy.eye"] = tf_experimental_numpy_eye_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_experimental_numpy_fabs_inputs():
     list_of_inputs = []
@@ -7176,8 +7177,8 @@ tf.experimental.numpy.experimental_enable_numpy_behavior()
 generated_inputs["tf.experimental.numpy.fabs"] = tf_experimental_numpy_fabs_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_experimental_numpy_finfo_inputs():
     list_of_inputs = []
@@ -7239,8 +7240,8 @@ def tf_experimental_numpy_finfo_inputs():
 generated_inputs["tf.experimental.numpy.finfo"] = tf_experimental_numpy_finfo_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_experimental_numpy_fliplr_inputs():
     list_of_inputs = []
@@ -7297,8 +7298,8 @@ tf.experimental.numpy.experimental_enable_numpy_behavior()
 generated_inputs["tf.experimental.numpy.fliplr"] = tf_experimental_numpy_fliplr_inputs()
 
 
-import copy
-import numpy as np
+
+
 
 def tf_experimental_numpy_flipud_inputs():
     list_of_inputs = []
@@ -7360,8 +7361,8 @@ tf.experimental.numpy.experimental_enable_numpy_behavior()
 generated_inputs["tf.experimental.numpy.flipud"] = tf_experimental_numpy_flipud_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_experimental_numpy_floor_inputs():
     list_of_inputs = []
@@ -7438,8 +7439,8 @@ for input_dict in tf_experimental_numpy_floor_inputs():
 generated_inputs["tf.experimental.numpy.floor"] = temp_list
 
 
-import numpy as np
-import copy
+
+
 
 def tf_experimental_numpy_floor_divide_inputs():
     list_of_inputs = []
@@ -7514,8 +7515,8 @@ for input_dict in generated_inputs["tf.experimental.numpy.floor_divide"]:
         input_dict[key] = input_dict[key].numpy()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_experimental_numpy_full_inputs():
     list_of_inputs = []
@@ -7597,8 +7598,8 @@ tf.experimental.numpy.experimental_enable_numpy_behavior()
 generated_inputs["tf.experimental.numpy.full"] = tf_experimental_numpy_full_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_experimental_numpy_gcd_inputs():
     list_of_inputs = []
@@ -7658,8 +7659,8 @@ tf.experimental.numpy.experimental_enable_numpy_behavior()
 generated_inputs["tf.experimental.numpy.gcd"] = tf_experimental_numpy_gcd_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_experimental_numpy_geomspace_inputs():
     list_of_inputs = []
@@ -7851,8 +7852,8 @@ tf.experimental.numpy.experimental_enable_numpy_behavior()
 generated_inputs["tf.experimental.numpy.geomspace"] = tf_experimental_numpy_geomspace_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_experimental_numpy_greater_inputs():
     list_of_inputs = []
@@ -7912,8 +7913,8 @@ tf.experimental.numpy.experimental_enable_numpy_behavior()
 generated_inputs["tf.experimental.numpy.greater"] = tf_experimental_numpy_greater_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_experimental_numpy_greater_equal_inputs():
     list_of_inputs = []
@@ -7985,8 +7986,8 @@ tf.experimental.numpy.experimental_enable_numpy_behavior()
 generated_inputs["tf.experimental.numpy.greater_equal"] = tf_experimental_numpy_greater_equal_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_experimental_numpy_hsplit_inputs():
     list_of_inputs = []
@@ -8057,8 +8058,8 @@ def tf_experimental_numpy_hsplit_inputs():
 generated_inputs["tf.experimental.numpy.hsplit"] = tf_experimental_numpy_hsplit_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_experimental_numpy_hstack_inputs():
     list_of_inputs = []
@@ -8118,8 +8119,8 @@ def tf_experimental_numpy_hstack_inputs():
 generated_inputs["tf.experimental.numpy.hstack"] = tf_experimental_numpy_hstack_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_experimental_numpy_hypot_inputs():
     list_of_inputs = []
@@ -8191,8 +8192,8 @@ tf.experimental.numpy.experimental_enable_numpy_behavior()
 generated_inputs["tf.experimental.numpy.hypot"] = tf_experimental_numpy_hypot_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_experimental_numpy_identity_inputs():
     list_of_inputs = []
@@ -8264,8 +8265,8 @@ def tf_experimental_numpy_identity_inputs():
 generated_inputs["tf.experimental.numpy.identity"] = tf_experimental_numpy_identity_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_experimental_numpy_iinfo_inputs():
     list_of_inputs = []
@@ -8316,8 +8317,8 @@ def tf_experimental_numpy_iinfo_inputs():
 generated_inputs["tf.experimental.numpy.iinfo"] = tf_experimental_numpy_iinfo_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_experimental_numpy_inner_inputs():
     list_of_inputs = []
@@ -8371,8 +8372,8 @@ def tf_experimental_numpy_inner_inputs():
 generated_inputs["tf.experimental.numpy.inner"] = tf_experimental_numpy_inner_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_experimental_numpy_isclose_inputs():
     list_of_inputs = []
@@ -8472,8 +8473,8 @@ def tf_experimental_numpy_isclose_inputs():
 generated_inputs["tf.experimental.numpy.isclose"] = tf_experimental_numpy_isclose_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_experimental_numpy_iscomplex_inputs():
     list_of_inputs = []
@@ -8533,8 +8534,8 @@ tf.experimental.numpy.experimental_enable_numpy_behavior()
 generated_inputs["tf.experimental.numpy.iscomplex"] = tf_experimental_numpy_iscomplex_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_experimental_numpy_isfinite_inputs():
     list_of_inputs = []
@@ -8596,8 +8597,8 @@ tf.experimental.numpy.experimental_enable_numpy_behavior()
 generated_inputs["tf.experimental.numpy.isfinite"] = tf_experimental_numpy_isfinite_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_experimental_numpy_isinf_inputs():
     list_of_inputs = []
@@ -8659,8 +8660,8 @@ tf.experimental.numpy.experimental_enable_numpy_behavior()
 generated_inputs["tf.experimental.numpy.isinf"] = tf_experimental_numpy_isinf_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_experimental_numpy_isneginf_inputs():
     list_of_inputs = []
@@ -8722,8 +8723,8 @@ tf.experimental.numpy.experimental_enable_numpy_behavior()
 generated_inputs["tf.experimental.numpy.isneginf"] = tf_experimental_numpy_isneginf_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 tf.experimental.numpy.experimental_enable_numpy_behavior()
 
@@ -8791,8 +8792,8 @@ def tf_experimental_numpy_isposinf_inputs():
 generated_inputs["tf.experimental.numpy.isposinf"] = tf_experimental_numpy_isposinf_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_experimental_numpy_isreal_inputs():
     list_of_inputs = []
@@ -8857,8 +8858,8 @@ def tf_experimental_numpy_isreal_inputs():
 generated_inputs["tf.experimental.numpy.isreal"] = tf_experimental_numpy_isreal_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_experimental_numpy_isscalar_inputs():
     list_of_inputs = []
@@ -8920,8 +8921,8 @@ tf.experimental.numpy.experimental_enable_numpy_behavior()
 generated_inputs["tf.experimental.numpy.isscalar"] = tf_experimental_numpy_isscalar_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_experimental_numpy_issubdtype_inputs():
     list_of_inputs = []
@@ -9009,8 +9010,8 @@ def tf_experimental_numpy_issubdtype_inputs():
 generated_inputs["tf.experimental.numpy.issubdtype"] = tf_experimental_numpy_issubdtype_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_experimental_numpy_kron_inputs():
     list_of_inputs = []
@@ -9080,8 +9081,8 @@ tf.experimental.numpy.experimental_enable_numpy_behavior()
 generated_inputs["tf.experimental.numpy.kron"] = tf_experimental_numpy_kron_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_experimental_numpy_less_inputs():
     list_of_inputs = []
@@ -9158,8 +9159,8 @@ tf.experimental.numpy.experimental_enable_numpy_behavior()
 generated_inputs["tf.experimental.numpy.less"] = tf_experimental_numpy_less_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_experimental_numpy_less_equal_inputs():
     list_of_inputs = []
@@ -9231,8 +9232,8 @@ tf.experimental.numpy.experimental_enable_numpy_behavior()
 generated_inputs["tf.experimental.numpy.less_equal"] = tf_experimental_numpy_less_equal_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_experimental_numpy_log10_inputs():
     list_of_inputs = []
@@ -9308,8 +9309,8 @@ for i in range(len(generated_inputs["tf.experimental.numpy.log10"])):
     generated_inputs["tf.experimental.numpy.log10"][i]["x"] = generated_inputs["tf.experimental.numpy.log10"][i]["x"].numpy()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_experimental_numpy_log1p_inputs():
     list_of_inputs = []
@@ -9369,8 +9370,8 @@ def tf_experimental_numpy_log1p_inputs():
 generated_inputs["tf.experimental.numpy.log1p"] = tf_experimental_numpy_log1p_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 tf.experimental.numpy.experimental_enable_numpy_behavior()
 
@@ -9443,8 +9444,8 @@ def tf_experimental_numpy_logaddexp_inputs():
 generated_inputs["tf.experimental.numpy.logaddexp"] = tf_experimental_numpy_logaddexp_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_experimental_numpy_logaddexp2_inputs():
     list_of_inputs = []
@@ -9520,8 +9521,8 @@ def tf_experimental_numpy_logaddexp2_inputs():
 generated_inputs["tf.experimental.numpy.logaddexp2"] = tf_experimental_numpy_logaddexp2_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 tf.experimental.numpy.experimental_enable_numpy_behavior()
 
@@ -9588,8 +9589,8 @@ def tf_np_logical_and_inputs():
 generated_inputs["tf.experimental.numpy.logical_and"] = tf_np_logical_and_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 tf.experimental.numpy.experimental_enable_numpy_behavior()
 
@@ -9662,8 +9663,8 @@ def tf_experimental_numpy_logical_or_inputs():
 generated_inputs["tf.experimental.numpy.logical_or"] = tf_experimental_numpy_logical_or_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_experimental_numpy_logspace_inputs():
     list_of_inputs = []
@@ -9784,8 +9785,8 @@ def tf_experimental_numpy_logspace_inputs():
 generated_inputs["tf.experimental.numpy.logspace"] = tf_experimental_numpy_logspace_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_experimental_numpy_max_inputs():
     list_of_inputs = []
@@ -9867,8 +9868,8 @@ tf.experimental.numpy.experimental_enable_numpy_behavior()
 generated_inputs["tf.experimental.numpy.max"] = tf_experimental_numpy_max_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_experimental_numpy_mean_inputs():
     list_of_inputs = []
@@ -9978,8 +9979,8 @@ def tf_experimental_numpy_mean_inputs():
 generated_inputs["tf.experimental.numpy.mean"] = tf_experimental_numpy_mean_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_experimental_numpy_min_inputs():
     list_of_inputs = []
@@ -10061,8 +10062,8 @@ tf.experimental.numpy.experimental_enable_numpy_behavior()
 generated_inputs["tf.experimental.numpy.min"] = tf_experimental_numpy_min_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_experimental_numpy_min_inputs():
     list_of_inputs = []
@@ -10143,8 +10144,8 @@ def tf_experimental_numpy_min_inputs():
 generated_inputs["tf.experimental.numpy.min_2"] = tf_experimental_numpy_min_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_experimental_numpy_mod_inputs():
     list_of_inputs = []
@@ -10210,8 +10211,8 @@ tf.experimental.numpy.experimental_enable_numpy_behavior()
 generated_inputs["tf.experimental.numpy.mod"] = tf_experimental_numpy_mod_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_experimental_numpy_moveaxis_inputs():
     list_of_inputs = []
@@ -10292,8 +10293,8 @@ def tf_experimental_numpy_moveaxis_inputs():
 generated_inputs["tf.experimental.numpy.moveaxis"] = tf_experimental_numpy_moveaxis_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_experimental_numpy_multiply_inputs():
     list_of_inputs = []
@@ -10366,8 +10367,8 @@ tf.experimental.numpy.experimental_enable_numpy_behavior()
 generated_inputs["tf.experimental.numpy.multiply"] = tf_experimental_numpy_multiply_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 tf.experimental.numpy.experimental_enable_numpy_behavior()
 
@@ -10468,8 +10469,8 @@ def tf_experimental_numpy_nanmean_inputs():
 generated_inputs["tf.experimental.numpy.nanmean"] = tf_experimental_numpy_nanmean_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_experimental_numpy_nanprod_inputs():
     list_of_inputs = []
@@ -10561,8 +10562,8 @@ def tf_experimental_numpy_nanprod_inputs():
 generated_inputs["tf.experimental.numpy.nanprod"] = tf_experimental_numpy_nanprod_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_experimental_numpy_nansum_inputs():
     list_of_inputs = []
@@ -10655,8 +10656,8 @@ generated_inputs["tf.experimental.numpy.nansum"] = tf_experimental_numpy_nansum_
 tf.experimental.numpy.experimental_enable_numpy_behavior()
 
 
-import copy
-import numpy as np
+
+
 
 def tf_experimental_numpy_ndim_inputs():
     list_of_inputs = []
@@ -10718,8 +10719,8 @@ tf.experimental.numpy.experimental_enable_numpy_behavior()
 generated_inputs["tf.experimental.numpy.ndim"] = tf_experimental_numpy_ndim_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_experimental_numpy_negative_inputs():
     list_of_inputs = []
@@ -10771,8 +10772,8 @@ tf.experimental.numpy.experimental_enable_numpy_behavior()
 generated_inputs["tf.experimental.numpy.negative"] = tf_experimental_numpy_negative_inputs()
 
 
-import copy
-import numpy as np
+
+
 
 def tf_experimental_numpy_nextafter_inputs():
     list_of_inputs = []
@@ -10844,8 +10845,8 @@ tf.experimental.numpy.experimental_enable_numpy_behavior()
 generated_inputs["tf.experimental.numpy.nextafter"] = tf_experimental_numpy_nextafter_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_experimental_numpy_nonzero_inputs():
     list_of_inputs = []
@@ -10907,8 +10908,8 @@ tf.experimental.numpy.experimental_enable_numpy_behavior()
 generated_inputs["tf.experimental.numpy.nonzero"] = tf_experimental_numpy_nonzero_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_experimental_numpy_not_equal_inputs():
     list_of_inputs = []
@@ -10986,8 +10987,8 @@ tf.experimental.numpy.experimental_enable_numpy_behavior()
 generated_inputs["tf.experimental.numpy.not_equal"] = tf_experimental_numpy_not_equal_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_experimental_numpy_ones_inputs():
     list_of_inputs = []
@@ -11058,8 +11059,8 @@ def tf_experimental_numpy_ones_inputs():
 generated_inputs["tf.experimental.numpy.ones"] = tf_experimental_numpy_ones_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_experimental_numpy_ones_like_inputs():
     list_of_inputs = []
@@ -11131,8 +11132,8 @@ def tf_experimental_numpy_ones_like_inputs():
 generated_inputs["tf.experimental.numpy.ones_like"] = tf_experimental_numpy_ones_like_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_experimental_numpy_outer_inputs():
     list_of_inputs = []
@@ -11204,8 +11205,8 @@ tf.experimental.numpy.experimental_enable_numpy_behavior()
 generated_inputs["tf.experimental.numpy.outer"] = tf_experimental_numpy_outer_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_experimental_numpy_pad_inputs():
     list_of_inputs = []
@@ -11286,8 +11287,8 @@ def tf_experimental_numpy_pad_inputs():
 generated_inputs["tf.experimental.numpy.pad"] = tf_experimental_numpy_pad_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_experimental_numpy_polyval_inputs():
     list_of_inputs = []
@@ -11358,8 +11359,8 @@ def tf_experimental_numpy_polyval_inputs():
 generated_inputs["tf.experimental.numpy.polyval"] = tf_experimental_numpy_polyval_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_experimental_numpy_power_inputs():
     list_of_inputs = []
@@ -11432,8 +11433,8 @@ tf.experimental.numpy.experimental_enable_numpy_behavior()
 generated_inputs["tf.experimental.numpy.power"] = tf_experimental_numpy_power_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_experimental_numpy_prod_inputs():
     list_of_inputs = []
@@ -11532,8 +11533,8 @@ def tf_experimental_numpy_prod_inputs():
 generated_inputs["tf.experimental.numpy.prod"] = tf_experimental_numpy_prod_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_promote_types_inputs():
     list_of_inputs = []
@@ -11605,8 +11606,8 @@ def tf_promote_types_inputs():
 generated_inputs["tf.experimental.numpy.promote_types"] = tf_promote_types_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_experimental_numpy_ptp_inputs():
     list_of_inputs = []
@@ -11688,8 +11689,8 @@ def tf_experimental_numpy_ptp_inputs():
 generated_inputs["tf.experimental.numpy.ptp"] = tf_experimental_numpy_ptp_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_experimental_numpy_rad2deg_inputs():
     list_of_inputs = []
@@ -11751,8 +11752,8 @@ tf.experimental.numpy.experimental_enable_numpy_behavior()
 generated_inputs["tf.experimental.numpy.rad2deg"] = tf_experimental_numpy_rad2deg_inputs()
 
 
-import copy
-import numpy as np
+
+
 
 def tf_experimental_numpy_random_rand_inputs():
     list_of_inputs = []
@@ -11816,8 +11817,8 @@ def tf_experimental_numpy_random_rand_inputs():
 generated_inputs["tf.experimental.numpy.random.rand"] = tf_experimental_numpy_random_rand_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_experimental_numpy_random_randint_inputs():
     list_of_inputs = []
@@ -11909,8 +11910,8 @@ tf.random.set_seed(1)
 generated_inputs["tf.experimental.numpy.random.randint"] = tf_experimental_numpy_random_randint_inputs()
 
 
-import copy
-import numpy as np
+
+
 
 def tf_experimental_numpy_random_random_inputs():
     list_of_inputs = []
@@ -11973,8 +11974,8 @@ def tf_experimental_numpy_random_random_inputs():
 generated_inputs["tf.experimental.numpy.random.random"] = tf_experimental_numpy_random_random_inputs()
 
 
-import copy
-import numpy as np
+
+
 
 def tf_experimental_numpy_random_seed_inputs():
     list_of_inputs = []
@@ -12035,8 +12036,8 @@ def tf_experimental_numpy_random_seed_inputs():
 generated_inputs["tf.experimental.numpy.random.seed"] = tf_experimental_numpy_random_seed_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_experimental_numpy_ravel_inputs():
     list_of_inputs = []
@@ -12098,8 +12099,8 @@ tf.experimental.numpy.experimental_enable_numpy_behavior()
 generated_inputs["tf.experimental.numpy.ravel"] = tf_experimental_numpy_ravel_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_experimental_numpy_real_inputs():
     list_of_inputs = []
@@ -12163,8 +12164,8 @@ for i in range(len(generated_inputs["tf.experimental.numpy.real"])):
     generated_inputs["tf.experimental.numpy.real"][i]["val"] = generated_inputs["tf.experimental.numpy.real"][i]["val"].numpy()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_experimental_numpy_reciprocal_inputs():
     list_of_inputs = []
@@ -12226,8 +12227,8 @@ tf.experimental.numpy.experimental_enable_numpy_behavior()
 generated_inputs["tf.experimental.numpy.reciprocal"] = tf_experimental_numpy_reciprocal_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_experimental_numpy_repeat_inputs():
     list_of_inputs = []
@@ -12308,8 +12309,8 @@ def tf_experimental_numpy_repeat_inputs():
 generated_inputs["tf.experimental.numpy.repeat"] = tf_experimental_numpy_repeat_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_experimental_numpy_reshape_inputs():
     list_of_inputs = []
@@ -12384,8 +12385,8 @@ tf.experimental.numpy.experimental_enable_numpy_behavior()
 generated_inputs["tf.experimental.numpy.reshape"] = tf_experimental_numpy_reshape_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_experimental_numpy_roll_inputs():
     list_of_inputs = []
@@ -12469,8 +12470,8 @@ def tf_experimental_numpy_roll_inputs():
 generated_inputs["tf.experimental.numpy.roll"] = tf_experimental_numpy_roll_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_experimental_numpy_rot90_inputs():
     list_of_inputs = []
@@ -12551,8 +12552,8 @@ def tf_experimental_numpy_rot90_inputs():
 generated_inputs["tf.experimental.numpy.rot90"] = tf_experimental_numpy_rot90_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_experimental_numpy_round_inputs():
     list_of_inputs = []
@@ -12624,8 +12625,8 @@ tf.experimental.numpy.experimental_enable_numpy_behavior()
 generated_inputs["tf.experimental.numpy.round"] = tf_experimental_numpy_round_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_experimental_numpy_select_inputs():
     list_of_inputs = []
@@ -12706,8 +12707,8 @@ def tf_experimental_numpy_select_inputs():
 generated_inputs["tf.experimental.numpy.select"] = tf_experimental_numpy_select_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_experimental_numpy_shape_inputs():
     list_of_inputs = []
@@ -12769,8 +12770,8 @@ tf.experimental.numpy.experimental_enable_numpy_behavior()
 generated_inputs["tf.experimental.numpy.shape"] = tf_experimental_numpy_shape_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_experimental_numpy_signbit_inputs():
     list_of_inputs = []
@@ -12835,8 +12836,8 @@ def tf_experimental_numpy_signbit_inputs():
 generated_inputs["tf.experimental.numpy.signbit"] = tf_experimental_numpy_signbit_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_experimental_numpy_sinc_inputs():
     list_of_inputs = []
@@ -12901,8 +12902,8 @@ for i in range(len(generated_inputs["tf.experimental.numpy.sinc"])):
     generated_inputs["tf.experimental.numpy.sinc"][i]['x'] = generated_inputs["tf.experimental.numpy.sinc"][i]['x'].numpy()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_experimental_numpy_sinh_inputs():
     list_of_inputs = []
@@ -12965,8 +12966,8 @@ generated_inputs["tf.experimental.numpy.sinh"] = tf_experimental_numpy_sinh_inpu
 tf.experimental.numpy.experimental_enable_numpy_behavior()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_experimental_numpy_size_inputs():
     list_of_inputs = []
@@ -13007,8 +13008,8 @@ def tf_experimental_numpy_size_inputs():
 generated_inputs["tf.experimental.numpy.size"] = tf_experimental_numpy_size_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_experimental_numpy_split_inputs():
     list_of_inputs = []
@@ -13088,8 +13089,8 @@ def tf_experimental_numpy_split_inputs():
 generated_inputs["tf.experimental.numpy.split"] = tf_experimental_numpy_split_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_experimental_numpy_sqrt_inputs():
     list_of_inputs = []
@@ -13151,8 +13152,8 @@ tf.experimental.numpy.experimental_enable_numpy_behavior()
 generated_inputs["tf.experimental.numpy.sqrt"] = tf_experimental_numpy_sqrt_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_experimental_numpy_squeeze_inputs():
     list_of_inputs = []
@@ -13223,8 +13224,8 @@ def tf_experimental_numpy_squeeze_inputs():
 generated_inputs["tf.experimental.numpy.squeeze"] = tf_experimental_numpy_squeeze_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 tf.experimental.numpy.experimental_enable_numpy_behavior()
 
@@ -13307,8 +13308,8 @@ def tf_experimental_numpy_std_inputs():
 generated_inputs["tf.experimental.numpy.std"] = tf_experimental_numpy_std_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_experimental_numpy_sum_inputs():
     list_of_inputs = []
@@ -13401,8 +13402,8 @@ def tf_experimental_numpy_sum_inputs():
 generated_inputs["tf.experimental.numpy.sum"] = tf_experimental_numpy_sum_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_experimental_numpy_swapaxes_inputs():
     list_of_inputs = []
@@ -13483,8 +13484,8 @@ def tf_experimental_numpy_swapaxes_inputs():
 generated_inputs["tf.experimental.numpy.swapaxes"] = tf_experimental_numpy_swapaxes_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 tf.experimental.numpy.experimental_enable_numpy_behavior()
 
@@ -13567,8 +13568,8 @@ def tf_experimental_numpy_take_along_axis_inputs():
 generated_inputs["tf.experimental.numpy.take_along_axis"] = tf_experimental_numpy_take_along_axis_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_experimental_numpy_tan_inputs():
     list_of_inputs = []
@@ -13635,8 +13636,8 @@ for k, v in generated_inputs.items():
                 input_dict[key] = value.numpy()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_experimental_numpy_tanh_inputs():
     list_of_inputs = []
@@ -13697,8 +13698,8 @@ def tf_experimental_numpy_tanh_inputs():
 generated_inputs["tf.experimental.numpy.tanh"] = tf_experimental_numpy_tanh_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_experimental_numpy_tile_inputs():
     list_of_inputs = []
@@ -13769,8 +13770,8 @@ def tf_experimental_numpy_tile_inputs():
 generated_inputs["tf.experimental.numpy.tile"] = tf_experimental_numpy_tile_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_experimental_numpy_trace_inputs():
     list_of_inputs = []
@@ -13942,8 +13943,8 @@ tf.experimental.numpy.experimental_enable_numpy_behavior()
 generated_inputs["tf.experimental.numpy.trace"] = tf_experimental_numpy_trace_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_experimental_numpy_tri_inputs():
     list_of_inputs = []
@@ -14050,8 +14051,8 @@ def tf_experimental_numpy_tri_inputs():
 generated_inputs["tf.experimental.numpy.tri"] = tf_experimental_numpy_tri_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_experimental_numpy_tril_inputs():
     list_of_inputs = []
@@ -14123,8 +14124,8 @@ def tf_experimental_numpy_tril_inputs():
 generated_inputs["tf.experimental.numpy.tril"] = tf_experimental_numpy_tril_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_experimental_numpy_triu_inputs():
     list_of_inputs = []
@@ -14195,8 +14196,8 @@ def tf_experimental_numpy_triu_inputs():
 generated_inputs["tf.experimental.numpy.triu"] = tf_experimental_numpy_triu_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_experimental_numpy_vander_inputs():
     list_of_inputs = []
@@ -14285,8 +14286,8 @@ tf.experimental.numpy.experimental_enable_numpy_behavior()
 generated_inputs["tf.experimental.numpy.vander"] = tf_experimental_numpy_vander_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_experimental_numpy_vsplit_inputs():
     list_of_inputs = []
@@ -14359,8 +14360,8 @@ def tf_experimental_numpy_vsplit_inputs():
 generated_inputs["tf.experimental.numpy.vsplit"] = tf_experimental_numpy_vsplit_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_experimental_numpy_where_inputs():
     list_of_inputs = []
@@ -14499,8 +14500,8 @@ def tf_experimental_numpy_where_inputs():
 generated_inputs["tf.experimental.numpy.where"] = tf_experimental_numpy_where_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_experimental_numpy_zeros_inputs():
     list_of_inputs = []
@@ -14571,8 +14572,8 @@ def tf_experimental_numpy_zeros_inputs():
 generated_inputs["tf.experimental.numpy.zeros"] = tf_experimental_numpy_zeros_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_experimental_numpy_zeros_like_inputs():
     list_of_inputs = []
@@ -14643,8 +14644,8 @@ def tf_experimental_numpy_zeros_like_inputs():
 generated_inputs["tf.experimental.numpy.zeros_like"] = tf_experimental_numpy_zeros_like_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_extract_volume_patches_inputs():
     list_of_inputs = []
@@ -14745,8 +14746,8 @@ def tf_extract_volume_patches_inputs():
 generated_inputs["tf.extract_volume_patches"] = tf_extract_volume_patches_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_eye_inputs():
     list_of_inputs = []
@@ -14917,8 +14918,8 @@ def tf_eye_inputs():
 generated_inputs["tf.eye"] = tf_eye_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_feature_column_categorical_column_with_hash_bucket_inputs():
     list_of_inputs = []
@@ -15009,8 +15010,8 @@ def tf_feature_column_categorical_column_with_hash_bucket_inputs():
 generated_inputs["tf.feature_column.categorical_column_with_hash_bucket"] = tf_feature_column_categorical_column_with_hash_bucket_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_feature_column_categorical_column_with_identity_inputs():
     list_of_inputs = []
@@ -15101,8 +15102,8 @@ def tf_feature_column_categorical_column_with_identity_inputs():
 generated_inputs["tf.feature_column.categorical_column_with_identity"] = tf_feature_column_categorical_column_with_identity_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_feature_column_categorical_column_with_vocabulary_file_inputs():
     list_of_inputs = []
@@ -15233,8 +15234,8 @@ def tf_feature_column_categorical_column_with_vocabulary_file_inputs():
 generated_inputs["tf.feature_column.categorical_column_with_vocabulary_file"] = tf_feature_column_categorical_column_with_vocabulary_file_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_feature_column_sequence_categorical_column_with_hash_bucket_inputs():
     list_of_inputs = []
@@ -15365,8 +15366,8 @@ def tf_feature_column_sequence_categorical_column_with_hash_bucket_inputs():
 generated_inputs["tf.feature_column.sequence_categorical_column_with_hash_bucket"] = tf_feature_column_sequence_categorical_column_with_hash_bucket_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_feature_column_sequence_categorical_column_with_identity_inputs():
     list_of_inputs = []
@@ -15457,8 +15458,8 @@ def tf_feature_column_sequence_categorical_column_with_identity_inputs():
 generated_inputs["tf.feature_column.sequence_categorical_column_with_identity"] = tf_feature_column_sequence_categorical_column_with_identity_inputs()
 
 
-import numpy as np
-import copy
+
+
 import os
 
 def tf_feature_column_sequence_categorical_column_with_vocabulary_file_inputs():
@@ -15663,8 +15664,8 @@ def tf_feature_column_sequence_categorical_column_with_vocabulary_file_inputs():
 generated_inputs["tf.feature_column.sequence_categorical_column_with_vocabulary_file"] = tf_feature_column_sequence_categorical_column_with_vocabulary_file_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_fingerprint_inputs():
     list_of_inputs = []
@@ -15745,8 +15746,8 @@ def tf_fingerprint_inputs():
 generated_inputs["tf.fingerprint"] = tf_fingerprint_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_gather_inputs():
     list_of_inputs = []
@@ -15877,8 +15878,8 @@ def tf_gather_inputs():
 generated_inputs["tf.gather"] = tf_gather_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_gather_nd_inputs():
     list_of_inputs = []
@@ -15988,8 +15989,8 @@ def tf_gather_nd_inputs():
 generated_inputs["tf.gather_nd"] = tf_gather_nd_inputs()
 
 
-import copy
-import numpy as np
+
+
 import logging
 
 def tf_get_logger_inputs():
@@ -16043,8 +16044,8 @@ def tf_get_logger_inputs():
 generated_inputs["tf.get_logger"] = tf_get_logger_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_guarantee_const_inputs():
     list_of_inputs = []
@@ -16119,8 +16120,8 @@ for i in range(len(inputs)):
 generated_inputs["tf.guarantee_const"] = inputs
 
 
-import numpy as np
-import copy
+
+
 
 def tf_histogram_fixed_width_inputs():
     list_of_inputs = []
@@ -16292,8 +16293,8 @@ def tf_histogram_fixed_width_inputs():
 generated_inputs["tf.histogram_fixed_width"] = tf_histogram_fixed_width_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_identity_inputs():
     list_of_inputs = []
@@ -16365,8 +16366,8 @@ def tf_identity_inputs():
 generated_inputs["tf.identity"] = tf_identity_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_image_adjust_brightness_inputs():
     list_of_inputs = []
@@ -16451,8 +16452,8 @@ def tf_image_adjust_brightness_inputs():
 generated_inputs["tf.image.adjust_brightness"] = tf_image_adjust_brightness_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_image_adjust_contrast_inputs():
     list_of_inputs = []
@@ -16525,8 +16526,8 @@ def tf_image_adjust_contrast_inputs():
 generated_inputs["tf.image.adjust_contrast"] = tf_image_adjust_contrast_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_image_adjust_gamma_inputs():
     list_of_inputs = []
@@ -16607,8 +16608,8 @@ def tf_image_adjust_gamma_inputs():
 generated_inputs["tf.image.adjust_gamma"] = tf_image_adjust_gamma_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_image_adjust_hue_inputs():
     list_of_inputs = []
@@ -16689,8 +16690,8 @@ def tf_image_adjust_hue_inputs():
 generated_inputs["tf.image.adjust_hue"] = tf_image_adjust_hue_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_image_adjust_jpeg_quality_inputs():
     list_of_inputs = []
@@ -16781,8 +16782,8 @@ def tf_image_adjust_jpeg_quality_inputs():
 generated_inputs["tf.image.adjust_jpeg_quality"] = tf_image_adjust_jpeg_quality_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_image_adjust_saturation_inputs():
     list_of_inputs = []
@@ -16866,8 +16867,8 @@ def tf_image_adjust_saturation_inputs():
 generated_inputs["tf.image.adjust_saturation"] = tf_image_adjust_saturation_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_image_central_crop_inputs():
     list_of_inputs = []
@@ -16947,8 +16948,8 @@ def tf_image_central_crop_inputs():
 generated_inputs["tf.image.central_crop"] = tf_image_central_crop_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_image_convert_image_dtype_inputs():
     list_of_inputs = []
@@ -17047,8 +17048,8 @@ def tf_image_convert_image_dtype_inputs():
 generated_inputs["tf.image.convert_image_dtype"] = tf_image_convert_image_dtype_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_image_crop_and_resize_inputs():
     list_of_inputs = []
@@ -17169,8 +17170,8 @@ def tf_image_crop_and_resize_inputs():
 generated_inputs["tf.image.crop_and_resize"] = tf_image_crop_and_resize_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_image_crop_to_bounding_box_inputs():
     list_of_inputs = []
@@ -17280,8 +17281,8 @@ def tf_image_crop_to_bounding_box_inputs():
 generated_inputs["tf.image.crop_to_bounding_box"] = tf_image_crop_to_bounding_box_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_image_draw_bounding_boxes_inputs():
     list_of_inputs = []
@@ -17433,8 +17434,8 @@ def tf_image_draw_bounding_boxes_inputs():
 generated_inputs["tf.image.draw_bounding_boxes"] = tf_image_draw_bounding_boxes_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_image_extract_glimpse_inputs():
     list_of_inputs = []
@@ -17645,8 +17646,8 @@ def tf_image_extract_glimpse_inputs():
 generated_inputs["tf.image.extract_glimpse"] = tf_image_extract_glimpse_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_image_extract_patches_inputs():
     list_of_inputs = []
@@ -17837,8 +17838,8 @@ def tf_image_extract_patches_inputs():
 generated_inputs["tf.image.extract_patches"] = tf_image_extract_patches_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_image_flip_left_right_inputs():
     list_of_inputs = []
@@ -17900,8 +17901,8 @@ def tf_image_flip_left_right_inputs():
 generated_inputs["tf.image.flip_left_right"] = tf_image_flip_left_right_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_image_hsv_to_rgb_inputs():
     list_of_inputs = []
@@ -17972,8 +17973,8 @@ def tf_image_hsv_to_rgb_inputs():
 generated_inputs["tf.image.hsv_to_rgb"] = tf_image_hsv_to_rgb_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_image_image_gradients_inputs():
     list_of_inputs = []
@@ -18038,8 +18039,8 @@ def tf_image_image_gradients_inputs():
 generated_inputs["tf.image.image_gradients"] = tf_image_image_gradients_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_image_non_max_suppression_inputs():
     list_of_inputs = []
@@ -18230,8 +18231,8 @@ def tf_image_non_max_suppression_inputs():
 generated_inputs["tf.image.non_max_suppression"] = tf_image_non_max_suppression_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_image_non_max_suppression_overlaps_inputs():
     list_of_inputs = []
@@ -18343,8 +18344,8 @@ def tf_image_non_max_suppression_overlaps_inputs():
 generated_inputs["tf.image.non_max_suppression_overlaps"] = tf_image_non_max_suppression_overlaps_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_image_non_max_suppression_with_scores_inputs():
     list_of_inputs = []
@@ -18555,8 +18556,8 @@ def tf_image_non_max_suppression_with_scores_inputs():
 generated_inputs["tf.image.non_max_suppression_with_scores"] = tf_image_non_max_suppression_with_scores_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_image_pad_to_bounding_box_inputs():
     list_of_inputs = []
@@ -18657,8 +18658,8 @@ def tf_image_pad_to_bounding_box_inputs():
 generated_inputs["tf.image.pad_to_bounding_box"] = tf_image_pad_to_bounding_box_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_image_per_image_standardization_inputs():
     list_of_inputs = []
@@ -18719,8 +18720,8 @@ def tf_image_per_image_standardization_inputs():
 generated_inputs["tf.image.per_image_standardization"] = tf_image_per_image_standardization_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_image_psnr_inputs():
     list_of_inputs = []
@@ -18812,8 +18813,8 @@ def tf_image_psnr_inputs():
 generated_inputs["tf.image.psnr"] = tf_image_psnr_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_image_random_brightness_inputs():
     list_of_inputs = []
@@ -18895,8 +18896,8 @@ def tf_image_random_brightness_inputs():
 generated_inputs["tf.image.random_brightness"] = tf_image_random_brightness_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_image_random_contrast_inputs():
     list_of_inputs = []
@@ -19047,8 +19048,8 @@ def tf_image_random_contrast_inputs():
 generated_inputs["tf.image.random_contrast"] = tf_image_random_contrast_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_image_random_crop_inputs():
     list_of_inputs = []
@@ -19139,8 +19140,8 @@ def tf_image_random_crop_inputs():
 generated_inputs["tf.image.random_crop"] = tf_image_random_crop_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_image_random_flip_left_right_inputs():
     list_of_inputs = []
@@ -19212,8 +19213,8 @@ def tf_image_random_flip_left_right_inputs():
 generated_inputs["tf.image.random_flip_left_right"] = tf_image_random_flip_left_right_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_image_random_flip_up_down_inputs():
     list_of_inputs = []
@@ -19284,8 +19285,8 @@ def tf_image_random_flip_up_down_inputs():
 generated_inputs["tf.image.random_flip_up_down"] = tf_image_random_flip_up_down_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_image_random_hue_inputs():
     list_of_inputs = []
@@ -19366,8 +19367,8 @@ def tf_image_random_hue_inputs():
 generated_inputs["tf.image.random_hue"] = tf_image_random_hue_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_image_random_jpeg_quality_inputs():
     list_of_inputs = []
@@ -19518,8 +19519,8 @@ def tf_image_random_jpeg_quality_inputs():
 generated_inputs["tf.image.random_jpeg_quality"] = tf_image_random_jpeg_quality_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_image_random_saturation_inputs():
     list_of_inputs = []
@@ -19611,8 +19612,8 @@ def tf_image_random_saturation_inputs():
 generated_inputs["tf.image.random_saturation"] = tf_image_random_saturation_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_image_resize_inputs():
     list_of_inputs = []
@@ -19821,8 +19822,8 @@ def tf_image_resize_inputs():
 generated_inputs["tf.image.resize"] = tf_image_resize_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_image_resize_with_crop_or_pad_inputs():
     list_of_inputs = []
@@ -19917,8 +19918,8 @@ def tf_image_resize_with_crop_or_pad_inputs():
 generated_inputs["tf.image.resize_with_crop_or_pad"] = tf_image_resize_with_crop_or_pad_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_image_resize_with_pad_inputs():
     list_of_inputs = []
@@ -20019,8 +20020,8 @@ def tf_image_resize_with_pad_inputs():
 generated_inputs["tf.image.resize_with_pad"] = tf_image_resize_with_pad_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_image_rgb_to_grayscale_inputs():
     list_of_inputs = []
@@ -20092,8 +20093,8 @@ def tf_image_rgb_to_grayscale_inputs():
 generated_inputs["tf.image.rgb_to_grayscale"] = tf_image_rgb_to_grayscale_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_image_rgb_to_yiq_inputs():
     list_of_inputs = []
@@ -20157,8 +20158,8 @@ for i in range(len(temp_list)):
   break
 
 
-import numpy as np
-import copy
+
+
 
 def tf_image_rgb_to_yuv_inputs():
     list_of_inputs = []
@@ -20219,8 +20220,8 @@ def tf_image_rgb_to_yuv_inputs():
 generated_inputs["tf.image.rgb_to_yuv"] = tf_image_rgb_to_yuv_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_image_rot90_inputs():
     list_of_inputs = []
@@ -20301,8 +20302,8 @@ def tf_image_rot90_inputs():
 generated_inputs["tf.image.rot90"] = tf_image_rot90_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_image_sample_distorted_bounding_box_inputs():
     list_of_inputs = []
@@ -20472,8 +20473,8 @@ def tf_image_sample_distorted_bounding_box_inputs():
 generated_inputs["tf.image.sample_distorted_bounding_box"] = tf_image_sample_distorted_bounding_box_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_image_sobel_edges_inputs():
     list_of_inputs = []
@@ -20534,8 +20535,8 @@ def tf_image_sobel_edges_inputs():
 generated_inputs["tf.image.sobel_edges"] = tf_image_sobel_edges_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_image_ssim_inputs():
     list_of_inputs = []
@@ -20676,8 +20677,8 @@ def tf_image_ssim_inputs():
 generated_inputs["tf.image.ssim"] = tf_image_ssim_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_image_stateless_random_brightness_inputs():
     list_of_inputs = []
@@ -20757,8 +20758,8 @@ def tf_image_stateless_random_brightness_inputs():
 generated_inputs["tf.image.stateless_random_brightness"] = tf_image_stateless_random_brightness_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_image_stateless_random_crop_inputs():
     list_of_inputs = []
@@ -20849,8 +20850,8 @@ def tf_image_stateless_random_crop_inputs():
 generated_inputs["tf.image.stateless_random_crop"] = tf_image_stateless_random_crop_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_image_stateless_random_flip_left_right_inputs():
     list_of_inputs = []
@@ -20909,8 +20910,8 @@ def tf_image_stateless_random_flip_left_right_inputs():
 generated_inputs["tf.image.stateless_random_flip_left_right"] = tf_image_stateless_random_flip_left_right_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_image_stateless_random_flip_up_down_inputs():
     list_of_inputs = []
@@ -20987,8 +20988,8 @@ def tf_image_stateless_random_flip_up_down_inputs():
 generated_inputs["tf.image.stateless_random_flip_up_down"] = tf_image_stateless_random_flip_up_down_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_image_stateless_random_jpeg_quality_inputs():
     list_of_inputs = []
@@ -21079,8 +21080,8 @@ def tf_image_stateless_random_jpeg_quality_inputs():
 generated_inputs["tf.image.stateless_random_jpeg_quality"] = tf_image_stateless_random_jpeg_quality_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_image_stateless_random_saturation_inputs():
     list_of_inputs = []
@@ -21228,8 +21229,8 @@ def tf_image_stateless_random_saturation_inputs():
 generated_inputs["tf.image.stateless_random_saturation"] = tf_image_stateless_random_saturation_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_image_stateless_sample_distorted_bounding_box_inputs():
     list_of_inputs = []
@@ -21480,8 +21481,8 @@ def tf_image_stateless_sample_distorted_bounding_box_inputs():
 generated_inputs["tf.image.stateless_sample_distorted_bounding_box"] = tf_image_stateless_sample_distorted_bounding_box_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_image_total_variation_inputs():
     list_of_inputs = []
@@ -21561,8 +21562,8 @@ for i in range(len(temp_list)):
 generated_inputs["tf.image.total_variation"] = temp_list
 
 
-import numpy as np
-import copy
+
+
 
 def tf_image_transpose_inputs():
     list_of_inputs = []
@@ -21637,8 +21638,8 @@ for i in range(len(inputs)):
 generated_inputs["tf.image.transpose"] = inputs
 
 
-import numpy as np
-import copy
+
+
 
 def tf_image_yiq_to_rgb_inputs():
     list_of_inputs = []
@@ -21706,8 +21707,8 @@ def tf_image_yiq_to_rgb_inputs():
 generated_inputs["tf.image.yiq_to_rgb"] = tf_image_yiq_to_rgb_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_io_tfrecordoptions_inputs():
     list_of_inputs = []
@@ -21862,8 +21863,8 @@ for i in range(len(generated_inputs["tf.io.TFRecordOptions"])):
             generated_inputs["tf.io.TFRecordOptions"][i][key] = generated_inputs["tf.io.TFRecordOptions"][i][key].decode('utf-8')
 
 
-import numpy as np
-import copy
+
+
 import os
 
 def tf_io_tfrecordwriter_inputs():
@@ -21936,8 +21937,8 @@ def tf_io_tfrecordwriter_inputs():
 generated_inputs["tf.io.TFRecordWriter"] = tf_io_tfrecordwriter_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_io_decode_base64_inputs():
     list_of_inputs = []
@@ -21998,10 +21999,10 @@ def tf_io_decode_base64_inputs():
 generated_inputs["tf.io.decode_base64"] = tf_io_decode_base64_inputs()
 
 
-import numpy as np
+
 import gzip
 import zlib
-import copy
+
 
 def tf_io_decode_compressed_inputs():
     list_of_inputs = []
@@ -22104,8 +22105,8 @@ def tf_io_decode_compressed_inputs():
 generated_inputs["tf.io.decode_compressed"] = tf_io_decode_compressed_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_io_decode_png_inputs():
     list_of_inputs = []
@@ -22178,8 +22179,8 @@ def tf_io_decode_png_inputs():
 generated_inputs["tf.io.decode_png"] = tf_io_decode_png_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_io_encode_base64_inputs():
     list_of_inputs = []
@@ -22260,8 +22261,8 @@ def tf_io_encode_base64_inputs():
 generated_inputs["tf.io.encode_base64"] = tf_io_encode_base64_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_io_encode_jpeg_inputs():
     list_of_inputs = []
@@ -22476,8 +22477,8 @@ def tf_io_encode_jpeg_inputs():
 generated_inputs["tf.io.encode_jpeg"] = tf_io_encode_jpeg_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_io_encode_png_inputs():
     list_of_inputs = []
@@ -22558,8 +22559,8 @@ def tf_io_encode_png_inputs():
 generated_inputs["tf.io.encode_png"] = tf_io_encode_png_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_io_gfile_GFile_inputs():
     list_of_inputs = []
@@ -22623,8 +22624,8 @@ def tf_io_gfile_GFile_inputs():
 generated_inputs["tf.io.gfile.GFile"] = tf_io_gfile_GFile_inputs()
 
 
-import copy
-import numpy as np
+
+
 import os
 
 def tf_io_gfile_copy_inputs():
@@ -22804,8 +22805,8 @@ def tf_io_gfile_copy_inputs():
 generated_inputs["tf.io.gfile.copy"] = tf_io_gfile_copy_inputs()
 
 
-import numpy as np
-import copy
+
+
 import os
 
 def tf_io_gfile_exists_inputs():
@@ -22879,7 +22880,7 @@ def tf_io_gfile_exists_inputs():
 generated_inputs["tf.io.gfile.exists"] = tf_io_gfile_exists_inputs()
 
 
-import copy
+
 
 def tf_io_gfile_glob_inputs():
     list_of_inputs = []
@@ -22930,8 +22931,8 @@ def tf_io_gfile_glob_inputs():
 generated_inputs["tf.io.gfile.glob"] = tf_io_gfile_glob_inputs()
 
 
-import copy
-import numpy as np
+
+
 import os
 
 def tf_io_gfile_isdir_inputs():
@@ -23009,8 +23010,8 @@ def tf_io_gfile_isdir_inputs():
 generated_inputs["tf.io.gfile.isdir"] = tf_io_gfile_isdir_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_io_gfile_makedirs_inputs():
     list_of_inputs = []
@@ -23061,8 +23062,8 @@ def tf_io_gfile_makedirs_inputs():
 generated_inputs["tf.io.gfile.makedirs"] = tf_io_gfile_makedirs_inputs()
 
 
-import copy
-import numpy as np
+
+
 
 def tf_io_gfile_mkdir_inputs():
     list_of_inputs = []
@@ -23123,8 +23124,8 @@ def tf_io_gfile_mkdir_inputs():
 generated_inputs["tf.io.gfile.mkdir"] = tf_io_gfile_mkdir_inputs()
 
 
-import numpy as np
-import copy
+
+
 import os
 
 def tf_io_gfile_remove_inputs():
@@ -23208,8 +23209,8 @@ def tf_io_gfile_remove_inputs():
 generated_inputs["tf.io.gfile.remove"] = tf_io_gfile_remove_inputs()
 
 
-import copy
-import numpy as np
+
+
 import os
 
 def tf_io_gfile_rmtree_inputs():
@@ -23289,8 +23290,8 @@ def tf_io_gfile_rmtree_inputs():
 generated_inputs["tf.io.gfile.rmtree"] = tf_io_gfile_rmtree_inputs()
 
 
-import numpy as np
-import copy
+
+
 import os
 
 def tf_io_gfile_stat_inputs():
@@ -23348,8 +23349,8 @@ def tf_io_gfile_stat_inputs():
 generated_inputs["tf.io.gfile.stat"] = tf_io_gfile_stat_inputs()
 
 
-import copy
-import numpy as np
+
+
 import os
 
 def tf_io_gfile_walk_inputs():
@@ -23444,8 +23445,8 @@ def tf_io_gfile_walk_inputs():
 generated_inputs["tf.io.gfile.walk"] = tf_io_gfile_walk_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_io_is_jpeg_inputs():
     list_of_inputs = []
@@ -23517,8 +23518,8 @@ def tf_io_is_jpeg_inputs():
 generated_inputs["tf.io.is_jpeg"] = tf_io_is_jpeg_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_io_matching_files_inputs():
     list_of_inputs = []
@@ -23589,8 +23590,8 @@ def tf_io_matching_files_inputs():
 generated_inputs["tf.io.matching_files"] = tf_io_matching_files_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_io_write_file_inputs():
     list_of_inputs = []
@@ -23721,8 +23722,8 @@ def tf_io_write_file_inputs():
 generated_inputs["tf.io.write_file"] = tf_io_write_file_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_is_tensor_inputs():
     list_of_inputs = []
@@ -23772,8 +23773,8 @@ def tf_is_tensor_inputs():
 generated_inputs["tf.is_tensor"] = tf_is_tensor_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_linalg_linearoperatorcirculant2d_inputs():
     list_of_inputs = []
@@ -23894,8 +23895,8 @@ def tf_linalg_linearoperatorcirculant2d_inputs():
 generated_inputs["tf.linalg.LinearOperatorCirculant2D"] = tf_linalg_linearoperatorcirculant2d_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_linalg_LinearOperatorCirculant3D_inputs():
     list_of_inputs = []
@@ -24036,8 +24037,8 @@ def tf_linalg_LinearOperatorCirculant3D_inputs():
 generated_inputs["tf.linalg.LinearOperatorCirculant3D"] = tf_linalg_LinearOperatorCirculant3D_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_linalg_linear_operator_diag_inputs():
     list_of_inputs = []
@@ -24169,8 +24170,8 @@ def tf_linalg_linear_operator_diag_inputs():
 generated_inputs["tf.linalg.LinearOperatorDiag"] = tf_linalg_linear_operator_diag_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_linalg_linearoperatorfullmatrix_inputs():
     list_of_inputs = []
@@ -24232,8 +24233,8 @@ def tf_linalg_linearoperatorfullmatrix_inputs():
 generated_inputs["tf.linalg.LinearOperatorFullMatrix"] = tf_linalg_linearoperatorfullmatrix_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_linalg_linearoperatorhouseholder_inputs():
     list_of_inputs = []
@@ -24345,8 +24346,8 @@ def tf_linalg_linearoperatorhouseholder_inputs():
 generated_inputs["tf.linalg.LinearOperatorHouseholder"] = tf_linalg_linearoperatorhouseholder_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_linalg_linearoperatorlowertriangular_inputs():
     list_of_inputs = []
@@ -24457,8 +24458,8 @@ def tf_linalg_linearoperatorlowertriangular_inputs():
 generated_inputs["tf.linalg.LinearOperatorLowerTriangular"] = tf_linalg_linearoperatorlowertriangular_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_linalg_linearoperatorpermutation_inputs():
     list_of_inputs = []
@@ -24579,8 +24580,8 @@ def tf_linalg_linearoperatorpermutation_inputs():
 generated_inputs["tf.linalg.LinearOperatorPermutation"] = tf_linalg_linearoperatorpermutation_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_linalg_linear_operator_scaled_identity_inputs():
     list_of_inputs = []
@@ -24731,8 +24732,8 @@ def tf_linalg_linear_operator_scaled_identity_inputs():
 generated_inputs["tf.linalg.LinearOperatorScaledIdentity"] = tf_linalg_linear_operator_scaled_identity_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_linalg_linear_operator_toeplitz_inputs():
     list_of_inputs = []
@@ -24943,8 +24944,8 @@ def tf_linalg_linear_operator_toeplitz_inputs():
 generated_inputs["tf.linalg.LinearOperatorToeplitz"] = tf_linalg_linear_operator_toeplitz_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_linalg_linearoperatorzeros_inputs():
     list_of_inputs = []
@@ -25242,8 +25243,8 @@ def tf_linalg_linearoperatorzeros_inputs():
 generated_inputs["tf.linalg.LinearOperatorZeros"] = tf_linalg_linearoperatorzeros_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_linalg_adjoint_inputs():
     list_of_inputs = []
@@ -25308,8 +25309,8 @@ for i in range(len(temp_inputs)):
 generated_inputs["tf.linalg.adjoint"] = temp_inputs
 
 
-import numpy as np
-import copy
+
+
 
 def tf_linalg_band_part_inputs():
     list_of_inputs = []
@@ -25400,8 +25401,8 @@ def tf_linalg_band_part_inputs():
 generated_inputs["tf.linalg.band_part"] = tf_linalg_band_part_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_linalg_cholesky_inputs():
     list_of_inputs = []
@@ -25466,8 +25467,8 @@ def tf_linalg_cholesky_inputs():
 generated_inputs["tf.linalg.cholesky"] = tf_linalg_cholesky_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_linalg_cholesky_solve_inputs():
     list_of_inputs = []
@@ -25552,8 +25553,8 @@ def tf_linalg_cholesky_solve_inputs():
 generated_inputs["tf.linalg.cholesky_solve"] = tf_linalg_cholesky_solve_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_linalg_cross_inputs():
     list_of_inputs = []
@@ -25634,8 +25635,8 @@ def tf_linalg_cross_inputs():
 generated_inputs["tf.linalg.cross"] = tf_linalg_cross_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_linalg_det_inputs():
     list_of_inputs = []
@@ -25694,8 +25695,8 @@ for i in range(len(inputs)):
 generated_inputs["tf.linalg.det"] = inputs
 
 
-import numpy as np
-import copy
+
+
 
 def tf_linalg_diag_inputs():
     list_of_inputs = []
@@ -25861,8 +25862,8 @@ def tf_linalg_diag_inputs():
 generated_inputs["tf.linalg.diag"] = tf_linalg_diag_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_linalg_diag_part_inputs():
     list_of_inputs = []
@@ -25972,8 +25973,8 @@ def tf_linalg_diag_part_inputs():
 generated_inputs["tf.linalg.diag_part"] = tf_linalg_diag_part_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_linalg_diag_part_inputs():
     list_of_inputs = []
@@ -26074,8 +26075,8 @@ def tf_linalg_diag_part_inputs():
 generated_inputs["tf.linalg.diag_part_2"] = tf_linalg_diag_part_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_linalg_eig_inputs():
     list_of_inputs = []
@@ -26148,8 +26149,8 @@ def tf_linalg_eig_inputs():
 generated_inputs["tf.linalg.eig"] = tf_linalg_eig_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_linalg_eigh_inputs():
     list_of_inputs = []
@@ -26224,8 +26225,8 @@ def tf_linalg_eigh_inputs():
 generated_inputs["tf.linalg.eigh"] = tf_linalg_eigh_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_linalg_eigvals_inputs():
     list_of_inputs = []
@@ -26296,8 +26297,8 @@ def tf_linalg_eigvals_inputs():
 generated_inputs["tf.linalg.eigvals"] = tf_linalg_eigvals_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_linalg_eigvalsh_inputs():
     list_of_inputs = []
@@ -26366,8 +26367,8 @@ def tf_linalg_eigvalsh_inputs():
 generated_inputs["tf.linalg.eigvalsh"] = tf_linalg_eigvalsh_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_linalg_expm_inputs():
     list_of_inputs = []
@@ -26430,8 +26431,8 @@ for i in range(len(inputs)):
 generated_inputs["tf.linalg.expm"] = inputs
 
 
-import numpy as np
-import copy
+
+
 
 def tf_linalg_inv_inputs():
     list_of_inputs = []
@@ -26492,8 +26493,8 @@ def tf_linalg_inv_inputs():
 generated_inputs["tf.linalg.inv"] = tf_linalg_inv_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_linalg_logdet_inputs():
     list_of_inputs = []
@@ -26556,8 +26557,8 @@ def tf_linalg_logdet_inputs():
 generated_inputs["tf.linalg.logdet"] = tf_linalg_logdet_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_linalg_logm_inputs():
     list_of_inputs = []
@@ -26593,8 +26594,8 @@ def tf_linalg_logm_inputs():
 generated_inputs["tf.linalg.logm"] = tf_linalg_logm_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_linalg_lstsq_inputs():
     list_of_inputs = []
@@ -26695,8 +26696,8 @@ def tf_linalg_lstsq_inputs():
 generated_inputs["tf.linalg.lstsq"] = tf_linalg_lstsq_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_linalg_lu_solve_inputs():
     list_of_inputs = []
@@ -26874,8 +26875,8 @@ for k, v in generated_inputs.items():
                 d[k1] = v1.numpy()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_linalg_matmul_inputs():
     list_of_inputs = []
@@ -26946,8 +26947,8 @@ def tf_linalg_matmul_inputs():
 generated_inputs["tf.linalg.matmul"] = tf_linalg_matmul_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_linalg_matrix_rank_inputs():
     list_of_inputs = []
@@ -27038,8 +27039,8 @@ def tf_linalg_matrix_rank_inputs():
 generated_inputs["tf.linalg.matrix_rank"] = tf_linalg_matrix_rank_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_linalg_matrix_transpose_inputs():
     list_of_inputs = []
@@ -27120,8 +27121,8 @@ def tf_linalg_matrix_transpose_inputs():
 generated_inputs["tf.linalg.matrix_transpose"] = tf_linalg_matrix_transpose_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_linalg_matvec_inputs():
     list_of_inputs = []
@@ -27192,8 +27193,8 @@ def tf_linalg_matvec_inputs():
 generated_inputs["tf.linalg.matvec"] = tf_linalg_matvec_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_linalg_pinv_inputs():
     list_of_inputs = []
@@ -27284,8 +27285,8 @@ def tf_linalg_pinv_inputs():
 generated_inputs["tf.linalg.pinv"] = tf_linalg_pinv_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_linalg_qr_inputs():
     list_of_inputs = []
@@ -27366,8 +27367,8 @@ def tf_linalg_qr_inputs():
 generated_inputs["tf.linalg.qr"] = tf_linalg_qr_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_linalg_set_diag_inputs():
     list_of_inputs = []
@@ -27444,8 +27445,8 @@ def tf_linalg_set_diag_inputs():
 generated_inputs["tf.linalg.set_diag"] = tf_linalg_set_diag_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_linalg_slogdet_inputs():
     list_of_inputs = []
@@ -27506,8 +27507,8 @@ def tf_linalg_slogdet_inputs():
 generated_inputs["tf.linalg.slogdet"] = tf_linalg_slogdet_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_linalg_solve_inputs():
     list_of_inputs = []
@@ -27590,8 +27591,8 @@ def tf_linalg_solve_inputs():
 generated_inputs["tf.linalg.solve"] = tf_linalg_solve_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_linalg_sqrtm_inputs():
     list_of_inputs = []
@@ -27665,8 +27666,8 @@ for i in range(len(generated_inputs["tf.linalg.sqrtm"])):
     generated_inputs["tf.linalg.sqrtm"][i]["input"] = generated_inputs["tf.linalg.sqrtm"][i]["input"].numpy()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_linalg_svd_inputs():
     list_of_inputs = []
@@ -27757,8 +27758,8 @@ def tf_linalg_svd_inputs():
 generated_inputs["tf.linalg.svd"] = tf_linalg_svd_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_linalg_tensor_diag_inputs():
     list_of_inputs = []
@@ -27823,8 +27824,8 @@ for i in range(len(inputs)):
 generated_inputs["tf.linalg.tensor_diag"] = inputs
 
 
-import numpy as np
-import copy
+
+
 
 def tf_linalg_tensor_diag_part_inputs():
     list_of_inputs = []
@@ -27886,8 +27887,8 @@ def tf_linalg_tensor_diag_part_inputs():
 generated_inputs["tf.linalg.tensor_diag_part"] = tf_linalg_tensor_diag_part_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_linalg_trace_inputs():
     list_of_inputs = []
@@ -27964,8 +27965,8 @@ def tf_linalg_trace_inputs():
 generated_inputs["tf.linalg.trace"] = tf_linalg_trace_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_linalg_tridiagonal_matmul_inputs():
     list_of_inputs = []
@@ -28075,8 +28076,8 @@ def tf_linalg_tridiagonal_matmul_inputs():
 generated_inputs["tf.linalg.tridiagonal_matmul_2"] = tf_linalg_tridiagonal_matmul_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_linspace_inputs():
     list_of_inputs = []
@@ -28195,7 +28196,7 @@ def tf_linspace_inputs():
 generated_inputs["tf.linspace"] = tf_linspace_inputs()
 
 
-import copy
+
 import os
 
 def tf_load_library_inputs():
@@ -28212,8 +28213,8 @@ def tf_load_library_inputs():
 generated_inputs["tf.load_library"] = tf_load_library_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_lookup_TextFileInitializer_inputs():
     list_of_inputs = []
@@ -28364,8 +28365,8 @@ def tf_lookup_TextFileInitializer_inputs():
 generated_inputs["tf.lookup.TextFileInitializer"] = tf_lookup_TextFileInitializer_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_make_tensor_proto_inputs():
     list_of_inputs = []
@@ -28475,8 +28476,8 @@ def tf_make_tensor_proto_inputs():
 generated_inputs["tf.make_tensor_proto"] = tf_make_tensor_proto_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_math_abs_inputs():
     list_of_inputs = []
@@ -28548,8 +28549,8 @@ def tf_math_abs_inputs():
 generated_inputs["tf.math.abs"] = tf_math_abs_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_math_acos_inputs():
     list_of_inputs = []
@@ -28620,8 +28621,8 @@ def tf_math_acos_inputs():
 generated_inputs["tf.math.acos"] = tf_math_acos_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_math_acosh_inputs():
     list_of_inputs = []
@@ -28699,8 +28700,8 @@ for i in range(len(inputs)):
 generated_inputs["tf.math.acosh"] = inputs
 
 
-import numpy as np
-import copy
+
+
 
 def tf_math_add_inputs():
     list_of_inputs = []
@@ -28787,8 +28788,8 @@ def tf_math_add_inputs():
 generated_inputs["tf.math.add"] = tf_math_add_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_math_angle_inputs():
     list_of_inputs = []
@@ -28851,8 +28852,8 @@ for i in range(len(generated_inputs["tf.math.angle"])):
     generated_inputs["tf.math.angle"][i]["input"] = generated_inputs["tf.math.angle"][i]["input"].numpy()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_math_argmax_inputs():
     list_of_inputs = []
@@ -28943,8 +28944,8 @@ def tf_math_argmax_inputs():
 generated_inputs["tf.math.argmax"] = tf_math_argmax_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_math_asinh_inputs():
     list_of_inputs = []
@@ -29015,8 +29016,8 @@ def tf_math_asinh_inputs():
 generated_inputs["tf.math.asinh"] = tf_math_asinh_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_math_atan_inputs():
     list_of_inputs = []
@@ -29087,8 +29088,8 @@ def tf_math_atan_inputs():
 generated_inputs["tf.math.atan"] = tf_math_atan_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_math_atan2_inputs():
     list_of_inputs = []
@@ -29169,8 +29170,8 @@ def tf_math_atan2_inputs():
 generated_inputs["tf.math.atan2"] = tf_math_atan2_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_math_atanh_inputs():
     list_of_inputs = []
@@ -29241,8 +29242,8 @@ def tf_math_atanh_inputs():
 generated_inputs["tf.math.atanh"] = tf_math_atanh_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_math_bessel_i0_inputs():
     list_of_inputs = []
@@ -29313,8 +29314,8 @@ def tf_math_bessel_i0_inputs():
 generated_inputs["tf.math.bessel_i0"] = tf_math_bessel_i0_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_math_bessel_i0e_inputs():
     list_of_inputs = []
@@ -29386,8 +29387,8 @@ def tf_math_bessel_i0e_inputs():
 generated_inputs["tf.math.bessel_i0e"] = tf_math_bessel_i0e_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_math_bessel_i1_inputs():
     list_of_inputs = []
@@ -29458,8 +29459,8 @@ def tf_math_bessel_i1_inputs():
 generated_inputs["tf.math.bessel_i1"] = tf_math_bessel_i1_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_math_betainc_inputs():
     list_of_inputs = []
@@ -29545,8 +29546,8 @@ for input_dict in inputs:
 generated_inputs["tf.math.betainc"] = inputs
 
 
-import numpy as np
-import copy
+
+
 
 def tf_math_bincount_inputs():
     list_of_inputs = []
@@ -29659,8 +29660,8 @@ def tf_math_bincount_inputs():
 generated_inputs["tf.math.bincount"] = tf_math_bincount_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_math_confusion_matrix_inputs():
     list_of_inputs = []
@@ -29846,8 +29847,8 @@ def tf_math_confusion_matrix_inputs():
 generated_inputs["tf.math.confusion_matrix"] = tf_math_confusion_matrix_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_math_conj_inputs():
     list_of_inputs = []
@@ -29919,8 +29920,8 @@ def tf_math_conj_inputs():
 generated_inputs["tf.math.conj"] = tf_math_conj_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_math_cos_inputs():
     list_of_inputs = []
@@ -29981,8 +29982,8 @@ def tf_math_cos_inputs():
 generated_inputs["tf.math.cos"] = tf_math_cos_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_math_cumprod_inputs():
     list_of_inputs = []
@@ -30083,8 +30084,8 @@ def tf_math_cumprod_inputs():
 generated_inputs["tf.math.cumprod"] = tf_math_cumprod_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_math_cumsum_inputs():
     list_of_inputs = []
@@ -30185,8 +30186,8 @@ def tf_math_cumsum_inputs():
 generated_inputs["tf.math.cumsum"] = tf_math_cumsum_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_math_cumulative_logsumexp_inputs():
     list_of_inputs = []
@@ -30287,8 +30288,8 @@ def tf_math_cumulative_logsumexp_inputs():
 generated_inputs["tf.math.cumulative_logsumexp"] = tf_math_cumulative_logsumexp_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_math_divide_inputs():
     list_of_inputs = []
@@ -30370,8 +30371,8 @@ def tf_math_divide_inputs():
 generated_inputs["tf.math.divide"] = tf_math_divide_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_math_divide_no_nan_inputs():
     list_of_inputs = []
@@ -30451,8 +30452,8 @@ def tf_math_divide_no_nan_inputs():
 generated_inputs["tf.math.divide_no_nan"] = tf_math_divide_no_nan_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_math_equal_inputs():
     list_of_inputs = []
@@ -30549,8 +30550,8 @@ def tf_math_equal_inputs():
 generated_inputs["tf.math.equal"] = tf_math_equal_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_math_erf_inputs():
     list_of_inputs = []
@@ -30621,8 +30622,8 @@ def tf_math_erf_inputs():
 generated_inputs["tf.math.erf"] = tf_math_erf_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_math_erfc_inputs():
     list_of_inputs = []
@@ -30693,8 +30694,8 @@ def tf_math_erfc_inputs():
 generated_inputs["tf.math.erfc"] = tf_math_erfc_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_math_erfinv_inputs():
     list_of_inputs = []
@@ -30765,8 +30766,8 @@ def tf_math_erfinv_inputs():
 generated_inputs["tf.math.erfinv"] = tf_math_erfinv_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_math_exp_inputs():
     list_of_inputs = []
@@ -30837,8 +30838,8 @@ def tf_math_exp_inputs():
 generated_inputs["tf.math.exp"] = tf_math_exp_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_math_floor_inputs():
     list_of_inputs = []
@@ -30909,8 +30910,8 @@ def tf_math_floor_inputs():
 generated_inputs["tf.math.floor"] = tf_math_floor_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_math_floordiv_inputs():
     list_of_inputs = []
@@ -30956,8 +30957,8 @@ def tf_math_floordiv_inputs():
 generated_inputs["tf.math.floordiv"] = tf_math_floordiv_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_math_floormod_inputs():
     list_of_inputs = []
@@ -31038,8 +31039,8 @@ def tf_math_floormod_inputs():
 generated_inputs["tf.math.floormod"] = tf_math_floormod_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_math_greater_inputs():
     list_of_inputs = []
@@ -31118,8 +31119,8 @@ def tf_math_greater_inputs():
 generated_inputs["tf.math.greater"] = tf_math_greater_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_math_greater_equal_inputs():
     list_of_inputs = []
@@ -31190,8 +31191,8 @@ def tf_math_greater_equal_inputs():
 generated_inputs["tf.math.greater_equal"] = tf_math_greater_equal_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_math_igamma_inputs():
     list_of_inputs = []
@@ -31278,8 +31279,8 @@ for i in range(len(inputs)):
 generated_inputs["tf.math.igamma"] = inputs
 
 
-import numpy as np
-import copy
+
+
 
 def tf_math_igammac_inputs():
     list_of_inputs = []
@@ -31360,8 +31361,8 @@ def tf_math_igammac_inputs():
 generated_inputs["tf.math.igammac"] = tf_math_igammac_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_math_imag_inputs():
     list_of_inputs = []
@@ -31417,8 +31418,8 @@ def tf_math_imag_inputs():
 generated_inputs["tf.math.imag"] = tf_math_imag_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_math_in_top_k_inputs():
     list_of_inputs = []
@@ -31509,8 +31510,8 @@ def tf_math_in_top_k_inputs():
 generated_inputs["tf.math.in_top_k"] = tf_math_in_top_k_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_math_invert_permutation_inputs():
     list_of_inputs = []
@@ -31581,8 +31582,8 @@ def tf_math_invert_permutation_inputs():
 generated_inputs["tf.math.invert_permutation"] = tf_math_invert_permutation_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_math_is_finite_inputs():
     list_of_inputs = []
@@ -31643,8 +31644,8 @@ def tf_math_is_finite_inputs():
 generated_inputs["tf.math.is_finite"] = tf_math_is_finite_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_math_is_nan_inputs():
     list_of_inputs = []
@@ -31715,8 +31716,8 @@ def tf_math_is_nan_inputs():
 generated_inputs["tf.math.is_nan"] = tf_math_is_nan_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_math_l2_normalize_inputs():
     list_of_inputs = []
@@ -31807,8 +31808,8 @@ def tf_math_l2_normalize_inputs():
 generated_inputs["tf.math.l2_normalize"] = tf_math_l2_normalize_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_math_lbeta_inputs():
     list_of_inputs = []
@@ -31882,8 +31883,8 @@ for i in range(len(temp)):
 generated_inputs["tf.math.lbeta"] = temp
 
 
-import numpy as np
-import copy
+
+
 
 def tf_math_less_inputs():
     list_of_inputs = []
@@ -31914,8 +31915,8 @@ def tf_math_less_inputs():
 generated_inputs["tf.math.less"] = tf_math_less_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_math_less_equal_inputs():
     list_of_inputs = []
@@ -31996,8 +31997,8 @@ def tf_math_less_equal_inputs():
 generated_inputs["tf.math.less_equal"] = tf_math_less_equal_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_math_log_inputs():
     list_of_inputs = []
@@ -32068,8 +32069,8 @@ def tf_math_log_inputs():
 generated_inputs["tf.math.log"] = tf_math_log_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_math_log1p_inputs():
     list_of_inputs = []
@@ -32143,8 +32144,8 @@ for input_dict in generated_inputs["tf.math.log1p"]:
     input_dict["x"] = input_dict["x"].numpy()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_math_log_sigmoid_inputs():
     list_of_inputs = []
@@ -32215,8 +32216,8 @@ def tf_math_log_sigmoid_inputs():
 generated_inputs["tf.math.log_sigmoid"] = tf_math_log_sigmoid_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_math_logical_and_inputs():
     list_of_inputs = []
@@ -32297,8 +32298,8 @@ def tf_math_logical_and_inputs():
 generated_inputs["tf.math.logical_and"] = tf_math_logical_and_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_math_logical_not_inputs():
     list_of_inputs = []
@@ -32369,8 +32370,8 @@ def tf_math_logical_not_inputs():
 generated_inputs["tf.math.logical_not"] = tf_math_logical_not_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_math_logical_or_inputs():
     list_of_inputs = []
@@ -32458,8 +32459,8 @@ def tf_math_logical_or_inputs():
 generated_inputs["tf.math.logical_or"] = tf_math_logical_or_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_math_logical_xor_inputs():
     list_of_inputs = []
@@ -32540,8 +32541,8 @@ def tf_math_logical_xor_inputs():
 generated_inputs["tf.math.logical_xor"] = tf_math_logical_xor_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_math_maximum_inputs():
     list_of_inputs = []
@@ -32604,8 +32605,8 @@ for i in range(len(inputs)):
 generated_inputs["tf.math.maximum"] = inputs
 
 
-import numpy as np
-import copy
+
+
 
 def tf_math_multiply_inputs():
     list_of_inputs = []
@@ -32679,8 +32680,8 @@ def tf_math_multiply_inputs():
 generated_inputs["tf.math.multiply"] = tf_math_multiply_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_math_multiply_no_nan_inputs():
     list_of_inputs = []
@@ -32753,8 +32754,8 @@ def tf_math_multiply_no_nan_inputs():
 generated_inputs["tf.math.multiply_no_nan"] = tf_math_multiply_no_nan_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_math_ndtri_inputs():
     list_of_inputs = []
@@ -32837,8 +32838,8 @@ def tf_math_ndtri_inputs():
 generated_inputs["tf.math.ndtri"] = tf_math_ndtri_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_math_negative_inputs():
     list_of_inputs = []
@@ -32909,8 +32910,8 @@ def tf_math_negative_inputs():
 generated_inputs["tf.math.negative"] = tf_math_negative_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_math_nextafter_inputs():
     list_of_inputs = []
@@ -32981,8 +32982,8 @@ def tf_math_nextafter_inputs():
 generated_inputs["tf.math.nextafter"] = tf_math_nextafter_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_math_not_equal_inputs():
     list_of_inputs = []
@@ -33063,8 +33064,8 @@ def tf_math_not_equal_inputs():
 generated_inputs["tf.math.not_equal"] = tf_math_not_equal_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_math_polygamma_inputs():
     list_of_inputs = []
@@ -33145,8 +33146,8 @@ def tf_math_polygamma_inputs():
 generated_inputs["tf.math.polygamma"] = tf_math_polygamma_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_math_polyval_inputs():
     list_of_inputs = []
@@ -33227,8 +33228,8 @@ def tf_math_polyval_inputs():
 generated_inputs["tf.math.polyval"] = tf_math_polyval_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_math_real_inputs():
     list_of_inputs = []
@@ -33289,8 +33290,8 @@ def tf_math_real_inputs():
 generated_inputs["tf.math.real"] = tf_math_real_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_math_reciprocal_no_nan_inputs():
     list_of_inputs = []
@@ -33361,8 +33362,8 @@ def tf_math_reciprocal_no_nan_inputs():
 generated_inputs["tf.math.reciprocal_no_nan"] = tf_math_reciprocal_no_nan_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_math_reduce_all_inputs():
     list_of_inputs = []
@@ -33453,8 +33454,8 @@ def tf_math_reduce_all_inputs():
 generated_inputs["tf.math.reduce_all"] = tf_math_reduce_all_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_math_reduce_any_inputs():
     list_of_inputs = []
@@ -33562,8 +33563,8 @@ def tf_math_reduce_any_inputs():
 generated_inputs["tf.math.reduce_any"] = tf_math_reduce_any_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_math_reduce_euclidean_norm_inputs():
     list_of_inputs = []
@@ -33654,8 +33655,8 @@ def tf_math_reduce_euclidean_norm_inputs():
 generated_inputs["tf.math.reduce_euclidean_norm"] = tf_math_reduce_euclidean_norm_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_math_reduce_logsumexp_inputs():
     list_of_inputs = []
@@ -33762,8 +33763,8 @@ def tf_math_reduce_logsumexp_inputs():
 generated_inputs["tf.math.reduce_logsumexp"] = tf_math_reduce_logsumexp_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_math_reduce_mean_inputs():
     list_of_inputs = []
@@ -33862,8 +33863,8 @@ def tf_math_reduce_mean_inputs():
 generated_inputs["tf.math.reduce_mean"] = tf_math_reduce_mean_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_math_reduce_min_inputs():
     list_of_inputs = []
@@ -33955,8 +33956,8 @@ def tf_math_reduce_min_inputs():
 generated_inputs["tf.math.reduce_min"] = tf_math_reduce_min_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_math_reduce_prod_inputs():
     list_of_inputs = []
@@ -34047,8 +34048,8 @@ def tf_math_reduce_prod_inputs():
 generated_inputs["tf.math.reduce_prod"] = tf_math_reduce_prod_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_math_reduce_std_inputs():
     list_of_inputs = []
@@ -34147,8 +34148,8 @@ def tf_math_reduce_std_inputs():
 generated_inputs["tf.math.reduce_std"] = tf_math_reduce_std_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_math_reduce_sum_inputs():
     list_of_inputs = []
@@ -34247,8 +34248,8 @@ def tf_math_reduce_sum_inputs():
 generated_inputs["tf.math.reduce_sum"] = tf_math_reduce_sum_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_math_reduce_variance_inputs():
     list_of_inputs = []
@@ -34356,8 +34357,8 @@ def tf_math_reduce_variance_inputs():
 generated_inputs["tf.math.reduce_variance"] = tf_math_reduce_variance_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_math_rint_inputs():
     list_of_inputs = []
@@ -34428,8 +34429,8 @@ def tf_math_rint_inputs():
 generated_inputs["tf.math.rint"] = tf_math_rint_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_math_round_inputs():
     list_of_inputs = []
@@ -34500,8 +34501,8 @@ def tf_math_round_inputs():
 generated_inputs["tf.math.round"] = tf_math_round_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_math_rsqrt_inputs():
     list_of_inputs = []
@@ -34566,8 +34567,8 @@ for input_dict in input_list:
 generated_inputs["tf.math.rsqrt"] = input_list
 
 
-import numpy as np
-import copy
+
+
 
 def tf_math_scalar_mul_inputs():
     list_of_inputs = []
@@ -34651,8 +34652,8 @@ for i in range(len(generated_inputs["tf.math.scalar_mul"])):
     generated_inputs["tf.math.scalar_mul"][i]["scalar"] = np.array(generated_inputs["tf.math.scalar_mul"][i]["scalar"])
 
 
-import numpy as np
-import copy
+
+
 
 def tf_math_segment_max_inputs():
     list_of_inputs = []
@@ -34733,8 +34734,8 @@ def tf_math_segment_max_inputs():
 generated_inputs["tf.math.segment_max"] = tf_math_segment_max_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_math_segment_mean_inputs():
     list_of_inputs = []
@@ -34815,8 +34816,8 @@ def tf_math_segment_mean_inputs():
 generated_inputs["tf.math.segment_mean"] = tf_math_segment_mean_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_math_segment_min_inputs():
     list_of_inputs = []
@@ -34897,8 +34898,8 @@ def tf_math_segment_min_inputs():
 generated_inputs["tf.math.segment_min"] = tf_math_segment_min_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_math_segment_prod_inputs():
     list_of_inputs = []
@@ -34986,8 +34987,8 @@ def tf_math_segment_prod_inputs():
 generated_inputs["tf.math.segment_prod"] = tf_math_segment_prod_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_math_segment_sum_inputs():
     list_of_inputs = []
@@ -35068,8 +35069,8 @@ def tf_math_segment_sum_inputs():
 generated_inputs["tf.math.segment_sum"] = tf_math_segment_sum_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_math_sigmoid_inputs():
     list_of_inputs = []
@@ -35142,8 +35143,8 @@ for i in range(len(generated_inputs["tf.math.sigmoid"])):
     generated_inputs["tf.math.sigmoid"][i]["x"] = generated_inputs["tf.math.sigmoid"][i]["x"].numpy()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_math_sign_inputs():
     list_of_inputs = []
@@ -35218,8 +35219,8 @@ for i in range(len(inputs)):
 generated_inputs["tf.math.sign"] = inputs
 
 
-import numpy as np
-import copy
+
+
 
 def tf_math_sin_inputs():
     list_of_inputs = []
@@ -35290,8 +35291,8 @@ def tf_math_sin_inputs():
 generated_inputs["tf.math.sin"] = tf_math_sin_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_math_sobol_sample_inputs():
     list_of_inputs = []
@@ -35392,8 +35393,8 @@ def tf_math_sobol_sample_inputs():
 generated_inputs["tf.math.sobol_sample"] = tf_math_sobol_sample_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_math_softplus_inputs():
     list_of_inputs = []
@@ -35464,8 +35465,8 @@ def tf_math_softplus_inputs():
 generated_inputs["tf.math.softplus"] = tf_math_softplus_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_math_special_bessel_j0_inputs():
     list_of_inputs = []
@@ -35536,8 +35537,8 @@ def tf_math_special_bessel_j0_inputs():
 generated_inputs["tf.math.special.bessel_j0"] = tf_math_special_bessel_j0_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_math_special_bessel_k0_inputs():
     list_of_inputs = []
@@ -35608,8 +35609,8 @@ def tf_math_special_bessel_k0_inputs():
 generated_inputs["tf.math.special.bessel_k0"] = tf_math_special_bessel_k0_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_math_special_bessel_k0e_inputs():
     list_of_inputs = []
@@ -35680,8 +35681,8 @@ def tf_math_special_bessel_k0e_inputs():
 generated_inputs["tf.math.special.bessel_k0e"] = tf_math_special_bessel_k0e_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_math_special_bessel_k1e_inputs():
     list_of_inputs = []
@@ -35756,8 +35757,8 @@ for i in range(len(inputs)):
 generated_inputs["tf.math.special.bessel_k1e"] = inputs
 
 
-import numpy as np
-import copy
+
+
 
 def tf_math_special_bessel_y0_inputs():
     list_of_inputs = []
@@ -35838,8 +35839,8 @@ def tf_math_special_bessel_y0_inputs():
 generated_inputs["tf.math.special.bessel_y0"] = tf_math_special_bessel_y0_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_math_special_bessel_y1_inputs():
     list_of_inputs = []
@@ -35913,8 +35914,8 @@ for i in range(len(temp)):
 generated_inputs["tf.math.special.bessel_y1"] = temp
 
 
-import numpy as np
-import copy
+
+
 
 def tf_math_special_dawsn_inputs():
     list_of_inputs = []
@@ -35985,8 +35986,8 @@ def tf_math_special_dawsn_inputs():
 generated_inputs["tf.math.special.dawsn"] = tf_math_special_dawsn_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_math_special_expint_inputs():
     list_of_inputs = []
@@ -36062,8 +36063,8 @@ for i in range(len(inputs)):
 generated_inputs["tf.math.special.expint"] = inputs
 
 
-import numpy as np
-import copy
+
+
 
 def tf_math_special_fresnel_cos_inputs():
     list_of_inputs = []
@@ -36134,8 +36135,8 @@ def tf_math_special_fresnel_cos_inputs():
 generated_inputs["tf.math.special.fresnel_cos"] = tf_math_special_fresnel_cos_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_math_special_fresnel_sin_inputs():
     list_of_inputs = []
@@ -36206,8 +36207,8 @@ def tf_math_special_fresnel_sin_inputs():
 generated_inputs["tf.math.special.fresnel_sin"] = tf_math_special_fresnel_sin_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_math_special_spence_inputs():
     list_of_inputs = []
@@ -36280,8 +36281,8 @@ for i in range(len(generated_inputs["tf.math.special.spence"])):
     generated_inputs["tf.math.special.spence"][i]["x"] = generated_inputs["tf.math.special.spence"][i]["x"].numpy()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_math_square_inputs():
     list_of_inputs = []
@@ -36346,8 +36347,8 @@ def tf_math_square_inputs():
 generated_inputs["tf.math.square"] = tf_math_square_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_math_squared_difference_inputs():
     list_of_inputs = []
@@ -36435,8 +36436,8 @@ def tf_math_squared_difference_inputs():
 generated_inputs["tf.math.squared_difference"] = tf_math_squared_difference_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_math_subtract_inputs():
     list_of_inputs = []
@@ -36510,8 +36511,8 @@ def tf_math_subtract_inputs():
 generated_inputs["tf.math.subtract"] = tf_math_subtract_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_math_tan_inputs():
     list_of_inputs = []
@@ -36573,8 +36574,8 @@ inputs = tf_math_tan_inputs()
 generated_inputs["tf.math.tan"] = inputs
 
 
-import numpy as np
-import copy
+
+
 
 def tf_math_tanh_inputs():
     list_of_inputs = []
@@ -36645,8 +36646,8 @@ def tf_math_tanh_inputs():
 generated_inputs["tf.math.tanh"] = tf_math_tanh_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_math_top_k_inputs():
     list_of_inputs = []
@@ -36756,8 +36757,8 @@ def tf_math_top_k_inputs():
 generated_inputs["tf.math.top_k"] = tf_math_top_k_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_math_truediv_inputs():
     list_of_inputs = []
@@ -36842,8 +36843,8 @@ for i in range(len(inputs)):
 generated_inputs["tf.math.truediv"] = inputs
 
 
-import numpy as np
-import copy
+
+
 
 def tf_math_unsorted_segment_max_inputs():
     list_of_inputs = []
@@ -36934,8 +36935,8 @@ def tf_math_unsorted_segment_max_inputs():
 generated_inputs["tf.math.unsorted_segment_max"] = tf_math_unsorted_segment_max_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_math_unsorted_segment_mean_inputs():
     list_of_inputs = []
@@ -37034,8 +37035,8 @@ def tf_math_unsorted_segment_mean_inputs():
 generated_inputs["tf.math.unsorted_segment_mean"] = tf_math_unsorted_segment_mean_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_math_unsorted_segment_min_inputs():
     list_of_inputs = []
@@ -37116,8 +37117,8 @@ def tf_math_unsorted_segment_min_inputs():
 generated_inputs["tf.math.unsorted_segment_min"] = tf_math_unsorted_segment_min_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_math_unsorted_segment_prod_inputs():
     list_of_inputs = []
@@ -37208,8 +37209,8 @@ def tf_math_unsorted_segment_prod_inputs():
 generated_inputs["tf.math.unsorted_segment_prod"] = tf_math_unsorted_segment_prod_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_math_unsorted_segment_sqrt_n_inputs():
     list_of_inputs = []
@@ -37360,8 +37361,8 @@ def tf_math_unsorted_segment_sqrt_n_inputs():
 generated_inputs["tf.math.unsorted_segment_sqrt_n"] = tf_math_unsorted_segment_sqrt_n_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_math_unsorted_segment_sum_inputs():
     list_of_inputs = []
@@ -37460,8 +37461,8 @@ def tf_math_unsorted_segment_sum_inputs():
 generated_inputs["tf.math.unsorted_segment_sum"] = tf_math_unsorted_segment_sum_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_math_xdivy_inputs():
     list_of_inputs = []
@@ -37507,8 +37508,8 @@ def tf_math_xdivy_inputs():
 generated_inputs["tf.math.xdivy"] = tf_math_xdivy_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_math_xlog1py_inputs():
     list_of_inputs = []
@@ -37589,8 +37590,8 @@ def tf_math_xlog1py_inputs():
 generated_inputs["tf.math.xlog1py"] = tf_math_xlog1py_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_math_xlogy_inputs():
     list_of_inputs = []
@@ -37671,8 +37672,8 @@ def tf_math_xlogy_inputs():
 generated_inputs["tf.math.xlogy"] = tf_math_xlogy_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_math_zero_fraction_inputs():
     list_of_inputs = []
@@ -37744,8 +37745,8 @@ def tf_math_zero_fraction_inputs():
 generated_inputs["tf.math.zero_fraction"] = tf_math_zero_fraction_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_math_zeta_inputs():
     list_of_inputs = []
@@ -37830,8 +37831,8 @@ for input_dict in temp_list:
 generated_inputs["tf.math.zeta"] = temp_list
 
 
-import numpy as np
-import copy
+
+
 
 def tf_nest_flatten_inputs():
     list_of_inputs = []
@@ -37848,8 +37849,8 @@ def tf_nest_flatten_inputs():
 generated_inputs["tf.nest.flatten"] = tf_nest_flatten_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_nn_atrous_conv2d_inputs():
     list_of_inputs = []
@@ -37950,8 +37951,8 @@ def tf_nn_atrous_conv2d_inputs():
 generated_inputs["tf.nn.atrous_conv2d"] = tf_nn_atrous_conv2d_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_nn_avg_pool_inputs():
     list_of_inputs = []
@@ -38062,8 +38063,8 @@ def tf_nn_avg_pool_inputs():
 generated_inputs["tf.nn.avg_pool"] = tf_nn_avg_pool_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_nn_avg_pool1d_inputs():
     list_of_inputs = []
@@ -38184,8 +38185,8 @@ def tf_nn_avg_pool1d_inputs():
 generated_inputs["tf.nn.avg_pool1d"] = tf_nn_avg_pool1d_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_nn_batch_norm_with_global_normalization_inputs():
     list_of_inputs = []
@@ -38416,8 +38417,8 @@ def tf_nn_batch_norm_with_global_normalization_inputs():
 generated_inputs["tf.nn.batch_norm_with_global_normalization"] = tf_nn_batch_norm_with_global_normalization_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_nn_batch_normalization_inputs():
     list_of_inputs = []
@@ -38628,8 +38629,8 @@ def tf_nn_batch_normalization_inputs():
 generated_inputs["tf.nn.batch_normalization"] = tf_nn_batch_normalization_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_nn_bias_add_inputs():
     list_of_inputs = []
@@ -38720,8 +38721,8 @@ def tf_nn_bias_add_inputs():
 generated_inputs["tf.nn.bias_add"] = tf_nn_bias_add_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_nn_collapse_repeated_inputs():
     list_of_inputs = []
@@ -38802,8 +38803,8 @@ def tf_nn_collapse_repeated_inputs():
 generated_inputs["tf.nn.collapse_repeated"] = tf_nn_collapse_repeated_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_nn_compute_accidental_hits_inputs():
     list_of_inputs = []
@@ -38968,8 +38969,8 @@ for i in range(len(generated_inputs["tf.nn.compute_accidental_hits"])):
     tf.random.set_seed(generated_inputs["tf.nn.compute_accidental_hits"][i]["seed"] if generated_inputs["tf.nn.compute_accidental_hits"][i]["seed"] is not None else 0)
 
 
-import numpy as np
-import copy
+
+
 
 def tf_nn_compute_average_loss_inputs():
     list_of_inputs = []
@@ -39050,8 +39051,8 @@ def tf_nn_compute_average_loss_inputs():
 generated_inputs["tf.nn.compute_average_loss"] = tf_nn_compute_average_loss_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_nn_conv1d_inputs():
     list_of_inputs = []
@@ -39262,8 +39263,8 @@ def tf_nn_conv1d_inputs():
 generated_inputs["tf.nn.conv1d_3"] = tf_nn_conv1d_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_nn_conv2d_inputs():
     list_of_inputs = []
@@ -39474,8 +39475,8 @@ def tf_nn_conv2d_inputs():
 generated_inputs["tf.nn.conv2d"] = tf_nn_conv2d_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_nn_convolution_inputs():
     list_of_inputs = []
@@ -39686,8 +39687,8 @@ def tf_nn_convolution_inputs():
 generated_inputs["tf.nn.convolution"] = tf_nn_convolution_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_nn_crelu_inputs():
     list_of_inputs = []
@@ -39767,8 +39768,8 @@ def tf_nn_crelu_inputs():
 generated_inputs["tf.nn.crelu"] = tf_nn_crelu_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_nn_ctc_beam_search_decoder_inputs():
     list_of_inputs = []
@@ -39867,8 +39868,8 @@ def tf_nn_ctc_beam_search_decoder_inputs():
 generated_inputs["tf.nn.ctc_beam_search_decoder"] = tf_nn_ctc_beam_search_decoder_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_nn_ctc_greedy_decoder_inputs():
     list_of_inputs = []
@@ -39983,8 +39984,8 @@ def tf_nn_ctc_greedy_decoder_inputs():
 generated_inputs["tf.nn.ctc_greedy_decoder"] = tf_nn_ctc_greedy_decoder_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_nn_ctc_loss_inputs():
     list_of_inputs = []
@@ -40215,8 +40216,8 @@ def tf_nn_ctc_loss_inputs():
 generated_inputs["tf.nn.ctc_loss"] = tf_nn_ctc_loss_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_nn_depth_to_space_inputs():
     list_of_inputs = []
@@ -40307,8 +40308,8 @@ def tf_nn_depth_to_space_inputs():
 generated_inputs["tf.nn.depth_to_space"] = tf_nn_depth_to_space_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_nn_depthwise_conv2d_inputs():
     list_of_inputs = []
@@ -40407,8 +40408,8 @@ def tf_nn_depthwise_conv2d_inputs():
 generated_inputs["tf.nn.depthwise_conv2d"] = tf_nn_depthwise_conv2d_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_nn_depthwise_conv2d_backprop_filter_inputs():
     list_of_inputs = []
@@ -40485,8 +40486,8 @@ def tf_nn_depthwise_conv2d_backprop_filter_inputs():
 generated_inputs["tf.nn.depthwise_conv2d_backprop_filter"] = tf_nn_depthwise_conv2d_backprop_filter_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_nn_depthwise_conv2d_backprop_input_inputs():
     list_of_inputs = []
@@ -40628,8 +40629,8 @@ def tf_nn_depthwise_conv2d_backprop_input_inputs():
 generated_inputs["tf.nn.depthwise_conv2d_backprop_input"] = tf_nn_depthwise_conv2d_backprop_input_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_nn_dilation2d_inputs():
     list_of_inputs = []
@@ -40840,8 +40841,8 @@ def tf_nn_dilation2d_inputs():
 generated_inputs["tf.nn.dilation2d"] = tf_nn_dilation2d_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_nn_dropout_inputs():
     list_of_inputs = []
@@ -40942,8 +40943,8 @@ def tf_nn_dropout_inputs():
 generated_inputs["tf.nn.dropout"] = tf_nn_dropout_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_nn_elu_inputs():
     list_of_inputs = []
@@ -41008,8 +41009,8 @@ def tf_nn_elu_inputs():
 generated_inputs["tf.nn.elu"] = tf_nn_elu_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_nn_erosion2d_inputs():
     list_of_inputs = []
@@ -41214,8 +41215,8 @@ def tf_nn_erosion2d_inputs():
 generated_inputs["tf.nn.erosion2d"] = tf_nn_erosion2d_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_nn_fractional_avg_pool_inputs():
     list_of_inputs = []
@@ -41430,8 +41431,8 @@ def tf_nn_fractional_avg_pool_inputs():
 generated_inputs["tf.nn.fractional_avg_pool"] = tf_nn_fractional_avg_pool_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_nn_fractional_max_pool_inputs():
     list_of_inputs = []
@@ -41542,8 +41543,8 @@ def tf_nn_fractional_max_pool_inputs():
 generated_inputs["tf.nn.fractional_max_pool"] = tf_nn_fractional_max_pool_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_nn_gelu_inputs():
     list_of_inputs = []
@@ -41624,8 +41625,8 @@ def tf_nn_gelu_inputs():
 generated_inputs["tf.nn.gelu"] = tf_nn_gelu_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_nn_isotonic_regression_inputs():
     list_of_inputs = []
@@ -41706,8 +41707,8 @@ def tf_nn_isotonic_regression_inputs():
 generated_inputs["tf.nn.isotonic_regression"] = tf_nn_isotonic_regression_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_nn_l2_loss_inputs():
     list_of_inputs = []
@@ -41778,8 +41779,8 @@ def tf_nn_l2_loss_inputs():
 generated_inputs["tf.nn.l2_loss"] = tf_nn_l2_loss_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_nn_leaky_relu_inputs():
     list_of_inputs = []
@@ -41860,8 +41861,8 @@ def tf_nn_leaky_relu_inputs():
 generated_inputs["tf.nn.leaky_relu"] = tf_nn_leaky_relu_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_nn_local_response_normalization_inputs():
     list_of_inputs = []
@@ -41973,8 +41974,8 @@ def tf_nn_local_response_normalization_inputs():
 generated_inputs["tf.nn.local_response_normalization"] = tf_nn_local_response_normalization_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_nn_log_poisson_loss_inputs():
     list_of_inputs = []
@@ -42065,8 +42066,8 @@ def tf_nn_log_poisson_loss_inputs():
 generated_inputs["tf.nn.log_poisson_loss"] = tf_nn_log_poisson_loss_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_nn_log_softmax_inputs():
     list_of_inputs = []
@@ -42147,8 +42148,8 @@ def tf_nn_log_softmax_inputs():
 generated_inputs["tf.nn.log_softmax"] = tf_nn_log_softmax_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_nn_max_pool_inputs():
     list_of_inputs = []
@@ -42338,8 +42339,8 @@ def tf_nn_max_pool_inputs():
 generated_inputs["tf.nn.max_pool"] = tf_nn_max_pool_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_nn_max_pool1d_inputs():
     list_of_inputs = []
@@ -42450,8 +42451,8 @@ def tf_nn_max_pool1d_inputs():
 generated_inputs["tf.nn.max_pool1d"] = tf_nn_max_pool1d_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_nn_max_pool2d_inputs():
     list_of_inputs = []
@@ -42642,8 +42643,8 @@ def tf_nn_max_pool2d_inputs():
 generated_inputs["tf.nn.max_pool2d"] = tf_nn_max_pool2d_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 tf.experimental.numpy.experimental_enable_numpy_behavior()
 
@@ -42836,8 +42837,8 @@ def tf_nn_max_pool2d_inputs():
 generated_inputs["tf.nn.max_pool2d_2"] = tf_nn_max_pool2d_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_nn_max_pool2d_inputs():
     list_of_inputs = []
@@ -43028,8 +43029,8 @@ def tf_nn_max_pool2d_inputs():
 generated_inputs["tf.nn.max_pool2d_5"] = tf_nn_max_pool2d_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_nn_max_pool3d_inputs():
     list_of_inputs = []
@@ -43140,8 +43141,8 @@ def tf_nn_max_pool3d_inputs():
 generated_inputs["tf.nn.max_pool3d"] = tf_nn_max_pool3d_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_nn_max_pool_with_argmax_inputs():
     list_of_inputs = []
@@ -43372,8 +43373,8 @@ def tf_nn_max_pool_with_argmax_inputs():
 generated_inputs["tf.nn.max_pool_with_argmax"] = tf_nn_max_pool_with_argmax_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_nn_relu_inputs():
     list_of_inputs = []
@@ -43436,8 +43437,8 @@ for input_dict in inputs:
 generated_inputs["tf.nn.relu"] = inputs
 
 
-import numpy as np
-import copy
+
+
 
 def tf_nn_relu6_inputs():
     list_of_inputs = []
@@ -43508,8 +43509,8 @@ def tf_nn_relu6_inputs():
 generated_inputs["tf.nn.relu6"] = tf_nn_relu6_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_nn_selu_inputs():
     list_of_inputs = []
@@ -43581,8 +43582,8 @@ def tf_nn_selu_inputs():
 generated_inputs["tf.nn.selu"] = tf_nn_selu_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_nn_separable_conv2d_inputs():
     list_of_inputs = []
@@ -43857,8 +43858,8 @@ def tf_nn_separable_conv2d_inputs():
 generated_inputs["tf.nn.separable_conv2d"] = tf_nn_separable_conv2d_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_nn_sigmoid_cross_entropy_with_logits_inputs():
     list_of_inputs = []
@@ -43939,8 +43940,8 @@ def tf_nn_sigmoid_cross_entropy_with_logits_inputs():
 generated_inputs["tf.nn.sigmoid_cross_entropy_with_logits"] = tf_nn_sigmoid_cross_entropy_with_logits_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_nn_silu_inputs():
     list_of_inputs = []
@@ -44011,8 +44012,8 @@ def tf_nn_silu_inputs():
 generated_inputs["tf.nn.silu"] = tf_nn_silu_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_nn_softmax_inputs():
     list_of_inputs = []
@@ -44093,8 +44094,8 @@ def tf_nn_softmax_inputs():
 generated_inputs["tf.nn.softmax"] = tf_nn_softmax_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_nn_softmax_cross_entropy_with_logits_inputs():
     list_of_inputs = []
@@ -44185,8 +44186,8 @@ def tf_nn_softmax_cross_entropy_with_logits_inputs():
 generated_inputs["tf.nn.softmax_cross_entropy_with_logits"] = tf_nn_softmax_cross_entropy_with_logits_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_nn_softsign_inputs():
     list_of_inputs = []
@@ -44263,8 +44264,8 @@ def tf_nn_softsign_inputs():
 generated_inputs["tf.nn.softsign"] = tf_nn_softsign_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_nn_space_to_depth_inputs():
     list_of_inputs = []
@@ -44358,8 +44359,8 @@ def tf_nn_space_to_depth_inputs():
 generated_inputs["tf.nn.space_to_depth"] = tf_nn_space_to_depth_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_nn_sparse_softmax_cross_entropy_with_logits_inputs():
     list_of_inputs = []
@@ -44440,8 +44441,8 @@ def tf_nn_sparse_softmax_cross_entropy_with_logits_inputs():
 generated_inputs["tf.nn.sparse_softmax_cross_entropy_with_logits"] = tf_nn_sparse_softmax_cross_entropy_with_logits_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_nn_weighted_cross_entropy_with_logits_inputs():
     list_of_inputs = []
@@ -44532,7 +44533,7 @@ def tf_nn_weighted_cross_entropy_with_logits_inputs():
 generated_inputs["tf.nn.weighted_cross_entropy_with_logits"] = tf_nn_weighted_cross_entropy_with_logits_inputs()
 
 
-import copy
+
 
 def tf_no_gradient_inputs():
     list_of_inputs = []
@@ -44593,7 +44594,7 @@ def tf_no_gradient_inputs():
 generated_inputs["tf.no_gradient"] = tf_no_gradient_inputs()
 
 
-import copy
+
 
 def tf_no_op_inputs():
     list_of_inputs = []
@@ -44637,8 +44638,8 @@ def tf_no_op_inputs():
 generated_inputs["tf.no_op"] = tf_no_op_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_norm_inputs():
     list_of_inputs = []
@@ -44809,8 +44810,8 @@ def tf_norm_inputs():
 generated_inputs["tf.norm_1"] = tf_norm_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_one_hot_inputs():
     list_of_inputs = []
@@ -45001,8 +45002,8 @@ def tf_one_hot_inputs():
 generated_inputs["tf.one_hot"] = tf_one_hot_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_ones_inputs():
     list_of_inputs = []
@@ -45101,8 +45102,8 @@ def tf_ones_inputs():
 generated_inputs["tf.ones"] = tf_ones_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_ones_like_inputs():
     list_of_inputs = []
@@ -45164,8 +45165,8 @@ def tf_ones_like_inputs():
 generated_inputs["tf.ones_like"] = tf_ones_like_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_pad_inputs():
     list_of_inputs = []
@@ -45265,8 +45266,8 @@ def tf_pad_inputs():
 generated_inputs["tf.pad"] = tf_pad_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_quantization_fake_quant_with_min_max_args_inputs():
     list_of_inputs = []
@@ -45377,8 +45378,8 @@ def tf_quantization_fake_quant_with_min_max_args_inputs():
 generated_inputs["tf.quantization.fake_quant_with_min_max_args"] = tf_quantization_fake_quant_with_min_max_args_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_quantization_fake_quant_with_min_max_args_gradient_inputs():
     list_of_inputs = []
@@ -45579,8 +45580,8 @@ def tf_quantization_fake_quant_with_min_max_args_gradient_inputs():
 generated_inputs["tf.quantization.fake_quant_with_min_max_args_gradient"] = tf_quantization_fake_quant_with_min_max_args_gradient_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_quantization_fake_quant_with_min_max_vars_inputs():
     list_of_inputs = []
@@ -45697,8 +45698,8 @@ def tf_quantization_fake_quant_with_min_max_vars_inputs():
 generated_inputs["tf.quantization.fake_quant_with_min_max_vars"] = tf_quantization_fake_quant_with_min_max_vars_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_quantization_fake_quant_with_min_max_vars_gradient_inputs():
     list_of_inputs = []
@@ -45818,8 +45819,8 @@ def tf_quantization_fake_quant_with_min_max_vars_gradient_inputs():
 generated_inputs["tf.quantization.fake_quant_with_min_max_vars_gradient"] = tf_quantization_fake_quant_with_min_max_vars_gradient_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_quantization_fake_quant_with_min_max_vars_per_channel_inputs():
     list_of_inputs = []
@@ -45930,8 +45931,8 @@ def tf_quantization_fake_quant_with_min_max_vars_per_channel_inputs():
 generated_inputs["tf.quantization.fake_quant_with_min_max_vars_per_channel"] = tf_quantization_fake_quant_with_min_max_vars_per_channel_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_quantization_fake_quant_with_min_max_vars_per_channel_gradient_inputs():
     list_of_inputs = []
@@ -46051,8 +46052,8 @@ def tf_quantization_fake_quant_with_min_max_vars_per_channel_gradient_inputs():
 generated_inputs["tf.quantization.fake_quant_with_min_max_vars_per_channel_gradient"] = tf_quantization_fake_quant_with_min_max_vars_per_channel_gradient_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_quantization_quantize_inputs():
     list_of_inputs = []
@@ -46324,8 +46325,8 @@ def tf_quantization_quantize_inputs():
 generated_inputs["tf.quantization.quantize"] = tf_quantization_quantize_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_quantization_quantize_and_dequantize_inputs():
     list_of_inputs = []
@@ -46596,8 +46597,8 @@ def tf_quantization_quantize_and_dequantize_inputs():
 generated_inputs["tf.quantization.quantize_and_dequantize"] = tf_quantization_quantize_and_dequantize_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_quantization_quantize_and_dequantize_v2_inputs():
     list_of_inputs = []
@@ -46869,8 +46870,8 @@ def tf_quantization_quantize_and_dequantize_v2_inputs():
 generated_inputs["tf.quantization.quantize_and_dequantize_v2"] = tf_quantization_quantize_and_dequantize_v2_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_ragged_range_inputs():
     list_of_inputs = []
@@ -47061,8 +47062,8 @@ def tf_ragged_range_inputs():
 generated_inputs["tf.ragged.range"] = tf_ragged_range_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_ragged_row_splits_to_segment_ids_inputs():
     list_of_inputs = []
@@ -47143,8 +47144,8 @@ def tf_ragged_row_splits_to_segment_ids_inputs():
 generated_inputs["tf.ragged.row_splits_to_segment_ids"] = tf_ragged_row_splits_to_segment_ids_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_ragged_segment_ids_to_row_splits_inputs():
     list_of_inputs = []
@@ -47243,8 +47244,8 @@ def tf_ragged_segment_ids_to_row_splits_inputs():
 generated_inputs["tf.ragged.segment_ids_to_row_splits"] = tf_ragged_segment_ids_to_row_splits_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_ragged_stack_dynamic_partitions_inputs():
     list_of_inputs = []
@@ -47335,8 +47336,8 @@ def tf_ragged_stack_dynamic_partitions_inputs():
 generated_inputs["tf.ragged.stack_dynamic_partitions"] = tf_ragged_stack_dynamic_partitions_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_random_all_candidate_sampler_inputs():
     list_of_inputs = []
@@ -47447,8 +47448,8 @@ def tf_random_all_candidate_sampler_inputs():
 generated_inputs["tf.random.all_candidate_sampler"] = tf_random_all_candidate_sampler_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_random_categorical_inputs():
     list_of_inputs = []
@@ -47549,8 +47550,8 @@ def tf_random_categorical_inputs():
 generated_inputs["tf.random.categorical"] = tf_random_categorical_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_random_create_rng_state_inputs():
     list_of_inputs = []
@@ -47621,8 +47622,8 @@ def tf_random_create_rng_state_inputs():
 generated_inputs["tf.random.create_rng_state_1"] = tf_random_create_rng_state_inputs()
 
 
-import copy
-import numpy as np
+
+
 
 def tf_random_create_rng_state_inputs():
     list_of_inputs = []
@@ -47693,8 +47694,8 @@ def tf_random_create_rng_state_inputs():
 generated_inputs["tf.random.create_rng_state_2"] = tf_random_create_rng_state_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_random_experimental_stateless_split_inputs():
     list_of_inputs = []
@@ -47754,8 +47755,8 @@ def tf_random_experimental_stateless_split_inputs():
 generated_inputs["tf.random.experimental.stateless_split"] = tf_random_experimental_stateless_split_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_random_gamma_inputs():
     list_of_inputs = []
@@ -47866,8 +47867,8 @@ def tf_random_gamma_inputs():
 generated_inputs["tf.random.gamma"] = tf_random_gamma_inputs()
 
 
-import copy
-import numpy as np
+
+
 
 def tf_random_get_global_generator_inputs():
     list_of_inputs = []
@@ -47928,8 +47929,8 @@ def tf_random_get_global_generator_inputs():
 generated_inputs["tf.random.get_global_generator"] = tf_random_get_global_generator_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_random_learned_unigram_candidate_sampler_inputs():
     list_of_inputs = []
@@ -48061,8 +48062,8 @@ def tf_random_learned_unigram_candidate_sampler_inputs():
 generated_inputs["tf.random.learned_unigram_candidate_sampler"] = tf_random_learned_unigram_candidate_sampler_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_random_log_uniform_candidate_sampler_inputs():
     list_of_inputs = []
@@ -48183,8 +48184,8 @@ def tf_random_log_uniform_candidate_sampler_inputs():
 generated_inputs["tf.random.log_uniform_candidate_sampler"] = tf_random_log_uniform_candidate_sampler_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_random_poisson_inputs():
     list_of_inputs = []
@@ -48294,8 +48295,8 @@ def tf_random_poisson_inputs():
 generated_inputs["tf.random.poisson"] = tf_random_poisson_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_random_set_seed_inputs():
     list_of_inputs = []
@@ -48336,8 +48337,8 @@ def tf_random_set_seed_inputs():
 generated_inputs["tf.random.set_seed"] = tf_random_set_seed_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_random_shuffle_inputs():
     list_of_inputs = []
@@ -48418,8 +48419,8 @@ def tf_random_shuffle_inputs():
 generated_inputs["tf.random.shuffle"] = tf_random_shuffle_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_random_stateless_categorical_inputs():
     list_of_inputs = []
@@ -48520,8 +48521,8 @@ def tf_random_stateless_categorical_inputs():
 generated_inputs["tf.random.stateless_categorical"] = tf_random_stateless_categorical_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_random_stateless_gamma_inputs():
     list_of_inputs = []
@@ -48720,8 +48721,8 @@ def tf_random_stateless_gamma_inputs():
 generated_inputs["tf.random.stateless_gamma"] = tf_random_stateless_gamma_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_random_stateless_parameterized_truncated_normal_inputs():
     list_of_inputs = []
@@ -48932,8 +48933,8 @@ def tf_random_stateless_parameterized_truncated_normal_inputs():
 generated_inputs["tf.random.stateless_parameterized_truncated_normal"] = tf_random_stateless_parameterized_truncated_normal_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_random_stateless_truncated_normal_inputs():
     list_of_inputs = []
@@ -48988,8 +48989,8 @@ def tf_random_stateless_truncated_normal_inputs():
 generated_inputs["tf.random.stateless_truncated_normal"] = tf_random_stateless_truncated_normal_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_random_truncated_normal_inputs():
     list_of_inputs = []
@@ -49100,8 +49101,8 @@ def tf_random_truncated_normal_inputs():
 generated_inputs["tf.random.truncated_normal"] = tf_random_truncated_normal_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_random_uniform_inputs():
     list_of_inputs = []
@@ -49221,8 +49222,8 @@ def tf_random_uniform_inputs():
 generated_inputs["tf.random.uniform"] = tf_random_uniform_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_random_uniform_candidate_sampler_inputs():
     list_of_inputs = []
@@ -49432,8 +49433,8 @@ def tf_random_uniform_candidate_sampler_inputs():
 generated_inputs["tf.random.uniform_candidate_sampler"] = tf_random_uniform_candidate_sampler_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_rank_inputs():
     list_of_inputs = []
@@ -49494,8 +49495,8 @@ def tf_rank_inputs():
 generated_inputs["tf.rank"] = tf_rank_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_repeat_inputs():
     list_of_inputs = []
@@ -49646,8 +49647,8 @@ def tf_repeat_inputs():
 generated_inputs["tf.repeat"] = tf_repeat_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_required_space_to_batch_paddings_inputs():
     list_of_inputs = []
@@ -49738,8 +49739,8 @@ def tf_required_space_to_batch_paddings_inputs():
 generated_inputs["tf.required_space_to_batch_paddings"] = tf_required_space_to_batch_paddings_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_reshape_inputs():
     list_of_inputs = []
@@ -49823,8 +49824,8 @@ for i in range(len(generated_inputs["tf.reshape"])):
     generated_inputs["tf.reshape"][i]["shape"] = generated_inputs["tf.reshape"][i]["shape"].numpy()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_reverse_inputs():
     list_of_inputs = []
@@ -49905,8 +49906,8 @@ def tf_reverse_inputs():
 generated_inputs["tf.reverse"] = tf_reverse_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_reverse_sequence_inputs():
     list_of_inputs = []
@@ -50077,8 +50078,8 @@ def tf_reverse_sequence_inputs():
 generated_inputs["tf.reverse_sequence"] = tf_reverse_sequence_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_roll_inputs():
     list_of_inputs = []
@@ -50170,8 +50171,8 @@ tf.experimental.numpy.experimental_enable_numpy_behavior()
 generated_inputs["tf.roll"] = tf_roll_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_saved_model_asset_inputs():
     list_of_inputs = []
@@ -50232,13 +50233,13 @@ def tf_saved_model_asset_inputs():
 generated_inputs["tf.saved_model.Asset"] = tf_saved_model_asset_inputs()
 
 
-import copy
+
 import os
 import shutil
 
 
-import numpy as np
-import copy
+
+
 
 def tf_scatter_nd_inputs():
     list_of_inputs = []
@@ -50340,8 +50341,8 @@ def tf_scatter_nd_inputs():
 generated_inputs["tf.scatter_nd"] = tf_scatter_nd_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_searchsorted_inputs():
     list_of_inputs = []
@@ -50460,8 +50461,8 @@ def tf_searchsorted_inputs():
 generated_inputs["tf.searchsorted"] = tf_searchsorted_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_sequence_mask_inputs():
     list_of_inputs = []
@@ -50552,8 +50553,8 @@ def tf_sequence_mask_inputs():
 generated_inputs["tf.sequence_mask"] = tf_sequence_mask_inputs()
 
 
-import copy
-import numpy as np
+
+
 
 def tf_sets_difference_inputs():
     list_of_inputs = []
@@ -50653,8 +50654,8 @@ def tf_sets_difference_inputs():
 generated_inputs["tf.sets.difference"] = tf_sets_difference_inputs()
 
 
-import copy
-import numpy as np
+
+
 import collections
 
 def tf_sets_intersection_inputs():
@@ -50700,8 +50701,8 @@ def tf_sets_intersection_inputs():
 generated_inputs["tf.sets.intersection"] = tf_sets_intersection_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_shape_inputs():
     list_of_inputs = []
@@ -50782,8 +50783,8 @@ def tf_shape_inputs():
 generated_inputs["tf.shape"] = tf_shape_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_signal_dct_inputs():
     list_of_inputs = []
@@ -50904,8 +50905,8 @@ def tf_signal_dct_inputs():
 generated_inputs["tf.signal.dct"] = tf_signal_dct_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_signal_fft2d_inputs():
     list_of_inputs = []
@@ -50980,8 +50981,8 @@ def tf_signal_fft2d_inputs():
 generated_inputs["tf.signal.fft2d"] = tf_signal_fft2d_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_signal_fft3d_inputs():
     list_of_inputs = []
@@ -51042,8 +51043,8 @@ def tf_signal_fft3d_inputs():
 generated_inputs["tf.signal.fft3d"] = tf_signal_fft3d_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_signal_frame_inputs():
     list_of_inputs = []
@@ -51175,8 +51176,8 @@ def tf_signal_frame_inputs():
 generated_inputs["tf.signal.frame"] = tf_signal_frame_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_signal_hamming_window_inputs():
     list_of_inputs = []
@@ -51327,8 +51328,8 @@ def tf_signal_hamming_window_inputs():
 generated_inputs["tf.signal.hamming_window"] = tf_signal_hamming_window_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_signal_idct_inputs():
     list_of_inputs = []
@@ -51519,8 +51520,8 @@ def tf_signal_idct_inputs():
 generated_inputs["tf.signal.idct"] = tf_signal_idct_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_signal_ifft2d_inputs():
     list_of_inputs = []
@@ -51581,8 +51582,8 @@ def tf_signal_ifft2d_inputs():
 generated_inputs["tf.signal.ifft2d"] = tf_signal_ifft2d_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_signal_ifft3d_inputs():
     list_of_inputs = []
@@ -51646,8 +51647,8 @@ for i in range(len(inputs)):
 generated_inputs["tf.signal.ifft3d"] = inputs
 
 
-import numpy as np
-import copy
+
+
 
 def tf_signal_irfft_inputs():
     list_of_inputs = []
@@ -51728,8 +51729,8 @@ def tf_signal_irfft_inputs():
 generated_inputs["tf.signal.irfft"] = tf_signal_irfft_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_signal_irfft2d_inputs():
     list_of_inputs = []
@@ -51810,8 +51811,8 @@ def tf_signal_irfft2d_inputs():
 generated_inputs["tf.signal.irfft2d"] = tf_signal_irfft2d_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_signal_irfft3d_inputs():
     list_of_inputs = []
@@ -51892,8 +51893,8 @@ def tf_signal_irfft3d_inputs():
 generated_inputs["tf.signal.irfft3d"] = tf_signal_irfft3d_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_signal_kaiser_bessel_derived_window_inputs():
     list_of_inputs = []
@@ -51984,8 +51985,8 @@ def tf_signal_kaiser_bessel_derived_window_inputs():
 generated_inputs["tf.signal.kaiser_bessel_derived_window"] = tf_signal_kaiser_bessel_derived_window_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_signal_kaiser_window_inputs():
     list_of_inputs = []
@@ -52076,8 +52077,8 @@ def tf_signal_kaiser_window_inputs():
 generated_inputs["tf.signal.kaiser_window"] = tf_signal_kaiser_window_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_signal_linear_to_mel_weight_matrix_inputs():
     list_of_inputs = []
@@ -52208,8 +52209,8 @@ def tf_signal_linear_to_mel_weight_matrix_inputs():
 generated_inputs["tf.signal.linear_to_mel_weight_matrix"] = tf_signal_linear_to_mel_weight_matrix_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_signal_overlap_and_add_inputs():
     list_of_inputs = []
@@ -52290,8 +52291,8 @@ def tf_signal_overlap_and_add_inputs():
 generated_inputs["tf.signal.overlap_and_add"] = tf_signal_overlap_and_add_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_signal_rfft_inputs():
     list_of_inputs = []
@@ -52372,8 +52373,8 @@ def tf_signal_rfft_inputs():
 generated_inputs["tf.signal.rfft"] = tf_signal_rfft_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_signal_rfft2d_inputs():
     list_of_inputs = []
@@ -52454,8 +52455,8 @@ def tf_signal_rfft2d_inputs():
 generated_inputs["tf.signal.rfft2d"] = tf_signal_rfft2d_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_signal_rfft3d_inputs():
     list_of_inputs = []
@@ -52536,8 +52537,8 @@ def tf_signal_rfft3d_inputs():
 generated_inputs["tf.signal.rfft3d"] = tf_signal_rfft3d_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_signal_vorbis_window_inputs():
     list_of_inputs = []
@@ -52618,8 +52619,8 @@ def tf_signal_vorbis_window_inputs():
 generated_inputs["tf.signal.vorbis_window"] = tf_signal_vorbis_window_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_size_inputs():
     list_of_inputs = []
@@ -52700,8 +52701,8 @@ def tf_size_inputs():
 generated_inputs["tf.size"] = tf_size_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_slice_inputs():
     list_of_inputs = []
@@ -52800,8 +52801,8 @@ def tf_slice_inputs():
 generated_inputs["tf.slice"] = tf_slice_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_sort_inputs():
     list_of_inputs = []
@@ -52892,8 +52893,8 @@ def tf_sort_inputs():
 generated_inputs["tf.sort"] = tf_sort_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_space_to_batch_inputs():
     list_of_inputs = []
@@ -52984,8 +52985,8 @@ def tf_space_to_batch_inputs():
 generated_inputs["tf.space_to_batch"] = tf_space_to_batch_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_space_to_batch_nd_inputs():
     list_of_inputs = []
@@ -53076,8 +53077,8 @@ def tf_space_to_batch_nd_inputs():
 generated_inputs["tf.space_to_batch_nd"] = tf_space_to_batch_nd_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_sparse_SparseTensor_inputs():
     list_of_inputs = []
@@ -53158,8 +53159,8 @@ def tf_sparse_SparseTensor_inputs():
 generated_inputs["tf.sparse.SparseTensor"] = tf_sparse_SparseTensor_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_sparse_bincount_inputs():
     list_of_inputs = []
@@ -53280,8 +53281,8 @@ def tf_sparse_bincount_inputs():
 generated_inputs["tf.sparse.bincount"] = tf_sparse_bincount_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_sparse_eye_inputs():
     list_of_inputs = []
@@ -53373,8 +53374,8 @@ def tf_sparse_eye_inputs():
 generated_inputs["tf.sparse.eye"] = tf_sparse_eye_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_autodiff_forwardaccumulator_inputs():
     list_of_inputs = []
@@ -53446,8 +53447,8 @@ def tf_autodiff_forwardaccumulator_inputs():
 generated_inputs["tf.autodiff.ForwardAccumulator"] = tf_autodiff_forwardaccumulator_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_bitcast_inputs():
     list_of_inputs = []
@@ -53521,8 +53522,8 @@ def tf_bitcast_inputs():
 generated_inputs["tf.bitcast"] = tf_bitcast_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_bitwise_bitwise_and_inputs():
     list_of_inputs = []
@@ -53603,8 +53604,8 @@ def tf_bitwise_bitwise_and_inputs():
 generated_inputs["tf.bitwise.bitwise_and"] = tf_bitwise_bitwise_and_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_bitwise_bitwise_or_inputs():
     list_of_inputs = []
@@ -53657,8 +53658,8 @@ def tf_bitwise_bitwise_or_inputs():
 generated_inputs["tf.bitwise.bitwise_or"] = tf_bitwise_bitwise_or_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_bitwise_bitwise_xor_inputs():
     list_of_inputs = []
@@ -53739,8 +53740,8 @@ def tf_bitwise_bitwise_xor_inputs():
 generated_inputs["tf.bitwise.bitwise_xor"] = tf_bitwise_bitwise_xor_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_cast_inputs():
     list_of_inputs = []
@@ -53835,8 +53836,8 @@ def tf_cast_inputs():
 generated_inputs["tf.cast"] = tf_cast_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_dtypes_saturate_cast_inputs():
     list_of_inputs = []
@@ -53917,8 +53918,8 @@ def tf_dtypes_saturate_cast_inputs():
 generated_inputs["tf.dtypes.saturate_cast"] = tf_dtypes_saturate_cast_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_dynamic_stitch_inputs():
     list_of_inputs = []
@@ -53989,8 +53990,8 @@ def tf_dynamic_stitch_inputs():
 generated_inputs["tf.dynamic_stitch"] = tf_dynamic_stitch_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_ensure_shape_inputs():
     list_of_inputs = []
@@ -54071,8 +54072,8 @@ def tf_ensure_shape_inputs():
 generated_inputs["tf.ensure_shape"] = tf_ensure_shape_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_experimental_numpy_amin_inputs():
     list_of_inputs = []
@@ -54163,8 +54164,8 @@ def tf_experimental_numpy_amin_inputs():
 generated_inputs["tf.experimental.numpy.amin"] = tf_experimental_numpy_amin_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_experimental_numpy_arcsin_inputs():
     list_of_inputs = []
@@ -54225,8 +54226,8 @@ def tf_experimental_numpy_arcsin_inputs():
 generated_inputs["tf.experimental.numpy.arcsin"] = tf_experimental_numpy_arcsin_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 tf.experimental.numpy.experimental_enable_numpy_behavior()
 
@@ -54298,8 +54299,8 @@ def tf_experimental_numpy_array_equal_inputs():
 generated_inputs["tf.experimental.numpy.array_equal"] = tf_experimental_numpy_array_equal_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_experimental_numpy_bitwise_or_inputs():
     list_of_inputs = []
@@ -54370,8 +54371,8 @@ def tf_experimental_numpy_bitwise_or_inputs():
 generated_inputs["tf.experimental.numpy.bitwise_or"] = tf_experimental_numpy_bitwise_or_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_experimental_numpy_conjugate_inputs():
     list_of_inputs = []
@@ -54432,8 +54433,8 @@ def tf_experimental_numpy_conjugate_inputs():
 generated_inputs["tf.experimental.numpy.conjugate"] = tf_experimental_numpy_conjugate_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_experimental_numpy_cross_inputs():
     list_of_inputs = []
@@ -54635,8 +54636,8 @@ def tf_experimental_numpy_cross_inputs():
 generated_inputs["tf.experimental.numpy.cross"] = tf_experimental_numpy_cross_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_experimental_numpy_cumsum_inputs():
     list_of_inputs = []
@@ -54717,8 +54718,8 @@ def tf_experimental_numpy_cumsum_inputs():
 generated_inputs["tf.experimental.numpy.cumsum"] = tf_experimental_numpy_cumsum_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_experimental_numpy_dsplit_inputs():
     list_of_inputs = []
@@ -54789,8 +54790,8 @@ def tf_experimental_numpy_dsplit_inputs():
 generated_inputs["tf.experimental.numpy.dsplit"] = tf_experimental_numpy_dsplit_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_experimental_numpy_equal_inputs():
     list_of_inputs = []
@@ -54861,8 +54862,8 @@ def tf_experimental_numpy_equal_inputs():
 generated_inputs["tf.experimental.numpy.equal"] = tf_experimental_numpy_equal_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_experimental_numpy_flip_inputs():
     list_of_inputs = []
@@ -54933,8 +54934,8 @@ def tf_experimental_numpy_flip_inputs():
 generated_inputs["tf.experimental.numpy.flip"] = tf_experimental_numpy_flip_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_experimental_numpy_float_power_inputs():
     list_of_inputs = []
@@ -55003,8 +55004,8 @@ def tf_experimental_numpy_float_power_inputs():
 generated_inputs["tf.experimental.numpy.float_power"] = tf_experimental_numpy_float_power_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_experimental_numpy_heaviside_inputs():
     list_of_inputs = []
@@ -55076,8 +55077,8 @@ tf.experimental.numpy.experimental_enable_numpy_behavior()
 generated_inputs["tf.experimental.numpy.heaviside"] = tf_experimental_numpy_heaviside_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_experimental_numpy_hsplit_inputs():
     list_of_inputs = []
@@ -55154,8 +55155,8 @@ def tf_experimental_numpy_hsplit_inputs():
 generated_inputs["tf.experimental.numpy.hsplit_2"] = tf_experimental_numpy_hsplit_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_experimental_numpy_iscomplexobj_inputs():
     list_of_inputs = []
@@ -55216,8 +55217,8 @@ def tf_experimental_numpy_iscomplexobj_inputs():
 generated_inputs["tf.experimental.numpy.iscomplexobj"] = tf_experimental_numpy_iscomplexobj_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_experimental_numpy_isnan_inputs():
     list_of_inputs = []
@@ -55285,8 +55286,8 @@ def tf_experimental_numpy_isnan_inputs():
 generated_inputs["tf.experimental.numpy.isnan"] = tf_experimental_numpy_isnan_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_experimental_numpy_isrealobj_inputs():
     list_of_inputs = []
@@ -55352,8 +55353,8 @@ def tf_experimental_numpy_isrealobj_inputs():
 generated_inputs["tf.experimental.numpy.isrealobj"] = tf_experimental_numpy_isrealobj_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_experimental_numpy_lcm_inputs():
     list_of_inputs = []
@@ -55425,8 +55426,8 @@ tf.experimental.numpy.experimental_enable_numpy_behavior()
 generated_inputs["tf.experimental.numpy.lcm"] = tf_experimental_numpy_lcm_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_experimental_numpy_linspace_inputs():
     list_of_inputs = []
@@ -55548,8 +55549,8 @@ tf.experimental.numpy.experimental_enable_numpy_behavior()
 generated_inputs["tf.experimental.numpy.linspace"] = tf_experimental_numpy_linspace_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_experimental_numpy_log_inputs():
     list_of_inputs = []
@@ -55616,8 +55617,8 @@ def tf_experimental_numpy_log_inputs():
 generated_inputs["tf.experimental.numpy.log"] = tf_experimental_numpy_log_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_experimental_numpy_logical_not_inputs():
     list_of_inputs = []
@@ -55678,8 +55679,8 @@ def tf_experimental_numpy_logical_not_inputs():
 generated_inputs["tf.experimental.numpy.logical_not"] = tf_experimental_numpy_logical_not_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_experimental_numpy_logical_xor_inputs():
     list_of_inputs = []
@@ -55750,8 +55751,8 @@ def tf_experimental_numpy_logical_xor_inputs():
 generated_inputs["tf.experimental.numpy.logical_xor"] = tf_experimental_numpy_logical_xor_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_experimental_numpy_matmul_inputs():
     list_of_inputs = []
@@ -55823,8 +55824,8 @@ tf.experimental.numpy.experimental_enable_numpy_behavior()
 generated_inputs["tf.experimental.numpy.matmul"] = tf_experimental_numpy_matmul_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_experimental_numpy_maximum_inputs():
     list_of_inputs = []
@@ -55896,8 +55897,8 @@ tf.experimental.numpy.experimental_enable_numpy_behavior()
 generated_inputs["tf.experimental.numpy.maximum"] = tf_experimental_numpy_maximum_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_experimental_numpy_positive_inputs():
     list_of_inputs = []
@@ -55958,8 +55959,8 @@ def tf_experimental_numpy_positive_inputs():
 generated_inputs["tf.experimental.numpy.positive"] = tf_experimental_numpy_positive_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_experimental_numpy_remainder_inputs():
     list_of_inputs = []
@@ -56024,8 +56025,8 @@ def tf_experimental_numpy_remainder_inputs():
 generated_inputs["tf.experimental.numpy.remainder"] = tf_experimental_numpy_remainder_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_experimental_numpy_sin_inputs():
     list_of_inputs = []
@@ -56096,8 +56097,8 @@ def tf_experimental_numpy_sin_inputs():
 generated_inputs["tf.experimental.numpy.sin"] = tf_experimental_numpy_sin_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_experimental_numpy_square_inputs():
     list_of_inputs = []
@@ -56158,8 +56159,8 @@ def tf_experimental_numpy_square_inputs():
 generated_inputs["tf.experimental.numpy.square"] = tf_experimental_numpy_square_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_experimental_numpy_take_inputs():
     list_of_inputs = []
@@ -56269,8 +56270,8 @@ def tf_experimental_numpy_take_inputs():
 generated_inputs["tf.experimental.numpy.take"] = tf_experimental_numpy_take_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_experimental_numpy_tensordot_inputs():
     list_of_inputs = []
@@ -56351,8 +56352,8 @@ def tf_experimental_numpy_tensordot_inputs():
 generated_inputs["tf.experimental.numpy.tensordot"] = tf_experimental_numpy_tensordot_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_experimental_numpy_true_divide_inputs():
     list_of_inputs = []
@@ -56424,8 +56425,8 @@ tf.experimental.numpy.experimental_enable_numpy_behavior()
 generated_inputs["tf.experimental.numpy.true_divide"] = tf_experimental_numpy_true_divide_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_experimental_numpy_var_inputs():
     list_of_inputs = []
@@ -56616,8 +56617,8 @@ def tf_experimental_numpy_var_inputs():
 generated_inputs["tf.experimental.numpy.var"] = tf_experimental_numpy_var_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_experimental_numpy_vdot_inputs():
     list_of_inputs = []
@@ -56690,8 +56691,8 @@ def tf_experimental_numpy_vdot_inputs():
 generated_inputs["tf.experimental.numpy.vdot"] = tf_experimental_numpy_vdot_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_experimental_numpy_vstack_inputs():
     list_of_inputs = []
@@ -56749,8 +56750,8 @@ def tf_experimental_numpy_vstack_inputs():
 generated_inputs["tf.experimental.numpy.vstack"] = tf_experimental_numpy_vstack_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_fill_inputs():
     list_of_inputs = []
@@ -56841,8 +56842,8 @@ def tf_fill_inputs():
 generated_inputs["tf.fill"] = tf_fill_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_get_static_value_inputs():
     list_of_inputs = []
@@ -56917,8 +56918,8 @@ def tf_get_static_value_inputs():
 generated_inputs["tf.get_static_value"] = tf_get_static_value_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_histogram_fixed_width_bins_inputs():
     list_of_inputs = []
@@ -57010,8 +57011,8 @@ def tf_histogram_fixed_width_bins_inputs():
 generated_inputs["tf.histogram_fixed_width_bins"] = tf_histogram_fixed_width_bins_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_image_grayscale_to_rgb_inputs():
     list_of_inputs = []
@@ -57087,8 +57088,8 @@ def tf_image_grayscale_to_rgb_inputs():
 generated_inputs["tf.image.grayscale_to_rgb"] = tf_image_grayscale_to_rgb_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_image_non_max_suppression_padded_inputs():
     list_of_inputs = []
@@ -57239,8 +57240,8 @@ def tf_image_non_max_suppression_padded_inputs():
 generated_inputs["tf.image.non_max_suppression_padded"] = tf_image_non_max_suppression_padded_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_image_rgb_to_hsv_inputs():
     list_of_inputs = []
@@ -57301,8 +57302,8 @@ def tf_image_rgb_to_hsv_inputs():
 generated_inputs["tf.image.rgb_to_hsv"] = tf_image_rgb_to_hsv_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_image_stateless_random_contrast_inputs():
     list_of_inputs = []
@@ -57393,8 +57394,8 @@ def tf_image_stateless_random_contrast_inputs():
 generated_inputs["tf.image.stateless_random_contrast"] = tf_image_stateless_random_contrast_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_image_stateless_random_hue_inputs():
     list_of_inputs = []
@@ -57475,8 +57476,8 @@ def tf_image_stateless_random_hue_inputs():
 generated_inputs["tf.image.stateless_random_hue"] = tf_image_stateless_random_hue_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_image_yuv_to_rgb_inputs():
     list_of_inputs = []
@@ -57544,8 +57545,8 @@ def tf_image_yuv_to_rgb_inputs():
 generated_inputs["tf.image.yuv_to_rgb"] = tf_image_yuv_to_rgb_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_io_decode_image_inputs():
     list_of_inputs = []
@@ -57620,8 +57621,8 @@ def tf_io_decode_image_inputs():
 generated_inputs["tf.io.decode_image"] = tf_io_decode_image_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_io_decode_raw_inputs():
     list_of_inputs = []
@@ -57749,8 +57750,8 @@ def tf_io_decode_raw_inputs():
 generated_inputs["tf.io.decode_raw"] = tf_io_decode_raw_inputs()
 
 
-import copy
-import numpy as np
+
+
 import os
 
 def tf_io_gfile_listdir_inputs():
@@ -57876,8 +57877,8 @@ def tf_io_gfile_listdir_inputs():
 generated_inputs["tf.io.gfile.listdir"] = tf_io_gfile_listdir_inputs()
 
 
-import numpy as np
-import copy
+
+
 import os
 
 def tf_io_gfile_rename_inputs():
@@ -58015,8 +58016,8 @@ def tf_io_gfile_rename_inputs():
 generated_inputs["tf.io.gfile.rename"] = tf_io_gfile_rename_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_io_serialize_tensor_inputs():
     list_of_inputs = []
@@ -58087,8 +58088,8 @@ def tf_io_serialize_tensor_inputs():
 generated_inputs["tf.io.serialize_tensor"] = tf_io_serialize_tensor_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_linalg_linearoperatorblocklowertriangular_inputs():
     list_of_inputs = []
@@ -58195,8 +58196,8 @@ def tf_linalg_linearoperatorblocklowertriangular_inputs():
 generated_inputs["tf.linalg.LinearOperatorBlockLowerTriangular"] = tf_linalg_linearoperatorblocklowertriangular_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_linalg_linearoperatorcirculant_inputs():
     list_of_inputs = []
@@ -58328,8 +58329,8 @@ def tf_linalg_linearoperatorcirculant_inputs():
 generated_inputs["tf.linalg.LinearOperatorCirculant"] = tf_linalg_linearoperatorcirculant_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_linalg_linear_operator_tridiag_inputs():
     list_of_inputs = []
@@ -58470,8 +58471,8 @@ def tf_linalg_linear_operator_tridiag_inputs():
 generated_inputs["tf.linalg.LinearOperatorTridiag"] = tf_linalg_linear_operator_tridiag_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_linalg_lu_inputs():
     list_of_inputs = []
@@ -58532,8 +58533,8 @@ def tf_linalg_lu_inputs():
 generated_inputs["tf.linalg.lu"] = tf_linalg_lu_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_linalg_triangular_solve_inputs():
     list_of_inputs = []
@@ -58634,8 +58635,8 @@ def tf_linalg_triangular_solve_inputs():
 generated_inputs["tf.linalg.triangular_solve"] = tf_linalg_triangular_solve_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_lookup_KeyValueTensorInitializer_inputs():
     list_of_inputs = []
@@ -58796,8 +58797,8 @@ def tf_lookup_KeyValueTensorInitializer_inputs():
 generated_inputs["tf.lookup.KeyValueTensorInitializer"] = tf_lookup_KeyValueTensorInitializer_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_math_argmin_inputs():
     list_of_inputs = []
@@ -58896,8 +58897,8 @@ def tf_math_argmin_inputs():
 generated_inputs["tf.math.argmin"] = tf_math_argmin_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_math_asin_inputs():
     list_of_inputs = []
@@ -58974,8 +58975,8 @@ def tf_math_asin_inputs():
 generated_inputs["tf.math.asin"] = tf_math_asin_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_math_bessel_i1e_inputs():
     list_of_inputs = []
@@ -59046,8 +59047,8 @@ def tf_math_bessel_i1e_inputs():
 generated_inputs["tf.math.bessel_i1e"] = tf_math_bessel_i1e_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_math_ceil_inputs():
     list_of_inputs = []
@@ -59118,8 +59119,8 @@ def tf_math_ceil_inputs():
 generated_inputs["tf.math.ceil"] = tf_math_ceil_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_math_cosh_inputs():
     list_of_inputs = []
@@ -59196,8 +59197,8 @@ def tf_math_cosh_inputs():
 generated_inputs["tf.math.cosh"] = tf_math_cosh_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_math_count_nonzero_inputs():
     list_of_inputs = []
@@ -59260,8 +59261,8 @@ def tf_math_count_nonzero_inputs():
 generated_inputs["tf.math.count_nonzero"] = tf_math_count_nonzero_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_math_digamma_inputs():
     list_of_inputs = []
@@ -59332,8 +59333,8 @@ def tf_math_digamma_inputs():
 generated_inputs["tf.math.digamma"] = tf_math_digamma_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_math_erfcinv_inputs():
     list_of_inputs = []
@@ -59404,8 +59405,8 @@ def tf_math_erfcinv_inputs():
 generated_inputs["tf.math.erfcinv"] = tf_math_erfcinv_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_math_expm1_inputs():
     list_of_inputs = []
@@ -59476,8 +59477,8 @@ def tf_math_expm1_inputs():
 generated_inputs["tf.math.expm1"] = tf_math_expm1_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_math_is_inf_inputs():
     list_of_inputs = []
@@ -59548,8 +59549,8 @@ def tf_math_is_inf_inputs():
 generated_inputs["tf.math.is_inf"] = tf_math_is_inf_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_math_is_non_decreasing_inputs():
     list_of_inputs = []
@@ -59632,8 +59633,8 @@ def tf_math_is_non_decreasing_inputs():
 generated_inputs["tf.math.is_non_decreasing"] = tf_math_is_non_decreasing_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_math_is_strictly_increasing_inputs():
     list_of_inputs = []
@@ -59704,8 +59705,8 @@ def tf_math_is_strictly_increasing_inputs():
 generated_inputs["tf.math.is_strictly_increasing"] = tf_math_is_strictly_increasing_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_math_minimum_inputs():
     list_of_inputs = []
@@ -59786,8 +59787,8 @@ def tf_math_minimum_inputs():
 generated_inputs["tf.math.minimum"] = tf_math_minimum_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_math_pow_inputs():
     list_of_inputs = []
@@ -59875,8 +59876,8 @@ def tf_math_pow_inputs():
 generated_inputs["tf.math.pow"] = tf_math_pow_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_math_reciprocal_inputs():
     list_of_inputs = []
@@ -59947,8 +59948,8 @@ def tf_math_reciprocal_inputs():
 generated_inputs["tf.math.reciprocal"] = tf_math_reciprocal_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_math_reduce_max_inputs():
     list_of_inputs = []
@@ -60039,8 +60040,8 @@ def tf_math_reduce_max_inputs():
 generated_inputs["tf.math.reduce_max"] = tf_math_reduce_max_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_math_sinh_inputs():
     list_of_inputs = []
@@ -60111,8 +60112,8 @@ def tf_math_sinh_inputs():
 generated_inputs["tf.math.sinh"] = tf_math_sinh_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_math_special_bessel_j1_inputs():
     list_of_inputs = []
@@ -60183,8 +60184,8 @@ def tf_math_special_bessel_j1_inputs():
 generated_inputs["tf.math.special.bessel_j1"] = tf_math_special_bessel_j1_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_math_special_bessel_k1_inputs():
     list_of_inputs = []
@@ -60260,8 +60261,8 @@ def tf_math_special_bessel_k1_inputs():
 generated_inputs["tf.math.special.bessel_k1"] = tf_math_special_bessel_k1_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_math_sqrt_inputs():
     list_of_inputs = []
@@ -60332,8 +60333,8 @@ def tf_math_sqrt_inputs():
 generated_inputs["tf.math.sqrt"] = tf_math_sqrt_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_nn_atrous_conv2d_transpose_inputs():
     list_of_inputs = []
@@ -60374,8 +60375,8 @@ def tf_nn_atrous_conv2d_transpose_inputs():
 generated_inputs["tf.nn.atrous_conv2d_transpose"] = tf_nn_atrous_conv2d_transpose_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_nn_avg_pool1d_inputs():
     list_of_inputs = []
@@ -60566,8 +60567,8 @@ def tf_nn_avg_pool1d_inputs():
 generated_inputs["tf.nn.avg_pool1d_1"] = tf_nn_avg_pool1d_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_nn_avg_pool2d_inputs():
     list_of_inputs = []
@@ -60678,8 +60679,8 @@ def tf_nn_avg_pool2d_inputs():
 generated_inputs["tf.nn.avg_pool2d"] = tf_nn_avg_pool2d_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_nn_avg_pool3d_inputs():
     list_of_inputs = []
@@ -60811,8 +60812,8 @@ def tf_nn_avg_pool3d_inputs():
 generated_inputs["tf.nn.avg_pool3d"] = tf_nn_avg_pool3d_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_nn_conv1d_inputs():
     list_of_inputs = []
@@ -60963,8 +60964,8 @@ def tf_nn_conv1d_inputs():
 generated_inputs["tf.nn.conv1d"] = tf_nn_conv1d_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_nn_conv1d_inputs():
     list_of_inputs = []
@@ -61175,8 +61176,8 @@ def tf_nn_conv1d_inputs():
 generated_inputs["tf.nn.conv1d_2"] = tf_nn_conv1d_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_nn_conv1d_inputs():
     list_of_inputs = []
@@ -61387,8 +61388,8 @@ def tf_nn_conv1d_inputs():
 generated_inputs["tf.nn.conv1d_4"] = tf_nn_conv1d_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_nn_conv3d_inputs():
     list_of_inputs = []
@@ -61508,8 +61509,8 @@ def tf_nn_conv3d_inputs():
 generated_inputs["tf.nn.conv3d"] = tf_nn_conv3d_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_nn_max_pool2d_inputs():
     list_of_inputs = []
@@ -61620,8 +61621,8 @@ def tf_nn_max_pool2d_inputs():
 generated_inputs["tf.nn.max_pool2d_1"] = tf_nn_max_pool2d_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_nn_max_pool2d_inputs():
     list_of_inputs = []
@@ -61812,8 +61813,8 @@ def tf_nn_max_pool2d_inputs():
 generated_inputs["tf.nn.max_pool2d_3"] = tf_nn_max_pool2d_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_nn_max_pool2d_inputs():
     list_of_inputs = []
@@ -62004,8 +62005,8 @@ def tf_nn_max_pool2d_inputs():
 generated_inputs["tf.nn.max_pool2d_3"] = tf_nn_max_pool2d_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_nn_moments_inputs():
     list_of_inputs = []
@@ -62176,8 +62177,8 @@ def tf_nn_moments_inputs():
 generated_inputs["tf.nn.moments"] = tf_nn_moments_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_nn_normalize_moments_inputs():
     list_of_inputs = []
@@ -62348,8 +62349,8 @@ def tf_nn_normalize_moments_inputs():
 generated_inputs["tf.nn.normalize_moments"] = tf_nn_normalize_moments_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_nn_pool_inputs():
     list_of_inputs = []
@@ -62580,8 +62581,8 @@ def tf_nn_pool_inputs():
 generated_inputs["tf.nn.pool"] = tf_nn_pool_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_nn_scale_regularization_loss_inputs():
     list_of_inputs = []
@@ -62643,8 +62644,8 @@ def tf_nn_scale_regularization_loss_inputs():
 generated_inputs["tf.nn.scale_regularization_loss"] = tf_nn_scale_regularization_loss_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_nn_sufficient_statistics_inputs():
     list_of_inputs = []
@@ -62745,8 +62746,8 @@ def tf_nn_sufficient_statistics_inputs():
 generated_inputs["tf.nn.sufficient_statistics"] = tf_nn_sufficient_statistics_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_random_experimental_stateless_fold_in_inputs():
     list_of_inputs = []
@@ -62827,8 +62828,8 @@ def tf_random_experimental_stateless_fold_in_inputs():
 generated_inputs["tf.random.experimental.stateless_fold_in"] = tf_random_experimental_stateless_fold_in_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_random_normal_inputs():
     list_of_inputs = []
@@ -62949,8 +62950,8 @@ def tf_random_normal_inputs():
 generated_inputs["tf.random.normal"] = tf_random_normal_inputs()
 
 
-import copy
-import numpy as np
+
+
 
 def tf_raw_ops_abort_inputs():
     list_of_inputs = []
@@ -63049,8 +63050,8 @@ def tf_raw_ops_abort_inputs():
 generated_inputs["tf.raw_ops.Abort"] = tf_raw_ops_abort_inputs()
 
 
-import numpy as np
-import copy
+
+
 import wave
 import io
 
@@ -63169,8 +63170,8 @@ def tf_audio_decode_wav_inputs():
 generated_inputs["tf.audio.decode_wav"] = tf_audio_decode_wav_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_broadcast_dynamic_shape_inputs():
     list_of_inputs = []
@@ -63224,8 +63225,8 @@ def tf_broadcast_dynamic_shape_inputs():
 generated_inputs["tf.broadcast_dynamic_shape"] = tf_broadcast_dynamic_shape_inputs()
 
 
-import numpy as np
-import copy
+
+
 import ctypes
 
 def tf_experimental_dlpack_from_dlpack_inputs():
@@ -63324,8 +63325,8 @@ def tf_experimental_dlpack_from_dlpack_inputs():
 generated_inputs["tf.experimental.dlpack.from_dlpack"] = tf_experimental_dlpack_from_dlpack_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_experimental_numpy_fix_inputs():
     list_of_inputs = []
@@ -63387,8 +63388,8 @@ def tf_experimental_numpy_fix_inputs():
 generated_inputs["tf.experimental.numpy.fix"] = tf_experimental_numpy_fix_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_experimental_numpy_log2_inputs():
     list_of_inputs = []
@@ -63449,8 +63450,8 @@ def tf_experimental_numpy_log2_inputs():
 generated_inputs["tf.experimental.numpy.log2"] = tf_experimental_numpy_log2_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_experimental_numpy_minimum_inputs():
     list_of_inputs = []
@@ -63533,8 +63534,8 @@ def tf_experimental_numpy_minimum_inputs():
 generated_inputs["tf.experimental.numpy.minimum"] = tf_experimental_numpy_minimum_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_experimental_numpy_subtract_inputs():
     list_of_inputs = []
@@ -63610,8 +63611,8 @@ def tf_experimental_numpy_subtract_inputs():
 generated_inputs["tf.experimental.numpy.subtract"] = tf_experimental_numpy_subtract_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_experimental_numpy_transpose_inputs():
     list_of_inputs = []
@@ -63682,8 +63683,8 @@ def tf_experimental_numpy_transpose_inputs():
 generated_inputs["tf.experimental.numpy.transpose"] = tf_experimental_numpy_transpose_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_image_flip_up_down_inputs():
     list_of_inputs = []
@@ -63746,8 +63747,8 @@ def tf_image_flip_up_down_inputs():
 generated_inputs["tf.image.flip_up_down"] = tf_image_flip_up_down_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_io_decode_and_crop_jpeg_inputs():
     list_of_inputs = []
@@ -63854,9 +63855,9 @@ def tf_io_decode_and_crop_jpeg_inputs():
 generated_inputs["tf.io.decode_and_crop_jpeg"] = tf_io_decode_and_crop_jpeg_inputs()
 
 
-import numpy as np
+
 from google.protobuf import json_format
-import copy
+
 
 def tf_io_decode_json_example_inputs():
     list_of_inputs = []
@@ -63942,8 +63943,8 @@ def tf_io_decode_json_example_inputs():
 generated_inputs["tf.io.decode_json_example"] = tf_io_decode_json_example_inputs()
 
 
-import copy
-import numpy as np
+
+
 import os
 
 def tf_io_read_file_inputs():
@@ -64034,8 +64035,8 @@ def tf_io_read_file_inputs():
 generated_inputs["tf.io.read_file"] = tf_io_read_file_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_linalg_diag_inputs():
     list_of_inputs = []
@@ -64096,8 +64097,8 @@ def tf_linalg_diag_inputs():
 generated_inputs["tf.linalg.diag_2"] = tf_linalg_diag_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_math_lgamma_inputs():
     list_of_inputs = []
@@ -64169,7 +64170,7 @@ def tf_math_lgamma_inputs():
 generated_inputs["tf.math.lgamma"] = tf_math_lgamma_inputs()
 
 
-import copy
+
 
 def tf_mlir_experimental_convert_function_inputs():
     list_of_inputs = []
@@ -64279,8 +64280,8 @@ def tf_mlir_experimental_convert_function_inputs():
 generated_inputs["tf.mlir.experimental.convert_function"] = tf_mlir_experimental_convert_function_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_nest_is_nested_inputs():
     list_of_inputs = []
@@ -64331,8 +64332,8 @@ def tf_nest_is_nested_inputs():
 generated_inputs["tf.nest.is_nested"] = tf_nest_is_nested_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_nn_max_pool2d_inputs():
     list_of_inputs = []
@@ -64443,8 +64444,8 @@ def tf_nn_max_pool2d_inputs():
 generated_inputs["tf.nn.max_pool2d_6"] = tf_nn_max_pool2d_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_ragged_boolean_mask_inputs():
     list_of_inputs = []
@@ -64518,8 +64519,8 @@ def tf_ragged_boolean_mask_inputs():
 generated_inputs["tf.ragged.boolean_mask"] = tf_ragged_boolean_mask_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_random_stateless_poisson_inputs():
     list_of_inputs = []
@@ -64620,8 +64621,8 @@ def tf_random_stateless_poisson_inputs():
 generated_inputs["tf.random.stateless_poisson"] = tf_random_stateless_poisson_inputs()
 
 
-import copy
-import numpy as np
+
+
 
 def tf_raw_ops_ControlTrigger_inputs():
     list_of_inputs = []
@@ -64672,7 +64673,7 @@ def tf_raw_ops_ControlTrigger_inputs():
 generated_inputs["tf.raw_ops.ControlTrigger"] = tf_raw_ops_ControlTrigger_inputs()
 
 
-import copy
+
 
 def tf_raw_ops_Fact_inputs():
     list_of_inputs = []
@@ -64733,8 +64734,8 @@ def tf_raw_ops_Fact_inputs():
 generated_inputs["tf.raw_ops.Fact"] = tf_raw_ops_Fact_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_experimental_numpy_imag_inputs():
     list_of_inputs = []
@@ -64795,8 +64796,8 @@ def tf_experimental_numpy_imag_inputs():
 generated_inputs["tf.experimental.numpy.imag"] = tf_experimental_numpy_imag_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_linalg_linear_operator_identity_inputs():
     list_of_inputs = []
@@ -64947,8 +64948,8 @@ def tf_linalg_linear_operator_identity_inputs():
 generated_inputs["tf.linalg.LinearOperatorIdentity"] = tf_linalg_linear_operator_identity_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_nn_conv3d_transpose_inputs():
     list_of_inputs = []
@@ -64981,8 +64982,8 @@ def tf_nn_conv3d_transpose_inputs():
 generated_inputs["tf.nn.conv3d_transpose"] = tf_nn_conv3d_transpose_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_ragged_stack_inputs():
     list_of_inputs = []
@@ -65061,8 +65062,8 @@ def tf_ragged_stack_inputs():
 generated_inputs["tf.ragged.stack"] = tf_ragged_stack_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_random_Generator_inputs():
     list_of_inputs = []
@@ -65136,7 +65137,7 @@ def tf_random_Generator_inputs():
 generated_inputs["tf.random.Generator"] = tf_random_Generator_inputs()
 
 
-import copy
+
 
 def tf_raw_ops_NoOp_inputs():
     list_of_inputs = []
@@ -65207,8 +65208,8 @@ def tf_raw_ops_NoOp_inputs():
 generated_inputs["tf.raw_ops.NoOp"] = tf_raw_ops_NoOp_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_raw_ops_reader_num_records_produced_inputs():
     list_of_inputs = []
@@ -65319,8 +65320,8 @@ def tf_raw_ops_reader_num_records_produced_inputs():
 generated_inputs["tf.raw_ops.ReaderNumRecordsProduced"] = tf_raw_ops_reader_num_records_produced_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_raw_ops_ReaderNumWorkUnitsCompleted_inputs():
     list_of_inputs = []
@@ -65412,8 +65413,8 @@ def tf_raw_ops_ReaderNumWorkUnitsCompleted_inputs():
 generated_inputs["tf.raw_ops.ReaderNumWorkUnitsCompleted"] = tf_raw_ops_ReaderNumWorkUnitsCompleted_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_raw_ops_softmax_inputs():
     list_of_inputs = []
@@ -65491,8 +65492,8 @@ def run_api(api, input_dict, cpu=True, lib="tf"):
   return input_dict
 
 
-import numpy as np
-import copy
+
+
 
 def tf_realdiv_inputs():
     list_of_inputs = []
@@ -65563,8 +65564,8 @@ def tf_realdiv_inputs():
 generated_inputs["tf.realdiv"] = tf_realdiv_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_sets_union_inputs():
     list_of_inputs = []
@@ -65622,8 +65623,8 @@ def tf_sets_union_inputs():
 generated_inputs["tf.sets.union"] = tf_sets_union_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_signal_fft_inputs():
     list_of_inputs = []
@@ -65684,8 +65685,8 @@ def tf_signal_fft_inputs():
 generated_inputs["tf.signal.fft"] = tf_signal_fft_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_signal_fftshift_inputs():
     list_of_inputs = []
@@ -65766,8 +65767,8 @@ def tf_signal_fftshift_inputs():
 generated_inputs["tf.signal.fftshift"] = tf_signal_fftshift_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_signal_fftshift_inputs():
     list_of_inputs = []
@@ -65848,8 +65849,8 @@ def tf_signal_fftshift_inputs():
 generated_inputs["tf.signal.fftshift_2"] = tf_signal_fftshift_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_signal_hann_window_inputs():
     list_of_inputs = []
@@ -66000,8 +66001,8 @@ def tf_signal_hann_window_inputs():
 generated_inputs["tf.signal.hann_window"] = tf_signal_hann_window_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_signal_ifft_inputs():
     list_of_inputs = []
@@ -66062,8 +66063,8 @@ def tf_signal_ifft_inputs():
 generated_inputs["tf.signal.ifft"] = tf_signal_ifft_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_signal_ifftshift_inputs():
     list_of_inputs = []
@@ -66143,8 +66144,8 @@ def tf_signal_ifftshift_inputs():
 generated_inputs["tf.signal.ifftshift"] = tf_signal_ifftshift_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_signal_ifftshift_inputs():
     list_of_inputs = []
@@ -66224,8 +66225,8 @@ def tf_signal_ifftshift_inputs():
 generated_inputs["tf.signal.ifftshift_2"] = tf_signal_ifftshift_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_signal_mfccs_from_log_mel_spectrograms_inputs():
     list_of_inputs = []
@@ -66296,8 +66297,8 @@ def tf_signal_mfccs_from_log_mel_spectrograms_inputs():
 generated_inputs["tf.signal.mfccs_from_log_mel_spectrograms"] = tf_signal_mfccs_from_log_mel_spectrograms_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_sparse_from_dense_inputs():
     list_of_inputs = []
@@ -66368,8 +66369,8 @@ def tf_sparse_from_dense_inputs():
 generated_inputs["tf.sparse.from_dense"] = tf_sparse_from_dense_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_sparse_segment_mean_inputs():
     list_of_inputs = []
@@ -66480,8 +66481,8 @@ def tf_sparse_segment_mean_inputs():
 generated_inputs["tf.sparse.segment_mean"] = tf_sparse_segment_mean_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_sparse_segment_sqrt_n_inputs():
     list_of_inputs = []
@@ -66582,8 +66583,8 @@ def tf_sparse_segment_sqrt_n_inputs():
 generated_inputs["tf.sparse.segment_sqrt_n"] = tf_sparse_segment_sqrt_n_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_sparse_segment_sum_inputs():
     list_of_inputs = []
@@ -66774,8 +66775,8 @@ def tf_sparse_segment_sum_inputs():
 generated_inputs["tf.sparse.segment_sum"] = tf_sparse_segment_sum_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_split_inputs():
     list_of_inputs = []
@@ -66876,8 +66877,8 @@ def tf_split_inputs():
 generated_inputs["tf.split_1"] = tf_split_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_split_inputs():
     list_of_inputs = []
@@ -67048,8 +67049,8 @@ def tf_split_inputs():
 generated_inputs["tf.split_2"] = tf_split_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_squeeze_inputs():
     list_of_inputs = []
@@ -67137,8 +67138,8 @@ def tf_squeeze_inputs():
 generated_inputs["tf.squeeze"] = tf_squeeze_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_strided_slice_inputs():
     list_of_inputs = []
@@ -67431,8 +67432,8 @@ def tf_strided_slice_inputs():
 generated_inputs["tf.strided_slice"] = tf_strided_slice_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_strings_as_string_inputs():
     list_of_inputs = []
@@ -67493,8 +67494,8 @@ def tf_strings_as_string_inputs():
 generated_inputs["tf.strings.as_string"] = tf_strings_as_string_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_strings_ngrams_inputs():
     list_of_inputs = []
@@ -67705,8 +67706,8 @@ def tf_strings_ngrams_inputs():
 generated_inputs["tf.strings.ngrams"] = tf_strings_ngrams_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_strings_reduce_join_inputs():
     list_of_inputs = []
@@ -67807,8 +67808,8 @@ def tf_strings_reduce_join_inputs():
 generated_inputs["tf.strings.reduce_join"] = tf_strings_reduce_join_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_strings_regex_full_match_inputs():
     list_of_inputs = []
@@ -67889,8 +67890,8 @@ def tf_strings_regex_full_match_inputs():
 generated_inputs["tf.strings.regex_full_match"] = tf_strings_regex_full_match_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_strings_strip_inputs():
     list_of_inputs = []
@@ -67960,8 +67961,8 @@ def tf_strings_strip_inputs():
 generated_inputs["tf.strings.strip"] = tf_strings_strip_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_strings_substr_inputs():
     list_of_inputs = []
@@ -68062,8 +68063,8 @@ def tf_strings_substr_inputs():
 generated_inputs["tf.strings.substr"] = tf_strings_substr_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_strings_to_hash_bucket_inputs():
     list_of_inputs = []
@@ -68144,8 +68145,8 @@ def tf_strings_to_hash_bucket_inputs():
 generated_inputs["tf.strings.to_hash_bucket"] = tf_strings_to_hash_bucket_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_strings_to_hash_bucket_fast_inputs():
     list_of_inputs = []
@@ -68226,8 +68227,8 @@ def tf_strings_to_hash_bucket_fast_inputs():
 generated_inputs["tf.strings.to_hash_bucket_fast"] = tf_strings_to_hash_bucket_fast_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_strings_to_hash_bucket_strong_inputs():
     list_of_inputs = []
@@ -68318,8 +68319,8 @@ def tf_strings_to_hash_bucket_strong_inputs():
 generated_inputs["tf.strings.to_hash_bucket_strong"] = tf_strings_to_hash_bucket_strong_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_strings_to_number_inputs():
     list_of_inputs = []
@@ -68400,8 +68401,8 @@ def tf_strings_to_number_inputs():
 generated_inputs["tf.strings.to_number"] = tf_strings_to_number_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_strings_unicode_decode_inputs():
     list_of_inputs = []
@@ -68592,8 +68593,8 @@ def tf_strings_unicode_decode_inputs():
 generated_inputs["tf.strings.unicode_decode"] = tf_strings_unicode_decode_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_strings_unicode_encode_inputs():
     list_of_inputs = []
@@ -68721,8 +68722,8 @@ def tf_strings_unicode_encode_inputs():
 generated_inputs["tf.strings.unicode_encode"] = tf_strings_unicode_encode_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_strings_unicode_script_inputs():
     list_of_inputs = []
@@ -68785,8 +68786,8 @@ for i in range(len(generated_inputs["tf.strings.unicode_script"])):
     generated_inputs["tf.strings.unicode_script"][i]["input"] = generated_inputs["tf.strings.unicode_script"][i]["input"].numpy()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_strings_unicode_transcode_inputs():
     list_of_inputs = []
@@ -68927,8 +68928,8 @@ def tf_strings_unicode_transcode_inputs():
 generated_inputs["tf.strings.unicode_transcode"] = tf_strings_unicode_transcode_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_strings_unsorted_segment_join_inputs():
     list_of_inputs = []
@@ -69029,7 +69030,7 @@ def tf_strings_unsorted_segment_join_inputs():
 generated_inputs["tf.strings.unsorted_segment_join"] = tf_strings_unsorted_segment_join_inputs()
 
 
-import copy
+
 
 def tf_sysconfig_get_build_info_inputs():
     list_of_inputs = []
@@ -69073,7 +69074,7 @@ def tf_sysconfig_get_build_info_inputs():
 generated_inputs["tf.sysconfig.get_build_info"] = tf_sysconfig_get_build_info_inputs()
 
 
-import copy
+
 
 def tf_sysconfig_get_compile_flags_inputs():
     list_of_inputs = []
@@ -69114,7 +69115,7 @@ def tf_sysconfig_get_compile_flags_inputs():
 generated_inputs["tf.sysconfig.get_compile_flags"] = tf_sysconfig_get_compile_flags_inputs()
 
 
-import copy
+
 
 def tf_sysconfig_get_include_inputs():
     list_of_inputs = []
@@ -69155,7 +69156,7 @@ def tf_sysconfig_get_include_inputs():
 generated_inputs["tf.sysconfig.get_include"] = tf_sysconfig_get_include_inputs()
 
 
-import copy
+
 
 def tf_sysconfig_get_lib_inputs():
     list_of_inputs = []
@@ -69196,7 +69197,7 @@ def tf_sysconfig_get_lib_inputs():
 generated_inputs["tf.sysconfig.get_lib"] = tf_sysconfig_get_lib_inputs()
 
 
-import copy
+
 
 def tf_sysconfig_get_link_flags_inputs():
     list_of_inputs = []
@@ -69237,8 +69238,8 @@ def tf_sysconfig_get_link_flags_inputs():
 generated_inputs["tf.sysconfig.get_link_flags"] = tf_sysconfig_get_link_flags_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_tensor_scatter_nd_add_inputs():
     list_of_inputs = []
@@ -69349,8 +69350,8 @@ def tf_tensor_scatter_nd_add_inputs():
 generated_inputs["tf.tensor_scatter_nd_add"] = tf_tensor_scatter_nd_add_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_tensor_scatter_nd_max_inputs():
     list_of_inputs = []
@@ -69521,8 +69522,8 @@ def tf_tensor_scatter_nd_max_inputs():
 generated_inputs["tf.tensor_scatter_nd_max"] = tf_tensor_scatter_nd_max_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_tensor_scatter_nd_min_inputs():
     list_of_inputs = []
@@ -69692,8 +69693,8 @@ def tf_tensor_scatter_nd_min_inputs():
 generated_inputs["tf.tensor_scatter_nd_min"] = tf_tensor_scatter_nd_min_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_tensor_scatter_nd_sub_inputs():
     list_of_inputs = []
@@ -69865,8 +69866,8 @@ def tf_tensor_scatter_nd_sub_inputs():
 generated_inputs["tf.tensor_scatter_nd_sub"] = tf_tensor_scatter_nd_sub_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_tensor_scatter_nd_update_inputs():
     list_of_inputs = []
@@ -69967,8 +69968,8 @@ def tf_tensor_scatter_nd_update_inputs():
 generated_inputs["tf.tensor_scatter_nd_update"] = tf_tensor_scatter_nd_update_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_tensordot_inputs():
     list_of_inputs = []
@@ -70059,8 +70060,8 @@ def tf_tensordot_inputs():
 generated_inputs["tf.tensordot_1"] = tf_tensordot_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_tile_inputs():
     list_of_inputs = []
@@ -70141,8 +70142,8 @@ def tf_tile_inputs():
 generated_inputs["tf.tile"] = tf_tile_inputs()
 
 
-import copy
-import numpy as np
+
+
 
 def tf_train_coordinator_inputs():
     list_of_inputs = []
@@ -70197,8 +70198,8 @@ def get_ll(domain, value):
     raise ValueError(f"Unknown domain: {domain}")
 
 
-import numpy as np
-import copy
+
+
 
 def tf_train_exponentialmovingaverage_inputs():
     list_of_inputs = []
@@ -70297,8 +70298,8 @@ def tf_train_exponentialmovingaverage_inputs():
 generated_inputs["tf.train.ExponentialMovingAverage"] = tf_train_exponentialmovingaverage_inputs()
 
 
-import numpy as np
-import copy
+
+
 import os
 
 def tf_train_checkpoints_iterator_inputs():
@@ -70504,7 +70505,7 @@ def tf_train_checkpoints_iterator_inputs():
 generated_inputs["tf.train.checkpoints_iterator"] = tf_train_checkpoints_iterator_inputs()
 
 
-import copy
+
 import os
 
 def tf_train_get_checkpoint_state_inputs():
@@ -70596,8 +70597,8 @@ def tf_train_get_checkpoint_state_inputs():
 generated_inputs["tf.train.get_checkpoint_state"] = tf_train_get_checkpoint_state_inputs()
 
 
-import copy
-import numpy as np
+
+
 import os
 
 def tf_train_latest_checkpoint_inputs():
@@ -70680,7 +70681,7 @@ def tf_train_latest_checkpoint_inputs():
 generated_inputs["tf.train.latest_checkpoint"] = tf_train_latest_checkpoint_inputs()
 
 
-import copy
+
 import os
 
 def tf_train_load_checkpoint_inputs():
@@ -70764,8 +70765,8 @@ def tf_train_load_checkpoint_inputs():
 generated_inputs["tf.train.load_checkpoint"] = tf_train_load_checkpoint_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_transpose_inputs():
     list_of_inputs = []
@@ -70856,8 +70857,8 @@ def tf_transpose_inputs():
 generated_inputs["tf.transpose"] = tf_transpose_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_truncatediv_inputs():
     list_of_inputs = []
@@ -70938,8 +70939,8 @@ def tf_truncatediv_inputs():
 generated_inputs["tf.truncatediv"] = tf_truncatediv_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_truncatemod_inputs():
     list_of_inputs = []
@@ -71010,8 +71011,8 @@ def tf_truncatemod_inputs():
 generated_inputs["tf.truncatemod"] = tf_truncatemod_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_unique_inputs():
     list_of_inputs = []
@@ -71099,8 +71100,8 @@ def tf_unique_inputs():
 generated_inputs["tf.unique"] = tf_unique_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_unique_with_counts_inputs():
     list_of_inputs = []
@@ -71181,8 +71182,8 @@ def tf_unique_with_counts_inputs():
 generated_inputs["tf.unique_with_counts"] = tf_unique_with_counts_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_unravel_index_inputs():
     list_of_inputs = []
@@ -71277,8 +71278,8 @@ def tf_unravel_index_inputs():
 generated_inputs["tf.unravel_index"] = tf_unravel_index_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_unstack_inputs():
     list_of_inputs = []
@@ -71369,8 +71370,8 @@ def tf_unstack_inputs():
 generated_inputs["tf.unstack"] = tf_unstack_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_where_inputs():
     list_of_inputs = []
@@ -71435,8 +71436,8 @@ def tf_where_inputs():
 generated_inputs["tf.where_1"] = tf_where_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_where_inputs():
     list_of_inputs = []
@@ -71527,8 +71528,8 @@ def tf_where_inputs():
 generated_inputs["tf.where_2"] = tf_where_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_zeros_inputs():
     list_of_inputs = []
@@ -71619,8 +71620,8 @@ def tf_zeros_inputs():
 generated_inputs["tf.zeros"] = tf_zeros_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_zeros_like_inputs():
     list_of_inputs = []
@@ -71711,8 +71712,8 @@ def tf_zeros_like_inputs():
 generated_inputs["tf.zeros_like"] = tf_zeros_like_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_experimental_numpy_stack_inputs():
     list_of_inputs = []
@@ -71786,8 +71787,8 @@ for i in range(len(temp)):
     break
 
 
-import numpy as np
-import copy
+
+
 
 def tf_io_decode_jpeg_inputs():
     list_of_inputs = []
@@ -71886,8 +71887,8 @@ def tf_io_decode_jpeg_inputs():
 generated_inputs["tf.io.decode_jpeg"] = tf_io_decode_jpeg_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_nn_nce_loss_inputs():
     list_of_inputs = []
@@ -72196,8 +72197,8 @@ def tf_nn_nce_loss_inputs():
 generated_inputs["tf.nn.nce_loss"] = tf_nn_nce_loss_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_experimental_numpy_full_like_inputs():
     list_of_inputs = []
@@ -72388,8 +72389,8 @@ def tf_experimental_numpy_full_like_inputs():
 generated_inputs["tf.experimental.numpy.full_like"] = tf_experimental_numpy_full_like_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_experimental_numpy_result_type_inputs():
     list_of_inputs = []
@@ -72441,7 +72442,7 @@ def tf_experimental_numpy_result_type_inputs():
 generated_inputs["tf.experimental.numpy.result_type"] = tf_experimental_numpy_result_type_inputs()
 
 
-import copy
+
 import os
 
 def tf_load_op_library_inputs():
@@ -72509,8 +72510,8 @@ def tf_load_op_library_inputs():
 generated_inputs["tf.load_op_library"] = tf_load_op_library_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_random_stateless_normal_inputs():
     list_of_inputs = []
@@ -72631,8 +72632,8 @@ def tf_random_stateless_normal_inputs():
 generated_inputs["tf.random.stateless_normal"] = tf_random_stateless_normal_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_raw_ops_abs_inputs():
     list_of_inputs = []
@@ -72693,8 +72694,8 @@ def tf_raw_ops_abs_inputs():
 generated_inputs["tf.raw_ops.Abs"] = tf_raw_ops_abs_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_raw_ops_Acos_inputs():
     list_of_inputs = []
@@ -72750,8 +72751,8 @@ def tf_raw_ops_Acos_inputs():
 generated_inputs["tf.raw_ops.Acos"] = tf_raw_ops_Acos_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_raw_ops_add_inputs():
     list_of_inputs = []
@@ -72822,8 +72823,8 @@ def tf_raw_ops_add_inputs():
 generated_inputs["tf.raw_ops.Add"] = tf_raw_ops_add_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_raw_ops_AddManySparseToTensorsMap_inputs():
     list_of_inputs = []
@@ -73004,8 +73005,8 @@ def tf_raw_ops_AddManySparseToTensorsMap_inputs():
 generated_inputs["tf.raw_ops.AddManySparseToTensorsMap"] = tf_raw_ops_AddManySparseToTensorsMap_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_raw_ops_AddSparseToTensorsMap_inputs():
     list_of_inputs = []
@@ -73196,8 +73197,8 @@ def tf_raw_ops_AddSparseToTensorsMap_inputs():
 generated_inputs["tf.raw_ops.AddSparseToTensorsMap"] = tf_raw_ops_AddSparseToTensorsMap_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_raw_ops_addv2_inputs():
     list_of_inputs = []
@@ -73268,8 +73269,8 @@ def tf_raw_ops_addv2_inputs():
 generated_inputs["tf.raw_ops.AddV2"] = tf_raw_ops_addv2_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_raw_ops_adjust_hue_inputs():
     list_of_inputs = []
@@ -73340,8 +73341,8 @@ def tf_raw_ops_adjust_hue_inputs():
 generated_inputs["tf.raw_ops.AdjustHue"] = tf_raw_ops_adjust_hue_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_raw_ops_adjust_saturation_inputs():
     list_of_inputs = []
@@ -73412,8 +73413,8 @@ def tf_raw_ops_adjust_saturation_inputs():
 generated_inputs["tf.raw_ops.AdjustSaturation"] = tf_raw_ops_adjust_saturation_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_raw_ops_all_inputs():
     list_of_inputs = []
@@ -73520,8 +73521,8 @@ def tf_raw_ops_all_inputs():
 generated_inputs["tf.raw_ops.All"] = tf_raw_ops_all_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_raw_ops_all_candidate_sampler_inputs():
     list_of_inputs = []
@@ -73721,8 +73722,8 @@ def tf_raw_ops_all_candidate_sampler_inputs():
 generated_inputs["tf.raw_ops.AllCandidateSampler"] = tf_raw_ops_all_candidate_sampler_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_raw_ops_angle_inputs():
     list_of_inputs = []
@@ -73784,8 +73785,8 @@ def tf_raw_ops_angle_inputs():
 generated_inputs["tf.raw_ops.Angle"] = tf_raw_ops_angle_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_raw_ops_any_inputs():
     list_of_inputs = []
@@ -73892,8 +73893,8 @@ def tf_raw_ops_any_inputs():
 generated_inputs["tf.raw_ops.Any"] = tf_raw_ops_any_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_raw_ops_ArgMax_inputs():
     list_of_inputs = []
@@ -73984,8 +73985,8 @@ def tf_raw_ops_ArgMax_inputs():
 generated_inputs["tf.raw_ops.ArgMax"] = tf_raw_ops_ArgMax_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_raw_ops_ArgMin_inputs():
     list_of_inputs = []
@@ -74136,8 +74137,8 @@ def tf_raw_ops_ArgMin_inputs():
 generated_inputs["tf.raw_ops.ArgMin"] = tf_raw_ops_ArgMin_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_raw_ops_asin_inputs():
     list_of_inputs = []
@@ -74198,8 +74199,8 @@ def tf_raw_ops_asin_inputs():
 generated_inputs["tf.raw_ops.Asin"] = tf_raw_ops_asin_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_raw_ops_asinh_inputs():
     list_of_inputs = []
@@ -74260,8 +74261,8 @@ def tf_raw_ops_asinh_inputs():
 generated_inputs["tf.raw_ops.Asinh"] = tf_raw_ops_asinh_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_raw_ops_atan_inputs():
     list_of_inputs = []
@@ -74322,8 +74323,8 @@ def tf_raw_ops_atan_inputs():
 generated_inputs["tf.raw_ops.Atan"] = tf_raw_ops_atan_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_raw_ops_atan2_inputs():
     list_of_inputs = []
@@ -74407,8 +74408,8 @@ def tf_raw_ops_atan2_inputs():
 generated_inputs["tf.raw_ops.Atan2"] = tf_raw_ops_atan2_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_raw_ops_atanh_inputs():
     list_of_inputs = []
@@ -74469,8 +74470,8 @@ def tf_raw_ops_atanh_inputs():
 generated_inputs["tf.raw_ops.Atanh"] = tf_raw_ops_atanh_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_raw_ops_avgpool_inputs():
     list_of_inputs = []
@@ -74661,8 +74662,8 @@ def tf_raw_ops_avgpool_inputs():
 generated_inputs["tf.raw_ops.AvgPool"] = tf_raw_ops_avgpool_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_raw_ops_avgpool3d_inputs():
     list_of_inputs = []
@@ -74844,8 +74845,8 @@ def tf_raw_ops_avgpool3d_inputs():
 generated_inputs["tf.raw_ops.AvgPool3D"] = tf_raw_ops_avgpool3d_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_raw_ops_AvgPool3DGrad_inputs():
     list_of_inputs = []
@@ -75065,8 +75066,8 @@ def tf_raw_ops_AvgPool3DGrad_inputs():
 generated_inputs["tf.raw_ops.AvgPool3DGrad"] = tf_raw_ops_AvgPool3DGrad_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_raw_ops_BatchMatMul_inputs():
     list_of_inputs = []
@@ -75137,8 +75138,8 @@ def tf_raw_ops_BatchMatMul_inputs():
 generated_inputs["tf.raw_ops.BatchMatMul"] = tf_raw_ops_BatchMatMul_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_raw_ops_BatchMatMulV2_inputs():
     list_of_inputs = []
@@ -75248,8 +75249,8 @@ def tf_raw_ops_BatchMatMulV2_inputs():
 generated_inputs["tf.raw_ops.BatchMatMulV2"] = tf_raw_ops_BatchMatMulV2_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_raw_ops_BatchMatMulV3_inputs():
     list_of_inputs = []
@@ -75320,8 +75321,8 @@ def tf_raw_ops_BatchMatMulV3_inputs():
 generated_inputs["tf.raw_ops.BatchMatMulV3"] = tf_raw_ops_BatchMatMulV3_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_raw_ops_batchtospace_inputs():
     list_of_inputs = []
@@ -75402,8 +75403,8 @@ def tf_raw_ops_batchtospace_inputs():
 generated_inputs["tf.raw_ops.BatchToSpace"] = tf_raw_ops_batchtospace_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_raw_ops_batch_to_space_nd_inputs():
     list_of_inputs = []
@@ -75486,8 +75487,8 @@ def tf_raw_ops_batch_to_space_nd_inputs():
 generated_inputs["tf.raw_ops.BatchToSpaceND"] = tf_raw_ops_batch_to_space_nd_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_raw_ops_betainc_inputs():
     list_of_inputs = []
@@ -75568,8 +75569,8 @@ def tf_raw_ops_betainc_inputs():
 generated_inputs["tf.raw_ops.Betainc"] = tf_raw_ops_betainc_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_raw_ops_bias_add_inputs():
     list_of_inputs = []
@@ -75721,8 +75722,8 @@ def tf_raw_ops_bias_add_inputs():
 generated_inputs["tf.raw_ops.BiasAdd"] = tf_raw_ops_bias_add_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_raw_ops_bias_add_grad_inputs():
     list_of_inputs = []
@@ -75803,8 +75804,8 @@ def tf_raw_ops_bias_add_grad_inputs():
 generated_inputs["tf.raw_ops.BiasAddGrad"] = tf_raw_ops_bias_add_grad_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_raw_ops_bincount_inputs():
     list_of_inputs = []
@@ -75885,8 +75886,8 @@ def tf_raw_ops_bincount_inputs():
 generated_inputs["tf.raw_ops.Bincount"] = tf_raw_ops_bincount_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_raw_ops_bitcast_inputs():
     list_of_inputs = []
@@ -75957,8 +75958,8 @@ def tf_raw_ops_bitcast_inputs():
 generated_inputs["tf.raw_ops.Bitcast"] = tf_raw_ops_bitcast_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_raw_ops_BroadcastTo_inputs():
     list_of_inputs = []
@@ -76029,8 +76030,8 @@ def tf_raw_ops_BroadcastTo_inputs():
 generated_inputs["tf.raw_ops.BroadcastTo"] = tf_raw_ops_BroadcastTo_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_raw_ops_bucketize_inputs():
     list_of_inputs = []
@@ -76101,8 +76102,8 @@ def tf_raw_ops_bucketize_inputs():
 generated_inputs["tf.raw_ops.Bucketize"] = tf_raw_ops_bucketize_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_raw_ops_cast_inputs():
     list_of_inputs = []
@@ -76193,8 +76194,8 @@ def tf_raw_ops_cast_inputs():
 generated_inputs["tf.raw_ops.Cast"] = tf_raw_ops_cast_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_raw_ops_ceil_inputs():
     list_of_inputs = []
@@ -76255,8 +76256,8 @@ def tf_raw_ops_ceil_inputs():
 generated_inputs["tf.raw_ops.Ceil"] = tf_raw_ops_ceil_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_raw_ops_check_numerics_inputs():
     list_of_inputs = []
@@ -76326,8 +76327,8 @@ def tf_raw_ops_check_numerics_inputs():
 generated_inputs["tf.raw_ops.CheckNumerics"] = tf_raw_ops_check_numerics_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_raw_ops_ClipByValue_inputs():
     list_of_inputs = []
@@ -76407,8 +76408,8 @@ def tf_raw_ops_ClipByValue_inputs():
 generated_inputs["tf.raw_ops.ClipByValue"] = tf_raw_ops_ClipByValue_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_raw_ops_complex_inputs():
     list_of_inputs = []
@@ -76499,8 +76500,8 @@ def tf_raw_ops_complex_inputs():
 generated_inputs["tf.raw_ops.Complex"] = tf_raw_ops_complex_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_raw_ops_ComplexAbs_inputs():
     list_of_inputs = []
@@ -76581,8 +76582,8 @@ def tf_raw_ops_ComplexAbs_inputs():
 generated_inputs["tf.raw_ops.ComplexAbs"] = tf_raw_ops_ComplexAbs_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_raw_ops_compute_accidental_hits_inputs():
     list_of_inputs = []
@@ -76773,8 +76774,8 @@ def tf_raw_ops_compute_accidental_hits_inputs():
 generated_inputs["tf.raw_ops.ComputeAccidentalHits"] = tf_raw_ops_compute_accidental_hits_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_raw_ops_conjugate_transpose_inputs():
     list_of_inputs = []
@@ -76845,8 +76846,8 @@ def tf_raw_ops_conjugate_transpose_inputs():
 generated_inputs["tf.raw_ops.ConjugateTranspose"] = tf_raw_ops_conjugate_transpose_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_raw_ops_Conv2D_inputs():
     list_of_inputs = []
@@ -77145,8 +77146,8 @@ def tf_raw_ops_Conv2D_inputs():
 generated_inputs["tf.raw_ops.Conv2D"] = tf_raw_ops_Conv2D_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_raw_ops_Conv3D_inputs():
     list_of_inputs = []
@@ -77343,8 +77344,8 @@ def tf_raw_ops_Conv3D_inputs():
 generated_inputs["tf.raw_ops.Conv3D"] = tf_raw_ops_Conv3D_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_raw_ops_cos_inputs():
     list_of_inputs = []
@@ -77405,8 +77406,8 @@ def tf_raw_ops_cos_inputs():
 generated_inputs["tf.raw_ops.Cos"] = tf_raw_ops_cos_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_raw_ops_cosh_inputs():
     list_of_inputs = []
@@ -77463,8 +77464,8 @@ def tf_raw_ops_cosh_inputs():
 generated_inputs["tf.raw_ops.Cosh"] = tf_raw_ops_cosh_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_random_fixed_unigram_candidate_sampler_inputs():
     list_of_inputs = []
@@ -77795,8 +77796,8 @@ def tf_random_fixed_unigram_candidate_sampler_inputs():
 generated_inputs["tf.random.fixed_unigram_candidate_sampler"] = tf_random_fixed_unigram_candidate_sampler_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_raw_ops_ApproxTopK_inputs():
     list_of_inputs = []
@@ -78027,8 +78028,8 @@ def tf_raw_ops_ApproxTopK_inputs():
 generated_inputs["tf.raw_ops.ApproxTopK"] = tf_raw_ops_ApproxTopK_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_raw_ops_approximate_equal_inputs():
     list_of_inputs = []
@@ -78110,8 +78111,8 @@ def tf_raw_ops_approximate_equal_inputs():
 generated_inputs["tf.raw_ops.ApproximateEqual"] = tf_raw_ops_approximate_equal_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_raw_ops_Conv3DBackpropInputV2_inputs():
     list_of_inputs = []
@@ -78143,8 +78144,8 @@ def tf_raw_ops_Conv3DBackpropInputV2_inputs():
 generated_inputs["tf.raw_ops.Conv3DBackpropInputV2"] = tf_raw_ops_Conv3DBackpropInputV2_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_raw_ops_crop_and_resize_inputs():
     list_of_inputs = []
@@ -78395,8 +78396,8 @@ def tf_raw_ops_crop_and_resize_inputs():
 generated_inputs["tf.raw_ops.CropAndResize"] = tf_raw_ops_crop_and_resize_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_raw_ops_CropAndResizeGradBoxes_inputs():
     list_of_inputs = []
@@ -78587,8 +78588,8 @@ def tf_raw_ops_CropAndResizeGradBoxes_inputs():
 generated_inputs["tf.raw_ops.CropAndResizeGradBoxes"] = tf_raw_ops_CropAndResizeGradBoxes_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_raw_ops_CropAndResizeGradImage_inputs():
     list_of_inputs = []
@@ -78709,8 +78710,8 @@ def tf_raw_ops_CropAndResizeGradImage_inputs():
 generated_inputs["tf.raw_ops.CropAndResizeGradImage"] = tf_raw_ops_CropAndResizeGradImage_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_raw_ops_cross_inputs():
     list_of_inputs = []
@@ -78781,8 +78782,8 @@ def tf_raw_ops_cross_inputs():
 generated_inputs["tf.raw_ops.Cross"] = tf_raw_ops_cross_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_raw_ops_cumprod_inputs():
     list_of_inputs = []
@@ -78883,8 +78884,8 @@ def tf_raw_ops_cumprod_inputs():
 generated_inputs["tf.raw_ops.Cumprod"] = tf_raw_ops_cumprod_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_raw_ops_cumsum_inputs():
     list_of_inputs = []
@@ -78986,8 +78987,8 @@ def tf_raw_ops_cumsum_inputs():
 generated_inputs["tf.raw_ops.Cumsum"] = tf_raw_ops_cumsum_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_raw_ops_DataFormatDimMap_inputs():
     list_of_inputs = []
@@ -79138,8 +79139,8 @@ def tf_raw_ops_DataFormatDimMap_inputs():
 generated_inputs["tf.raw_ops.DataFormatDimMap"] = tf_raw_ops_DataFormatDimMap_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_raw_ops_DataFormatVecPermute_inputs():
     list_of_inputs = []
@@ -79222,8 +79223,8 @@ def tf_raw_ops_DataFormatVecPermute_inputs():
 generated_inputs["tf.raw_ops.DataFormatVecPermute"] = tf_raw_ops_DataFormatVecPermute_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_raw_ops_debug_gradient_identity_inputs():
     list_of_inputs = []
@@ -79284,8 +79285,8 @@ def tf_raw_ops_debug_gradient_identity_inputs():
 generated_inputs["tf.raw_ops.DebugGradientIdentity"] = tf_raw_ops_debug_gradient_identity_inputs()
 
 
-import numpy as np
-import copy
+
+
 import zlib
 import gzip
 
@@ -79403,8 +79404,8 @@ def tf_raw_ops_decodecompressed_inputs():
 generated_inputs["tf.raw_ops.DecodeCompressed"] = tf_raw_ops_decodecompressed_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_raw_ops_decode_padded_raw_inputs():
     list_of_inputs = []
@@ -79595,8 +79596,8 @@ def tf_raw_ops_decode_padded_raw_inputs():
 generated_inputs["tf.raw_ops.DecodePaddedRaw"] = tf_raw_ops_decode_padded_raw_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_raw_ops_deepcopy_inputs():
     list_of_inputs = []
@@ -79657,8 +79658,8 @@ def tf_raw_ops_deepcopy_inputs():
 generated_inputs["tf.raw_ops.DeepCopy"] = tf_raw_ops_deepcopy_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_raw_ops_dense_bincount_inputs():
     list_of_inputs = []
@@ -79829,8 +79830,8 @@ def tf_raw_ops_dense_bincount_inputs():
 generated_inputs["tf.raw_ops.DenseBincount"] = tf_raw_ops_dense_bincount_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_raw_ops_DepthwiseConv2dNative_inputs():
     list_of_inputs = []
@@ -80014,8 +80015,8 @@ def tf_raw_ops_DepthwiseConv2dNative_inputs():
 generated_inputs["tf.raw_ops.DepthwiseConv2dNative"] = tf_raw_ops_DepthwiseConv2dNative_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_raw_ops_Diag_inputs():
     list_of_inputs = []
@@ -80066,8 +80067,8 @@ def tf_raw_ops_Diag_inputs():
 generated_inputs["tf.raw_ops.Diag"] = tf_raw_ops_Diag_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_raw_ops_diag_part_inputs():
     list_of_inputs = []
@@ -80129,8 +80130,8 @@ def tf_raw_ops_diag_part_inputs():
 generated_inputs["tf.raw_ops.DiagPart"] = tf_raw_ops_diag_part_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_raw_ops_digamma_inputs():
     list_of_inputs = []
@@ -80192,8 +80193,8 @@ def tf_raw_ops_digamma_inputs():
 generated_inputs["tf.raw_ops.Digamma"] = tf_raw_ops_digamma_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_raw_ops_dilation2d_backprop_input_inputs():
     list_of_inputs = []
@@ -80394,8 +80395,8 @@ def tf_raw_ops_dilation2d_backprop_input_inputs():
 generated_inputs["tf.raw_ops.Dilation2DBackpropInput"] = tf_raw_ops_dilation2d_backprop_input_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_raw_ops_div_inputs():
     list_of_inputs = []
@@ -80466,8 +80467,8 @@ def tf_raw_ops_div_inputs():
 generated_inputs["tf.raw_ops.Div"] = tf_raw_ops_div_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_raw_ops_DivNoNan_inputs():
     list_of_inputs = []
@@ -80538,8 +80539,8 @@ def tf_raw_ops_DivNoNan_inputs():
 generated_inputs["tf.raw_ops.DivNoNan"] = tf_raw_ops_DivNoNan_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_raw_ops_draw_bounding_boxes_inputs():
     list_of_inputs = []
@@ -80610,8 +80611,8 @@ def tf_raw_ops_draw_bounding_boxes_inputs():
 generated_inputs["tf.raw_ops.DrawBoundingBoxes"] = tf_raw_ops_draw_bounding_boxes_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_raw_ops_draw_bounding_boxes_v2_inputs():
     list_of_inputs = []
@@ -80752,8 +80753,8 @@ def tf_raw_ops_draw_bounding_boxes_v2_inputs():
 generated_inputs["tf.raw_ops.DrawBoundingBoxesV2"] = tf_raw_ops_draw_bounding_boxes_v2_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_raw_ops_dynamic_partition_inputs():
     list_of_inputs = []
@@ -80845,8 +80846,8 @@ def tf_raw_ops_dynamic_partition_inputs():
 generated_inputs["tf.raw_ops.DynamicPartition"] = tf_raw_ops_dynamic_partition_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_raw_ops_editdistance_inputs():
     list_of_inputs = []
@@ -81077,8 +81078,8 @@ def tf_raw_ops_editdistance_inputs():
 generated_inputs["tf.raw_ops.EditDistance"] = tf_raw_ops_editdistance_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_raw_ops_elu_inputs():
     list_of_inputs = []
@@ -81139,8 +81140,8 @@ def tf_raw_ops_elu_inputs():
 generated_inputs["tf.raw_ops.Elu"] = tf_raw_ops_elu_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_raw_ops_empty_inputs():
     list_of_inputs = []
@@ -81231,8 +81232,8 @@ def tf_raw_ops_empty_inputs():
 generated_inputs["tf.raw_ops.Empty"] = tf_raw_ops_empty_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_raw_ops_encode_base64_inputs():
     list_of_inputs = []
@@ -81314,8 +81315,8 @@ def tf_raw_ops_encode_base64_inputs():
 generated_inputs["tf.raw_ops.EncodeBase64"] = tf_raw_ops_encode_base64_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_raw_ops_encodejpeg_inputs():
     list_of_inputs = []
@@ -81606,8 +81607,8 @@ def tf_raw_ops_encodejpeg_inputs():
 generated_inputs["tf.raw_ops.EncodeJpeg"] = tf_raw_ops_encodejpeg_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_raw_ops_encode_jpeg_variable_quality_inputs():
     list_of_inputs = []
@@ -81688,8 +81689,8 @@ def tf_raw_ops_encode_jpeg_variable_quality_inputs():
 generated_inputs["tf.raw_ops.EncodeJpegVariableQuality"] = tf_raw_ops_encode_jpeg_variable_quality_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_raw_ops_EnsureShape_inputs():
     list_of_inputs = []
@@ -81760,8 +81761,8 @@ def tf_raw_ops_EnsureShape_inputs():
 generated_inputs["tf.raw_ops.EnsureShape"] = tf_raw_ops_EnsureShape_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_raw_ops_equal_inputs():
     list_of_inputs = []
@@ -81852,8 +81853,8 @@ def tf_raw_ops_equal_inputs():
 generated_inputs["tf.raw_ops.Equal"] = tf_raw_ops_equal_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_raw_ops_Erf_inputs():
     list_of_inputs = []
@@ -81914,8 +81915,8 @@ def tf_raw_ops_Erf_inputs():
 generated_inputs["tf.raw_ops.Erf"] = tf_raw_ops_Erf_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_raw_ops_Erfc_inputs():
     list_of_inputs = []
@@ -81976,8 +81977,8 @@ def tf_raw_ops_Erfc_inputs():
 generated_inputs["tf.raw_ops.Erfc"] = tf_raw_ops_Erfc_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_raw_ops_Erfinv_inputs():
     list_of_inputs = []
@@ -82038,8 +82039,8 @@ def tf_raw_ops_Erfinv_inputs():
 generated_inputs["tf.raw_ops.Erfinv"] = tf_raw_ops_Erfinv_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_raw_ops_euclidean_norm_inputs():
     list_of_inputs = []
@@ -82130,8 +82131,8 @@ def tf_raw_ops_euclidean_norm_inputs():
 generated_inputs["tf.raw_ops.EuclideanNorm"] = tf_raw_ops_euclidean_norm_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_raw_ops_exp_inputs():
     list_of_inputs = []
@@ -82192,8 +82193,8 @@ def tf_raw_ops_exp_inputs():
 generated_inputs["tf.raw_ops.Exp"] = tf_raw_ops_exp_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_raw_ops_expanddims_inputs():
     list_of_inputs = []
@@ -82264,8 +82265,8 @@ def tf_raw_ops_expanddims_inputs():
 generated_inputs["tf.raw_ops.ExpandDims"] = tf_raw_ops_expanddims_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_raw_ops_expm1_inputs():
     list_of_inputs = []
@@ -82326,8 +82327,8 @@ def tf_raw_ops_expm1_inputs():
 generated_inputs["tf.raw_ops.Expm1"] = tf_raw_ops_expm1_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_raw_ops_extract_glimpse_inputs():
     list_of_inputs = []
@@ -82558,8 +82559,8 @@ def tf_raw_ops_extract_glimpse_inputs():
 generated_inputs["tf.raw_ops.ExtractGlimpse"] = tf_raw_ops_extract_glimpse_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_raw_ops_extract_image_patches_inputs():
     list_of_inputs = []
@@ -82680,8 +82681,8 @@ def tf_raw_ops_extract_image_patches_inputs():
 generated_inputs["tf.raw_ops.ExtractImagePatches"] = tf_raw_ops_extract_image_patches_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_raw_ops_extract_volume_patches_inputs():
     list_of_inputs = []
@@ -82852,8 +82853,8 @@ def tf_raw_ops_extract_volume_patches_inputs():
 generated_inputs["tf.raw_ops.ExtractVolumePatches"] = tf_raw_ops_extract_volume_patches_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_raw_ops_FakeQuantWithMinMaxArgs_inputs():
     list_of_inputs = []
@@ -82963,8 +82964,8 @@ def tf_raw_ops_FakeQuantWithMinMaxArgs_inputs():
 generated_inputs["tf.raw_ops.FakeQuantWithMinMaxArgs"] = tf_raw_ops_FakeQuantWithMinMaxArgs_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_raw_ops_FakeQuantWithMinMaxArgsGradient_inputs():
     list_of_inputs = []
@@ -83115,8 +83116,8 @@ def tf_raw_ops_FakeQuantWithMinMaxArgsGradient_inputs():
 generated_inputs["tf.raw_ops.FakeQuantWithMinMaxArgsGradient"] = tf_raw_ops_FakeQuantWithMinMaxArgsGradient_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_raw_ops_FakeQuantWithMinMaxVars_inputs():
     list_of_inputs = []
@@ -83307,8 +83308,8 @@ def tf_raw_ops_FakeQuantWithMinMaxVars_inputs():
 generated_inputs["tf.raw_ops.FakeQuantWithMinMaxVars"] = tf_raw_ops_FakeQuantWithMinMaxVars_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_raw_ops_FakeQuantWithMinMaxVarsGradient_inputs():
     list_of_inputs = []
@@ -83519,8 +83520,8 @@ def tf_raw_ops_FakeQuantWithMinMaxVarsGradient_inputs():
 generated_inputs["tf.raw_ops.FakeQuantWithMinMaxVarsGradient"] = tf_raw_ops_FakeQuantWithMinMaxVarsGradient_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_raw_ops_FakeQuantWithMinMaxVarsPerChannel_inputs():
     list_of_inputs = []
@@ -83650,8 +83651,8 @@ def tf_raw_ops_FakeQuantWithMinMaxVarsPerChannel_inputs():
 generated_inputs["tf.raw_ops.FakeQuantWithMinMaxVarsPerChannel"] = tf_raw_ops_FakeQuantWithMinMaxVarsPerChannel_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_raw_ops_FakeQuantWithMinMaxVarsPerChannelGradient_inputs():
     list_of_inputs = []
@@ -83772,8 +83773,8 @@ def tf_raw_ops_FakeQuantWithMinMaxVarsPerChannelGradient_inputs():
 generated_inputs["tf.raw_ops.FakeQuantWithMinMaxVarsPerChannelGradient"] = tf_raw_ops_FakeQuantWithMinMaxVarsPerChannelGradient_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_raw_ops_fill_inputs():
     list_of_inputs = []
@@ -83844,8 +83845,8 @@ def tf_raw_ops_fill_inputs():
 generated_inputs["tf.raw_ops.Fill"] = tf_raw_ops_fill_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_raw_ops_floor_inputs():
     list_of_inputs = []
@@ -83906,8 +83907,8 @@ def tf_raw_ops_floor_inputs():
 generated_inputs["tf.raw_ops.Floor"] = tf_raw_ops_floor_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_raw_ops_floordiv_inputs():
     list_of_inputs = []
@@ -83972,8 +83973,8 @@ def tf_raw_ops_floordiv_inputs():
 generated_inputs["tf.raw_ops.FloorDiv"] = tf_raw_ops_floordiv_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_raw_ops_floormod_inputs():
     list_of_inputs = []
@@ -84032,8 +84033,8 @@ def tf_raw_ops_floormod_inputs():
 generated_inputs["tf.raw_ops.FloorMod"] = tf_raw_ops_floormod_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_raw_ops_FractionalAvgPool_inputs():
     list_of_inputs = []
@@ -84104,8 +84105,8 @@ def tf_raw_ops_FractionalAvgPool_inputs():
 generated_inputs["tf.raw_ops.FractionalAvgPool"] = tf_raw_ops_FractionalAvgPool_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_raw_ops_fractional_max_pool_inputs():
     list_of_inputs = []
@@ -84337,8 +84338,8 @@ def tf_raw_ops_fractional_max_pool_inputs():
 generated_inputs["tf.raw_ops.FractionalMaxPool"] = tf_raw_ops_fractional_max_pool_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_raw_ops_fused_batch_norm_inputs():
     list_of_inputs = []
@@ -84609,8 +84610,8 @@ def tf_raw_ops_fused_batch_norm_inputs():
 generated_inputs["tf.raw_ops.FusedBatchNorm"] = tf_raw_ops_fused_batch_norm_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_raw_ops_FusedBatchNormGrad_inputs():
     list_of_inputs = []
@@ -84860,8 +84861,8 @@ def tf_raw_ops_FusedBatchNormGrad_inputs():
 generated_inputs["tf.raw_ops.FusedBatchNormGrad"] = tf_raw_ops_FusedBatchNormGrad_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_raw_ops_FusedBatchNormGradV2_inputs():
     list_of_inputs = []
@@ -85111,8 +85112,8 @@ def tf_raw_ops_FusedBatchNormGradV2_inputs():
 generated_inputs["tf.raw_ops.FusedBatchNormGradV2"] = tf_raw_ops_FusedBatchNormGradV2_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_raw_ops_fused_batch_norm_grad_v3_inputs():
     list_of_inputs = []
@@ -85409,8 +85410,8 @@ def tf_raw_ops_fused_batch_norm_grad_v3_inputs():
 generated_inputs["tf.raw_ops.FusedBatchNormGradV3"] = tf_raw_ops_fused_batch_norm_grad_v3_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_raw_ops_fused_batch_norm_v2_inputs():
     list_of_inputs = []
@@ -85681,8 +85682,8 @@ def tf_raw_ops_fused_batch_norm_v2_inputs():
 generated_inputs["tf.raw_ops.FusedBatchNormV2"] = tf_raw_ops_fused_batch_norm_v2_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_raw_ops_FusedBatchNormV3_inputs():
     list_of_inputs = []
@@ -85843,8 +85844,8 @@ def tf_raw_ops_FusedBatchNormV3_inputs():
 generated_inputs["tf.raw_ops.FusedBatchNormV3"] = tf_raw_ops_FusedBatchNormV3_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_raw_ops_fusedresizeandpadconv2d_inputs():
     list_of_inputs = []
@@ -86095,8 +86096,8 @@ def tf_raw_ops_fusedresizeandpadconv2d_inputs():
 generated_inputs["tf.raw_ops.FusedResizeAndPadConv2D"] = tf_raw_ops_fusedresizeandpadconv2d_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_raw_ops_gather_inputs():
     list_of_inputs = []
@@ -86195,8 +86196,8 @@ def tf_raw_ops_gather_inputs():
 generated_inputs["tf.raw_ops.Gather"] = tf_raw_ops_gather_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_raw_ops_gather_nd_inputs():
     list_of_inputs = []
@@ -86372,8 +86373,8 @@ def tf_raw_ops_gather_nd_inputs():
 generated_inputs["tf.raw_ops.GatherNd"] = tf_raw_ops_gather_nd_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_raw_ops_gather_v2_inputs():
     list_of_inputs = []
@@ -86474,8 +86475,8 @@ def tf_raw_ops_gather_v2_inputs():
 generated_inputs["tf.raw_ops.GatherV2"] = tf_raw_ops_gather_v2_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_raw_ops_greater_inputs():
     list_of_inputs = []
@@ -86546,8 +86547,8 @@ def tf_raw_ops_greater_inputs():
 generated_inputs["tf.raw_ops.Greater"] = tf_raw_ops_greater_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_raw_ops_greater_equal_inputs():
     list_of_inputs = []
@@ -86606,8 +86607,8 @@ def tf_raw_ops_greater_equal_inputs():
 generated_inputs["tf.raw_ops.GreaterEqual"] = tf_raw_ops_greater_equal_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_raw_ops_HSVToRGB_inputs():
     list_of_inputs = []
@@ -86668,8 +86669,8 @@ def tf_raw_ops_HSVToRGB_inputs():
 generated_inputs["tf.raw_ops.HSVToRGB"] = tf_raw_ops_HSVToRGB_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_raw_ops_histogram_fixed_width_inputs():
     list_of_inputs = []
@@ -86770,8 +86771,8 @@ def tf_raw_ops_histogram_fixed_width_inputs():
 generated_inputs["tf.raw_ops.HistogramFixedWidth"] = tf_raw_ops_histogram_fixed_width_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_raw_ops_identity_inputs():
     list_of_inputs = []
@@ -86827,8 +86828,8 @@ def tf_raw_ops_identity_inputs():
 generated_inputs["tf.raw_ops.Identity"] = tf_raw_ops_identity_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_raw_ops_igamma_inputs():
     list_of_inputs = []
@@ -86893,8 +86894,8 @@ def tf_raw_ops_igamma_inputs():
 generated_inputs["tf.raw_ops.Igamma"] = tf_raw_ops_igamma_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_raw_ops_imag_inputs():
     list_of_inputs = []
@@ -86955,8 +86956,8 @@ def tf_raw_ops_imag_inputs():
 generated_inputs["tf.raw_ops.Imag"] = tf_raw_ops_imag_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_raw_ops_in_top_k_inputs():
     list_of_inputs = []
@@ -87037,8 +87038,8 @@ def tf_raw_ops_in_top_k_inputs():
 generated_inputs["tf.raw_ops.InTopK"] = tf_raw_ops_in_top_k_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_raw_ops_InTopKV2_inputs():
     list_of_inputs = []
@@ -87119,8 +87120,8 @@ def tf_raw_ops_InTopKV2_inputs():
 generated_inputs["tf.raw_ops.InTopKV2"] = tf_raw_ops_InTopKV2_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_raw_ops_inplace_add_inputs():
     list_of_inputs = []
@@ -87201,8 +87202,8 @@ def tf_raw_ops_inplace_add_inputs():
 generated_inputs["tf.raw_ops.InplaceAdd"] = tf_raw_ops_inplace_add_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_raw_ops_inplace_sub_inputs():
     list_of_inputs = []
@@ -87283,8 +87284,8 @@ def tf_raw_ops_inplace_sub_inputs():
 generated_inputs["tf.raw_ops.InplaceSub"] = tf_raw_ops_inplace_sub_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_raw_ops_inplace_update_inputs():
     list_of_inputs = []
@@ -87365,8 +87366,8 @@ def tf_raw_ops_inplace_update_inputs():
 generated_inputs["tf.raw_ops.InplaceUpdate"] = tf_raw_ops_inplace_update_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_raw_ops_inv_inputs():
     list_of_inputs = []
@@ -87422,8 +87423,8 @@ def tf_raw_ops_inv_inputs():
 generated_inputs["tf.raw_ops.Inv"] = tf_raw_ops_inv_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_raw_ops_invert_permutation_inputs():
     list_of_inputs = []
@@ -87484,8 +87485,8 @@ def tf_raw_ops_invert_permutation_inputs():
 generated_inputs["tf.raw_ops.InvertPermutation"] = tf_raw_ops_invert_permutation_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_raw_ops_isfinite_inputs():
     list_of_inputs = []
@@ -87546,8 +87547,8 @@ def tf_raw_ops_isfinite_inputs():
 generated_inputs["tf.raw_ops.IsFinite"] = tf_raw_ops_isfinite_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_raw_ops_isinf_inputs():
     list_of_inputs = []
@@ -87608,8 +87609,8 @@ def tf_raw_ops_isinf_inputs():
 generated_inputs["tf.raw_ops.IsInf"] = tf_raw_ops_isinf_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_raw_ops_IsNan_inputs():
     list_of_inputs = []
@@ -87665,8 +87666,8 @@ def tf_raw_ops_IsNan_inputs():
 generated_inputs["tf.raw_ops.IsNan"] = tf_raw_ops_IsNan_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_raw_ops_l2loss_inputs():
     list_of_inputs = []
@@ -87727,8 +87728,8 @@ def tf_raw_ops_l2loss_inputs():
 generated_inputs["tf.raw_ops.L2Loss"] = tf_raw_ops_l2loss_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_raw_ops_lrn_inputs():
     list_of_inputs = []
@@ -87839,8 +87840,8 @@ def tf_raw_ops_lrn_inputs():
 generated_inputs["tf.raw_ops.LRN"] = tf_raw_ops_lrn_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_raw_ops_LearnedUnigramCandidateSampler_inputs():
     list_of_inputs = []
@@ -88081,8 +88082,8 @@ def tf_raw_ops_LearnedUnigramCandidateSampler_inputs():
 generated_inputs["tf.raw_ops.LearnedUnigramCandidateSampler"] = tf_raw_ops_LearnedUnigramCandidateSampler_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_raw_ops_less_inputs():
     list_of_inputs = []
@@ -88153,8 +88154,8 @@ def tf_raw_ops_less_inputs():
 generated_inputs["tf.raw_ops.Less"] = tf_raw_ops_less_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_raw_ops_lessequal_inputs():
     list_of_inputs = []
@@ -88225,8 +88226,8 @@ def tf_raw_ops_lessequal_inputs():
 generated_inputs["tf.raw_ops.LessEqual"] = tf_raw_ops_lessequal_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_raw_ops_lgamma_inputs():
     list_of_inputs = []
@@ -88287,8 +88288,8 @@ def tf_raw_ops_lgamma_inputs():
 generated_inputs["tf.raw_ops.Lgamma"] = tf_raw_ops_lgamma_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_raw_ops_log_inputs():
     list_of_inputs = []
@@ -88349,8 +88350,8 @@ def tf_raw_ops_log_inputs():
 generated_inputs["tf.raw_ops.Log"] = tf_raw_ops_log_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_raw_ops_logsoftmax_inputs():
     list_of_inputs = []
@@ -88411,8 +88412,8 @@ def tf_raw_ops_logsoftmax_inputs():
 generated_inputs["tf.raw_ops.LogSoftmax"] = tf_raw_ops_logsoftmax_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_raw_ops_LogUniformCandidateSampler_inputs():
     list_of_inputs = []
@@ -88555,8 +88556,8 @@ def tf_raw_ops_LogUniformCandidateSampler_inputs():
 generated_inputs["tf.raw_ops.LogUniformCandidateSampler"] = tf_raw_ops_LogUniformCandidateSampler_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_raw_ops_logical_and_inputs():
     list_of_inputs = []
@@ -88627,8 +88628,8 @@ def tf_raw_ops_logical_and_inputs():
 generated_inputs["tf.raw_ops.LogicalAnd"] = tf_raw_ops_logical_and_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_raw_ops_logical_not_inputs():
     list_of_inputs = []
@@ -88689,8 +88690,8 @@ def tf_raw_ops_logical_not_inputs():
 generated_inputs["tf.raw_ops.LogicalNot"] = tf_raw_ops_logical_not_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_raw_ops_logical_or_inputs():
     list_of_inputs = []
@@ -88761,8 +88762,8 @@ def tf_raw_ops_logical_or_inputs():
 generated_inputs["tf.raw_ops.LogicalOr"] = tf_raw_ops_logical_or_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_raw_ops_loopcond_inputs():
     list_of_inputs = []
@@ -88823,8 +88824,8 @@ def tf_raw_ops_loopcond_inputs():
 generated_inputs["tf.raw_ops.LoopCond"] = tf_raw_ops_loopcond_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_raw_ops_mapclear_inputs():
     list_of_inputs = []
@@ -89015,8 +89016,8 @@ def tf_raw_ops_mapclear_inputs():
 generated_inputs["tf.raw_ops.MapClear"] = tf_raw_ops_mapclear_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_raw_ops_MapIncompleteSize_inputs():
     list_of_inputs = []
@@ -89137,8 +89138,8 @@ def tf_raw_ops_MapIncompleteSize_inputs():
 generated_inputs["tf.raw_ops.MapIncompleteSize"] = tf_raw_ops_MapIncompleteSize_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_raw_ops_MapSize_inputs():
     list_of_inputs = []
@@ -89329,8 +89330,8 @@ def tf_raw_ops_MapSize_inputs():
 generated_inputs["tf.raw_ops.MapSize"] = tf_raw_ops_MapSize_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_raw_ops_matmul_inputs():
     list_of_inputs = []
@@ -89401,8 +89402,8 @@ def tf_raw_ops_matmul_inputs():
 generated_inputs["tf.raw_ops.MatMul"] = tf_raw_ops_matmul_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_raw_ops_matching_files_inputs():
     list_of_inputs = []
@@ -89473,8 +89474,8 @@ def tf_raw_ops_matching_files_inputs():
 generated_inputs["tf.raw_ops.MatchingFiles"] = tf_raw_ops_matching_files_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_raw_ops_MatrixBandPart_inputs():
     list_of_inputs = []
@@ -89555,8 +89556,8 @@ def tf_raw_ops_MatrixBandPart_inputs():
 generated_inputs["tf.raw_ops.MatrixBandPart"] = tf_raw_ops_MatrixBandPart_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_raw_ops_MatrixDiag_inputs():
     list_of_inputs = []
@@ -89617,8 +89618,8 @@ def tf_raw_ops_MatrixDiag_inputs():
 generated_inputs["tf.raw_ops.MatrixDiag"] = tf_raw_ops_MatrixDiag_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_raw_ops_MatrixDiagPart_inputs():
     list_of_inputs = []
@@ -89680,8 +89681,8 @@ def tf_raw_ops_MatrixDiagPart_inputs():
 generated_inputs["tf.raw_ops.MatrixDiagPart"] = tf_raw_ops_MatrixDiagPart_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_raw_ops_matrix_diag_part_v2_inputs():
     list_of_inputs = []
@@ -89762,8 +89763,8 @@ def tf_raw_ops_matrix_diag_part_v2_inputs():
 generated_inputs["tf.raw_ops.MatrixDiagPartV2"] = tf_raw_ops_matrix_diag_part_v2_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_raw_ops_MatrixDiagPartV3_inputs():
     list_of_inputs = []
@@ -89934,8 +89935,8 @@ def tf_raw_ops_MatrixDiagPartV3_inputs():
 generated_inputs["tf.raw_ops.MatrixDiagPartV3"] = tf_raw_ops_MatrixDiagPartV3_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_raw_ops_matrix_set_diag_inputs():
     list_of_inputs = []
@@ -90006,8 +90007,8 @@ def tf_raw_ops_matrix_set_diag_inputs():
 generated_inputs["tf.raw_ops.MatrixSetDiag"] = tf_raw_ops_matrix_set_diag_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_raw_ops_matrix_set_diag_v3_inputs():
     list_of_inputs = []
@@ -90089,8 +90090,8 @@ def tf_raw_ops_matrix_set_diag_v3_inputs():
 generated_inputs["tf.raw_ops.MatrixSetDiagV3"] = tf_raw_ops_matrix_set_diag_v3_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_raw_ops_max_inputs():
     list_of_inputs = []
@@ -90155,8 +90156,8 @@ def tf_raw_ops_max_inputs():
 generated_inputs["tf.raw_ops.Max"] = tf_raw_ops_max_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_raw_ops_maxpool_inputs():
     list_of_inputs = []
@@ -90340,8 +90341,8 @@ def tf_raw_ops_maxpool_inputs():
 generated_inputs["tf.raw_ops.MaxPool"] = tf_raw_ops_maxpool_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_raw_ops_MaxPool3D_inputs():
     list_of_inputs = []
@@ -90452,8 +90453,8 @@ def tf_raw_ops_MaxPool3D_inputs():
 generated_inputs["tf.raw_ops.MaxPool3D"] = tf_raw_ops_MaxPool3D_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_raw_ops_MaxPoolWithArgmax_inputs():
     list_of_inputs = []
@@ -90625,8 +90626,8 @@ def tf_raw_ops_MaxPoolWithArgmax_inputs():
 generated_inputs["tf.raw_ops.MaxPoolWithArgmax"] = tf_raw_ops_MaxPoolWithArgmax_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_raw_ops_maximum_inputs():
     list_of_inputs = []
@@ -90697,8 +90698,8 @@ def tf_raw_ops_maximum_inputs():
 generated_inputs["tf.raw_ops.Maximum"] = tf_raw_ops_maximum_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_raw_ops_mean_inputs():
     list_of_inputs = []
@@ -90769,8 +90770,8 @@ def tf_raw_ops_mean_inputs():
 generated_inputs["tf.raw_ops.Mean"] = tf_raw_ops_mean_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_raw_ops_min_inputs():
     list_of_inputs = []
@@ -90861,8 +90862,8 @@ def tf_raw_ops_min_inputs():
 generated_inputs["tf.raw_ops.Min"] = tf_raw_ops_min_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_raw_ops_minimum_inputs():
     list_of_inputs = []
@@ -90933,8 +90934,8 @@ def tf_raw_ops_minimum_inputs():
 generated_inputs["tf.raw_ops.Minimum"] = tf_raw_ops_minimum_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_raw_ops_mod_inputs():
     list_of_inputs = []
@@ -90993,8 +90994,8 @@ def tf_raw_ops_mod_inputs():
 generated_inputs["tf.raw_ops.Mod"] = tf_raw_ops_mod_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_raw_ops_mul_no_nan_inputs():
     list_of_inputs = []
@@ -91065,8 +91066,8 @@ def tf_raw_ops_mul_no_nan_inputs():
 generated_inputs["tf.raw_ops.MulNoNan"] = tf_raw_ops_mul_no_nan_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_raw_ops_multinomial_inputs():
     list_of_inputs = []
@@ -91177,8 +91178,8 @@ def tf_raw_ops_multinomial_inputs():
 generated_inputs["tf.raw_ops.Multinomial"] = tf_raw_ops_multinomial_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_raw_ops_next_after_inputs():
     list_of_inputs = []
@@ -91249,8 +91250,8 @@ def tf_raw_ops_next_after_inputs():
 generated_inputs["tf.raw_ops.NextAfter"] = tf_raw_ops_next_after_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_raw_ops_next_iteration_inputs():
     list_of_inputs = []
@@ -91321,8 +91322,8 @@ def tf_raw_ops_next_iteration_inputs():
 generated_inputs["tf.raw_ops.NextIteration"] = tf_raw_ops_next_iteration_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_raw_ops_NonMaxSuppression_inputs():
     list_of_inputs = []
@@ -91485,8 +91486,8 @@ def tf_raw_ops_NonMaxSuppression_inputs():
 generated_inputs["tf.raw_ops.NonMaxSuppression"] = tf_raw_ops_NonMaxSuppression_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_raw_ops_non_max_suppression_v2_inputs():
     list_of_inputs = []
@@ -91662,8 +91663,8 @@ def tf_raw_ops_non_max_suppression_v2_inputs():
 generated_inputs["tf.raw_ops.NonMaxSuppressionV2"] = tf_raw_ops_non_max_suppression_v2_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_raw_ops_non_max_suppression_v3_inputs():
     list_of_inputs = []
@@ -91844,8 +91845,8 @@ def tf_raw_ops_non_max_suppression_v3_inputs():
 generated_inputs["tf.raw_ops.NonMaxSuppressionV3"] = tf_raw_ops_non_max_suppression_v3_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_raw_ops_NonMaxSuppressionV4_inputs():
     list_of_inputs = []
@@ -92097,8 +92098,8 @@ def tf_raw_ops_NonMaxSuppressionV4_inputs():
 generated_inputs["tf.raw_ops.NonMaxSuppressionV4"] = tf_raw_ops_NonMaxSuppressionV4_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_raw_ops_NonMaxSuppressionV5_inputs():
     list_of_inputs = []
@@ -92258,8 +92259,8 @@ def tf_raw_ops_NonMaxSuppressionV5_inputs():
 generated_inputs["tf.raw_ops.NonMaxSuppressionV5"] = tf_raw_ops_NonMaxSuppressionV5_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_raw_ops_non_max_suppression_with_overlaps_inputs():
     list_of_inputs = []
@@ -92440,8 +92441,8 @@ def tf_raw_ops_non_max_suppression_with_overlaps_inputs():
 generated_inputs["tf.raw_ops.NonMaxSuppressionWithOverlaps"] = tf_raw_ops_non_max_suppression_with_overlaps_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_raw_ops_NotEqual_inputs():
     list_of_inputs = []
@@ -92532,8 +92533,8 @@ def tf_raw_ops_NotEqual_inputs():
 generated_inputs["tf.raw_ops.NotEqual"] = tf_raw_ops_NotEqual_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_raw_ops_NthElement_inputs():
     list_of_inputs = []
@@ -92614,8 +92615,8 @@ def tf_raw_ops_NthElement_inputs():
 generated_inputs["tf.raw_ops.NthElement"] = tf_raw_ops_NthElement_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_raw_ops_one_hot_inputs():
     list_of_inputs = []
@@ -92726,8 +92727,8 @@ def tf_raw_ops_one_hot_inputs():
 generated_inputs["tf.raw_ops.OneHot"] = tf_raw_ops_one_hot_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_raw_ops_OrderedMapClear_inputs():
     list_of_inputs = []
@@ -92918,8 +92919,8 @@ def tf_raw_ops_OrderedMapClear_inputs():
 generated_inputs["tf.raw_ops.OrderedMapClear"] = tf_raw_ops_OrderedMapClear_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_raw_ops_OrderedMapIncompleteSize_inputs():
     list_of_inputs = []
@@ -93031,8 +93032,8 @@ def tf_raw_ops_OrderedMapIncompleteSize_inputs():
 generated_inputs["tf.raw_ops.OrderedMapIncompleteSize"] = tf_raw_ops_OrderedMapIncompleteSize_inputs()
 
 
-import copy
-import numpy as np
+
+
 
 def tf_raw_ops_ordered_map_size_inputs():
     list_of_inputs = []
@@ -93153,8 +93154,8 @@ def tf_raw_ops_ordered_map_size_inputs():
 generated_inputs["tf.raw_ops.OrderedMapSize"] = tf_raw_ops_ordered_map_size_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_raw_ops_ParameterizedTruncatedNormal_inputs():
     list_of_inputs = []
@@ -93363,8 +93364,8 @@ def tf_raw_ops_ParameterizedTruncatedNormal_inputs():
 generated_inputs["tf.raw_ops.ParameterizedTruncatedNormal"] = tf_raw_ops_ParameterizedTruncatedNormal_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_raw_ops_placeholder_with_default_inputs():
     list_of_inputs = []
@@ -93445,8 +93446,8 @@ def tf_raw_ops_placeholder_with_default_inputs():
 generated_inputs["tf.raw_ops.PlaceholderWithDefault"] = tf_raw_ops_placeholder_with_default_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_raw_ops_polygamma_inputs():
     list_of_inputs = []
@@ -93517,8 +93518,8 @@ def tf_raw_ops_polygamma_inputs():
 generated_inputs["tf.raw_ops.Polygamma"] = tf_raw_ops_polygamma_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_raw_ops_pow_inputs():
     list_of_inputs = []
@@ -93595,8 +93596,8 @@ def tf_raw_ops_pow_inputs():
 generated_inputs["tf.raw_ops.Pow"] = tf_raw_ops_pow_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_raw_ops_prevent_gradient_inputs():
     list_of_inputs = []
@@ -93657,8 +93658,8 @@ def tf_raw_ops_prevent_gradient_inputs():
 generated_inputs["tf.raw_ops.PreventGradient"] = tf_raw_ops_prevent_gradient_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_raw_ops_printv2_inputs():
     list_of_inputs = []
@@ -93758,8 +93759,8 @@ def tf_raw_ops_printv2_inputs():
 generated_inputs["tf.raw_ops.PrintV2"] = tf_raw_ops_printv2_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_raw_ops_Prod_inputs():
     list_of_inputs = []
@@ -93850,8 +93851,8 @@ def tf_raw_ops_Prod_inputs():
 generated_inputs["tf.raw_ops.Prod"] = tf_raw_ops_Prod_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_raw_ops_quantize_and_dequantize_v2_inputs():
     list_of_inputs = []
@@ -94070,8 +94071,8 @@ def tf_raw_ops_quantize_and_dequantize_v2_inputs():
 generated_inputs["tf.raw_ops.QuantizeAndDequantizeV2"] = tf_raw_ops_quantize_and_dequantize_v2_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_raw_ops_QuantizeAndDequantizeV3_inputs():
     list_of_inputs = []
@@ -94301,8 +94302,8 @@ def tf_raw_ops_QuantizeAndDequantizeV3_inputs():
 generated_inputs["tf.raw_ops.QuantizeAndDequantizeV3"] = tf_raw_ops_QuantizeAndDequantizeV3_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_raw_ops_QuantizeAndDequantizeV4Grad_inputs():
     list_of_inputs = []
@@ -94404,8 +94405,8 @@ def tf_raw_ops_QuantizeAndDequantizeV4Grad_inputs():
 generated_inputs["tf.raw_ops.QuantizeAndDequantizeV4Grad"] = tf_raw_ops_QuantizeAndDequantizeV4Grad_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_raw_ops_quantizev2_inputs():
     list_of_inputs = []
@@ -94544,8 +94545,8 @@ def tf_raw_ops_quantizev2_inputs():
 generated_inputs["tf.raw_ops.QuantizeV2"] = tf_raw_ops_quantizev2_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_raw_ops_rgb_to_hsv_inputs():
     list_of_inputs = []
@@ -94606,8 +94607,8 @@ def tf_raw_ops_rgb_to_hsv_inputs():
 generated_inputs["tf.raw_ops.RGBToHSV"] = tf_raw_ops_rgb_to_hsv_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_raw_ops_ragged_bincount_inputs():
     list_of_inputs = []
@@ -94816,8 +94817,8 @@ def tf_raw_ops_ragged_bincount_inputs():
 generated_inputs["tf.raw_ops.RaggedBincount"] = tf_raw_ops_ragged_bincount_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_raw_ops_RandomGamma_inputs():
     list_of_inputs = []
@@ -94918,8 +94919,8 @@ def tf_raw_ops_RandomGamma_inputs():
 generated_inputs["tf.raw_ops.RandomGamma"] = tf_raw_ops_RandomGamma_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_raw_ops_RandomPoissonV2_inputs():
     list_of_inputs = []
@@ -95030,8 +95031,8 @@ def tf_raw_ops_RandomPoissonV2_inputs():
 generated_inputs["tf.raw_ops.RandomPoissonV2"] = tf_raw_ops_RandomPoissonV2_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_raw_ops_RandomShuffle_inputs():
     list_of_inputs = []
@@ -95122,8 +95123,8 @@ def tf_raw_ops_RandomShuffle_inputs():
 generated_inputs["tf.raw_ops.RandomShuffle"] = tf_raw_ops_RandomShuffle_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_raw_ops_RandomUniform_inputs():
     list_of_inputs = []
@@ -95224,8 +95225,8 @@ def tf_raw_ops_RandomUniform_inputs():
 generated_inputs["tf.raw_ops.RandomUniform"] = tf_raw_ops_RandomUniform_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_raw_ops_random_uniform_int_inputs():
     list_of_inputs = []
@@ -95416,8 +95417,8 @@ def tf_raw_ops_random_uniform_int_inputs():
 generated_inputs["tf.raw_ops.RandomUniformInt"] = tf_raw_ops_random_uniform_int_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_raw_ops_ReaderSerializeState_inputs():
     list_of_inputs = []
@@ -95508,8 +95509,8 @@ def tf_raw_ops_ReaderSerializeState_inputs():
 generated_inputs["tf.raw_ops.ReaderSerializeState"] = tf_raw_ops_ReaderSerializeState_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_raw_ops_real_inputs():
     list_of_inputs = []
@@ -95545,8 +95546,8 @@ def tf_raw_ops_real_inputs():
 generated_inputs["tf.raw_ops.Real"] = tf_raw_ops_real_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_raw_ops_realdiv_inputs():
     list_of_inputs = []
@@ -95617,8 +95618,8 @@ def tf_raw_ops_realdiv_inputs():
 generated_inputs["tf.raw_ops.RealDiv"] = tf_raw_ops_realdiv_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_raw_ops_reciprocal_inputs():
     list_of_inputs = []
@@ -95679,8 +95680,8 @@ def tf_raw_ops_reciprocal_inputs():
 generated_inputs["tf.raw_ops.Reciprocal"] = tf_raw_ops_reciprocal_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_raw_ops_regex_replace_inputs():
     list_of_inputs = []
@@ -95781,8 +95782,8 @@ def tf_raw_ops_regex_replace_inputs():
 generated_inputs["tf.raw_ops.RegexReplace"] = tf_raw_ops_regex_replace_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_raw_ops_relu_inputs():
     list_of_inputs = []
@@ -95843,8 +95844,8 @@ def tf_raw_ops_relu_inputs():
 generated_inputs["tf.raw_ops.Relu"] = tf_raw_ops_relu_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_raw_ops_relu6_inputs():
     list_of_inputs = []
@@ -95905,8 +95906,8 @@ def tf_raw_ops_relu6_inputs():
 generated_inputs["tf.raw_ops.Relu6"] = tf_raw_ops_relu6_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_raw_ops_resize_area_inputs():
     list_of_inputs = []
@@ -95981,8 +95982,8 @@ def tf_raw_ops_resize_area_inputs():
 generated_inputs["tf.raw_ops.ResizeArea"] = tf_raw_ops_resize_area_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_raw_ops_resize_bicubic_inputs():
     list_of_inputs = []
@@ -96143,8 +96144,8 @@ def tf_raw_ops_resize_bicubic_inputs():
 generated_inputs["tf.raw_ops.ResizeBicubic"] = tf_raw_ops_resize_bicubic_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_raw_ops_resize_bilinear_inputs():
     list_of_inputs = []
@@ -96315,8 +96316,8 @@ def tf_raw_ops_resize_bilinear_inputs():
 generated_inputs["tf.raw_ops.ResizeBilinear"] = tf_raw_ops_resize_bilinear_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_raw_ops_resize_nearest_neighbor_inputs():
     list_of_inputs = []
@@ -96489,8 +96490,8 @@ def tf_raw_ops_resize_nearest_neighbor_inputs():
 generated_inputs["tf.raw_ops.ResizeNearestNeighbor"] = tf_raw_ops_resize_nearest_neighbor_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_raw_ops_rint_inputs():
     list_of_inputs = []
@@ -96551,8 +96552,8 @@ def tf_raw_ops_rint_inputs():
 generated_inputs["tf.raw_ops.Rint"] = tf_raw_ops_rint_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_raw_ops_round_inputs():
     list_of_inputs = []
@@ -96603,8 +96604,8 @@ def tf_raw_ops_round_inputs():
 generated_inputs["tf.raw_ops.Round"] = tf_raw_ops_round_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_raw_ops_Rsqrt_inputs():
     list_of_inputs = []
@@ -96665,8 +96666,8 @@ def tf_raw_ops_Rsqrt_inputs():
 generated_inputs["tf.raw_ops.Rsqrt"] = tf_raw_ops_Rsqrt_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_raw_ops_sample_distorted_bounding_box_inputs():
     list_of_inputs = []
@@ -96937,8 +96938,8 @@ def tf_raw_ops_sample_distorted_bounding_box_inputs():
 generated_inputs["tf.raw_ops.SampleDistortedBoundingBox"] = tf_raw_ops_sample_distorted_bounding_box_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_raw_ops_sample_distorted_bounding_box_v2_inputs():
     list_of_inputs = []
@@ -97235,8 +97236,8 @@ def tf_raw_ops_sample_distorted_bounding_box_v2_inputs():
 generated_inputs["tf.raw_ops.SampleDistortedBoundingBoxV2"] = tf_raw_ops_sample_distorted_bounding_box_v2_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_raw_ops_scale_and_translate_inputs():
     list_of_inputs = []
@@ -97403,8 +97404,8 @@ def tf_raw_ops_scale_and_translate_inputs():
 generated_inputs["tf.raw_ops.ScaleAndTranslate"] = tf_raw_ops_scale_and_translate_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_raw_ops_segment_max_inputs():
     list_of_inputs = []
@@ -97475,8 +97476,8 @@ def tf_raw_ops_segment_max_inputs():
 generated_inputs["tf.raw_ops.SegmentMax"] = tf_raw_ops_segment_max_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_raw_ops_segment_mean_inputs():
     list_of_inputs = []
@@ -97547,8 +97548,8 @@ def tf_raw_ops_segment_mean_inputs():
 generated_inputs["tf.raw_ops.SegmentMean"] = tf_raw_ops_segment_mean_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_raw_ops_segment_min_inputs():
     list_of_inputs = []
@@ -97619,8 +97620,8 @@ def tf_raw_ops_segment_min_inputs():
 generated_inputs["tf.raw_ops.SegmentMin"] = tf_raw_ops_segment_min_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_raw_ops_segment_prod_inputs():
     list_of_inputs = []
@@ -97697,8 +97698,8 @@ def tf_raw_ops_segment_prod_inputs():
 generated_inputs["tf.raw_ops.SegmentProd"] = tf_raw_ops_segment_prod_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_raw_ops_segment_sum_inputs():
     list_of_inputs = []
@@ -97775,8 +97776,8 @@ def tf_raw_ops_segment_sum_inputs():
 generated_inputs["tf.raw_ops.SegmentSum"] = tf_raw_ops_segment_sum_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_raw_ops_selectv2_inputs():
     list_of_inputs = []
@@ -97857,8 +97858,8 @@ def tf_raw_ops_selectv2_inputs():
 generated_inputs["tf.raw_ops.SelectV2"] = tf_raw_ops_selectv2_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_raw_ops_selu_inputs():
     list_of_inputs = []
@@ -97925,8 +97926,8 @@ def tf_raw_ops_selu_inputs():
 generated_inputs["tf.raw_ops.Selu"] = tf_raw_ops_selu_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_raw_ops_sharded_filespec_inputs():
     list_of_inputs = []
@@ -98007,8 +98008,8 @@ def tf_raw_ops_sharded_filespec_inputs():
 generated_inputs["tf.raw_ops.ShardedFilespec"] = tf_raw_ops_sharded_filespec_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_raw_ops_sigmoid_inputs():
     list_of_inputs = []
@@ -98069,8 +98070,8 @@ def tf_raw_ops_sigmoid_inputs():
 generated_inputs["tf.raw_ops.Sigmoid"] = tf_raw_ops_sigmoid_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_raw_ops_sign_inputs():
     list_of_inputs = []
@@ -98131,8 +98132,8 @@ def tf_raw_ops_sign_inputs():
 generated_inputs["tf.raw_ops.Sign"] = tf_raw_ops_sign_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_raw_ops_sin_inputs():
     list_of_inputs = []
@@ -98193,8 +98194,8 @@ def tf_raw_ops_sin_inputs():
 generated_inputs["tf.raw_ops.Sin"] = tf_raw_ops_sin_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_raw_ops_sinh_inputs():
     list_of_inputs = []
@@ -98255,8 +98256,8 @@ def tf_raw_ops_sinh_inputs():
 generated_inputs["tf.raw_ops.Sinh"] = tf_raw_ops_sinh_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_raw_ops_SoftmaxCrossEntropyWithLogits_inputs():
     list_of_inputs = []
@@ -98329,8 +98330,8 @@ def tf_raw_ops_SoftmaxCrossEntropyWithLogits_inputs():
 generated_inputs["tf.raw_ops.SoftmaxCrossEntropyWithLogits"] = tf_raw_ops_SoftmaxCrossEntropyWithLogits_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_raw_ops_softplus_inputs():
     list_of_inputs = []
@@ -98391,8 +98392,8 @@ def tf_raw_ops_softplus_inputs():
 generated_inputs["tf.raw_ops.Softplus"] = tf_raw_ops_softplus_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_raw_ops_softsign_inputs():
     list_of_inputs = []
@@ -98453,8 +98454,8 @@ def tf_raw_ops_softsign_inputs():
 generated_inputs["tf.raw_ops.Softsign"] = tf_raw_ops_softsign_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_raw_ops_sparseadd_inputs():
     list_of_inputs = []
@@ -98696,8 +98697,8 @@ def tf_raw_ops_sparseadd_inputs():
 generated_inputs["tf.raw_ops.SparseAdd"] = tf_raw_ops_sparseadd_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_raw_ops_sparse_add_grad_inputs():
     list_of_inputs = []
@@ -98848,8 +98849,8 @@ def tf_raw_ops_sparse_add_grad_inputs():
 generated_inputs["tf.raw_ops.SparseAddGrad"] = tf_raw_ops_sparse_add_grad_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_raw_ops_sparse_bincount_inputs():
     list_of_inputs = []
@@ -99060,8 +99061,8 @@ def tf_raw_ops_sparse_bincount_inputs():
 generated_inputs["tf.raw_ops.SparseBincount"] = tf_raw_ops_sparse_bincount_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_raw_ops_SparseDenseCwiseAdd_inputs():
     list_of_inputs = []
@@ -99144,8 +99145,8 @@ def tf_raw_ops_SparseDenseCwiseAdd_inputs():
 generated_inputs["tf.raw_ops.SparseDenseCwiseAdd"] = tf_raw_ops_SparseDenseCwiseAdd_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_raw_ops_SparseDenseCwiseDiv_inputs():
     list_of_inputs = []
@@ -99237,8 +99238,8 @@ def tf_raw_ops_SparseDenseCwiseDiv_inputs():
 generated_inputs["tf.raw_ops.SparseDenseCwiseDiv"] = tf_raw_ops_SparseDenseCwiseDiv_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_raw_ops_SparseDenseCwiseMul_inputs():
     list_of_inputs = []
@@ -99398,8 +99399,8 @@ def tf_raw_ops_SparseDenseCwiseMul_inputs():
 generated_inputs["tf.raw_ops.SparseDenseCwiseMul"] = tf_raw_ops_SparseDenseCwiseMul_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_raw_ops_SparseFillEmptyRows_inputs():
     list_of_inputs = []
@@ -99507,8 +99508,8 @@ def tf_raw_ops_SparseFillEmptyRows_inputs():
 generated_inputs["tf.raw_ops.SparseFillEmptyRows"] = tf_raw_ops_SparseFillEmptyRows_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_raw_ops_SparseFillEmptyRowsGrad_inputs():
     list_of_inputs = []
@@ -99586,8 +99587,8 @@ def tf_raw_ops_SparseFillEmptyRowsGrad_inputs():
 generated_inputs["tf.raw_ops.SparseFillEmptyRowsGrad"] = tf_raw_ops_SparseFillEmptyRowsGrad_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_raw_ops_sparse_mat_mul_inputs():
     list_of_inputs = []
@@ -99708,8 +99709,8 @@ def tf_raw_ops_sparse_mat_mul_inputs():
 generated_inputs["tf.raw_ops.SparseMatMul"] = tf_raw_ops_sparse_mat_mul_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_raw_ops_SparseReduceMax_inputs():
     list_of_inputs = []
@@ -99918,8 +99919,8 @@ def tf_raw_ops_SparseReduceMax_inputs():
 generated_inputs["tf.raw_ops.SparseReduceMax"] = tf_raw_ops_SparseReduceMax_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_raw_ops_SparseReduceMaxSparse_inputs():
     list_of_inputs = []
@@ -100110,8 +100111,8 @@ def tf_raw_ops_SparseReduceMaxSparse_inputs():
 generated_inputs["tf.raw_ops.SparseReduceMaxSparse"] = tf_raw_ops_SparseReduceMaxSparse_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_raw_ops_SparseReduceSum_inputs():
     list_of_inputs = []
@@ -100309,8 +100310,8 @@ def tf_raw_ops_SparseReduceSum_inputs():
 generated_inputs["tf.raw_ops.SparseReduceSum"] = tf_raw_ops_SparseReduceSum_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def sparse_reduce_sum_sparse_inputs():
     list_of_inputs = []
@@ -100473,8 +100474,8 @@ def sparse_reduce_sum_sparse_inputs():
 generated_inputs["tf.raw_ops.SparseReduceSumSparse"] = sparse_reduce_sum_sparse_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_raw_ops_SparseReorder_inputs():
     list_of_inputs = []
@@ -100555,8 +100556,8 @@ def tf_raw_ops_SparseReorder_inputs():
 generated_inputs["tf.raw_ops.SparseReorder"] = tf_raw_ops_SparseReorder_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_raw_ops_SparseReshape_inputs():
     list_of_inputs = []
@@ -100637,8 +100638,8 @@ def tf_raw_ops_SparseReshape_inputs():
 generated_inputs["tf.raw_ops.SparseReshape"] = tf_raw_ops_SparseReshape_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_raw_ops_SparseSegmentMean_inputs():
     list_of_inputs = []
@@ -100739,8 +100740,8 @@ def tf_raw_ops_SparseSegmentMean_inputs():
 generated_inputs["tf.raw_ops.SparseSegmentMean"] = tf_raw_ops_SparseSegmentMean_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_raw_ops_sparse_segment_mean_grad_inputs():
     list_of_inputs = []
@@ -100831,8 +100832,8 @@ def tf_raw_ops_sparse_segment_mean_grad_inputs():
 generated_inputs["tf.raw_ops.SparseSegmentMeanGrad"] = tf_raw_ops_sparse_segment_mean_grad_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_raw_ops_SparseSegmentMeanWithNumSegments_inputs():
     list_of_inputs = []
@@ -101022,8 +101023,8 @@ def tf_raw_ops_SparseSegmentMeanWithNumSegments_inputs():
 generated_inputs["tf.raw_ops.SparseSegmentMeanWithNumSegments"] = tf_raw_ops_SparseSegmentMeanWithNumSegments_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_raw_ops_SparseSegmentSqrtN_inputs():
     list_of_inputs = []
@@ -101124,8 +101125,8 @@ def tf_raw_ops_SparseSegmentSqrtN_inputs():
 generated_inputs["tf.raw_ops.SparseSegmentSqrtN"] = tf_raw_ops_SparseSegmentSqrtN_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_raw_ops_SparseSegmentSqrtNWithNumSegments_inputs():
     list_of_inputs = []
@@ -101316,8 +101317,8 @@ def tf_raw_ops_SparseSegmentSqrtNWithNumSegments_inputs():
 generated_inputs["tf.raw_ops.SparseSegmentSqrtNWithNumSegments"] = tf_raw_ops_SparseSegmentSqrtNWithNumSegments_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_raw_ops_SparseSegmentSum_inputs():
     list_of_inputs = []
@@ -101427,8 +101428,8 @@ def tf_raw_ops_SparseSegmentSum_inputs():
 generated_inputs["tf.raw_ops.SparseSegmentSum"] = tf_raw_ops_SparseSegmentSum_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_raw_ops_SparseSegmentSumGrad_inputs():
     list_of_inputs = []
@@ -101589,8 +101590,8 @@ def tf_raw_ops_SparseSegmentSumGrad_inputs():
 generated_inputs["tf.raw_ops.SparseSegmentSumGrad"] = tf_raw_ops_SparseSegmentSumGrad_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_raw_ops_SparseSegmentSumWithNumSegments_inputs():
     list_of_inputs = []
@@ -101763,8 +101764,8 @@ def tf_raw_ops_SparseSegmentSumWithNumSegments_inputs():
 generated_inputs["tf.raw_ops.SparseSegmentSumWithNumSegments"] = tf_raw_ops_SparseSegmentSumWithNumSegments_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_raw_ops_sparse_slice_inputs():
     list_of_inputs = []
@@ -101865,8 +101866,8 @@ def tf_raw_ops_sparse_slice_inputs():
 generated_inputs["tf.raw_ops.SparseSlice"] = tf_raw_ops_sparse_slice_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_raw_ops_sparse_slice_grad_inputs():
     list_of_inputs = []
@@ -102018,8 +102019,8 @@ def tf_raw_ops_sparse_slice_grad_inputs():
 generated_inputs["tf.raw_ops.SparseSliceGrad"] = tf_raw_ops_sparse_slice_grad_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_raw_ops_SparseSoftmax_inputs():
     list_of_inputs = []
@@ -102100,8 +102101,8 @@ def tf_raw_ops_SparseSoftmax_inputs():
 generated_inputs["tf.raw_ops.SparseSoftmax"] = tf_raw_ops_SparseSoftmax_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_raw_ops_sparse_softmax_cross_entropy_with_logits_inputs():
     list_of_inputs = []
@@ -102172,8 +102173,8 @@ def tf_raw_ops_sparse_softmax_cross_entropy_with_logits_inputs():
 generated_inputs["tf.raw_ops.SparseSoftmaxCrossEntropyWithLogits"] = tf_raw_ops_sparse_softmax_cross_entropy_with_logits_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_raw_ops_SparseSparseMaximum_inputs():
     list_of_inputs = []
@@ -102373,8 +102374,8 @@ def tf_raw_ops_SparseSparseMaximum_inputs():
 generated_inputs["tf.raw_ops.SparseSparseMaximum"] = tf_raw_ops_SparseSparseMaximum_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_raw_ops_SparseSparseMinimum_inputs():
     list_of_inputs = []
@@ -102537,8 +102538,8 @@ def tf_raw_ops_SparseSparseMinimum_inputs():
 generated_inputs["tf.raw_ops.SparseSparseMinimum"] = tf_raw_ops_SparseSparseMinimum_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_raw_ops_SparseSplit_inputs():
     list_of_inputs = []
@@ -102709,8 +102710,8 @@ def tf_raw_ops_SparseSplit_inputs():
 generated_inputs["tf.raw_ops.SparseSplit"] = tf_raw_ops_SparseSplit_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_raw_ops_SparseTensorDenseAdd_inputs():
     list_of_inputs = []
@@ -102801,8 +102802,8 @@ def tf_raw_ops_SparseTensorDenseAdd_inputs():
 generated_inputs["tf.raw_ops.SparseTensorDenseAdd"] = tf_raw_ops_SparseTensorDenseAdd_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_raw_ops_SparseTensorDenseMatMul_inputs():
     list_of_inputs = []
@@ -103013,8 +103014,8 @@ def tf_raw_ops_SparseTensorDenseMatMul_inputs():
 generated_inputs["tf.raw_ops.SparseTensorDenseMatMul"] = tf_raw_ops_SparseTensorDenseMatMul_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_raw_ops_sqrt_inputs():
     list_of_inputs = []
@@ -103080,8 +103081,8 @@ def tf_raw_ops_sqrt_inputs():
 generated_inputs["tf.raw_ops.Sqrt"] = tf_raw_ops_sqrt_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_raw_ops_square_inputs():
     list_of_inputs = []
@@ -103142,8 +103143,8 @@ def tf_raw_ops_square_inputs():
 generated_inputs["tf.raw_ops.Square"] = tf_raw_ops_square_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_raw_ops_squared_difference_inputs():
     list_of_inputs = []
@@ -103220,8 +103221,8 @@ def tf_raw_ops_squared_difference_inputs():
 generated_inputs["tf.raw_ops.SquaredDifference"] = tf_raw_ops_squared_difference_inputs()
 
 
-import copy
-import numpy as np
+
+
 
 def tf_raw_ops_stageclear_inputs():
     list_of_inputs = []
@@ -103402,8 +103403,8 @@ def tf_raw_ops_stageclear_inputs():
 generated_inputs["tf.raw_ops.StageClear"] = tf_raw_ops_stageclear_inputs()
 
 
-import copy
-import numpy as np
+
+
 
 def tf_raw_ops_stage_size_inputs():
     list_of_inputs = []
@@ -103584,8 +103585,8 @@ def tf_raw_ops_stage_size_inputs():
 generated_inputs["tf.raw_ops.StageSize"] = tf_raw_ops_stage_size_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_raw_ops_stateless_sample_distorted_bounding_box_inputs():
     list_of_inputs = []
@@ -103836,8 +103837,8 @@ def tf_raw_ops_stateless_sample_distorted_bounding_box_inputs():
 generated_inputs["tf.raw_ops.StatelessSampleDistortedBoundingBox"] = tf_raw_ops_stateless_sample_distorted_bounding_box_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_raw_ops_stringlower_inputs():
     list_of_inputs = []
@@ -103918,8 +103919,8 @@ def tf_raw_ops_stringlower_inputs():
 generated_inputs["tf.raw_ops.StringLower"] = tf_raw_ops_stringlower_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_raw_ops_StringSplit_inputs():
     list_of_inputs = []
@@ -104010,8 +104011,8 @@ def tf_raw_ops_StringSplit_inputs():
 generated_inputs["tf.raw_ops.StringSplit"] = tf_raw_ops_StringSplit_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_raw_ops_string_to_hash_bucket_fast_inputs():
     list_of_inputs = []
@@ -104082,8 +104083,8 @@ def tf_raw_ops_string_to_hash_bucket_fast_inputs():
 generated_inputs["tf.raw_ops.StringToHashBucketFast"] = tf_raw_ops_string_to_hash_bucket_fast_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_raw_ops_string_to_hash_bucket_strong_inputs():
     list_of_inputs = []
@@ -104164,8 +104165,8 @@ def tf_raw_ops_string_to_hash_bucket_strong_inputs():
 generated_inputs["tf.raw_ops.StringToHashBucketStrong"] = tf_raw_ops_string_to_hash_bucket_strong_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_raw_ops_sum_inputs():
     list_of_inputs = []
@@ -104256,8 +104257,8 @@ def tf_raw_ops_sum_inputs():
 generated_inputs["tf.raw_ops.Sum"] = tf_raw_ops_sum_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_raw_ops_switch_inputs():
     list_of_inputs = []
@@ -104338,8 +104339,8 @@ def tf_raw_ops_switch_inputs():
 generated_inputs["tf.raw_ops.Switch"] = tf_raw_ops_switch_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_raw_ops_tan_inputs():
     list_of_inputs = []
@@ -104400,8 +104401,8 @@ def tf_raw_ops_tan_inputs():
 generated_inputs["tf.raw_ops.Tan"] = tf_raw_ops_tan_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_raw_ops_tanh_inputs():
     list_of_inputs = []
@@ -104463,8 +104464,8 @@ inputs = tf_raw_ops_tanh_inputs()
 generated_inputs["tf.raw_ops.Tanh"] = inputs
 
 
-import numpy as np
-import copy
+
+
 
 def tf_raw_ops_TruncateDiv_inputs():
     list_of_inputs = []
@@ -104517,8 +104518,8 @@ def tf_raw_ops_TruncateDiv_inputs():
 generated_inputs["tf.raw_ops.TruncateDiv"] = tf_raw_ops_TruncateDiv_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_raw_ops_truncate_mod_inputs():
     list_of_inputs = []
@@ -104590,8 +104591,8 @@ def tf_raw_ops_truncate_mod_inputs():
 generated_inputs["tf.raw_ops.TruncateMod"] = tf_raw_ops_truncate_mod_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_raw_ops_truncated_normal_inputs():
     list_of_inputs = []
@@ -104762,8 +104763,8 @@ def tf_raw_ops_truncated_normal_inputs():
 generated_inputs["tf.raw_ops.TruncatedNormal"] = tf_raw_ops_truncated_normal_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_raw_ops_UnicodeScript_inputs():
     list_of_inputs = []
@@ -104824,8 +104825,8 @@ def tf_raw_ops_UnicodeScript_inputs():
 generated_inputs["tf.raw_ops.UnicodeScript"] = tf_raw_ops_UnicodeScript_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_raw_ops_UniformCandidateSampler_inputs():
     list_of_inputs = []
@@ -104968,8 +104969,8 @@ def tf_raw_ops_UniformCandidateSampler_inputs():
 generated_inputs["tf.raw_ops.UniformCandidateSampler"] = tf_raw_ops_UniformCandidateSampler_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_raw_ops_unsortedsegmentmax_inputs():
     list_of_inputs = []
@@ -105050,8 +105051,8 @@ def tf_raw_ops_unsortedsegmentmax_inputs():
 generated_inputs["tf.raw_ops.UnsortedSegmentMax"] = tf_raw_ops_unsortedsegmentmax_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_raw_ops_unsorted_segment_min_inputs():
     list_of_inputs = []
@@ -105125,8 +105126,8 @@ def tf_raw_ops_unsorted_segment_min_inputs():
 generated_inputs["tf.raw_ops.UnsortedSegmentMin"] = tf_raw_ops_unsorted_segment_min_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_raw_ops_unsorted_segment_prod_inputs():
     list_of_inputs = []
@@ -105207,8 +105208,8 @@ def tf_raw_ops_unsorted_segment_prod_inputs():
 generated_inputs["tf.raw_ops.UnsortedSegmentProd"] = tf_raw_ops_unsorted_segment_prod_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_raw_ops_UnsortedSegmentSum_inputs():
     list_of_inputs = []
@@ -105289,8 +105290,8 @@ def tf_raw_ops_UnsortedSegmentSum_inputs():
 generated_inputs["tf.raw_ops.UnsortedSegmentSum"] = tf_raw_ops_UnsortedSegmentSum_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_raw_ops_where_inputs():
     list_of_inputs = []
@@ -105351,8 +105352,8 @@ def tf_raw_ops_where_inputs():
 generated_inputs["tf.raw_ops.Where"] = tf_raw_ops_where_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_raw_ops_write_file_inputs():
     list_of_inputs = []
@@ -105437,8 +105438,8 @@ def tf_raw_ops_write_file_inputs():
 generated_inputs["tf.raw_ops.WriteFile"] = tf_raw_ops_write_file_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_raw_ops_xdivy_inputs():
     list_of_inputs = []
@@ -105509,8 +105510,8 @@ def tf_raw_ops_xdivy_inputs():
 generated_inputs["tf.raw_ops.Xdivy"] = tf_raw_ops_xdivy_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_raw_ops_xlog1py_inputs():
     list_of_inputs = []
@@ -105587,8 +105588,8 @@ def tf_raw_ops_xlog1py_inputs():
 generated_inputs["tf.raw_ops.Xlog1py"] = tf_raw_ops_xlog1py_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_raw_ops_xlogy_inputs():
     list_of_inputs = []
@@ -105658,8 +105659,8 @@ def tf_raw_ops_xlogy_inputs():
 generated_inputs["tf.raw_ops.Xlogy"] = tf_raw_ops_xlogy_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_raw_ops_ZerosLike_inputs():
     list_of_inputs = []
@@ -105720,8 +105721,8 @@ def tf_raw_ops_ZerosLike_inputs():
 generated_inputs["tf.raw_ops.ZerosLike"] = tf_raw_ops_ZerosLike_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_raw_ops_zeta_inputs():
     list_of_inputs = []
@@ -105792,8 +105793,8 @@ def tf_raw_ops_zeta_inputs():
 generated_inputs["tf.raw_ops.Zeta"] = tf_raw_ops_zeta_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_stop_gradient_inputs():
     list_of_inputs = []
@@ -105860,8 +105861,8 @@ def tf_stop_gradient_inputs():
 generated_inputs["tf.stop_gradient"] = tf_stop_gradient_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_strings_length_inputs():
     list_of_inputs = []
@@ -105922,8 +105923,8 @@ def tf_strings_length_inputs():
 generated_inputs["tf.strings.length"] = tf_strings_length_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_train_CheckpointManager_inputs():
     list_of_inputs = []
@@ -106153,8 +106154,8 @@ def tf_train_CheckpointManager_inputs():
 
 generated_inputs["tf.train.CheckpointManager"] = tf_train_CheckpointManager_inputs()
 
-import numpy as np
-import copy
+
+
 
 def get_tf_concat_inputs():
     """
@@ -106289,7 +106290,7 @@ def get_tf_concat_inputs():
 generated_inputs["tf.concat"] = get_tf_concat_inputs()
 
 
-import numpy as np
+
 
 # This function is deprecated and requires TF1 compatibility mode.
 # tf.compat.v1.disable_eager_execution()
@@ -106423,7 +106424,7 @@ def tf_data_experimental_make_saveable_from_iterator_inputs():
 generated_inputs["tf.data.experimental.make_saveable_from_iterator"] = tf_data_experimental_make_saveable_from_iterator_inputs()
 
 
-import numpy as np
+
 
 def get_tf_data_experimental_sample_from_datasets_inputs():
     list_of_inputs = []
@@ -106546,8 +106547,8 @@ def get_tf_data_experimental_sample_from_datasets_inputs():
 generated_inputs["tf.data.experimental.sample_from_datasets"] = get_tf_data_experimental_sample_from_datasets_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_experimental_numpy_arange_inputs():
     """
@@ -106669,8 +106670,8 @@ def tf_experimental_numpy_arange_inputs():
 generated_inputs["tf.experimental.numpy.arange"] = tf_experimental_numpy_arange_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_experimental_numpy_atleast_3d_inputs():
     list_of_inputs = []
@@ -106735,8 +106736,8 @@ def tf_experimental_numpy_atleast_3d_inputs():
 generated_inputs["tf.experimental.numpy.atleast_3d"] = tf_experimental_numpy_atleast_3d_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def get_tf_experimental_numpy_atleast_2d_inputs():
     """
@@ -106807,8 +106808,8 @@ def get_tf_experimental_numpy_atleast_2d_inputs():
 generated_inputs["tf.experimental.numpy.atleast_2d"] = get_tf_experimental_numpy_atleast_2d_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_experimental_numpy_broadcast_arrays_inputs():
     list_of_inputs = []
@@ -106890,8 +106891,8 @@ def tf_experimental_numpy_broadcast_arrays_inputs():
 generated_inputs["tf.experimental.numpy.broadcast_arrays"] = tf_experimental_numpy_broadcast_arrays_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_experimental_numpy_atleast_1d_inputs():
     """
@@ -106966,8 +106967,8 @@ def tf_experimental_numpy_atleast_1d_inputs():
 generated_inputs["tf.experimental.numpy.atleast_1d"] = tf_experimental_numpy_atleast_1d_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_experimental_numpy_ix__inputs():
     list_of_inputs = []
@@ -107024,8 +107025,8 @@ def tf_experimental_numpy_ix__inputs():
 
 generated_inputs["tf.experimental.numpy.ix_"] = tf_experimental_numpy_ix__inputs()
 
-import numpy as np
-import copy
+
+
 
 
 def tf_einsum_inputs():
@@ -107134,8 +107135,8 @@ def tf_einsum_inputs():
 generated_inputs["tf.einsum"] = tf_einsum_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_experimental_numpy_sign_inputs():
     list_of_inputs = []
@@ -107205,8 +107206,8 @@ def tf_experimental_numpy_sign_inputs():
 generated_inputs["tf.experimental.numpy.sign"] = tf_experimental_numpy_sign_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_experimental_numpy_concatenate_inputs():
     list_of_inputs = []
@@ -107299,8 +107300,8 @@ def tf_experimental_numpy_concatenate_inputs():
 
 generated_inputs["tf.experimental.numpy.concatenate"] = tf_experimental_numpy_concatenate_inputs()
 
-import numpy as np
-import copy
+
+
 
 
 def tfenp_meshgrid_inputs():
@@ -107385,8 +107386,8 @@ def tfenp_meshgrid_inputs():
 
 generated_inputs["tf.experimental.numpy.meshgrid"] = tfenp_meshgrid_inputs()
 
-import numpy as np
-import copy
+
+
 
 
 def categorical_column_with_vocabulary_list_inputs():
@@ -107522,8 +107523,8 @@ def categorical_column_with_vocabulary_list_inputs():
 
 generated_inputs["tf.feature_column.categorical_column_with_vocabulary_list"] = categorical_column_with_vocabulary_list_inputs()
 
-import numpy as np
-import copy
+
+
 
 def generate_tf_image_combined_non_max_suppression_inputs():
     """
@@ -107660,8 +107661,8 @@ def generate_tf_image_combined_non_max_suppression_inputs():
 
 generated_inputs["tf.image.combined_non_max_suppression"] = generate_tf_image_combined_non_max_suppression_inputs()
 
-import numpy as np
-import copy
+
+
 
 def tf_image_ssim_multiscale_inputs():
     """
@@ -107836,8 +107837,8 @@ def tf_image_ssim_multiscale_inputs():
 generated_inputs["tf.image.ssim_multiscale"] = tf_image_ssim_multiscale_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_group_inputs():
     list_of_inputs = []
@@ -107918,8 +107919,8 @@ def tf_group_inputs():
 generated_inputs["tf.group"] = tf_group_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_feature_column_weighted_categorical_column_inputs():
     """
@@ -108026,8 +108027,8 @@ def tf_feature_column_weighted_categorical_column_inputs():
 
 generated_inputs["tf.feature_column.weighted_categorical_column"] = tf_feature_column_weighted_categorical_column_inputs()
 
-import numpy as np
-import copy
+
+
 
 def tf_io_match_filenames_once_inputs():
     """
@@ -108123,8 +108124,8 @@ def tf_io_match_filenames_once_inputs():
 
 generated_inputs["tf.io.match_filenames_once"] = tf_io_match_filenames_once_inputs()
 
-import numpy as np
-import copy
+
+
 
 def tf_identity_n_inputs():
     list_of_inputs = []
@@ -108203,8 +108204,8 @@ def tf_identity_n_inputs():
 
 generated_inputs["tf.identity_n"] = tf_identity_n_inputs()
 
-import numpy as np
-import copy
+
+
 
 def tf_feature_column_sequence_categorical_column_with_vocabulary_list_inputs():
     """
@@ -108319,8 +108320,8 @@ def tf_feature_column_sequence_categorical_column_with_vocabulary_list_inputs():
 generated_inputs["tf.feature_column.sequence_categorical_column_with_vocabulary_list"] = tf_feature_column_sequence_categorical_column_with_vocabulary_list_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_io_decode_gif_inputs():
     """
@@ -108408,8 +108409,8 @@ def tf_io_decode_gif_inputs():
 
 generated_inputs["tf.io.decode_gif"] = tf_io_decode_gif_inputs()
 
-import numpy as np
-import copy
+
+
 
 def tf_linalg_banded_triangular_solve_inputs():
     """
@@ -108591,8 +108592,8 @@ def tf_linalg_banded_triangular_solve_inputs():
 generated_inputs["tf.linalg.banded_triangular_solve"] = tf_linalg_banded_triangular_solve_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 # Helper classes to make LinearOperator instances comparable for the validation script.
 class ComparableMixin:
@@ -108793,8 +108794,8 @@ def get_tf_linalg_linearoperatorkronecker_inputs():
 
     return list_of_inputs
 
-import numpy as np
-import copy
+
+
 
 def tf_linalg_tridiagonal_solve_inputs():
     """
@@ -108997,8 +108998,8 @@ def tf_linalg_tridiagonal_solve_inputs():
 generated_inputs["tf.linalg.tridiagonal_solve"] = tf_linalg_tridiagonal_solve_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def get_tf_linalg_normalize_inputs():
     """
@@ -109134,8 +109135,8 @@ def get_tf_linalg_normalize_inputs():
 
 generated_inputs["tf.linalg.normalize"] = get_tf_linalg_normalize_inputs()
 
-import numpy as np
-import copy
+
+
 
 def tf_lookup_experimental_DenseHashTable_inputs():
     """
@@ -109272,8 +109273,8 @@ def tf_lookup_experimental_DenseHashTable_inputs():
 
 generated_inputs["tf.lookup.experimental.DenseHashTable"] = tf_lookup_experimental_DenseHashTable_inputs()
 
-import numpy as np
-import copy
+
+
 
 def tf_math_add_n_inputs():
     """
@@ -109407,8 +109408,8 @@ def tf_math_add_n_inputs():
 generated_inputs["tf.math.add_n"] = tf_math_add_n_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def get_tf_meshgrid_inputs():
   """
@@ -109508,8 +109509,8 @@ def get_tf_meshgrid_inputs():
 
 generated_inputs["tf.meshgrid"] = get_tf_meshgrid_inputs()
 
-import numpy as np
-import copy
+
+
 
 def get_conv1d_transpose_inputs():
     """
@@ -109710,8 +109711,8 @@ def get_conv1d_transpose_inputs():
 
 generated_inputs["tf.nn.conv1d_transpose_2"] = get_conv1d_transpose_inputs()
 
-import numpy as np
-import copy
+
+
 
 def get_tf_nn_conv2d_transpose_inputs():
     """
@@ -109866,8 +109867,8 @@ def get_tf_nn_conv2d_transpose_inputs():
 
 generated_inputs["tf.nn.conv2d_transpose"] = get_tf_nn_conv2d_transpose_inputs()
 
-import numpy as np
-import copy
+
+
 
 def tf_nn_conv1d_transpose_inputs():
     """
@@ -110052,8 +110053,8 @@ def tf_nn_conv1d_transpose_inputs():
 
 generated_inputs["tf.nn.conv1d_transpose"] = tf_nn_conv1d_transpose_inputs()
 
-import numpy as np
-import copy
+
+
 
 def get_tf_nn_conv_transpose_inputs():
     """
@@ -110225,8 +110226,8 @@ def get_tf_nn_conv_transpose_inputs():
 
 generated_inputs["tf.nn.conv_transpose_1"] = get_tf_nn_conv_transpose_inputs()
 
-import numpy as np
-import copy
+
+
 
 def tf_nest_pack_sequence_as_inputs():
     """
@@ -110328,8 +110329,8 @@ def tf_nest_pack_sequence_as_inputs():
 
 generated_inputs["tf.nest.pack_sequence_as"] = tf_nest_pack_sequence_as_inputs()
 
-import numpy as np
-import copy
+
+
 
 def tf_nn_embedding_lookup_inputs():
     """
@@ -110474,8 +110475,8 @@ def tf_nn_embedding_lookup_inputs():
 
 generated_inputs["tf.nn.embedding_lookup"] = tf_nn_embedding_lookup_inputs()
 
-import numpy as np
-import copy
+
+
 
 def get_tf_nn_max_pool2d_inputs():
     """
@@ -110630,8 +110631,8 @@ def get_tf_nn_max_pool2d_inputs():
 
 generated_inputs["tf.nn.max_pool2d_4"] = get_tf_nn_max_pool2d_inputs()
 
-import numpy as np
-import copy
+
+
 
 def tf_nn_max_pool2d_inputs():
     list_of_inputs = []
@@ -110776,8 +110777,8 @@ def tf_nn_max_pool2d_inputs():
 generated_inputs["tf.nn.max_pool2d_7"] = tf_nn_max_pool2d_inputs()
 
 
-import numpy as np
-import copy
+
+
 import collections
 
 def get_tf_nest_assert_same_structure_inputs():
@@ -110882,8 +110883,8 @@ def get_tf_nest_assert_same_structure_inputs():
 
 generated_inputs["tf.nest.assert_same_structure"] = get_tf_nest_assert_same_structure_inputs()
 
-import numpy as np
-import copy
+
+
 
 def tf_nn_conv_transpose_inputs():
     """
@@ -111016,8 +111017,8 @@ def tf_nn_conv_transpose_inputs():
 
 generated_inputs["tf.nn.conv_transpose"] = tf_nn_conv_transpose_inputs()
 
-import numpy as np
-import copy
+
+
 
 def get_tf_norm_inputs():
     """
@@ -111143,8 +111144,8 @@ def get_tf_norm_inputs():
 
 generated_inputs["tf.norm"] = get_tf_norm_inputs()
 
-import numpy as np
-import copy
+
+
 
 def tf_print_inputs():
     """
@@ -111277,8 +111278,8 @@ def tf_print_inputs():
 
 generated_inputs["tf.print"] = tf_print_inputs()
 
-import numpy as np
-import copy
+
+
 
 def tf_nn_weighted_moments_inputs():
     """
@@ -111412,8 +111413,8 @@ def tf_nn_weighted_moments_inputs():
 
 generated_inputs["tf.nn.weighted_moments"] = tf_nn_weighted_moments_inputs()
 
-import numpy as np
-import copy
+
+
 
 def tf_norm_inputs():
     """
@@ -111525,8 +111526,8 @@ def tf_norm_inputs():
 
 generated_inputs["tf.norm_2"] = tf_norm_inputs()
 
-import numpy as np
-import copy
+
+
 
 def get_tf_random_stateless_binomial_inputs():
     """
@@ -111670,8 +111671,8 @@ def get_tf_random_stateless_binomial_inputs():
 
 generated_inputs["tf.random.stateless_binomial"] = get_tf_random_stateless_binomial_inputs()
 
-import numpy as np
-import copy
+
+
 
 def tf_raw_ops_acosh_inputs():
     list_of_inputs = []
@@ -111740,8 +111741,8 @@ def tf_raw_ops_acosh_inputs():
 
 generated_inputs["tf.raw_ops.Acosh"] = tf_raw_ops_acosh_inputs()
 
-import numpy as np
-import copy
+
+
 
 def get_combined_non_max_suppression_inputs():
     """
@@ -111937,8 +111938,8 @@ def get_combined_non_max_suppression_inputs():
 
 generated_inputs["tf.raw_ops.CombinedNonMaxSuppression"] = get_combined_non_max_suppression_inputs()
 
-import numpy as np
-import copy
+
+
 
 # Assume generated_inputs is pre-initialized
 # 
@@ -112037,8 +112038,8 @@ def tf_raw_ops_decode_base64_inputs():
 # 
 generated_inputs["tf.raw_ops.DecodeBase64"] = tf_raw_ops_decode_base64_inputs()
 
-import numpy as np
-import copy
+
+
 # Assume generated_inputs dictionary is pre-initialized
 # 
 
@@ -112272,8 +112273,8 @@ def tf_raw_ops_conv2dbackpropfilter_inputs():
 
 generated_inputs["tf.raw_ops.Conv2DBackpropFilter"] = tf_raw_ops_conv2dbackpropfilter_inputs()
 
-import numpy as np
-import copy
+
+
 
 def get_raw_ops_decodejsonexample_inputs():
     """
@@ -112370,8 +112371,8 @@ def get_raw_ops_decodejsonexample_inputs():
 
 generated_inputs["tf.raw_ops.DecodeJSONExample"] = get_raw_ops_decodejsonexample_inputs()
 
-import numpy as np
-import copy
+
+
 
 def gen_tf_raw_ops_Conv2DBackpropInput_inputs():
     list_of_inputs = []
@@ -112519,8 +112520,8 @@ def gen_tf_raw_ops_Conv2DBackpropInput_inputs():
 
 generated_inputs["tf.raw_ops.Conv2DBackpropInput"] = gen_tf_raw_ops_Conv2DBackpropInput_inputs()
 
-import numpy as np
-import copy
+
+
 import struct
 
 def tf_raw_ops_decode_bmp_inputs():
@@ -112677,8 +112678,8 @@ def tf_raw_ops_decode_bmp_inputs():
 
 generated_inputs["tf.raw_ops.DecodeBmp"] = tf_raw_ops_decode_bmp_inputs()
 
-import numpy as np
-import copy
+
+
 
 def _get_out_size_conv3d(in_size, filter_size, stride, padding, dilation=1):
     """Helper function to calculate the output dimension of a 3D convolution."""
@@ -112941,8 +112942,8 @@ def tf_raw_ops_conv3dbackpropfilterv2_inputs():
 
 generated_inputs["tf.raw_ops.Conv3DBackpropFilterV2"] = tf_raw_ops_conv3dbackpropfilterv2_inputs()
 
-import numpy as np
-import copy
+
+
 
 def tf_raw_ops_dilation2d_inputs():
     """
@@ -113086,8 +113087,8 @@ def tf_raw_ops_dilation2d_inputs():
 
 generated_inputs["tf.raw_ops.Dilation2D"] = tf_raw_ops_dilation2d_inputs()
 
-import numpy as np
-import copy
+
+
 
 def tf_raw_ops_decode_raw_inputs():
     """
@@ -113221,8 +113222,8 @@ def tf_raw_ops_decode_raw_inputs():
 
 generated_inputs["tf.raw_ops.DecodeRaw"] = tf_raw_ops_decode_raw_inputs()
 
-import numpy as np
-import copy
+
+
 
 def tf_raw_ops_depth_to_space_inputs():
     """
@@ -113333,8 +113334,8 @@ def tf_raw_ops_depth_to_space_inputs():
 
 generated_inputs["tf.raw_ops.DepthToSpace"] = tf_raw_ops_depth_to_space_inputs()
 
-import numpy as np
-import copy
+
+
 import torch
 
 def tf_raw_ops_encode_png_inputs():
@@ -113424,8 +113425,8 @@ def tf_raw_ops_encode_png_inputs():
 
 generated_inputs["tf.raw_ops.EncodePng"] = tf_raw_ops_encode_png_inputs()
 
-import numpy as np
-import copy
+
+
 import math
 
 def get_dilation2dbackpropfilter_inputs():
@@ -113661,8 +113662,8 @@ def get_dilation2dbackpropfilter_inputs():
 
 generated_inputs["tf.raw_ops.Dilation2DBackpropFilter"] = get_dilation2dbackpropfilter_inputs()
 
-import numpy as np
-import copy
+
+
 
 def tf_raw_ops_guarantee_const_inputs():
     list_of_inputs = []
@@ -113756,8 +113757,8 @@ def tf_raw_ops_guarantee_const_inputs():
 generated_inputs["tf.raw_ops.GuaranteeConst"] = tf_raw_ops_guarantee_const_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def get_fusedpadconv2d_inputs():
     """
@@ -113889,8 +113890,8 @@ def get_fusedpadconv2d_inputs():
 
 generated_inputs["tf.raw_ops.FusedPadConv2D"] = get_fusedpadconv2d_inputs()
 
-import numpy as np
-import copy
+
+
 
 def tf_raw_ops_fingerprint_inputs():
     """
@@ -113994,8 +113995,8 @@ def tf_raw_ops_fingerprint_inputs():
 
 generated_inputs["tf.raw_ops.Fingerprint"] = tf_raw_ops_fingerprint_inputs()
 
-import numpy as np
-import copy
+
+
 
 def tf_raw_ops_igammac_inputs():
     """
@@ -114104,8 +114105,8 @@ def tf_raw_ops_igammac_inputs():
 
 generated_inputs["tf.raw_ops.Igammac"] = tf_raw_ops_igammac_inputs()
 
-import numpy as np
-import copy
+
+
 
 def get_tf_raw_ops_histogram_summary_inputs():
     """
@@ -114213,8 +114214,8 @@ def get_tf_raw_ops_histogram_summary_inputs():
 
 generated_inputs["tf.raw_ops.HistogramSummary"] = get_tf_raw_ops_histogram_summary_inputs()
 
-import numpy as np
-import copy
+
+
 
 
 def get_depthwiseconv2dnativebackpropinput_inputs():
@@ -114411,8 +114412,8 @@ def get_depthwiseconv2dnativebackpropinput_inputs():
 
 generated_inputs["tf.raw_ops.DepthwiseConv2dNativeBackpropInput"] = get_depthwiseconv2dnativebackpropinput_inputs()
 
-import numpy as np
-import copy
+
+
 
 def get_depthwiseconv2dnativebackpropfilter_inputs():
     """
@@ -114565,8 +114566,8 @@ def get_depthwiseconv2dnativebackpropfilter_inputs():
 generated_inputs["tf.raw_ops.DepthwiseConv2dNativeBackpropFilter"] = get_depthwiseconv2dnativebackpropfilter_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def get_tf_raw_ops_log1p_inputs():
     list_of_inputs = []
@@ -114635,8 +114636,8 @@ def get_tf_raw_ops_log1p_inputs():
 
 generated_inputs["tf.raw_ops.Log1p"] = get_tf_raw_ops_log1p_inputs()
 
-import numpy as np
-import copy
+
+
 
 def get_matrix_diag_v3_inputs():
     """
@@ -114792,8 +114793,8 @@ def get_matrix_diag_v3_inputs():
 
 generated_inputs["tf.raw_ops.MatrixDiagV3"] = get_matrix_diag_v3_inputs()
 
-import numpy as np
-import copy
+
+
 import torch # As per instruction, though numpy is used to create tensors
 
 
@@ -114962,8 +114963,8 @@ def get_tf_raw_ops_MatrixSetDiagV2_inputs():
 
 generated_inputs["tf.raw_ops.MatrixSetDiagV2"] = get_tf_raw_ops_MatrixSetDiagV2_inputs()
 
-import numpy as np
-import copy
+
+
 
 def get_tf_raw_ops_matrix_diag_v2_inputs():
     list_of_inputs = []
@@ -115116,8 +115117,8 @@ def get_tf_raw_ops_matrix_diag_v2_inputs():
 
 generated_inputs["tf.raw_ops.MatrixDiagV2"] = get_tf_raw_ops_matrix_diag_v2_inputs()
 
-import numpy as np
-import copy
+
+
 
 def get_tf_raw_ops_dynamic_stitch_inputs():
     """
@@ -115240,8 +115241,8 @@ def get_tf_raw_ops_dynamic_stitch_inputs():
 
 generated_inputs["tf.raw_ops.DynamicStitch"] = get_tf_raw_ops_dynamic_stitch_inputs()
 
-import numpy as np
-import copy
+
+
 
 def get_tf_raw_ops_maxpoolv2_inputs():
     """
@@ -115374,8 +115375,8 @@ def get_tf_raw_ops_maxpoolv2_inputs():
 
 generated_inputs["tf.raw_ops.MaxPoolV2"] = get_tf_raw_ops_maxpoolv2_inputs()
 
-import numpy as np
-import copy
+
+
 import math
 
 def get_tf_raw_ops_max_pool_grad_grad_v2_inputs():
@@ -115604,8 +115605,8 @@ def get_tf_raw_ops_max_pool_grad_grad_v2_inputs():
 
 generated_inputs["tf.raw_ops.MaxPoolGradGradV2"] = get_tf_raw_ops_max_pool_grad_grad_v2_inputs()
 
-import numpy as np
-import copy
+
+
 
 def tf_raw_ops_merge_inputs():
   """
@@ -115731,8 +115732,8 @@ def tf_raw_ops_merge_inputs():
 
 generated_inputs["tf.raw_ops.Merge"] = tf_raw_ops_merge_inputs()
 
-import numpy as np
-import copy
+
+
 
 def get_max_pool_grad_grad_inputs():
     """
@@ -115929,8 +115930,8 @@ def get_max_pool_grad_grad_inputs():
 generated_inputs["tf.raw_ops.MaxPoolGradGrad"] = get_max_pool_grad_grad_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_raw_ops_max_pool_3d_grad_inputs():
     """
@@ -116013,8 +116014,8 @@ def tf_raw_ops_max_pool_3d_grad_inputs():
 
 generated_inputs["tf.raw_ops.MaxPool3DGrad"] = tf_raw_ops_max_pool_3d_grad_inputs()
 
-import numpy as np
-import copy
+
+
 
 def tf_raw_ops_fixedunigramcandidatesampler_inputs():
     """
@@ -116236,8 +116237,8 @@ def tf_raw_ops_fixedunigramcandidatesampler_inputs():
 
 generated_inputs["tf.raw_ops.FixedUnigramCandidateSampler"] = tf_raw_ops_fixedunigramcandidatesampler_inputs()
 
-import numpy as np
-import copy
+
+
 
 def get_tf_raw_ops_ndtri_inputs():
     list_of_inputs = []
@@ -116317,9 +116318,9 @@ def get_tf_raw_ops_ndtri_inputs():
 
 generated_inputs["tf.raw_ops.Ndtri"] = get_tf_raw_ops_ndtri_inputs()
 
-import numpy as np
 
-import copy
+
+
 
 def tf_raw_ops_max_pool_grad_grad_with_argmax_inputs():
     """
@@ -116398,8 +116399,8 @@ def tf_raw_ops_max_pool_grad_grad_with_argmax_inputs():
 
 generated_inputs["tf.raw_ops.MaxPoolGradGradWithArgmax"] = tf_raw_ops_max_pool_grad_grad_with_argmax_inputs()
 
-import numpy as np
-import copy
+
+
 
 def tf_raw_ops_maxpoolgradv2_inputs():
     """
@@ -116584,8 +116585,8 @@ def tf_raw_ops_maxpoolgradv2_inputs():
 
 generated_inputs["tf.raw_ops.MaxPoolGradV2"] = tf_raw_ops_maxpoolgradv2_inputs()
 
-import numpy as np
-import copy
+
+
 
 def tf_raw_ops_mirror_pad_inputs():
     """
@@ -116712,8 +116713,8 @@ def tf_raw_ops_mirror_pad_inputs():
 
 generated_inputs["tf.raw_ops.MirrorPad"] = tf_raw_ops_mirror_pad_inputs()
 
-import numpy as np
-import copy
+
+
 
 def tf_raw_ops_pad_inputs():
     """
@@ -116822,8 +116823,8 @@ def tf_raw_ops_pad_inputs():
 generated_inputs["tf.raw_ops.Pad"] = tf_raw_ops_pad_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_data_experimental_from_variant_inputs():
     """
@@ -116935,8 +116936,8 @@ def tf_data_experimental_from_variant_inputs():
 
 generated_inputs["tf.data.experimental.from_variant"] = tf_data_experimental_from_variant_inputs()
 
-import numpy as np
-import copy
+
+
 
 def get_tf_linalg_tridiagonal_matmul_inputs():
     """
@@ -117078,8 +117079,8 @@ def get_tf_linalg_tridiagonal_matmul_inputs():
 
 generated_inputs["tf.linalg.tridiagonal_matmul"] = get_tf_linalg_tridiagonal_matmul_inputs()
 
-import numpy as np
-import copy
+
+
 
 # Helper class to satisfy the test harness which expects tensor-like
 # attributes (shape, dtype, size) and behavior (work with np.min/max)
@@ -117205,8 +117206,8 @@ def get_tf_linalg_global_norm_inputs():
 generated_inputs["tf.linalg.global_norm"] = get_tf_linalg_global_norm_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def get_tf_io_extract_jpeg_shape_inputs():
     """
@@ -117370,8 +117371,8 @@ def get_tf_io_extract_jpeg_shape_inputs():
 
 generated_inputs["tf.io.extract_jpeg_shape"] = get_tf_io_extract_jpeg_shape_inputs()
 
-import numpy as np
-import copy
+
+
 
 def get_sampled_softmax_loss_inputs():
     """
@@ -117460,8 +117461,8 @@ def get_sampled_softmax_loss_inputs():
 generated_inputs["tf.nn.sampled_softmax_loss"] = get_sampled_softmax_loss_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_random_set_global_generator_inputs():
     """
@@ -117530,8 +117531,8 @@ def tf_random_set_global_generator_inputs():
 
 generated_inputs["tf.random.set_global_generator"] = tf_random_set_global_generator_inputs()
 
-import numpy as np
-import copy
+
+
 
 def get_tf_ragged_constant_inputs():
     """
@@ -117660,8 +117661,8 @@ def get_tf_ragged_constant_inputs():
 
 generated_inputs["tf.ragged.constant"] = get_tf_ragged_constant_inputs()
 
-import numpy as np
-import copy
+
+
 
 # This function will generate valid inputs for tf.raw_ops.DecodeGif.
 # The previous attempts failed due to invalid image data for PNG and JPEG formats when
@@ -117769,8 +117770,8 @@ def tf_raw_ops_decode_gif_inputs():
 generated_inputs["tf.raw_ops.DecodeGif"] = tf_raw_ops_decode_gif_inputs()
 
 
-import numpy as np
-import copy
+
+
 import tempfile
 import os
 
@@ -117846,8 +117847,8 @@ def tf_raw_ops_immutable_const_inputs():
 
 generated_inputs["tf.raw_ops.ImmutableConst"] = tf_raw_ops_immutable_const_inputs()
 
-import numpy as np
-import copy
+
+
 
 def tf_raw_ops_oneslike_inputs():
     """
@@ -117943,8 +117944,8 @@ def tf_raw_ops_oneslike_inputs():
 
 generated_inputs["tf.raw_ops.OnesLike"] = tf_raw_ops_oneslike_inputs()
 
-import numpy as np
-import copy
+
+
 
 def get_tf_raw_ops_padv2_inputs():
     """
@@ -118066,8 +118067,8 @@ def get_tf_raw_ops_padv2_inputs():
 
 generated_inputs["tf.raw_ops.PadV2"] = get_tf_raw_ops_padv2_inputs()
 
-import numpy as np
-import copy
+
+
 import math
 
 def get_tf_raw_ops_max_pool_3d_grad_grad_inputs():
@@ -118294,8 +118295,8 @@ def get_tf_raw_ops_max_pool_3d_grad_grad_inputs():
 
 generated_inputs["tf.raw_ops.MaxPool3DGradGrad"] = get_tf_raw_ops_max_pool_3d_grad_grad_inputs()
 
-import numpy as np
-import copy
+
+
 
 def tf_raw_ops_parallel_dynamic_stitch_inputs():
     """
@@ -118394,9 +118395,9 @@ def tf_raw_ops_parallel_dynamic_stitch_inputs():
 
 generated_inputs["tf.raw_ops.ParallelDynamicStitch"] = tf_raw_ops_parallel_dynamic_stitch_inputs()
 
-import numpy as np
 
-import copy
+
+
 
 def tf_raw_ops_quantize_and_dequantize_v4_inputs():
     list_of_inputs = []
@@ -118581,8 +118582,8 @@ def tf_raw_ops_quantize_and_dequantize_v4_inputs():
 
 generated_inputs["tf.raw_ops.QuantizeAndDequantizeV4"] = tf_raw_ops_quantize_and_dequantize_v4_inputs()
 
-import numpy as np
-import copy
+
+
 
 def tf_raw_ops_quantizedresizebilinear_inputs():
     """
@@ -118727,8 +118728,8 @@ def tf_raw_ops_quantizedresizebilinear_inputs():
 generated_inputs["tf.raw_ops.QuantizedResizeBilinear"] = tf_raw_ops_quantizedresizebilinear_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_raw_ops_range_inputs():
     list_of_inputs = []
@@ -118837,8 +118838,8 @@ def tf_raw_ops_range_inputs():
 generated_inputs["tf.raw_ops.Range"] = tf_raw_ops_range_inputs()
 
 
-import numpy as np
-import copy
+
+
 import tempfile
 import os
 
@@ -118935,8 +118936,8 @@ def tf_raw_ops_read_file_inputs():
 
 generated_inputs["tf.raw_ops.ReadFile"] = tf_raw_ops_read_file_inputs()
 
-import numpy as np
-import copy
+
+
 
 def tf_raw_ops_reducejoin_inputs():
     list_of_inputs = []
@@ -119066,8 +119067,8 @@ def tf_raw_ops_reducejoin_inputs():
 generated_inputs["tf.raw_ops.ReduceJoin"] = tf_raw_ops_reducejoin_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def get_tf_raw_ops_regex_full_match_inputs():
     """
@@ -119175,8 +119176,8 @@ def get_tf_raw_ops_regex_full_match_inputs():
 
 generated_inputs["tf.raw_ops.RegexFullMatch"] = get_tf_raw_ops_regex_full_match_inputs()
 
-import numpy as np
-import copy
+
+
 import tempfile
 import os
 import atexit
@@ -119358,8 +119359,8 @@ def tf_raw_ops_record_input_inputs():
 
 generated_inputs["tf.raw_ops.RecordInput"] = tf_raw_ops_record_input_inputs()
 
-import numpy as np
-import copy
+
+
 
 def tf_raw_ops_scalar_summary_inputs():
     list_of_inputs = []
@@ -119465,8 +119466,8 @@ def tf_raw_ops_scalar_summary_inputs():
 
 generated_inputs["tf.raw_ops.ScalarSummary"] = tf_raw_ops_scalar_summary_inputs()
 
-import numpy as np
-import copy
+
+
 
 def tf_raw_ops_shardedfilename_inputs():
     """
@@ -119586,8 +119587,8 @@ def tf_raw_ops_shardedfilename_inputs():
 
 generated_inputs["tf.raw_ops.ShardedFilename"] = tf_raw_ops_shardedfilename_inputs()
 
-import numpy as np
-import copy
+
+
 
 def tf_raw_ops_serialize_tensor_inputs():
   """
@@ -119660,8 +119661,8 @@ def tf_raw_ops_serialize_tensor_inputs():
 generated_inputs["tf.raw_ops.SerializeTensor"] = tf_raw_ops_serialize_tensor_inputs()
 
 
-import numpy as np
-import copy
+
+
 import os
 import tempfile
 
@@ -119820,8 +119821,8 @@ def get_tf_raw_ops_restore_slice_inputs():
 
 generated_inputs["tf.raw_ops.RestoreSlice"] = get_tf_raw_ops_restore_slice_inputs()
 
-import numpy as np
-import copy
+
+
 
 def tf_raw_ops_stringlength_inputs():
     """
@@ -119921,9 +119922,9 @@ def tf_raw_ops_stringlength_inputs():
 
 generated_inputs["tf.raw_ops.StringLength"] = tf_raw_ops_stringlength_inputs()
 
-import numpy as np
 
-import copy
+
+
 
 def get_tf_raw_ops_sparse_segment_sqrt_n_grad_inputs():
     """
@@ -120067,8 +120068,8 @@ def get_tf_raw_ops_sparse_segment_sqrt_n_grad_inputs():
 
 generated_inputs["tf.raw_ops.SparseSegmentSqrtNGrad"] = get_tf_raw_ops_sparse_segment_sqrt_n_grad_inputs()
 
-import numpy as np
-import copy
+
+
 
 def get_tf_raw_ops_stringsplitv2_inputs():
     """
@@ -120192,8 +120193,8 @@ def get_tf_raw_ops_stringsplitv2_inputs():
 
 generated_inputs["tf.raw_ops.StringSplitV2"] = get_tf_raw_ops_stringsplitv2_inputs()
 
-import numpy as np
-import copy
+
+
 
 def tf_raw_ops_stringstrip_inputs():
     """
@@ -120290,8 +120291,8 @@ def tf_raw_ops_stringstrip_inputs():
 
 generated_inputs["tf.raw_ops.StringStrip"] = tf_raw_ops_stringstrip_inputs()
 
-import numpy as np
-import copy
+
+
 
 def tf_raw_ops_stringngrams_inputs():
     """
@@ -120472,8 +120473,8 @@ def tf_raw_ops_stringngrams_inputs():
 generated_inputs["tf.raw_ops.StringNGrams"] = tf_raw_ops_stringngrams_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_raw_ops_stringupper_inputs():
     list_of_inputs = []
@@ -120578,8 +120579,8 @@ def tf_raw_ops_stringupper_inputs():
 
 generated_inputs["tf.raw_ops.StringUpper"] = tf_raw_ops_stringupper_inputs()
 
-import numpy as np
-import copy
+
+
 
 def get_string_to_hash_bucket_inputs():
     """
@@ -120683,8 +120684,8 @@ def get_string_to_hash_bucket_inputs():
 generated_inputs["tf.raw_ops.StringToHashBucket"] = get_string_to_hash_bucket_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def get_string_to_number_inputs():
     """
@@ -120784,8 +120785,8 @@ def get_string_to_number_inputs():
 
 generated_inputs["tf.raw_ops.StringToNumber"] = get_string_to_number_inputs()
 
-import numpy as np
-import copy
+
+
 
 def get_tf_raw_ops_substr_inputs():
     """
@@ -120928,8 +120929,8 @@ def get_tf_raw_ops_substr_inputs():
 generated_inputs["tf.raw_ops.Substr"] = get_tf_raw_ops_substr_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_raw_ops_stringjoin_inputs():
     list_of_inputs = []
@@ -121056,8 +121057,8 @@ def tf_raw_ops_stringjoin_inputs():
 
 generated_inputs["tf.raw_ops.StringJoin"] = tf_raw_ops_stringjoin_inputs()
 
-import numpy as np
-import copy
+
+
 
 def tf_raw_ops_unicode_transcode_inputs():
     list_of_inputs = []
@@ -121210,8 +121211,8 @@ def tf_raw_ops_unicode_transcode_inputs():
 
 generated_inputs["tf.raw_ops.UnicodeTranscode"] = tf_raw_ops_unicode_transcode_inputs()
 
-import numpy as np
-import copy
+
+
 import json
 
 def tf_raw_ops_tensorsummary_inputs():
@@ -121345,8 +121346,8 @@ def tf_raw_ops_tensorsummary_inputs():
 
 generated_inputs["tf.raw_ops.TensorSummary"] = tf_raw_ops_tensorsummary_inputs()
 
-import numpy as np
-import copy
+
+
 
 def tf_raw_ops_sparsecancat_inputs():
     """
@@ -121568,8 +121569,8 @@ def tf_raw_ops_sparsecancat_inputs():
 generated_inputs["tf.raw_ops.SparseConcat"] = tf_raw_ops_sparsecancat_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_strings_bytes_split_inputs():
     """
@@ -121665,8 +121666,8 @@ def tf_strings_bytes_split_inputs():
 
 generated_inputs["tf.strings.bytes_split"] = tf_strings_bytes_split_inputs()
 
-import numpy as np
-import copy
+
+
 
 def tf_stack_inputs():
     """
@@ -121778,8 +121779,8 @@ def tf_stack_inputs():
 generated_inputs["tf.stack"] = tf_stack_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def get_tf_sparse_slice_inputs():
     """
@@ -121953,8 +121954,8 @@ def get_tf_sparse_slice_inputs():
 
 generated_inputs["tf.sparse.slice"] = get_tf_sparse_slice_inputs()
 
-import numpy as np
-import copy
+
+
 
 def get_tf_strings_lower_inputs():
     """
@@ -122054,8 +122055,8 @@ def get_tf_strings_lower_inputs():
 
 generated_inputs["tf.strings.lower"] = get_tf_strings_lower_inputs()
 
-import numpy as np
-import copy
+
+
 
 def tf_strings_upper_inputs():
     list_of_inputs = []
@@ -122162,8 +122163,8 @@ def tf_strings_upper_inputs():
 generated_inputs["tf.strings.upper"] = tf_strings_upper_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_strings_format_inputs():
     """
@@ -122298,8 +122299,8 @@ def tf_strings_format_inputs():
 generated_inputs["tf.strings.format"] = tf_strings_format_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_strings_split_inputs():
     list_of_inputs = []
@@ -122417,8 +122418,8 @@ def tf_strings_split_inputs():
 generated_inputs["tf.strings.split"] = tf_strings_split_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 # Helper class to satisfy both the testing framework's analysis (which expects
 # a numpy-like object) and the TensorFlow API's runtime requirement (a SparseTensor).
@@ -122575,8 +122576,8 @@ def tf_sparse_retain_inputs():
 
 generated_inputs["tf.sparse.retain"] = tf_sparse_retain_inputs()
 
-import numpy as np
-import copy
+
+
 
 def tf_strings_unicode_decode_with_offsets_inputs():
     list_of_inputs = []
@@ -122718,8 +122719,8 @@ def tf_strings_unicode_decode_with_offsets_inputs():
 generated_inputs["tf.strings.unicode_decode_with_offsets"] = tf_strings_unicode_decode_with_offsets_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_strings_regex_replace_inputs():
     list_of_inputs = []
@@ -122838,8 +122839,8 @@ def tf_strings_regex_replace_inputs():
 
 generated_inputs["tf.strings.regex_replace"] = tf_strings_regex_replace_inputs()
 
-import numpy as np
-import copy
+
+
 
 def tf_tensordot_inputs():
     """
@@ -122959,8 +122960,8 @@ def tf_tensordot_inputs():
 
 generated_inputs["tf.tensordot"] = tf_tensordot_inputs()
 
-import numpy as np
-import copy
+
+
 
 def tf_strings_unicode_split_inputs():
     list_of_inputs = []
@@ -123089,8 +123090,8 @@ def tf_strings_unicode_split_inputs():
 
 generated_inputs["tf.strings.unicode_split"] = tf_strings_unicode_split_inputs()
 
-import numpy as np
-import copy
+
+
 
 def tf_strings_unicode_split_with_offsets_inputs():
     list_of_inputs = []
@@ -123209,8 +123210,8 @@ def tf_strings_unicode_split_with_offsets_inputs():
 
 generated_inputs["tf.strings.unicode_split_with_offsets"] = tf_strings_unicode_split_with_offsets_inputs()
 
-import numpy as np
-import copy
+
+
 
 def tf_strings_join_inputs():
     """
@@ -123314,8 +123315,8 @@ def tf_strings_join_inputs():
 generated_inputs["tf.strings.join"] = tf_strings_join_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def get_tf_sparse_to_indicator_inputs():
     """
@@ -123461,8 +123462,8 @@ def get_tf_sparse_to_indicator_inputs():
 generated_inputs["tf.sparse.to_indicator"] = get_tf_sparse_to_indicator_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 def tf_sparse_transpose_inputs():
     list_of_inputs = []
@@ -123630,8 +123631,8 @@ def tf_sparse_transpose_inputs():
 generated_inputs["tf.sparse.transpose"] = tf_sparse_transpose_inputs()
 
 
-import numpy as np
-import copy
+
+
 
 # Helper class to satisfy conflicting type requirements for the 'fn' parameter.
 # The signature requires 'fn' to be a 'list', and the harness attempts to get
@@ -124058,8 +124059,8 @@ def tf_edit_distance_inputs():
 
 generated_inputs["tf.edit_distance"] = tf_edit_distance_inputs()
 
-import numpy as np
-import copy
+
+
 
 def tfe_numpy_einsum_inputs():
     """
@@ -126052,8 +126053,8 @@ def tf_raw_ops_TensorSummaryV2_inputs():
 
 generated_inputs["tf.raw_ops.TensorSummaryV2"] = tf_raw_ops_TensorSummaryV2_inputs()
 
-import numpy as np
-import copy
+
+
 
 class TensorList(list):
     """
@@ -126860,4 +126861,1923 @@ def tf_sparse_to_dense_inputs():
     return list_of_inputs
 
 generated_inputs["tf.sparse.to_dense"] = tf_sparse_to_dense_inputs()
+
+
+
+
+
+tf.config.experimental.enable_op_determinism()
+tf.random.set_seed(42)
+
+def tf_data_experimental_enumerate_dataset_inputs():
+    list_of_inputs = []
+
+    # Input 1: start = 0
+    start = np.int64(0)
+    input_dict = {"start": start}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 2: start = 1
+    start = np.int64(1)
+    input_dict = {"start": start}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 3: start = 10
+    start = np.int64(10)
+    input_dict = {"start": start}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 4: start = -1
+    start = np.int64(-1)
+    input_dict = {"start": start}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 5: start = large positive number
+    start = np.int64(2**31 - 1)
+    input_dict = {"start": start}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 6: start = large negative number
+    start = np.int64(-(2**31))
+    input_dict = {"start": start}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 7: start as a numpy array (scalar)
+    start = np.array(5, dtype=np.int64)
+    input_dict = {"start": start}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 8: start as numpy array
+    start = np.array([2], dtype=np.int64)
+    input_dict = {"start": start}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 9: start = small positive number
+    start = np.int64(5)
+    input_dict = {"start": start}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 10: start = small negative number
+    start = np.int64(-5)
+    input_dict = {"start": start}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    return list_of_inputs
+
+
+
+def check_valid(api, list_of_inputs, lib="tf", suffix=0):
+    for i, input_dict in enumerate(list_of_inputs):
+        try:
+            output = run_api(api, input_dict, cpu=True, lib=lib)
+        except Exception as e:
+            print(f"Exception {type(e)}:{e} at input {i} suffix {suffix}")
+            raise
+    return True
+
+def run_api(api, input_dict, cpu=True, lib="tf"):
+    if lib == "torch":
+        if "dtype" in input_dict:
+            input_dict["dtype"] = getattr(torch, input_dict["dtype"])
+        if "layout" in input_dict:
+            input_dict["layout"] = getattr(torch, input_dict["layout"])
+
+    api_func = eval(api)
+    return api_func(**input_dict)
+
+generated_inputs["tf.data.experimental.enumerate_dataset"] = tf_data_experimental_enumerate_dataset_inputs()
+
+
+
+
+
+tf.config.experimental.enable_op_determinism()
+tf.random.set_seed(42)
+
+def tf_io_serialize_many_sparse_inputs():
+    list_of_inputs = []
+
+    # Input 1: Basic valid case
+    indices = np.array([[0, 0], [0, 1], [1, 0], [1, 2]])
+    values = np.array([1, 2, 3, 4])
+    shape = np.array([2, 3])
+    sp_input = tf.SparseTensor(indices, values, shape)
+    out_type = tf.string
+    name = "sparse_tensor_1"
+
+    input_dict = {
+        "sp_input": sp_input,
+        "out_type": out_type,
+        "name": name
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 2: Different data type for values
+    indices = np.array([[0, 0], [0, 1], [1, 0]])
+    values = np.array([1.0, 2.0, 3.0])
+    shape = np.array([2, 2])
+    sp_input = tf.SparseTensor(indices, values, shape)
+    out_type = tf.string
+    name = "sparse_tensor_2"
+
+    input_dict = {
+        "sp_input": sp_input,
+        "out_type": out_type,
+        "name": name
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 3: Empty sparse tensor
+    indices = np.array([]).reshape(0, 2)
+    values = np.array([])
+    shape = np.array([2, 3])
+    sp_input = tf.SparseTensor(indices, values, shape)
+    out_type = tf.string
+    name = "sparse_tensor_3"
+
+    input_dict = {
+        "sp_input": sp_input,
+        "out_type": out_type,
+        "name": name
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 4: 3D sparse tensor
+    indices = np.array([[0, 0, 0], [0, 1, 1], [1, 0, 2]])
+    values = np.array([1, 2, 3])
+    shape = np.array([2, 2, 3])
+    sp_input = tf.SparseTensor(indices, values, shape)
+    out_type = tf.string
+    name = "sparse_tensor_4"
+
+    input_dict = {
+        "sp_input": sp_input,
+        "out_type": out_type,
+        "name": name
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 5: Larger minibatch size
+    indices = np.array([[0, 0], [0, 1], [1, 0], [2, 2], [2, 3]])
+    values = np.array([1, 2, 3, 4, 5])
+    shape = np.array([3, 4])
+    sp_input = tf.SparseTensor(indices, values, shape)
+    out_type = tf.string
+    name = "sparse_tensor_5"
+
+    input_dict = {
+        "sp_input": sp_input,
+        "out_type": out_type,
+        "name": name
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 6: Boolean values
+    indices = np.array([[0, 0], [0, 1], [1, 0]])
+    values = np.array([True, False, True])
+    shape = np.array([2, 2])
+    sp_input = tf.SparseTensor(indices, values, shape)
+    out_type = tf.string
+    name = "sparse_tensor_6"
+
+    input_dict = {
+        "sp_input": sp_input,
+        "out_type": out_type,
+        "name": name
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 7: Int64 indices
+    indices = np.array([[0, 0], [0, 1], [1, 0]], dtype=np.int64)
+    values = np.array([1, 2, 3])
+    shape = np.array([2, 2])
+    sp_input = tf.SparseTensor(indices, values, shape)
+    out_type = tf.string
+    name = "sparse_tensor_7"
+
+    input_dict = {
+        "sp_input": sp_input,
+        "out_type": out_type,
+        "name": name
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+     # Input 8:  4D sparse tensor
+    indices = np.array([[0, 0, 0, 0], [0, 1, 1, 1], [1, 0, 2, 2]])
+    values = np.array([1, 2, 3])
+    shape = np.array([2, 2, 3, 3])
+    sp_input = tf.SparseTensor(indices, values, shape)
+    out_type = tf.string
+    name = "sparse_tensor_8"
+
+    input_dict = {
+        "sp_input": sp_input,
+        "out_type": out_type,
+        "name": name
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 9: out_type = tf.string (explicit)
+    indices = np.array([[0, 0], [0, 1], [1, 0], [1, 2]])
+    values = np.array([1, 2, 3, 4])
+    shape = np.array([2, 3])
+    sp_input = tf.SparseTensor(indices, values, shape)
+    out_type = tf.string
+    name = "sparse_tensor_9"
+
+    input_dict = {
+        "sp_input": sp_input,
+        "out_type": out_type,
+        "name": name
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 10: Different Values
+    indices = np.array([[0, 0], [0, 1], [1, 0]])
+    values = np.array([-1, -2, -3])
+    shape = np.array([2, 2])
+    sp_input = tf.SparseTensor(indices, values, shape)
+    out_type = tf.string
+    name = "sparse_tensor_10"
+
+    input_dict = {
+        "sp_input": sp_input,
+        "out_type": out_type,
+        "name": name
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    return list_of_inputs
+
+
+generated_inputs["tf.io.serialize_many_sparse"] = tf_io_serialize_many_sparse_inputs()
+
+
+
+
+
+tf.config.experimental.enable_op_determinism()
+tf.random.set_seed(42)
+
+def tf_io_serialize_sparse_inputs():
+    list_of_inputs = []
+
+    # Input 1
+    indices = np.array([[0, 0], [1, 2]], dtype=np.int64)
+    values = np.array([1, 2], dtype=np.float32)
+    shape = np.array([2, 3], dtype=np.int64)
+    sp_input = tf.SparseTensor(indices=indices, values=values, dense_shape=shape)
+    out_type = tf.string
+    name = "sparse_tensor_1"
+    input_dict = {"sp_input": sp_input, "out_type": out_type, "name": name}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 2
+    indices = np.array([[0, 0], [0, 1], [1, 0]], dtype=np.int64)
+    values = np.array([1, 2, 3], dtype=np.int32)
+    shape = np.array([2, 2], dtype=np.int64)
+    sp_input = tf.SparseTensor(indices=indices, values=values, dense_shape=shape)
+    out_type = tf.string
+    name = None
+    input_dict = {"sp_input": sp_input, "out_type": out_type, "name": name}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 3
+    indices = np.array([[0, 0, 0], [1, 1, 1]], dtype=np.int64)
+    values = np.array([1.0, 2.0], dtype=np.float64)
+    shape = np.array([2, 2, 2], dtype=np.int64)
+    sp_input = tf.SparseTensor(indices=indices, values=values, dense_shape=shape)
+    out_type = tf.string
+    name = "sparse_tensor_3"
+    input_dict = {"sp_input": sp_input, "out_type": out_type, "name": name}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 4
+    indices = np.array([[0, 0], [1, 1], [2, 2]], dtype=np.int64)
+    values = np.array([-1, -2, -3], dtype=np.int32)
+    shape = np.array([3, 3], dtype=np.int64)
+    sp_input = tf.SparseTensor(indices=indices, values=values, dense_shape=shape)
+    out_type = tf.string
+    name = None
+    input_dict = {"sp_input": sp_input, "out_type": out_type, "name": name}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 5
+    indices = np.array([[0, 1], [1, 0]], dtype=np.int64)
+    values = np.array([2, 1], dtype=np.int32)
+    shape = np.array([2, 2], dtype=np.int64)
+    sp_input = tf.SparseTensor(indices=indices, values=values, dense_shape=shape)
+    out_type = tf.string
+    name = "sparse_tensor_5"
+    input_dict = {"sp_input": sp_input, "out_type": out_type, "name": name}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 6
+    indices = np.array([[0, 0, 0], [0, 0, 1]], dtype=np.int64)
+    values = np.array([1, 2], dtype=np.int32)
+    shape = np.array([1, 1, 2], dtype=np.int64)
+    sp_input = tf.SparseTensor(indices=indices, values=values, dense_shape=shape)
+    out_type = tf.string
+    name = None
+    input_dict = {"sp_input": sp_input, "out_type": out_type, "name": name}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 7
+    indices = np.array([[0, 0], [1, 0], [1, 1]], dtype=np.int64)
+    values = np.array([1.5, 2.5, 3.5], dtype=np.float32)
+    shape = np.array([2, 2], dtype=np.int64)
+    sp_input = tf.SparseTensor(indices=indices, values=values, dense_shape=shape)
+    out_type = tf.string
+    name = "sparse_tensor_7"
+    input_dict = {"sp_input": sp_input, "out_type": out_type, "name": name}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 8
+    indices = np.array([[0, 0], [0, 1]], dtype=np.int64)
+    values = np.array([5, 7], dtype=np.int64)
+    shape = np.array([1, 2], dtype=np.int64)
+    sp_input = tf.SparseTensor(indices=indices, values=values, dense_shape=shape)
+    out_type = tf.string
+    name = None
+    input_dict = {"sp_input": sp_input, "out_type": out_type, "name": name}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 9
+    indices = np.array([[0, 0, 0], [1, 0, 1], [1, 1, 0]], dtype=np.int64)
+    values = np.array([10, 20, 30], dtype=np.float64)
+    shape = np.array([2, 2, 2], dtype=np.int64)
+    sp_input = tf.SparseTensor(indices=indices, values=values, dense_shape=shape)
+    out_type = tf.string
+    name = "sparse_tensor_9"
+    input_dict = {"sp_input": sp_input, "out_type": out_type, "name": name}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 10
+    indices = np.array([[0, 0], [1, 1], [2, 2], [3, 3]], dtype=np.int64)
+    values = np.array([1, 2, 3, 4], dtype=np.int32)
+    shape = np.array([4, 4], dtype=np.int64)
+    sp_input = tf.SparseTensor(indices=indices, values=values, dense_shape=shape)
+    out_type = tf.string
+    name = None
+    input_dict = {"sp_input": sp_input, "out_type": out_type, "name": name}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    return list_of_inputs
+
+
+generated_inputs["tf.io.serialize_sparse"] = tf_io_serialize_sparse_inputs()
+
+
+
+
+
+tf.config.experimental.enable_op_determinism()
+tf.random.set_seed(42)
+
+def tf_sparse_add_inputs():
+    list_of_inputs = []
+
+    # Input 1: SparseTensor + Tensor
+    indices1 = np.array([[0, 0], [1, 2]], dtype=np.int64)
+    values1 = np.array([1, 2], dtype=np.float32)
+    shape1 = np.array([2, 3], dtype=np.int64)
+    a = tf.SparseTensor(indices1, values1, shape1)
+    b = np.array([[3, 0, 1], [0, 4, 0]], dtype=np.float32)
+    threshold = np.float32(0.0)
+    input_dict = {"a": a, "b": b, "threshold": threshold}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 2: Tensor + SparseTensor
+    a = np.array([[3, 0, 1], [0, 4, 0]], dtype=np.float32)
+    indices2 = np.array([[0, 0], [1, 2]], dtype=np.int64)
+    values2 = np.array([1, 2], dtype=np.float32)
+    shape2 = np.array([2, 3], dtype=np.int64)
+    b = tf.SparseTensor(indices2, values2, shape2)
+    threshold = np.float32(0.0)
+    input_dict = {"a": a, "b": b, "threshold": threshold}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 3: SparseTensor + SparseTensor, threshold = 0
+    indices3_a = np.array([[0, 0], [1, 2]], dtype=np.int64)
+    values3_a = np.array([1, 2], dtype=np.float32)
+    shape3_a = np.array([2, 3], dtype=np.int64)
+    a = tf.SparseTensor(indices3_a, values3_a, shape3_a)
+    indices3_b = np.array([[0, 0], [1, 1]], dtype=np.int64)
+    values3_b = np.array([-1, 3], dtype=np.float32)
+    shape3_b = np.array([2, 3], dtype=np.int64)
+    b = tf.SparseTensor(indices3_b, values3_b, shape3_b)
+    threshold = np.float32(0.0)
+    input_dict = {"a": a, "b": b, "threshold": threshold}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 4: SparseTensor + SparseTensor, threshold > 0
+    indices4_a = np.array([[0, 0], [1, 2]], dtype=np.int64)
+    values4_a = np.array([1, 2], dtype=np.float32)
+    shape4_a = np.array([2, 3], dtype=np.int64)
+    a = tf.SparseTensor(indices4_a, values4_a, shape4_a)
+    indices4_b = np.array([[0, 0], [1, 1]], dtype=np.int64)
+    values4_b = np.array([-1, 3], dtype=np.float32)
+    shape4_b = np.array([2, 3], dtype=np.int64)
+    b = tf.SparseTensor(indices4_b, values4_b, shape4_b)
+    threshold = np.float32(0.5)
+    input_dict = {"a": a, "b": b, "threshold": threshold}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 5: SparseTensor + SparseTensor, complex values
+    indices5_a = np.array([[0, 0], [1, 2]], dtype=np.int64)
+    values5_a = np.array([1 + 1j, 2 - 2j], dtype=np.complex64)
+    shape5_a = np.array([2, 3], dtype=np.int64)
+    a = tf.SparseTensor(indices5_a, values5_a, shape5_a)
+    indices5_b = np.array([[0, 0], [1, 1]], dtype=np.int64)
+    values5_b = np.array([-1 - 1j, 3 + 3j], dtype=np.complex64)
+    shape5_b = np.array([2, 3], dtype=np.int64)
+    b = tf.SparseTensor(indices5_b, values5_b, shape5_b)
+    threshold = np.float32(0.5)
+    input_dict = {"a": a, "b": b, "threshold": threshold}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 6: SparseTensor + Tensor, complex values
+    indices6 = np.array([[0, 0], [1, 2]], dtype=np.int64)
+    values6 = np.array([1 + 1j, 2 - 2j], dtype=np.complex64)
+    shape6 = np.array([2, 3], dtype=np.int64)
+    a = tf.SparseTensor(indices6, values6, shape6)
+    b = np.array([[3 - 1j, 0, 1], [0, 4 + 2j, 0]], dtype=np.complex64)
+    threshold = np.float32(0.0)
+    input_dict = {"a": a, "b": b, "threshold": threshold}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 7: Tensor + SparseTensor, complex values
+    a = np.array([[3 - 1j, 0, 1], [0, 4 + 2j, 0]], dtype=np.complex64)
+    indices7 = np.array([[0, 0], [1, 2]], dtype=np.int64)
+    values7 = np.array([1 + 1j, 2 - 2j], dtype=np.complex64)
+    shape7 = np.array([2, 3], dtype=np.int64)
+    b = tf.SparseTensor(indices7, values7, shape7)
+    threshold = np.float32(0.0)
+    input_dict = {"a": a, "b": b, "threshold": threshold}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 8: 3D SparseTensor + Tensor, float values
+    indices8 = np.array([[0, 0, 0], [1, 2, 1]], dtype=np.int64)
+    values8 = np.array([1.5, 2.7], dtype=np.float32)
+    shape8 = np.array([2, 3, 2], dtype=np.int64)
+    a = tf.SparseTensor(indices8, values8, shape8)
+    b = np.random.rand(2, 3, 2).astype(np.float32)
+    threshold = np.float32(0.0)
+    input_dict = {"a": a, "b": b, "threshold": threshold}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 9: Tensor + 3D SparseTensor, float values
+    a = np.random.rand(2, 3, 2).astype(np.float32)
+    indices9 = np.array([[0, 0, 0], [1, 2, 1]], dtype=np.int64)
+    values9 = np.array([1.5, 2.7], dtype=np.float32)
+    shape9 = np.array([2, 3, 2], dtype=np.int64)
+    b = tf.SparseTensor(indices9, values9, shape9)
+    threshold = np.float32(0.0)
+    input_dict = {"a": a, "b": b, "threshold": threshold}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 10: 3D SparseTensor + SparseTensor, float values, threshold
+    indices10_a = np.array([[0, 0, 0], [1, 2, 1]], dtype=np.int64)
+    values10_a = np.array([1.5, 2.7], dtype=np.float32)
+    shape10_a = np.array([2, 3, 2], dtype=np.int64)
+    a = tf.SparseTensor(indices10_a, values10_a, shape10_a)
+    indices10_b = np.array([[0, 0, 0], [1, 1, 1]], dtype=np.int64)
+    values10_b = np.array([-1.5, 3.0], dtype=np.float32)
+    shape10_b = np.array([2, 3, 2], dtype=np.int64)
+    b = tf.SparseTensor(indices10_b, values10_b, shape10_b)
+    threshold = np.float32(0.1)
+    input_dict = {"a": a, "b": b, "threshold": threshold}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    return list_of_inputs
+
+
+generated_inputs["tf.sparse.add"] = tf_sparse_add_inputs()
+
+
+
+
+
+tf.config.experimental.enable_op_determinism()
+tf.random.set_seed(42)
+
+def tf_sparse_expand_dims_inputs():
+    list_of_inputs = []
+
+    # Input 1
+    indices = np.array([[0, 1], [1, 2]])
+    values = np.array([1, 2])
+    dense_shape = np.array([3, 4])
+    sp_input = tf.sparse.SparseTensor(indices, values, dense_shape)
+    axis = 0
+    name = "expand_0"
+    input_dict = {"sp_input": sp_input, "axis": axis, "name": name}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 2
+    indices = np.array([[0, 1], [1, 2]])
+    values = np.array([1, 2])
+    dense_shape = np.array([3, 4])
+    sp_input = tf.sparse.SparseTensor(indices, values, dense_shape)
+    axis = 1
+    name = "expand_1"
+    input_dict = {"sp_input": sp_input, "axis": axis, "name": name}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 3
+    indices = np.array([[0, 1], [1, 2]])
+    values = np.array([1, 2])
+    dense_shape = np.array([3, 4])
+    sp_input = tf.sparse.SparseTensor(indices, values, dense_shape)
+    axis = -1
+    name = "expand_-1"
+    input_dict = {"sp_input": sp_input, "axis": axis, "name": name}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 4
+    indices = np.array([[0, 1], [1, 2]])
+    values = np.array([1, 2])
+    dense_shape = np.array([3, 4])
+    sp_input = tf.sparse.SparseTensor(indices, values, dense_shape)
+    axis = -2
+    name = "expand_-2"
+    input_dict = {"sp_input": sp_input, "axis": axis, "name": name}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 5
+    indices = np.array([[0, 0, 1], [0, 1, 2]])
+    values = np.array([1, 2])
+    dense_shape = np.array([2, 3, 4])
+    sp_input = tf.sparse.SparseTensor(indices, values, dense_shape)
+    axis = 0
+    name = "expand_3d_0"
+    input_dict = {"sp_input": sp_input, "axis": axis, "name": name}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 6
+    indices = np.array([[0, 0, 1], [0, 1, 2]])
+    values = np.array([1, 2])
+    dense_shape = np.array([2, 3, 4])
+    sp_input = tf.sparse.SparseTensor(indices, values, dense_shape)
+    axis = 1
+    name = "expand_3d_1"
+    input_dict = {"sp_input": sp_input, "axis": axis, "name": name}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 7
+    indices = np.array([[0, 0, 1], [0, 1, 2]])
+    values = np.array([1, 2])
+    dense_shape = np.array([2, 3, 4])
+    sp_input = tf.sparse.SparseTensor(indices, values, dense_shape)
+    axis = -1
+    name = "expand_3d_-1"
+    input_dict = {"sp_input": sp_input, "axis": axis, "name": name}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 8
+    indices = np.array([[0, 0, 1], [0, 1, 2]])
+    values = np.array([1, 2])
+    dense_shape = np.array([2, 3, 4])
+    sp_input = tf.sparse.SparseTensor(indices, values, dense_shape)
+    axis = -2
+    name = "expand_3d_-2"
+    input_dict = {"sp_input": sp_input, "axis": axis, "name": name}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+   # Input 9
+    indices = np.array([[0, 0, 1], [0, 1, 2]])
+    values = np.array([1, 2])
+    dense_shape = np.array([2, 3, 4])
+    sp_input = tf.sparse.SparseTensor(indices, values, dense_shape)
+    axis = 2
+    name = "expand_3d_2"
+    input_dict = {"sp_input": sp_input, "axis": axis, "name": name}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 10
+    indices = np.array([[0], [1]])
+    values = np.array([1, 2])
+    dense_shape = np.array([3])
+    sp_input = tf.sparse.SparseTensor(indices, values, dense_shape)
+    axis = -1
+    name = "expand_1d"
+    input_dict = {"sp_input": sp_input, "axis": axis, "name": name}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    return list_of_inputs
+
+
+generated_inputs["tf.sparse.expand_dims"] = tf_sparse_expand_dims_inputs()
+
+
+
+
+
+def tf_sparse_fill_empty_rows_inputs():
+    list_of_inputs = []
+
+    # Input 1 - int32
+    indices = np.array([[0, 1], [0, 3], [2, 0], [3, 1]], dtype=np.int64)
+    values = np.array([1, 2, 3, 4], dtype=np.int32)
+    shape = np.array([5, 6], dtype=np.int64)
+    sp_input = tf.SparseTensor(indices, values, shape)
+    default_value = tf.constant(0, dtype=np.int32)
+    name = "test_name_1"
+    input_dict = {"sp_input": sp_input, "default_value": default_value, "name": name}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 2 - float32
+    indices = np.array([[0, 0], [1, 1], [2, 2]], dtype=np.int64)
+    values = np.array([1.0, 2.0, 3.0], dtype=np.float32)
+    shape = np.array([3, 3], dtype=np.int64)
+    sp_input = tf.SparseTensor(indices, values, shape)
+    default_value = tf.constant(0.0, dtype=np.float32)
+    name = "test_name_2"
+    input_dict = {"sp_input": sp_input, "default_value": default_value, "name": name}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 3 - empty sparse tensor - int32
+    indices = np.array([], dtype=np.int64).reshape(0, 2)
+    values = np.array([], dtype=np.int32)
+    shape = np.array([5, 5], dtype=np.int64)
+    sp_input = tf.SparseTensor(indices, values, shape)
+    default_value = tf.constant(5, dtype=np.int32)
+    name = "test_name_3"
+    input_dict = {"sp_input": sp_input, "default_value": default_value, "name": name}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 4 - all rows filled - float32
+    indices = np.array([[0, 0], [1, 1], [2, 2], [3, 3], [4, 4]], dtype=np.int64)
+    values = np.array([1.0, 2.0, 3.0, 4.0, 5.0], dtype=np.float32)
+    shape = np.array([5, 5], dtype=np.int64)
+    sp_input = tf.SparseTensor(indices, values, shape)
+    default_value = tf.constant(-1.0, dtype=np.float32)
+    name = "test_name_4"
+    input_dict = {"sp_input": sp_input, "default_value": default_value, "name": name}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 5 - float64
+    indices = np.array([[0, 0], [2, 1]], dtype=np.int64)
+    values = np.array([1.0, 2.0], dtype=np.float64)
+    shape = np.array([4, 2], dtype=np.int64)
+    sp_input = tf.SparseTensor(indices, values, shape)
+    default_value = tf.constant(0.0, dtype=np.float64)
+    name = "test_name_5"
+    input_dict = {"sp_input": sp_input, "default_value": default_value, "name": name}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 6 - int64
+    indices = np.array([[0, 0], [2, 1]], dtype=np.int64)
+    values = np.array([1, 2], dtype=np.int64)
+    shape = np.array([4, 2], dtype=np.int64)
+    sp_input = tf.SparseTensor(indices, values, shape)
+    default_value = tf.constant(0, dtype=np.int64)
+    name = "test_name_6"
+    input_dict = {"sp_input": sp_input, "default_value": default_value, "name": name}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+     # Input 7 - Empty rows at the beginning - int32
+    indices = np.array([[2, 0], [3, 1]], dtype=np.int64)
+    values = np.array([3, 4], dtype=np.int32)
+    shape = np.array([5, 6], dtype=np.int64)
+    sp_input = tf.SparseTensor(indices, values, shape)
+    default_value = tf.constant(0, dtype=np.int32)
+    name = "test_name_7"
+    input_dict = {"sp_input": sp_input, "default_value": default_value, "name": name}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 8 - boolean
+    indices = np.array([[0, 0], [2, 1]], dtype=np.int64)
+    values = np.array([True, False], dtype=np.bool_)
+    shape = np.array([4, 2], dtype=np.int64)
+    sp_input = tf.SparseTensor(indices, values, shape)
+    default_value = tf.constant(False, dtype=np.bool_)
+    name = "test_name_8"
+    input_dict = {"sp_input": sp_input, "default_value": default_value, "name": name}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 9 - Small Shape - int32
+    indices = np.array([[0, 0]], dtype=np.int64)
+    values = np.array([1], dtype=np.int32)
+    shape = np.array([1, 1], dtype=np.int64)
+    sp_input = tf.SparseTensor(indices, values, shape)
+    default_value = tf.constant(0, dtype=np.int32)
+    name = "test_name_9"
+    input_dict = {"sp_input": sp_input, "default_value": default_value, "name": name}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 10 - Large Shape and all zeros - float64
+    indices = np.array([[99, 99]], dtype=np.int64)
+    values = np.array([1.0], dtype=np.float64)
+    shape = np.array([100, 100], dtype=np.int64)
+    sp_input = tf.SparseTensor(indices, values, shape)
+    default_value = tf.constant(0.0, dtype=np.float64)
+    name = "test_name_10"
+    input_dict = {"sp_input": sp_input, "default_value": default_value, "name": name}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 11 - Different indices - int32
+    indices = np.array([[1, 0], [3, 2]], dtype=np.int64)
+    values = np.array([5, 6], dtype=np.int32)
+    shape = np.array([5, 6], dtype=np.int64)
+    sp_input = tf.SparseTensor(indices, values, shape)
+    default_value = tf.constant(0, dtype=np.int32)
+    name = "test_name_11"
+    input_dict = {"sp_input": sp_input, "default_value": default_value, "name": name}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    return list_of_inputs
+
+
+generated_inputs["tf.sparse.fill_empty_rows"] = tf_sparse_fill_empty_rows_inputs()
+
+
+
+
+
+tf.config.experimental.enable_op_determinism()
+tf.random.set_seed(42)
+
+def tf_sparse_mask_inputs():
+    list_of_inputs = []
+
+    # Input 1
+    indices = np.array([0, 2, 4, 6])
+    values = np.array([1, 3, 5, 7])
+    dense_shape = tf.constant([10])
+    a = tf.IndexedSlices(values=values, indices=indices, dense_shape=dense_shape)
+    mask_indices = np.array([0, 4])
+    name = "mask_op_1"
+    input_dict = {"a": a, "mask_indices": mask_indices, "name": name}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 2
+    indices = np.array([1, 3, 5, 7, 9])
+    values = np.array([2, 4, 6, 8, 10])
+    dense_shape = tf.constant([12])
+    a = tf.IndexedSlices(values=values, indices=indices, dense_shape=dense_shape)
+    mask_indices = np.array([3, 9])
+    name = "mask_op_2"
+    input_dict = {"a": a, "mask_indices": mask_indices, "name": name}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 3
+    indices = np.array([0, 1, 2])
+    values = np.array([[1, 2], [3, 4], [5, 6]])
+    dense_shape = tf.constant([5, 2])
+    a = tf.IndexedSlices(values=values, indices=indices, dense_shape=dense_shape)
+    mask_indices = np.array([0, 2])
+    name = "mask_op_3"
+    input_dict = {"a": a, "mask_indices": mask_indices, "name": name}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 4
+    indices = np.array([2, 5, 8])
+    values = np.array([[7, 8], [9, 10], [11, 12]])
+    dense_shape = tf.constant([10, 2])
+    a = tf.IndexedSlices(values=values, indices=indices, dense_shape=dense_shape)
+    mask_indices = np.array([5])
+    name = "mask_op_4"
+    input_dict = {"a": a, "mask_indices": mask_indices, "name": name}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 5
+    indices = np.array([0, 1, 2, 3, 4])
+    values = np.array([0.1, 0.2, 0.3, 0.4, 0.5])
+    dense_shape = tf.constant([6])
+    a = tf.IndexedSlices(values=values, indices=indices, dense_shape=dense_shape)
+    mask_indices = np.array([1, 3, 4])
+    name = "mask_op_5"
+    input_dict = {"a": a, "mask_indices": mask_indices, "name": name}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+     # Input 6
+    indices = np.array([10, 20, 30])
+    values = np.array([[1, 2, 3], [4, 5, 6], [7, 8, 9]])
+    dense_shape = tf.constant([40, 3])
+    a = tf.IndexedSlices(values=values, indices=indices, dense_shape=dense_shape)
+    mask_indices = np.array([10, 30])
+    name = "mask_op_6"
+    input_dict = {"a": a, "mask_indices": mask_indices, "name": name}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 7
+    indices = np.array([7, 14, 21, 28])
+    values = np.array([1.5, 2.5, 3.5, 4.5])
+    dense_shape = tf.constant([30])
+    a = tf.IndexedSlices(values=values, indices=indices, dense_shape=dense_shape)
+    mask_indices = np.array([14, 28])
+    name = "mask_op_7"
+    input_dict = {"a": a, "mask_indices": mask_indices, "name": name}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 8
+    indices = np.array([1, 2, 3])
+    values = np.array([[1, 2, 3, 4], [5, 6, 7, 8], [9, 10, 11, 12]])
+    dense_shape = tf.constant([5, 4])
+    a = tf.IndexedSlices(values=values, indices=indices, dense_shape=dense_shape)
+    mask_indices = np.array([2])
+    name = "mask_op_8"
+    input_dict = {"a": a, "mask_indices": mask_indices, "name": name}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 9
+    indices = np.array([0, 5, 10, 15])
+    values = np.array([100, 200, 300, 400])
+    dense_shape = tf.constant([20])
+    a = tf.IndexedSlices(values=values, indices=indices, dense_shape=dense_shape)
+    mask_indices = np.array([0, 10, 15])
+    name = "mask_op_9"
+    input_dict = {"a": a, "mask_indices": mask_indices, "name": name}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 10
+    indices = np.array([3, 6, 9])
+    values = np.array([[1, 1], [2, 2], [3, 3]])
+    dense_shape = tf.constant([12, 2])
+    a = tf.IndexedSlices(values=values, indices=indices, dense_shape=dense_shape)
+    mask_indices = np.array([3, 9])
+    name = "mask_op_10"
+    input_dict = {"a": a, "mask_indices": mask_indices, "name": name}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    return list_of_inputs
+
+
+generated_inputs["tf.sparse.mask"] = tf_sparse_mask_inputs()
+
+
+
+
+
+tf.config.experimental.enable_op_determinism()
+tf.random.set_seed(42)
+
+def tf_sparse_maximum_inputs():
+    list_of_inputs = []
+
+    # Input 1
+    indices_a = np.array([[0], [2]])
+    values_a = np.array([1, 5], dtype=np.int32)
+    dense_shape_a = np.array([5])
+    sp_a = tf.sparse.SparseTensor(indices_a, values_a, dense_shape_a)
+
+    indices_b = np.array([[1], [2]])
+    values_b = np.array([2, 3], dtype=np.int32)
+    dense_shape_b = np.array([5])
+    sp_b = tf.sparse.SparseTensor(indices_b, values_b, dense_shape_b)
+
+    input_dict = {"sp_a": sp_a, "sp_b": sp_b, "name": "sparse_max_1"}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 2
+    indices_a = np.array([[0, 0], [0, 1]])
+    values_a = np.array([1, 2], dtype=np.int32)
+    dense_shape_a = np.array([2, 2])
+    sp_a = tf.sparse.SparseTensor(indices_a, values_a, dense_shape_a)
+
+    indices_b = np.array([[0, 1], [1, 0]])
+    values_b = np.array([3, 4], dtype=np.int32)
+    dense_shape_b = np.array([2, 2])
+    sp_b = tf.sparse.SparseTensor(indices_b, values_b, dense_shape_b)
+
+    input_dict = {"sp_a": sp_a, "sp_b": sp_b, "name": "sparse_max_2"}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 3
+    indices_a = np.array([[0], [1], [2]])
+    values_a = np.array([-1, -2, -3], dtype=np.int32)
+    dense_shape_a = np.array([5])
+    sp_a = tf.sparse.SparseTensor(indices_a, values_a, dense_shape_a)
+
+    indices_b = np.array([[0], [2], [3]])
+    values_b = np.array([-4, -5, -6], dtype=np.int32)
+    dense_shape_b = np.array([5])
+    sp_b = tf.sparse.SparseTensor(indices_b, values_b, dense_shape_b)
+
+    input_dict = {"sp_a": sp_a, "sp_b": sp_b, "name": "sparse_max_3"}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 4
+    indices_a = np.array([[0, 0], [1, 1]])
+    values_a = np.array([1.5, 2.5], dtype=np.float32)
+    dense_shape_a = np.array([3, 3])
+    sp_a = tf.sparse.SparseTensor(indices_a, values_a, dense_shape_a)
+
+    indices_b = np.array([[0, 1], [1, 1], [2, 2]])
+    values_b = np.array([3.5, 0.5, 4.5], dtype=np.float32)
+    dense_shape_b = np.array([3, 3])
+    sp_b = tf.sparse.SparseTensor(indices_b, values_b, dense_shape_b)
+
+    input_dict = {"sp_a": sp_a, "sp_b": sp_b, "name": "sparse_max_4"}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 5
+    indices_a = np.array([[0, 0, 0], [0, 0, 1]])
+    values_a = np.array([1, 2], dtype=np.int32)
+    dense_shape_a = np.array([1, 1, 2])
+    sp_a = tf.sparse.SparseTensor(indices_a, values_a, dense_shape_a)
+
+    indices_b = np.array([[0, 0, 1]])
+    values_b = np.array([3], dtype=np.int32)
+    dense_shape_b = np.array([1, 1, 2])
+    sp_b = tf.sparse.SparseTensor(indices_b, values_b, dense_shape_b)
+
+    input_dict = {"sp_a": sp_a, "sp_b": sp_b, "name": "sparse_max_5"}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 6
+    indices_a = np.array([[0]])
+    values_a = np.array([1], dtype=np.int64)
+    dense_shape_a = np.array([1])
+    sp_a = tf.sparse.SparseTensor(indices_a, values_a, dense_shape_a)
+
+    indices_b = np.array([[0]])
+    values_b = np.array([2], dtype=np.int64)
+    dense_shape_b = np.array([1])
+    sp_b = tf.sparse.SparseTensor(indices_b, values_b, dense_shape_b)
+
+    input_dict = {"sp_a": sp_a, "sp_b": sp_b, "name": "sparse_max_6"}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 7
+    indices_a = np.array([[0, 0], [0, 1], [1, 0], [1, 1]])
+    values_a = np.array([1, 2, 3, 4], dtype=np.int32)
+    dense_shape_a = np.array([2, 2])
+    sp_a = tf.sparse.SparseTensor(indices_a, values_a, dense_shape_a)
+
+    indices_b = np.array([[0, 0], [0, 1], [1, 0], [1, 1]])
+    values_b = np.array([5, 6, 7, 8], dtype=np.int32)
+    dense_shape_b = np.array([2, 2])
+    sp_b = tf.sparse.SparseTensor(indices_b, values_b, dense_shape_b)
+    input_dict = {"sp_a": sp_a, "sp_b": sp_b, "name": "sparse_max_7"}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 8
+    indices_a = np.array([[0, 0], [1, 1]])
+    values_a = np.array([-1, -2], dtype=np.int32)
+    dense_shape_a = np.array([2, 2])
+    sp_a = tf.sparse.SparseTensor(indices_a, values_a, dense_shape_a)
+
+    indices_b = np.array([[0, 1], [1, 0]])
+    values_b = np.array([-3, -4], dtype=np.int32)
+    dense_shape_b = np.array([2, 2])
+    sp_b = tf.sparse.SparseTensor(indices_b, values_b, dense_shape_b)
+    input_dict = {"sp_a": sp_a, "sp_b": sp_b, "name": "sparse_max_8"}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 9
+    indices_a = np.array([[0], [1]])
+    values_a = np.array([1, 2], dtype=np.float64)
+    dense_shape_a = np.array([3])
+    sp_a = tf.sparse.SparseTensor(indices_a, values_a, dense_shape_a)
+
+    indices_b = np.array([[1], [2]])
+    values_b = np.array([3, 4], dtype=np.float64)
+    dense_shape_b = np.array([3])
+    sp_b = tf.sparse.SparseTensor(indices_b, values_b, dense_shape_b)
+    input_dict = {"sp_a": sp_a, "sp_b": sp_b, "name": "sparse_max_9"}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 10
+    indices_a = np.array([[0, 0], [0, 1]])
+    values_a = np.array([0, 0], dtype=np.int32)
+    dense_shape_a = np.array([1, 2])
+    sp_a = tf.sparse.SparseTensor(indices_a, values_a, dense_shape_a)
+
+    indices_b = np.array([[0, 0], [0, 1]])
+    values_b = np.array([0, 0], dtype=np.int32)
+    dense_shape_b = np.array([1, 2])
+    sp_b = tf.sparse.SparseTensor(indices_b, values_b, dense_shape_b)
+    input_dict = {"sp_a": sp_a, "sp_b": sp_b, "name": "sparse_max_10"}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+
+    return list_of_inputs
+
+
+generated_inputs["tf.sparse.maximum"] = tf_sparse_maximum_inputs()
+
+
+
+
+
+def tf_sparse_minimum_inputs():
+    list_of_inputs = []
+
+    # Input 1
+    indices_a = np.array([[0, 0], [1, 2]])
+    values_a = np.array([1, 2], dtype=np.int32)
+    dense_shape_a = np.array([3, 3])
+    sp_a = tf.sparse.SparseTensor(indices_a, values_a, dense_shape_a)
+
+    indices_b = np.array([[0, 0], [1, 1]])
+    values_b = np.array([3, 4], dtype=np.int32)
+    dense_shape_b = np.array([3, 3])
+    sp_b = tf.sparse.SparseTensor(indices_b, values_b, dense_shape_b)
+
+    input_dict = {"sp_a": sp_a, "sp_b": sp_b, "name": "minimum_1"}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 2
+    indices_a = np.array([[0], [2]])
+    values_a = np.array([-1, 5], dtype=np.int32)
+    dense_shape_a = np.array([5])
+    sp_a = tf.sparse.SparseTensor(indices_a, values_a, dense_shape_a)
+
+    indices_b = np.array([[1], [2]])
+    values_b = np.array([2, 3], dtype=np.int32)
+    dense_shape_b = np.array([5])
+    sp_b = tf.sparse.SparseTensor(indices_b, values_b, dense_shape_b)
+
+    input_dict = {"sp_a": sp_a, "sp_b": sp_b, "name": "minimum_2"}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 3
+    indices_a = np.array([[0, 0, 0]])
+    values_a = np.array([1], dtype=np.int32)
+    dense_shape_a = np.array([2, 2, 2])
+    sp_a = tf.sparse.SparseTensor(indices_a, values_a, dense_shape_a)
+
+    indices_b = np.array([[0, 0, 0]])
+    values_b = np.array([2], dtype=np.int32)
+    dense_shape_b = np.array([2, 2, 2])
+    sp_b = tf.sparse.SparseTensor(indices_b, values_b, dense_shape_b)
+
+    input_dict = {"sp_a": sp_a, "sp_b": sp_b, "name": "minimum_3"}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+   # Input 4
+    indices_a = np.array([[0, 0], [1, 1]])
+    values_a = np.array([10, 20], dtype=np.int32)
+    dense_shape_a = np.array([2, 2])
+    sp_a = tf.sparse.SparseTensor(indices_a, values_a, dense_shape_a)
+
+    indices_b = np.array([[0, 0], [1, 1]])
+    values_b = np.array([5, 15], dtype=np.int32)
+    dense_shape_b = np.array([2, 2])
+    sp_b = tf.sparse.SparseTensor(indices_b, values_b, dense_shape_b)
+
+    input_dict = {"sp_a": sp_a, "sp_b": sp_b, "name": "minimum_4"}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 5
+    indices_a = np.array([[0, 0], [0, 1], [1, 0], [1, 1]])
+    values_a = np.array([1, 2, 3, 4], dtype=np.int32)
+    dense_shape_a = np.array([2, 2])
+    sp_a = tf.sparse.SparseTensor(indices_a, values_a, dense_shape_a)
+
+    indices_b = np.array([[0, 0], [0, 1], [1, 0], [1, 1]])
+    values_b = np.array([5, 6, 7, 8], dtype=np.int32)
+    dense_shape_b = np.array([2, 2])
+    sp_b = tf.sparse.SparseTensor(indices_b, values_b, dense_shape_b)
+
+    input_dict = {"sp_a": sp_a, "sp_b": sp_b, "name": "minimum_5"}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 6
+    indices_a = np.array([[0, 0], [1, 0]])
+    values_a = np.array([-5, -10], dtype=np.int32)
+    dense_shape_a = np.array([2, 2])
+    sp_a = tf.sparse.SparseTensor(indices_a, values_a, dense_shape_a)
+
+    indices_b = np.array([[0, 0], [1, 1]])
+    values_b = np.array([-1, -2], dtype=np.int32)
+    dense_shape_b = np.array([2, 2])
+    sp_b = tf.sparse.SparseTensor(indices_b, values_b, dense_shape_b)
+
+    input_dict = {"sp_a": sp_a, "sp_b": sp_b, "name": "minimum_6"}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 7
+    indices_a = np.array([[0, 0], [1, 0], [1, 1]], dtype=np.int64)
+    values_a = np.array([1, 2, 3], dtype=np.int32)
+    dense_shape_a = np.array([2, 2], dtype=np.int64)
+    sp_a = tf.sparse.SparseTensor(indices_a, values_a, dense_shape_a)
+
+    indices_b = np.array([[0, 0], [0, 1], [1, 1]], dtype=np.int64)
+    values_b = np.array([4, 5, 6], dtype=np.int32)
+    dense_shape_b = np.array([2, 2], dtype=np.int64)
+    sp_b = tf.sparse.SparseTensor(indices_b, values_b, dense_shape_b)
+
+    input_dict = {"sp_a": sp_a, "sp_b": sp_b, "name": "minimum_7"}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 8
+    indices_a = np.array([[0], [1]])
+    values_a = np.array([1, 2], dtype=np.int32)
+    dense_shape_a = np.array([5])
+    sp_a = tf.sparse.SparseTensor(indices_a, values_a, dense_shape_a)
+
+    indices_b = np.array([[0], [1]])
+    values_b = np.array([3, 1], dtype=np.int32)
+    dense_shape_b = np.array([5])
+    sp_b = tf.sparse.SparseTensor(indices_b, values_b, dense_shape_b)
+
+    input_dict = {"sp_a": sp_a, "sp_b": sp_b, "name": "minimum_8"}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 9 - Empty SparseTensors
+    indices_a = np.empty((0, 2), dtype=np.int64)
+    values_a = np.empty((0,), dtype=np.int32)
+    dense_shape_a = np.array([2, 2], dtype=np.int64)
+    sp_a = tf.sparse.SparseTensor(indices_a, values_a, dense_shape_a)
+
+    indices_b = np.empty((0, 2), dtype=np.int64)
+    values_b = np.empty((0,), dtype=np.int32)
+    dense_shape_b = np.array([2, 2], dtype=np.int64)
+    sp_b = tf.sparse.SparseTensor(indices_b, values_b, dense_shape_b)
+
+    input_dict = {"sp_a": sp_a, "sp_b": sp_b, "name": "minimum_9"}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 10
+    indices_a = np.array([[0, 0]])
+    values_a = np.array([1], dtype=np.int32)
+    dense_shape_a = np.array([1, 1])
+    sp_a = tf.sparse.SparseTensor(indices_a, values_a, dense_shape_a)
+
+    indices_b = np.array([[0, 0]])
+    values_b = np.array([2], dtype=np.int32)
+    dense_shape_b = np.array([1, 1])
+    sp_b = tf.sparse.SparseTensor(indices_b, values_b, dense_shape_b)
+
+    input_dict = {"sp_a": sp_a, "sp_b": sp_b, "name": "minimum_10"}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    return list_of_inputs
+
+
+generated_inputs["tf.sparse.minimum"] = tf_sparse_minimum_inputs()
+
+
+
+
+
+tf.config.experimental.enable_op_determinism()
+tf.random.set_seed(42)
+
+def tf_sparse_reduce_sum_inputs():
+    list_of_inputs = []
+
+    # Input 1
+    indices = np.array([[0, 0], [0, 2], [1, 1]], dtype=np.int64)
+    values = np.array([1, 1, 1], dtype=np.int32)
+    dense_shape = np.array([2, 3], dtype=np.int64)
+    sp_input = tf.SparseTensor(indices, values, dense_shape)
+    axis = []
+    keepdims = False
+    output_is_sparse = False
+    name = None
+    input_dict = {"sp_input": sp_input, "axis": axis, "keepdims": keepdims, "output_is_sparse": output_is_sparse, "name": name}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 2
+    indices = np.array([[0, 0], [0, 2], [1, 1]], dtype=np.int64)
+    values = np.array([1, 1, 1], dtype=np.int32)
+    dense_shape = np.array([2, 3], dtype=np.int64)
+    sp_input = tf.SparseTensor(indices, values, dense_shape)
+    axis = [0]
+    keepdims = False
+    output_is_sparse = False
+    name = None
+    input_dict = {"sp_input": sp_input, "axis": axis, "keepdims": keepdims, "output_is_sparse": output_is_sparse, "name": name}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 3
+    indices = np.array([[0, 0], [0, 2], [1, 1]], dtype=np.int64)
+    values = np.array([1, 1, 1], dtype=np.int32)
+    dense_shape = np.array([2, 3], dtype=np.int64)
+    sp_input = tf.SparseTensor(indices, values, dense_shape)
+    axis = [1]
+    keepdims = False
+    output_is_sparse = False
+    name = None
+    input_dict = {"sp_input": sp_input, "axis": axis, "keepdims": keepdims, "output_is_sparse": output_is_sparse, "name": name}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 4
+    indices = np.array([[0, 0], [0, 2], [1, 1]], dtype=np.int64)
+    values = np.array([1, 1, 1], dtype=np.int32)
+    dense_shape = np.array([2, 3], dtype=np.int64)
+    sp_input = tf.SparseTensor(indices, values, dense_shape)
+    axis = [1]
+    keepdims = True
+    output_is_sparse = False
+    name = None
+    input_dict = {"sp_input": sp_input, "axis": axis, "keepdims": keepdims, "output_is_sparse": output_is_sparse, "name": name}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 5
+    indices = np.array([[0, 0], [0, 2], [1, 1]], dtype=np.int64)
+    values = np.array([1, 1, 1], dtype=np.int32)
+    dense_shape = np.array([2, 3], dtype=np.int64)
+    sp_input = tf.SparseTensor(indices, values, dense_shape)
+    axis = [0, 1]
+    keepdims = False
+    output_is_sparse = False
+    name = None
+    input_dict = {"sp_input": sp_input, "axis": axis, "keepdims": keepdims, "output_is_sparse": output_is_sparse, "name": name}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 6
+    indices = np.array([[0, 0], [0, 1], [1, 0]], dtype=np.int64)
+    values = np.array([1, 2, 3], dtype=np.float32)
+    dense_shape = np.array([2, 2], dtype=np.int64)
+    sp_input = tf.SparseTensor(indices, values, dense_shape)
+    axis = [0]
+    keepdims = False
+    output_is_sparse = True
+    name = None
+    input_dict = {"sp_input": sp_input, "axis": axis, "keepdims": keepdims, "output_is_sparse": output_is_sparse, "name": name}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 7
+    indices = np.array([[0, 0, 0], [0, 0, 1], [0, 1, 0], [1, 0, 0]], dtype=np.int64)
+    values = np.array([1, 2, 3, 4], dtype=np.int32)
+    dense_shape = np.array([2, 2, 2], dtype=np.int64)
+    sp_input = tf.SparseTensor(indices, values, dense_shape)
+    axis = [0]
+    keepdims = False
+    output_is_sparse = False
+    name = None
+    input_dict = {"sp_input": sp_input, "axis": axis, "keepdims": keepdims, "output_is_sparse": output_is_sparse, "name": name}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 8
+    indices = np.array([[0, 0], [1, 2]], dtype=np.int64)
+    values = np.array([-1, 2], dtype=np.int32)
+    dense_shape = np.array([2, 3], dtype=np.int64)
+    sp_input = tf.SparseTensor(indices, values, dense_shape)
+    axis = [1]
+    keepdims = False
+    output_is_sparse = False
+    name = None
+    input_dict = {"sp_input": sp_input, "axis": axis, "keepdims": keepdims, "output_is_sparse": output_is_sparse, "name": name}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 9
+    indices = np.array([[0, 0], [1, 2]], dtype=np.int64)
+    values = np.array([-1, 2], dtype=np.int32)
+    dense_shape = np.array([2, 3], dtype=np.int64)
+    sp_input = tf.SparseTensor(indices, values, dense_shape)
+    axis = [0]
+    keepdims = True
+    output_is_sparse = False
+    name = None
+    input_dict = {"sp_input": sp_input, "axis": axis, "keepdims": keepdims, "output_is_sparse": output_is_sparse, "name": name}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 10
+    indices = np.array([[0, 0, 0], [0, 1, 1], [1, 0, 1]], dtype=np.int64)
+    values = np.array([1, 2, 3], dtype=np.int32)
+    dense_shape = np.array([2, 2, 2], dtype=np.int64)
+    sp_input = tf.SparseTensor(indices, values, dense_shape)
+    axis = [0, 1, 2]
+    keepdims = False
+    output_is_sparse = False
+    name = None
+    input_dict = {"sp_input": sp_input, "axis": axis, "keepdims": keepdims, "output_is_sparse": output_is_sparse, "name": name}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 11 - Negative axis
+    indices = np.array([[0, 0], [0, 2], [1, 1]], dtype=np.int64)
+    values = np.array([1, 1, 1], dtype=np.int32)
+    dense_shape = np.array([2, 3], dtype=np.int64)
+    sp_input = tf.SparseTensor(indices, values, dense_shape)
+    axis = [-1]
+    keepdims = False
+    output_is_sparse = False
+    name = None
+    input_dict = {"sp_input": sp_input, "axis": axis, "keepdims": keepdims, "output_is_sparse": output_is_sparse, "name": name}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 12 - Empty SparseTensor
+    indices = np.array([], dtype=np.int64).reshape(0, 2)
+    values = np.array([], dtype=np.int32)
+    dense_shape = np.array([2, 3], dtype=np.int64)
+    sp_input = tf.SparseTensor(indices, values, dense_shape)
+    axis = [0]
+    keepdims = False
+    output_is_sparse = False
+    name = None
+    input_dict = {"sp_input": sp_input, "axis": axis, "keepdims": keepdims, "output_is_sparse": output_is_sparse, "name": name}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    return list_of_inputs
+
+
+generated_inputs["tf.sparse.reduce_sum"] = tf_sparse_reduce_sum_inputs()
+
+
+
+
+def tf_sparse_reorder_inputs():
+    list_of_inputs = []
+
+    # Input 1
+    indices = np.array([[0, 3], [0, 1], [3, 1], [2, 0]], dtype=np.int64)
+    values = np.array([1, 2, 3, 4], dtype=np.int32)
+    shape = np.array([4, 5], dtype=np.int64)
+    sp_input = tf.SparseTensor(indices=indices, values=values, dense_shape=shape)
+    input_dict = {"sp_input": sp_input, "name": "reordered_tensor_1"}
+    list_of_inputs.append(input_dict)
+
+    # Input 2
+    indices = np.array([[0, 0], [1, 2], [1, 1], [0, 2]], dtype=np.int64)
+    values = np.array([1, 2, 3, 4], dtype=np.int32)
+    shape = np.array([2, 3], dtype=np.int64)
+    sp_input = tf.SparseTensor(indices=indices, values=values, dense_shape=shape)
+    input_dict = {"sp_input": sp_input, "name": "reordered_tensor_2"}
+    list_of_inputs.append(input_dict)
+
+    # Input 3 (3D SparseTensor)
+    indices = np.array([[0, 0, 1], [0, 1, 0], [1, 0, 0]], dtype=np.int64)
+    values = np.array([5, 6, 7], dtype=np.int32)
+    shape = np.array([2, 2, 2], dtype=np.int64)
+    sp_input = tf.SparseTensor(indices=indices, values=values, dense_shape=shape)
+    input_dict = {"sp_input": sp_input, "name": "reordered_tensor_3"}
+    list_of_inputs.append(input_dict)
+
+    # Input 4 (Empty SparseTensor)
+    indices = np.empty((0, 2), dtype=np.int64)
+    values = np.array([], dtype=np.float32)
+    shape = np.array([3, 4], dtype=np.int64)
+    sp_input = tf.SparseTensor(indices=indices, values=values, dense_shape=shape)
+    input_dict = {"sp_input": sp_input, "name": "reordered_tensor_4"}
+    list_of_inputs.append(input_dict)
+
+    # Input 5 (Large SparseTensor)
+    indices = np.array([[0, 9], [9, 0], [5, 5]], dtype=np.int64)
+    values = np.array([10, 20, 30], dtype=np.float64)
+    shape = np.array([10, 10], dtype=np.int64)
+    sp_input = tf.SparseTensor(indices=indices, values=values, dense_shape=shape)
+    input_dict = {"sp_input": sp_input, "name": "reordered_tensor_5"}
+    list_of_inputs.append(input_dict)
+
+    # Input 7 (Int64 values)
+    indices = np.array([[1, 0], [0, 1], [0, 0]], dtype=np.int64)
+    values = np.array([6, 5, 4], dtype=np.int64)
+    shape = np.array([2, 2], dtype=np.int64)
+    sp_input = tf.SparseTensor(indices=indices, values=values, dense_shape=shape)
+    input_dict = {"sp_input": sp_input, "name": "reordered_tensor_7"}
+    list_of_inputs.append(input_dict)
+
+    # Input 8 (4D SparseTensor)
+    indices = np.array([[0, 0, 0, 1], [0, 0, 1, 0], [0, 1, 0, 0]], dtype=np.int64)
+    values = np.array([8, 9, 10], dtype=np.int32)
+    shape = np.array([1, 2, 1, 2], dtype=np.int64)
+    sp_input = tf.SparseTensor(indices=indices, values=values, dense_shape=shape)
+    input_dict = {"sp_input": sp_input, "name": "reordered_tensor_8"}
+    list_of_inputs.append(input_dict)
+
+    # Input 9 (Unsorted indices)
+    indices = np.array([[2,1],[0,3],[1,2],[0,0]],dtype=np.int64)
+    values = np.array([1,2,3,4], dtype=np.int32)
+    shape = np.array([3,4], dtype=np.int64)
+    sp_input = tf.SparseTensor(indices=indices, values=values, dense_shape=shape)
+    input_dict = {"sp_input": sp_input, "name": "reordered_tensor_9"}
+    list_of_inputs.append(input_dict)
+
+    # Input 10 (duplicate indices)
+    indices = np.array([[0, 0], [0, 0], [1, 1], [1, 0]], dtype=np.int64)
+    values = np.array([1, 5, 3, 4], dtype=np.int32)
+    shape = np.array([2, 2], dtype=np.int64)
+    sp_input = tf.SparseTensor(indices=indices, values=values, dense_shape=shape)
+    input_dict = {"sp_input": sp_input, "name": "reordered_tensor_10"}
+    list_of_inputs.append(input_dict)
+
+
+    return list_of_inputs
+
+
+generated_inputs["tf.sparse.reorder"] = tf_sparse_reorder_inputs()
+
+
+
+
+
+tf.config.experimental.enable_op_determinism()
+tf.random.set_seed(42)
+
+def tf_sparse_reset_shape_inputs():
+    list_of_inputs = []
+
+    # Input 1: Simple 2D SparseTensor with new_shape
+    indices = np.array([[0, 0], [1, 2]])
+    values = np.array([1, 2])
+    shape = np.array([2, 3])
+    sp_input = tf.SparseTensor(indices, values, shape)
+    new_shape = np.array([2, 4])
+    input_dict = {"sp_input": sp_input, "new_shape": new_shape}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 2: Simple 2D SparseTensor with None new_shape
+    indices = np.array([[0, 0], [1, 2]])
+    values = np.array([1, 2])
+    shape = np.array([2, 3])
+    sp_input = tf.SparseTensor(indices, values, shape)
+    new_shape = None
+    input_dict = {"sp_input": sp_input, "new_shape": new_shape}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 3: 3D SparseTensor with new_shape
+    indices = np.array([[0, 0, 1], [0, 1, 0], [1, 0, 2]])
+    values = np.array([1, 2, 3])
+    shape = np.array([2, 2, 3])
+    sp_input = tf.SparseTensor(indices, values, shape)
+    new_shape = np.array([2, 2, 4])
+    input_dict = {"sp_input": sp_input, "new_shape": new_shape}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 4: 3D SparseTensor with None new_shape
+    indices = np.array([[0, 0, 1], [0, 1, 0], [1, 0, 2]])
+    values = np.array([1, 2, 3])
+    shape = np.array([2, 2, 3])
+    sp_input = tf.SparseTensor(indices, values, shape)
+    new_shape = None
+    input_dict = {"sp_input": sp_input, "new_shape": new_shape}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 5: 2D SparseTensor with zeros and new_shape
+    indices = np.array([[0, 0], [1, 2], [1, 0]])
+    values = np.array([1, 0, 2])
+    shape = np.array([2, 3])
+    sp_input = tf.SparseTensor(indices, values, shape)
+    new_shape = np.array([3, 3])
+    input_dict = {"sp_input": sp_input, "new_shape": new_shape}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 6: Empty SparseTensor with new_shape
+    indices = np.array([]).reshape(0, 2)
+    values = np.array([])
+    shape = np.array([2, 3])
+    sp_input = tf.SparseTensor(indices, values, shape)
+    new_shape = np.array([3, 4])
+    input_dict = {"sp_input": sp_input, "new_shape": new_shape}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 7: Empty SparseTensor with None new_shape
+    indices = np.array([]).reshape(0, 2)
+    values = np.array([])
+    shape = np.array([2, 3])
+    sp_input = tf.SparseTensor(indices, values, shape)
+    new_shape = None
+    input_dict = {"sp_input": sp_input, "new_shape": new_shape}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 8: 4D SparseTensor with new_shape
+    indices = np.array([[0, 0, 1, 1], [0, 1, 0, 0], [1, 0, 2, 1]])
+    values = np.array([1, 2, 3])
+    shape = np.array([2, 2, 3, 2])
+    sp_input = tf.SparseTensor(indices, values, shape)
+    new_shape = np.array([2, 2, 3, 3])
+    input_dict = {"sp_input": sp_input, "new_shape": new_shape}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 9: 1D SparseTensor with new_shape
+    indices = np.array([[0], [2]])
+    values = np.array([1, 2])
+    shape = np.array([5])
+    sp_input = tf.SparseTensor(indices, values, shape)
+    new_shape = np.array([6])
+    input_dict = {"sp_input": sp_input, "new_shape": new_shape}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 10: 1D SparseTensor with None new_shape
+    indices = np.array([[0], [2]])
+    values = np.array([1, 2])
+    shape = np.array([5])
+    sp_input = tf.SparseTensor(indices, values, shape)
+    new_shape = None
+    input_dict = {"sp_input": sp_input, "new_shape": new_shape}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 11: 2D SparseTensor with larger new_shape
+    indices = np.array([[0, 0], [1, 2]])
+    values = np.array([1, 2])
+    shape = np.array([2, 3])
+    sp_input = tf.SparseTensor(indices, values, shape)
+    new_shape = np.array([3, 5])
+    input_dict = {"sp_input": sp_input, "new_shape": new_shape}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    return list_of_inputs
+
+
+generated_inputs["tf.sparse.reset_shape"] = tf_sparse_reset_shape_inputs()
+
+
+
+
+
+tf.config.experimental.enable_op_determinism()
+tf.random.set_seed(42)
+
+def tf_sparse_reshape_inputs():
+    list_of_inputs = []
+
+    # Input 1
+    indices = np.array([[0, 0], [1, 2]], dtype=np.int64)
+    values = np.array([1, 2], dtype=np.int32)
+    shape = np.array([3, 4], dtype=np.int64)
+    sp_input = tf.SparseTensor(indices, values, shape)
+    new_shape = np.array([4, 3], dtype=np.int64)
+    input_dict = {"sp_input": sp_input, "shape": new_shape, "name": "reshape_1"}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 2
+    indices = np.array([[0, 0, 0], [0, 1, 0], [1, 0, 0]], dtype=np.int64)
+    values = np.array([1, 2, 3], dtype=np.int32)
+    shape = np.array([2, 2, 2], dtype=np.int64)
+    sp_input = tf.SparseTensor(indices, values, shape)
+    new_shape = np.array([2, 4], dtype=np.int64)
+    input_dict = {"sp_input": sp_input, "shape": new_shape, "name": "reshape_2"}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 3
+    indices = np.array([[0, 0], [1, 1], [2, 2]], dtype=np.int64)
+    values = np.array([4, 5, 6], dtype=np.int32)
+    shape = np.array([3, 3], dtype=np.int64)
+    sp_input = tf.SparseTensor(indices, values, shape)
+    new_shape = np.array([9], dtype=np.int64)
+    input_dict = {"sp_input": sp_input, "shape": new_shape, "name": "reshape_3"}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 4
+    indices = np.array([[0, 0], [0, 1], [1, 0]], dtype=np.int64)
+    values = np.array([7, 8, 9], dtype=np.int32)
+    shape = np.array([2, 2], dtype=np.int64)
+    sp_input = tf.SparseTensor(indices, values, shape)
+    new_shape = np.array([1, 4], dtype=np.int64)
+    input_dict = {"sp_input": sp_input, "shape": new_shape, "name": "reshape_4"}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 5
+    indices = np.array([[0, 0, 0], [0, 0, 1]], dtype=np.int64)
+    values = np.array([10, 11], dtype=np.int32)
+    shape = np.array([1, 1, 2], dtype=np.int64)
+    sp_input = tf.SparseTensor(indices, values, shape)
+    new_shape = np.array([2], dtype=np.int64)
+    input_dict = {"sp_input": sp_input, "shape": new_shape, "name": "reshape_5"}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+   # Input 6
+    indices = np.array([[0, 0], [1, 1]], dtype=np.int64)
+    values = np.array([1, 2], dtype=np.int32)
+    shape = np.array([2, 2], dtype=np.int64)
+    sp_input = tf.SparseTensor(indices, values, shape)
+    new_shape = np.array([4, ], dtype=np.int64)
+    input_dict = {"sp_input": sp_input, "shape": new_shape, "name": "reshape_6"}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 7: Using -1
+    indices = np.array([[0, 0], [0, 1]], dtype=np.int64)
+    values = np.array([1, 2], dtype=np.int32)
+    shape = np.array([2, 2], dtype=np.int64)
+    sp_input = tf.SparseTensor(indices, values, shape)
+    new_shape = np.array([1, -1], dtype=np.int64)
+    input_dict = {"sp_input": sp_input, "shape": new_shape, "name": "reshape_7"}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 8: Using -1 with different data
+    indices = np.array([[0, 0, 0], [0, 1, 0]], dtype=np.int64)
+    values = np.array([1, 2], dtype=np.int32)
+    shape = np.array([1, 2, 2], dtype=np.int64)
+    sp_input = tf.SparseTensor(indices, values, shape)
+    new_shape = np.array([4, -1], dtype=np.int64)
+    input_dict = {"sp_input": sp_input, "shape": new_shape, "name": "reshape_8"}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 9
+    indices = np.array([[0, 0], [1, 1], [2, 0]], dtype=np.int64)
+    values = np.array([1, 2, 3], dtype=np.int32)
+    shape = np.array([3, 2], dtype=np.int64)
+    sp_input = tf.SparseTensor(indices, values, shape)
+    new_shape = np.array([2,3], dtype=np.int64)
+    input_dict = {"sp_input": sp_input, "shape": new_shape, "name": "reshape_9"}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 10
+    indices = np.array([[0, 0, 0], [1, 0, 1], [1, 1, 0]], dtype=np.int64)
+    values = np.array([1, 2, 3], dtype=np.int32)
+    shape = np.array([2, 2, 2], dtype=np.int64)
+    sp_input = tf.SparseTensor(indices, values, shape)
+    new_shape = np.array([4,-1], dtype=np.int64)
+    input_dict = {"sp_input": sp_input, "shape": new_shape, "name": "reshape_10"}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    return list_of_inputs
+
+
+generated_inputs["tf.sparse.reshape"] = tf_sparse_reshape_inputs()
+
+
+
+
+
+def tf_sparse_sparse_dense_matmul_inputs():
+    list_of_inputs = []
+
+    # Input 1
+    indices = np.array([[0, 0], [1, 2]], dtype=np.int64)
+    values = np.array([1, 2], dtype=np.float32)
+    dense_shape = (2, 3)
+    sp_a = tf.SparseTensor(indices, values, dense_shape)
+    b = np.array([[1, 2], [3, 4], [5, 6]], dtype=np.float32)
+    adjoint_a = False
+    adjoint_b = False
+    name = "test1"
+
+    input_dict = {
+        "sp_a": sp_a,
+        "b": b,
+        "adjoint_a": adjoint_a,
+        "adjoint_b": adjoint_b,
+        "name": name
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 2
+    indices = np.array([[0, 0], [1, 1], [2, 2]], dtype=np.int64)
+    values = np.array([1, 2, 3], dtype=np.float64)
+    dense_shape = (3, 3)
+    sp_a = tf.SparseTensor(indices, values, dense_shape)
+    b = np.array([[1, 2, 3], [4, 5, 6], [7, 8, 9]], dtype=np.float64)
+    adjoint_a = True
+    adjoint_b = True
+    name = "test2"
+
+    input_dict = {
+        "sp_a": sp_a,
+        "b": b,
+        "adjoint_a": adjoint_a,
+        "adjoint_b": adjoint_b,
+        "name": name
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 3
+    indices = np.array([[0, 1], [1, 0], [2, 2]], dtype=np.int64)
+    values = np.array([4, 5, 6], dtype=np.int32)
+    dense_shape = (3, 3)
+    sp_a = tf.SparseTensor(indices, values, dense_shape)
+    b = np.array([[7, 8, 9], [10, 11, 12], [13, 14, 15]], dtype=np.int32)
+    adjoint_a = False
+    adjoint_b = True
+    name = "test3"
+
+    input_dict = {
+        "sp_a": sp_a,
+        "b": b,
+        "adjoint_a": adjoint_a,
+        "adjoint_b": adjoint_b,
+        "name": name
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 4
+    indices = np.array([[0, 0], [0, 1], [1, 0], [1, 1]], dtype=np.int64)
+    values = np.array([1, 2, 3, 4], dtype=np.float32)
+    dense_shape = (2, 2)
+    sp_a = tf.SparseTensor(indices, values, dense_shape)
+    b = np.array([[5, 6], [7, 8]], dtype=np.float32)
+    adjoint_a = True
+    adjoint_b = False
+    name = "test4"
+
+    input_dict = {
+        "sp_a": sp_a,
+        "b": b,
+        "adjoint_a": adjoint_a,
+        "adjoint_b": adjoint_b,
+        "name": name
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+     # Input 5
+    indices = np.array([[0, 0], [1, 2]], dtype=np.int64)
+    values = np.array([-1, 2], dtype=np.float32)
+    dense_shape = (2, 3)
+    sp_a = tf.SparseTensor(indices, values, dense_shape)
+    b = np.array([[1, 2], [3, 4], [5, 6]], dtype=np.float32)
+    adjoint_a = False
+    adjoint_b = False
+    name = "test5"
+
+    input_dict = {
+        "sp_a": sp_a,
+        "b": b,
+        "adjoint_a": adjoint_a,
+        "adjoint_b": adjoint_b,
+        "name": name
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 7 (different data type)
+    indices = np.array([[0, 0], [1, 2]], dtype=np.int64)
+    values = np.array([1, 2], dtype=np.int32)
+    dense_shape = (2, 3)
+    sp_a = tf.SparseTensor(indices, values, dense_shape)
+    b = np.array([[1, 2], [3, 4], [5, 6]], dtype=np.int32)
+    adjoint_a = False
+    adjoint_b = False
+    name = "test7"
+
+    input_dict = {
+        "sp_a": sp_a,
+        "b": b,
+        "adjoint_a": adjoint_a,
+        "adjoint_b": adjoint_b,
+        "name": name
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 8
+    indices = np.array([[0, 0], [1, 1]], dtype=np.int64)
+    values = np.array([1+1j, 2+2j], dtype=np.complex64)
+    dense_shape = (2, 2)
+    sp_a = tf.SparseTensor(indices, values, dense_shape)
+    b = np.array([[3+3j, 4+4j], [5+5j, 6+6j]], dtype=np.complex64)
+    adjoint_a = True
+    adjoint_b = True
+    name = "test8"
+
+    input_dict = {
+        "sp_a": sp_a,
+        "b": b,
+        "adjoint_a": adjoint_a,
+        "adjoint_b": adjoint_b,
+        "name": name
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 9
+    indices = np.array([[0, 0], [1, 1], [2, 0]], dtype=np.int64)
+    values = np.array([1, 2, 3], dtype=np.float32)
+    dense_shape = (3, 2)
+    sp_a = tf.SparseTensor(indices, values, dense_shape)
+    b = np.array([[1,2,3],[4,5,6]], dtype=np.float32)
+    adjoint_a = False
+    adjoint_b = False
+    name = "test9"
+
+    input_dict = {
+        "sp_a": sp_a,
+        "b": b,
+        "adjoint_a": adjoint_a,
+        "adjoint_b": adjoint_b,
+        "name": name
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    
+    # Input 11
+    indices = np.array([[0, 0], [0, 1], [0, 2], [1, 0], [1, 1], [1, 2]], dtype=np.int64)
+    values = np.array([1, 2, 3, 4, 5, 6], dtype=np.float32)
+    dense_shape = (2, 3)
+    sp_a = tf.SparseTensor(indices, values, dense_shape)
+    b = np.array([[1, 2, 3], [4, 5, 6], [7, 8, 9]], dtype=np.float32)
+    adjoint_a = False
+    adjoint_b = False
+    name = "test11"
+
+    input_dict = {
+        "sp_a": sp_a,
+        "b": b,
+        "adjoint_a": adjoint_a,
+        "adjoint_b": adjoint_b,
+        "name": name
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    return list_of_inputs
+
+
+generated_inputs["tf.sparse.sparse_dense_matmul"] = tf_sparse_sparse_dense_matmul_inputs()
+
+
+
+
+
+tf.config.experimental.enable_op_determinism()
+tf.random.set_seed(42)
+
+def tf_sparse_split_inputs():
+    list_of_inputs = []
+
+    # Input 1
+    indices = np.array([[0, 0], [0, 1], [1, 0], [1, 1]], dtype=np.int64)
+    values = np.array([1, 2, 3, 4], dtype=np.int32)
+    dense_shape = np.array([2, 2], dtype=np.int64)
+    sp_input = tf.SparseTensor(indices=indices, values=values, dense_shape=dense_shape)
+    num_split = 2
+    axis = np.array(1, dtype=np.int64)
+    name = "split_1"
+    input_dict = {"sp_input": sp_input, "num_split": num_split, "axis": axis, "name": name}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 2
+    indices = np.array([[0, 0], [0, 1], [0, 2], [1, 0], [1, 1], [1, 2]], dtype=np.int64)
+    values = np.array([1, 2, 3, 4, 5, 6], dtype=np.int32)
+    dense_shape = np.array([2, 3], dtype=np.int64)
+    sp_input = tf.SparseTensor(indices=indices, values=values, dense_shape=dense_shape)
+    num_split = 3
+    axis = np.array(1, dtype=np.int64)
+    name = "split_2"
+    input_dict = {"sp_input": sp_input, "num_split": num_split, "axis": axis, "name": name}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 3 - Splitting along axis 0
+    indices = np.array([[0, 0], [1, 1], [2, 2]], dtype=np.int64)
+    values = np.array([1, 2, 3], dtype=np.int32)
+    dense_shape = np.array([3, 3], dtype=np.int64)
+    sp_input = tf.SparseTensor(indices=indices, values=values, dense_shape=dense_shape)
+    num_split = 3
+    axis = np.array(0, dtype=np.int64)
+    name = "split_3"
+    input_dict = {"sp_input": sp_input, "num_split": num_split, "axis": axis, "name": name}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 4 - num_split > dimension size, should still work and produce empty tensors
+    indices = np.array([[0, 0]], dtype=np.int64)
+    values = np.array([1], dtype=np.int32)
+    dense_shape = np.array([1, 1], dtype=np.int64)
+    sp_input = tf.SparseTensor(indices=indices, values=values, dense_shape=dense_shape)
+    num_split = 1
+    axis = np.array(1, dtype=np.int64)
+    name = "split_4"
+    input_dict = {"sp_input": sp_input, "num_split": num_split, "axis": axis, "name": name}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 5 - Negative axis
+    indices = np.array([[0, 0], [1, 1]], dtype=np.int64)
+    values = np.array([1, 2], dtype=np.int32)
+    dense_shape = np.array([2, 2], dtype=np.int64)
+    sp_input = tf.SparseTensor(indices=indices, values=values, dense_shape=dense_shape)
+    num_split = 2
+    axis = np.array(-1, dtype=np.int64)
+    name = "split_5"
+    input_dict = {"sp_input": sp_input, "num_split": num_split, "axis": axis, "name": name}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 6 - Different dtype for values
+    indices = np.array([[0, 0], [1, 1]], dtype=np.int64)
+    values = np.array([1.0, 2.0], dtype=np.float32)
+    dense_shape = np.array([2, 2], dtype=np.int64)
+    sp_input = tf.SparseTensor(indices=indices, values=values, dense_shape=dense_shape)
+    num_split = 2
+    axis = np.array(1, dtype=np.int64)
+    name = "split_6"
+    input_dict = {"sp_input": sp_input, "num_split": num_split, "axis": axis, "name": name}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 7 - 3D SparseTensor
+    indices = np.array([[0, 0, 0], [0, 1, 1], [1, 0, 1]], dtype=np.int64)
+    values = np.array([1, 2, 3], dtype=np.int32)
+    dense_shape = np.array([2, 2, 2], dtype=np.int64)
+    sp_input = tf.SparseTensor(indices=indices, values=values, dense_shape=dense_shape)
+    num_split = 2
+    axis = np.array(2, dtype=np.int64)
+    name = "split_7"
+    input_dict = {"sp_input": sp_input, "num_split": num_split, "axis": axis, "name": name}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 8 - uneven split
+    indices = np.array([[0, 0], [0, 1], [0, 2], [0, 3]], dtype=np.int64)
+    values = np.array([1, 2, 3, 4], dtype=np.int32)
+    dense_shape = np.array([1, 4], dtype=np.int64)
+    sp_input = tf.SparseTensor(indices=indices, values=values, dense_shape=dense_shape)
+    num_split = 3
+    axis = np.array(1, dtype=np.int64)
+    name = "split_8"
+    input_dict = {"sp_input": sp_input, "num_split": num_split, "axis": axis, "name": name}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 9 - different indices dtype
+    indices = np.array([[0, 0], [1, 1]], dtype=np.int64)
+    values = np.array([1, 2], dtype=np.int32)
+    dense_shape = np.array([2, 2], dtype=np.int64)
+    sp_input = tf.SparseTensor(indices=indices, values=values, dense_shape=dense_shape)
+    num_split = 2
+    axis = np.array(1, dtype=np.int64)
+    name = "split_9"
+    input_dict = {"sp_input": sp_input, "num_split": num_split, "axis": axis, "name": name}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 10 - empty SparseTensor
+    indices = np.empty((0, 2), dtype=np.int64)
+    values = np.empty((0,), dtype=np.int32)
+    dense_shape = np.array([2, 2], dtype=np.int64)
+    sp_input = tf.SparseTensor(indices=indices, values=values, dense_shape=dense_shape)
+    num_split = 2
+    axis = np.array(1, dtype=np.int64)
+    name = "split_10"
+    input_dict = {"sp_input": sp_input, "num_split": num_split, "axis": axis, "name": name}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    return list_of_inputs
+
+
+generated_inputs["tf.sparse.split"] = tf_sparse_split_inputs()
 
