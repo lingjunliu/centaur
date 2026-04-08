@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If tensors are not 0-dimensional, shapes must be same. (Rule 47)
+# x and y shapes should be broadcastable or one of them has dimension 0 (Rule 47)
 
 rule_47 = lambda s, v, n=False: (
-    s.add(Not(If(Or((v["arg1_ndim"] > 0), (v["arg2_ndim"] > 0)), (And(v["arg1_ndim"] == v["arg2_ndim"], And([Implies(i < (v["arg1_ndim"] - 1 + 1), Select(v["arg1_shape"], i) == Select(v["arg2_shape"], i)) for i in range(6)]))), True)) if n else
-          If(Or((v["arg1_ndim"] > 0), (v["arg2_ndim"] > 0)), (And(v["arg1_ndim"] == v["arg2_ndim"], And([Implies(i < (v["arg1_ndim"] - 1 + 1), Select(v["arg1_shape"], i) == Select(v["arg2_shape"], i)) for i in range(6)]))), True))
+    s.add(Not(If(And(v["arg1_ndim"] > 0, v["arg2_ndim"] > 0), (And([Implies(i < (If(v["arg1_ndim"] >= v["arg2_ndim"], v["arg1_ndim"], v["arg2_ndim"] - 1) + 1), (If(And(v["arg1_ndim"] - i - 1 >= 0, v["arg2_ndim"] - i - 1 >= 0), (Or(Or(Select(v["arg1_shape"], v["arg1_ndim"] - i - 1) == Select(v["arg2_shape"], v["arg2_ndim"] - i - 1), Select(v["arg1_shape"], v["arg1_ndim"] - i - 1) == 1), Select(v["arg2_shape"], v["arg2_ndim"] - i - 1) == 1)), True))) for i in range(6)])), True)) if n else
+          If(And(v["arg1_ndim"] > 0, v["arg2_ndim"] > 0), (And([Implies(i < (If(v["arg1_ndim"] >= v["arg2_ndim"], v["arg1_ndim"], v["arg2_ndim"] - 1) + 1), (If(And(v["arg1_ndim"] - i - 1 >= 0, v["arg2_ndim"] - i - 1 >= 0), (Or(Or(Select(v["arg1_shape"], v["arg1_ndim"] - i - 1) == Select(v["arg2_shape"], v["arg2_ndim"] - i - 1), Select(v["arg1_shape"], v["arg1_ndim"] - i - 1) == 1), Select(v["arg2_shape"], v["arg2_ndim"] - i - 1) == 1)), True))) for i in range(6)])), True))
 )
 
 def rule_47_func(arg1, arg2, solver=None, neg=False):

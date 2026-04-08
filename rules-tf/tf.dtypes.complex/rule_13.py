@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If real is float64, imag must be float64 (Rule 13)
+# real and imag must be of type float32 or float64 and of same type to avoid incorrect type error (Rule 13)
 
 rule_13 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_dtype"] == 8, v["arg2_dtype"] == 8, True)) if n else
-          If(v["arg1_dtype"] == 8, v["arg2_dtype"] == 8, True))
+    s.add(Not(Or((And(v["arg1_dtype"] == 8, v["arg2_dtype"] == 8)), (And(v["arg1_dtype"] == 9, v["arg2_dtype"] == 9)))) if n else
+          Or((And(v["arg1_dtype"] == 8, v["arg2_dtype"] == 8)), (And(v["arg1_dtype"] == 9, v["arg2_dtype"] == 9))))
 )
 
 def rule_13_func(arg1, arg2, solver=None, neg=False):

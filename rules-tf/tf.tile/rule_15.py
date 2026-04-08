@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If input is a scalar, multiples must be a scalar (Rule 15)
+# input tensor must have dimensions greater than 0 when multiples have elements. (Rule 15)
 
 rule_15 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_ndim"] == 0, v["arg2_ndim"] == 0, True)) if n else
-          If(v["arg1_ndim"] == 0, v["arg2_ndim"] == 0, True))
+    s.add(Not(If(Select(v["arg2_shape"], 0) > 0, v["arg1_ndim"] >= 1, True)) if n else
+          If(Select(v["arg2_shape"], 0) > 0, v["arg1_ndim"] >= 1, True))
 )
 
 def rule_15_func(arg1, arg2, solver=None, neg=False):
@@ -26,16 +26,17 @@ def rule_15_func(arg1, arg2, solver=None, neg=False):
         # Variable declarations
         solver = Solver()
         arg1_ndim = Int('arg1_ndim')
-        arg2_ndim = Int('arg2_ndim')
+        arg2_shape = Array('arg2_shape', IntSort(), IntSort())
 
         # Value assignments
         solver.add(arg1_ndim == arg1.ndim)
-        solver.add(arg2_ndim == arg2.ndim)
+        for i in range(arg2.ndim):
+            arg2_shape = Store(arg2_shape, i, arg2.shape[i])
 
         # Constraints for rule 15
-        rule_15(solver, {'arg1_ndim': arg1_ndim, 'arg2_ndim': arg2_ndim})
+        rule_15(solver, {'arg1_ndim': arg1_ndim, 'arg2_shape': arg2_shape})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_15(solver, {'arg1_ndim': arg1['ndim'], 'arg2_ndim': arg2['ndim']}, neg)
+        rule_15(solver, {'arg1_ndim': arg1['ndim'], 'arg2_shape': arg2['shape']}, neg)

@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If out_backprop's dtype is int8, int16, int32, int64, uint8, uint16, uint32 or uint64 then accumulation to feature dimension must be exact (Rule 22)
+# out_backprop's dtype must be one of the supported types. (Rule 22)
 
 rule_22 = lambda s, v, n=False: (
-    s.add(Not(Or(Or(Or(Or(Or(v["arg1_dtype"] == 1, v["arg1_dtype"] == 2), v["arg1_dtype"] == 3), v["arg1_dtype"] == 4), v["arg1_dtype"] == 5), v["arg1_dtype"] == 6)) if n else
-          Or(Or(Or(Or(Or(v["arg1_dtype"] == 1, v["arg1_dtype"] == 2), v["arg1_dtype"] == 3), v["arg1_dtype"] == 4), v["arg1_dtype"] == 5), v["arg1_dtype"] == 6))
+    s.add(Not(Or(Or(Or(Or(Or(Or(Or(Or(Or(Or(Or(v["arg1_dtype"] == 7, v["arg1_dtype"] == 8), v["arg1_dtype"] == 3), v["arg1_dtype"] == 6), v["arg1_dtype"] == 2), v["arg1_dtype"] == 1), v["arg1_dtype"] == 10), v["arg1_dtype"] == 5), v["arg1_dtype"] == 16), v["arg1_dtype"] == 11), v["arg1_dtype"] == 17), v["arg1_dtype"] == 18)) if n else
+          Or(Or(Or(Or(Or(Or(Or(Or(Or(Or(Or(v["arg1_dtype"] == 7, v["arg1_dtype"] == 8), v["arg1_dtype"] == 3), v["arg1_dtype"] == 6), v["arg1_dtype"] == 2), v["arg1_dtype"] == 1), v["arg1_dtype"] == 10), v["arg1_dtype"] == 5), v["arg1_dtype"] == 16), v["arg1_dtype"] == 11), v["arg1_dtype"] == 17), v["arg1_dtype"] == 18))
 )
 
 def rule_22_func(arg1, solver=None, neg=False):

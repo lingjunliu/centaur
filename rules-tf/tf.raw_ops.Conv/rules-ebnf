@@ -1,0 +1,207 @@
+>>
+Rule 1 (input and filter tensors must have the same type)
+{input : tensor, filter : tensor} |= dtype_(input) = dtype_(filter)
+>>
+Rule 2 (strides must be a list of ints and its length must be N+2 where N is between 1 and 3)
+{strides : list(int), input : tensor} |= (ndim(input) -1 = 1 ∨ ndim(input)-1 = 2 ∨ ndim(input)-1 = 3) ∧ strides.len = ndim(input) + 1
+>>
+Rule 3 (padding must be a string and should be one of "SAME", "VALID", "EXPLICIT")
+{padding : str} |= padding = "SAME" ∨ padding = "VALID" ∨ padding = "EXPLICIT"
+>>
+Rule 4 (If padding is EXPLICIT, explicit_paddings must be a list of ints)
+{padding : str, explicit_paddings : list(int), input : tensor} |= if padding = "EXPLICIT" then explicit_paddings.len = (ndim(input)+1) * 2 else explicit_paddings.len = 0
+>>
+Rule 5 (data_format must be a string and should be either "CHANNELS_FIRST" or "CHANNELS_LAST")
+{data_format : str} |= data_format = "CHANNELS_FIRST" ∨ data_format = "CHANNELS_LAST"
+>>
+Rule 6 (dilations must be a list of ints and its length must be N+2 where N is between 1 and 3)
+{dilations : list(int), input : tensor} |= (ndim(input)-1 = 1 ∨ ndim(input)-1 = 2 ∨ ndim(input)-1 = 3)  ∧ dilations.len = ndim(input) + 1
+>>
+Rule 7 (batch_dims must be a positive integer and less than the rank of the input tensor)
+{batch_dims : int, input : tensor} |= batch_dims > 0 ∧ batch_dims < ndim(input)
+>>
+Rule 8 (groups must be a positive integer)
+{groups : int} |= groups > 0
+>>
+Rule 9 (strides[0] and strides[N+1] must be 1)
+{strides : list(int), input : tensor} |= strides[0] = 1 ∧ strides[ndim(input)] = 1
+>>
+Rule 10 (dilations[0] and dilations[N+1] must be 1)
+{dilations : list(int), input : tensor} |= dilations[0] = 1 ∧ dilations[ndim(input)] = 1
+>>
+Rule 11 (input tensor must be of type half, bfloat16, float32, float64, or int32, represented by their index in the list)
+{input : tensor} |= dtype_(input) = 6 ∨ dtype_(input) = 7 ∨ dtype_(input) = 8 ∨ dtype_(input) = 3
+>>
+Rule 12 (groups must divide the number of input channels and filter channels)
+{groups : int, input : tensor, filter : tensor} |= shape(input, ndim(input)-1) % groups = 0 ∧ shape(filter, ndim(filter)-2) % groups = 0
+>>
+Rule 13 (input and filter should have at least N+1 and N+2 dimensions where 1 <= N <= 3, respectively)
+{input : tensor, filter : tensor} |= (ndim(input) ≥ 2 ∧ ndim(filter) ≥ 3) ∧ (ndim(input) ≤ 4 ∧ ndim(filter) ≤ 5)
+>>
+Rule 14 (explicit_paddings elements should be non-negative if padding is explicit)
+{padding : str, explicit_paddings : list(int)} |= if padding = "EXPLICIT" then ∀i ∈ [0, explicit_paddings.len - 1] : explicit_paddings[i] ≥ 0
+>>
+Rule 16 (groups must be less or equal to the number of input channels and output channels (channels of filter))
+{groups : int, input : tensor, filter : tensor} |= groups ≤ shape(input, ndim(input)-1) ∧ groups ≤ shape(filter, ndim(filter)-1)
+>>
+Rule 17 (The filter's input channels dimension should be divisible by groups and input channel dimension must divide group)
+{input: tensor, filter: tensor, groups: int} |= shape(filter, ndim(filter) - 2) % groups = 0 ∧ shape(input, ndim(input)-1) % groups = 0
+>>
+Rule 18 (Spatial dimensions are 2 or 3)
+{input: tensor} |= ndim(input) = 3 ∨ ndim(input) = 4
+>>
+Rule 19 (Filter's spatial dimensions are 2 or 3)
+{filter: tensor} |= ndim(filter) = 4 ∨ ndim(filter) = 5
+>>
+Rule 20 (channels_last_format is determined by data_format)
+{data_format : str} |= data_format = "CHANNELS_LAST" ∨ data_format = "CHANNELS_FIRST"
+>>
+Rule 21 (When padding is EXPLICIT, the explicit_paddings list length has to be twice the number of spatial dimensions)
+{padding: str, explicit_paddings: list(int), input: tensor} |= if padding = "EXPLICIT" then explicit_paddings.len = 2 * (ndim(input) - 1) else explicit_paddings.len = 0
+>>
+Rule 22 (When N=2, input tensor rank has to be batch_dims + 2 + 1 = batch_dims + 3, when N=3, input tensor rank has to be batch_dims + 3 + 1 = batch_dims + 4)
+{input: tensor, batch_dims: int} |= ndim(input) = batch_dims + 3 ∨ ndim(input) = batch_dims + 4
+>>
+Rule 24 (The filter's output channels must be divisible by groups)
+{filter: tensor, groups: int} |= shape(filter, ndim(filter)-1) % groups = 0
+>>
+Rule 25 (If explicit paddings is specified, then padding must be "EXPLICIT")
+{padding: str, explicit_paddings: list(int)} |= if explicit_paddings.len > 0 then padding = "EXPLICIT"
+>>
+Rule 26 (Input channels must match the filter's input channels)
+{input: tensor, filter: tensor} |= shape(input, ndim(input) -1) = shape(filter, ndim(filter) - 2)
+>>
+Rule 27 (If padding is not EXPLICIT, explicit_paddings must be empty.)
+{padding : str, explicit_paddings : list(int)} |= if padding ≠ "EXPLICIT" then explicit_paddings.len = 0
+>>
+Rule 29 (groups should be less or equal to the input channel and output channel sizes. filter must be divisible by groups.)
+{groups: int, input: tensor, filter: tensor} |= groups ≤ shape(input, ndim(input)-1) ∧ groups ≤ shape(filter, ndim(filter)-1) ∧ shape(filter, ndim(filter) - 2) % groups = 0
+>>
+Rule 31 (If the dimension N is 2, the length of strides and dilations should be 4; if it is 3, the length should be 5)
+{strides: list(int), dilations: list(int), input: tensor} |= if ndim(input) - 1 = 2 then strides.len = 4 ∧ dilations.len = 4 else strides.len = 5 ∧ dilations.len = 5
+>>
+Rule 32 (batch_dims must be less than the number of spatial dimensions + 1)
+{batch_dims: int, input: tensor} |= batch_dims < ndim(input) -1
+>>
+Rule 33 (If data_format is CHANNELS_FIRST, then input channel dimension is batch_dims + 1. Otherwise, the channel dimension is ndim(input)-1.)
+{data_format: str, batch_dims: int, input: tensor} |= if data_format = "CHANNELS_FIRST" then shape(input, batch_dims + 1) > 0 else shape(input, ndim(input)-1) > 0
+>>
+Rule 34 (The number of dimensions for spatial_filter_shape is N= ndim(filter)-2 where N is either 2 or 3)
+{filter: tensor} |= (ndim(filter) = 4 ∨ ndim(filter) = 5)
+>>
+Rule 35 (batch_dims is a positive integer)
+{batch_dims: int} |= batch_dims > 0
+>>
+Rule 36 (if padding is EXPLICIT, then explicit_paddings.len must be equal to twice the number of spatial dims, otherwise it must be 0)
+{padding: str, explicit_paddings: list(int), input: tensor} |= if padding = "EXPLICIT" then explicit_paddings.len = 2 * (ndim(input) -1) else explicit_paddings.len = 0
+>>
+Rule 37 (The values in strides and dilations must be positive integers)
+{strides: list(int), dilations: list(int)} |= ∀i ∈ [0, strides.len -1]: strides[i] > 0 ∧ ∀i ∈ [0, dilations.len - 1]: dilations[i] > 0
+>>
+Rule 38 (if groups is greater than 1, then the output of each group must be concatenated, so the filter size in the channel dimension must be evenly divisible by groups)
+{groups: int, filter: tensor} |= if groups > 1 then shape(filter, ndim(filter)-1) % groups = 0
+>>
+Rule 39 (When data_format is not provided, the default format is channels_last)
+{input: tensor} |= ndim(input) > 0
+>>
+Rule 40 (The filter's spatial filter shape is N-dimensional with N = ndim(input) - batch_dims -1 )
+{input : tensor, filter : tensor, batch_dims : int} |= ndim(filter) -2 = ndim(input) - batch_dims -1
+>>
+Rule 41 (batch_dims + spatial_dims + channel_dims = ndim(input). Spatial_dims is ndim(filter)-2 and Channel dims is 1.)
+{input: tensor, filter: tensor, batch_dims: int} |= batch_dims + (ndim(filter) -2) + 1 = ndim(input)
+>>
+Rule 42 (The filter input dimension must be same as the input's channel dimension. This depends on the data format.)
+{input: tensor, filter: tensor, data_format: str, batch_dims: int} |= if data_format = "CHANNELS_FIRST" then shape(input, batch_dims + 1) = shape(filter, ndim(filter) -2) else shape(input, ndim(input) -1) = shape(filter, ndim(filter) -2)
+>>
+Rule 43 (Output channels of filter should be greater than 0)
+{filter: tensor} |= shape(filter, ndim(filter)-1) > 0
+>>
+Rule 44 (When groups is greater than 1, shape(filter, ndim(filter) - 2) must be divisible by groups)
+{filter: tensor, groups: int} |= if groups > 1 then shape(filter, ndim(filter)-2) % groups = 0
+>>
+Rule 45 (If padding is EXPLICIT, explicit_paddings.len must be equal to 2 * (ndim(input) - batch_dims -1))
+{padding: str, explicit_paddings: list(int), input: tensor, batch_dims: int} |= if padding = "EXPLICIT" then explicit_paddings.len = 2 * (ndim(input) - batch_dims -1)
+>>
+Rule 46 (The filter's out_channels dimension should be less than or equal to the number of features in the input.)
+{input: tensor, filter: tensor} |= shape(filter, ndim(filter) -1) <= shape(input, ndim(input) -1)
+>>
+Rule 47 (When using explicit padding, the explicit_paddings list must have an even number of elements.)
+{padding: str, explicit_paddings: list(int)} |= if padding = "EXPLICIT" then explicit_paddings.len % 2 = 0
+>>
+Rule 48 (The number of input channels must be divisible by the number of groups)
+{input: tensor, groups: int} |= shape(input, ndim(input)-1) % groups = 0
+>>
+Rule 49 (batch_dims should be less than ndim(input)-1)
+{input: tensor, batch_dims: int} |= batch_dims < ndim(input)-1
+>>
+Rule 50 (The filter's spatial dimensions cannot be zero)
+{filter: tensor} |= ∀i ∈ [0, ndim(filter)-2] : shape(filter, i) > 0
+>>
+Rule 51 (The dimensions specified in explicit_paddings must be less than the corresponding spatial dimensions of the input)
+{padding: str, explicit_paddings: list(int), input: tensor, batch_dims: int} |= if padding = "EXPLICIT" then ∀i ∈ [0, (explicit_paddings.len / 2) -1] : explicit_paddings[2*i] < shape(input, batch_dims+1+i) ∧ explicit_paddings[2*i +1] < shape(input, batch_dims+1+i)
+>>
+Rule 52 (If the input dtype is int32, then the indices in explicit_paddings, strides and dilations must be less than 2^31)
+{input: tensor, explicit_paddings: list(int), strides: list(int), dilations: list(int)} |= if dtype_(input) = 3 then (∀i ∈ [0, explicit_paddings.len-1] : explicit_paddings[i] < 2147483648) ∧ (∀i ∈ [0, strides.len-1] : strides[i] < 2147483648) ∧ (∀i ∈ [0, dilations.len-1] : dilations[i] < 2147483648)
+>>
+Rule 53 (The channel dimension must be greater than zero)
+{input: tensor, data_format: str, batch_dims: int} |= if data_format = "CHANNELS_FIRST" then shape(input, batch_dims + 1) > 0 else shape(input, ndim(input) -1 ) > 0
+>>
+Rule 54 (If groups is specified, the number of output channels of the filter must be divisible by the number of groups)
+{filter: tensor, groups: int} |= shape(filter, ndim(filter) -1) % groups = 0
+>>
+Rule 55 (Strides and dilations should be of the same length)
+{strides: list(int), dilations: list(int)} |= strides.len = dilations.len
+>>
+Rule 56 (If batch_dims = ndim(input)-1, it implies that the API is effectively doing a 1D convolution. Strides and dilations length should be 3)
+{input: tensor, batch_dims: int, strides: list(int), dilations: list(int)} |= if batch_dims = ndim(input)-1 then strides.len = 3 ∧ dilations.len = 3
+>>
+Rule 57 (The number of output channels in the filter must be greater than or equal to the number of groups)
+{filter : tensor, groups : int} |= shape(filter, ndim(filter) - 1) ≥ groups
+>>
+Rule 58 (When padding is VALID, explicit_paddings must be an empty list)
+{padding: str, explicit_paddings: list(int)} |= if padding = "VALID" then explicit_paddings.len = 0
+>>
+Rule 59 (The output channels of filter should be greater than 0.)
+{filter: tensor} |= shape(filter, ndim(filter) - 1) > 0
+>>
+Rule 60 (If dilations are provided, then dilations[0] and dilations[N+1] where N = ndim(input) -1, should be equal to 1)
+{dilations: list(int), input: tensor} |= dilations[0] = 1 ∧ dilations[ndim(input)] = 1
+>>
+Rule 61 (For N-D convolution, 1 <= N <=3)
+{input: tensor, batch_dims: int} |= (ndim(input) - batch_dims -1) ≥ 1 ∧ (ndim(input) - batch_dims -1) ≤ 3
+>>
+Rule 62 (Strides and dilations should have length N+2 and must be int list.)
+{strides: list(int), dilations: list(int), input:tensor, batch_dims: int} |= strides.len = (ndim(input) - batch_dims -1) + 2 ∧ dilations.len = (ndim(input)-batch_dims-1) + 2
+>>
+Rule 63 (When explicit_paddings is used, the length must be even)
+{explicit_paddings: list(int)} |= if explicit_paddings.len > 0 then explicit_paddings.len % 2 = 0
+>>
+Rule 64 (If dilations is specified, dilations in batch and depth dimension must be 1)
+{dilations: list(int)} |= dilations[0] = 1 ∧ dilations[dilations.len-1] = 1
+>>
+Rule 65 (When padding is SAME or VALID, explicit_paddings length must be zero.)
+{padding: str, explicit_paddings: list(int)} |= if padding = "SAME" ∨ padding = "VALID" then explicit_paddings.len = 0
+>>
+Rule 66 (When groups is 1, filter's input channel dimension must be equal to the input's channel size.)
+{input: tensor, filter: tensor, groups: int} |= if groups = 1 then shape(filter, ndim(filter) - 2) = shape(input, ndim(input)-1)
+>>
+Rule 67 (Groups must be greater than 0)
+{groups: int} |= groups > 0
+>>
+Rule 68 (batch_dims + spatial_dims + channel_dims = ndim(input). When data_format is CHANNELS_FIRST, channel_dims is dimension batch_dims+1)
+{input: tensor, data_format:str, batch_dims: int} |= if data_format = "CHANNELS_FIRST" then shape(input, batch_dims+1) > 0
+>>
+Rule 69 (When groups is 1, then shape(filter, ndim(filter) - 2) must be equal to shape(input, channel_dim), where channel_dim depends on the data_format)
+{input: tensor, filter: tensor, groups: int, data_format: str, batch_dims: int} |= if groups = 1 then (if data_format = "CHANNELS_FIRST" then shape(filter, ndim(filter) - 2) = shape(input, batch_dims + 1) else shape(filter, ndim(filter)-2) = shape(input, ndim(input) -1))
+>>
+Rule 70 (If the input dtype is half, bfloat16, then indices strides, dilations and explicit_paddings must be less than 2^16)
+{input: tensor, strides: list(int), dilations: list(int), explicit_paddings: list(int)} |= if dtype_(input) = 6 ∨ dtype_(input) = 7 then ∀i ∈ [0, strides.len -1] : strides[i] < 65536 ∧ ∀i ∈ [0, dilations.len-1] : dilations[i] < 65536 ∧ ∀i ∈ [0, explicit_paddings.len-1] : explicit_paddings[i] < 65536
+>>
+Rule 71 (Batch_dims is an integer with value 1)
+{batch_dims: int} |= batch_dims = 1
+>>
+Rule 72 (If stride is specified, strides[0] and strides[N+1] where N = ndim(input) - 1, should be equal to 1)
+{strides: list(int), input: tensor} |= strides[0] = 1 ∧ strides[ndim(input)] = 1
+>>
+Rule 74 (Filter spatial dimensions i.e. shape(filter, i) must be greater than 0)
+{filter: tensor} |= (ndim(filter) = 4 ∧ shape(filter, 0) > 0 ∧ shape(filter, 1) > 0) ∨ (ndim(filter) = 5 ∧ shape(filter, 0) > 0 ∧ shape(filter, 1) > 0 ∧ shape(filter, 2) > 0)
