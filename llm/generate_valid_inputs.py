@@ -124,7 +124,7 @@ generated_inputs["tf.sets.difference"] = tf_sets_difference_inputs()
     }
     doc = extract_function_info(fetch_documentation(api), api) if lib == "torch" else get_doc_tf(api)
     signature = get_signature(api, lib=lib, suffix=suffix)
-    prefix = f'This is the documentation for the function {api}:\n\n"{doc.encode('ascii', errors='ignore').decode()}"\n\n' if doc else ""
+    prefix = f"This is the documentation for the function {api}:\n\n\"{doc.encode('ascii', errors='ignore').decode()}\"\n\n" if doc else ""
     key = api if suffix == 0 else f"{api}_{suffix}"
     with open(f"{CUR_DIR}/prompt_input_gen.md", "r", encoding="utf-8") as file:
         prompt = file.read()
