@@ -11139,3 +11139,3995 @@ Rule 68 (Shapes of img1 and img2 should be broadcast compatible and have at leas
 {img1 : tensor, img2 : tensor} |= (ndim(img1) ≥ 3) ∧ (ndim(img2) ≥ 3) ∧ ∀i ∈ [0, (min(ndim(img1), ndim(img2)) - 1)] : ((shape(img1, i) = shape(img2, i)) ∨ (shape(img1, i) = 1) ∨ (shape(img2, i) = 1))
 ** PARSING ERROR ** (num_failures: 40)
 
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.image.ssim API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Computes SSIM index between img1 and img2.
+
+  This function is based on the standard SSIM implementation from:
+  Wang, Z., Bovik, A. C., Sheikh, H. R., & Simoncelli, E. P. (2004). Image
+  quality assessment: from error visibility to structural similarity. IEEE
+  transactions on image processing.
+
+  Note: The true SSIM is only defined on grayscale.  This function does not
+  perform any colorspace transform.  (If the input is already YUV, then it will
+  compute YUV SSIM average.)
+
+  Details:
+    - 11x11 Gaussian filter of width 1.5 is used.
+    - k1 = 0.01, k2 = 0.03 as in the original paper.
+
+  The image sizes must be at least 11x11 because of the filter size.
+
+  Example:
+
+  ```python
+      # Read images (of size 255 x 255) from file.
+      im1 = tf.image.decode_image(tf.io.read_file('path/to/im1.png'))
+      im2 = tf.image.decode_image(tf.io.read_file('path/to/im2.png'))
+      tf.shape(im1)  # `img1.png` has 3 channels; shape is `(255, 255, 3)`
+      tf.shape(im2)  # `img2.png` has 3 channels; shape is `(255, 255, 3)`
+      # Add an outer batch for each image.
+      im1 = tf.expand_dims(im1, axis=0)
+      im2 = tf.expand_dims(im2, axis=0)
+      # Compute SSIM over tf.uint8 Tensors.
+      ssim1 = tf.image.ssim(im1, im2, max_val=255, filter_size=11,
+                            filter_sigma=1.5, k1=0.01, k2=0.03)
+
+      # Compute SSIM over tf.float32 Tensors.
+      im1 = tf.image.convert_image_dtype(im1, tf.float32)
+      im2 = tf.image.convert_image_dtype(im2, tf.float32)
+      ssim2 = tf.image.ssim(im1, im2, max_val=1.0, filter_size=11,
+                            filter_sigma=1.5, k1=0.01, k2=0.03)
+      # ssim1 and ssim2 both have type tf.float32 and are almost equal.
+  ```
+
+  Args:
+    img1: First image batch. 4-D Tensor of shape `[batch, height, width,
+      channels]` with only Positive Pixel Values.
+    img2: Second image batch. 4-D Tensor of shape `[batch, height, width,
+      channels]` with only Positive Pixel Values.
+    max_val: The dynamic range of the images (i.e., the difference between the
+      maximum the and minimum allowed values).
+    filter_size: Default value 11 (size of gaussian filter).
+    filter_sigma: Default value 1.5 (width of gaussian filter).
+    k1: Default value 0.01
+    k2: Default value 0.03 (SSIM is less sensitivity to K2 for lower values, so
+      it would be better if we took the values in the range of 0 < K2 < 0.4).
+    return_index_map: If True returns local SSIM map instead of the global mean.
+
+  Returns:
+    A tensor containing an SSIM value for each image in batch or a tensor
+    containing an SSIM value for each pixel for each image in batch if
+    return_index_map is True. Returned SSIM values are in range (-1, 1], when
+    pixel values are non-negative. Returns a tensor with shape:
+    broadcast(img1.shape[:-3], img2.shape[:-3]) or broadcast(img1.shape[:-1],
+    img2.shape[:-1]).
+
+[API Signature] img1: tensor, img2: tensor, max_val: float, filter_size: integer, filter_sigma: float, k1: float, k2: float, return_index_map: boolean
+
+[Error Messages]
+ValueError: Shape (0, 9) must have rank at least 3
+ValueError: Shapes (1, 33, 58) and (31, 4, 65) are incompatible
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 7 (first dimension of a tensor matches second dimension of the other)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) ≥ 1 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, 0) = shape(v_2, 1)
+
+Rule 32 (Integer indices only valid with int-compatible dtype)
+{v_1 : tuple(int), v_2 : dtype} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] ≥ 0 ∧ v_2 = 1 ∨ v_2 = 2 ∨ v_2 = 3 ∨ v_2 = 4 ∨ v_2 = 5
+
+Rule 30 (list of bools for masking or selection)
+{v_1 : tensor, v_2 : list(bool)} |= v_2.len = shape(v_1, 0)
+
+Rule 6 (last dimension of a tensor matches first dimension of the other)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, 0)
+
+Rule 24 (tuple of ints represents valid shape dimensions)
+{v_1 : tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] > 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 44 (img1 must have rank at least 3)
+{v_1 : tensor} |= ndim(v_1) ≥ 3
+Token usage: input=2536, output=319, total=6803
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.image.ssim API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Computes SSIM index between img1 and img2.
+
+  This function is based on the standard SSIM implementation from:
+  Wang, Z., Bovik, A. C., Sheikh, H. R., & Simoncelli, E. P. (2004). Image
+  quality assessment: from error visibility to structural similarity. IEEE
+  transactions on image processing.
+
+  Note: The true SSIM is only defined on grayscale.  This function does not
+  perform any colorspace transform.  (If the input is already YUV, then it will
+  compute YUV SSIM average.)
+
+  Details:
+    - 11x11 Gaussian filter of width 1.5 is used.
+    - k1 = 0.01, k2 = 0.03 as in the original paper.
+
+  The image sizes must be at least 11x11 because of the filter size.
+
+  Example:
+
+  ```python
+      # Read images (of size 255 x 255) from file.
+      im1 = tf.image.decode_image(tf.io.read_file('path/to/im1.png'))
+      im2 = tf.image.decode_image(tf.io.read_file('path/to/im2.png'))
+      tf.shape(im1)  # `img1.png` has 3 channels; shape is `(255, 255, 3)`
+      tf.shape(im2)  # `img2.png` has 3 channels; shape is `(255, 255, 3)`
+      # Add an outer batch for each image.
+      im1 = tf.expand_dims(im1, axis=0)
+      im2 = tf.expand_dims(im2, axis=0)
+      # Compute SSIM over tf.uint8 Tensors.
+      ssim1 = tf.image.ssim(im1, im2, max_val=255, filter_size=11,
+                            filter_sigma=1.5, k1=0.01, k2=0.03)
+
+      # Compute SSIM over tf.float32 Tensors.
+      im1 = tf.image.convert_image_dtype(im1, tf.float32)
+      im2 = tf.image.convert_image_dtype(im2, tf.float32)
+      ssim2 = tf.image.ssim(im1, im2, max_val=1.0, filter_size=11,
+                            filter_sigma=1.5, k1=0.01, k2=0.03)
+      # ssim1 and ssim2 both have type tf.float32 and are almost equal.
+  ```
+
+  Args:
+    img1: First image batch. 4-D Tensor of shape `[batch, height, width,
+      channels]` with only Positive Pixel Values.
+    img2: Second image batch. 4-D Tensor of shape `[batch, height, width,
+      channels]` with only Positive Pixel Values.
+    max_val: The dynamic range of the images (i.e., the difference between the
+      maximum the and minimum allowed values).
+    filter_size: Default value 11 (size of gaussian filter).
+    filter_sigma: Default value 1.5 (width of gaussian filter).
+    k1: Default value 0.01
+    k2: Default value 0.03 (SSIM is less sensitivity to K2 for lower values, so
+      it would be better if we took the values in the range of 0 < K2 < 0.4).
+    return_index_map: If True returns local SSIM map instead of the global mean.
+
+  Returns:
+    A tensor containing an SSIM value for each image in batch or a tensor
+    containing an SSIM value for each pixel for each image in batch if
+    return_index_map is True. Returned SSIM values are in range (-1, 1], when
+    pixel values are non-negative. Returns a tensor with shape:
+    broadcast(img1.shape[:-3], img2.shape[:-3]) or broadcast(img1.shape[:-1],
+    img2.shape[:-1]).
+
+[API Signature] img1: tensor, img2: tensor, max_val: float, filter_size: integer, filter_sigma: float, k1: float, k2: float, return_index_map: boolean
+
+[Error Messages]
+ValueError: Shape (0, 9) must have rank at least 3
+ValueError: Shapes (1, 33, 58) and (31, 4, 65) are incompatible
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 7 (first dimension of a tensor matches second dimension of the other)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) ≥ 1 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, 0) = shape(v_2, 1)
+
+Rule 32 (Integer indices only valid with int-compatible dtype)
+{v_1 : tuple(int), v_2 : dtype} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] ≥ 0 ∧ v_2 = 1 ∨ v_2 = 2 ∨ v_2 = 3 ∨ v_2 = 4 ∨ v_2 = 5
+
+Rule 30 (list of bools for masking or selection)
+{v_1 : tensor, v_2 : list(bool)} |= v_2.len = shape(v_1, 0)
+
+Rule 6 (last dimension of a tensor matches first dimension of the other)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, 0)
+
+Rule 24 (tuple of ints represents valid shape dimensions)
+{v_1 : tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] > 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 45 (img2 must have rank at least 3)
+{v_2 : tensor} |= ndim(v_2) ≥ 3
+Token usage: input=2536, output=319, total=6803
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.image.ssim API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Computes SSIM index between img1 and img2.
+
+  This function is based on the standard SSIM implementation from:
+  Wang, Z., Bovik, A. C., Sheikh, H. R., & Simoncelli, E. P. (2004). Image
+  quality assessment: from error visibility to structural similarity. IEEE
+  transactions on image processing.
+
+  Note: The true SSIM is only defined on grayscale.  This function does not
+  perform any colorspace transform.  (If the input is already YUV, then it will
+  compute YUV SSIM average.)
+
+  Details:
+    - 11x11 Gaussian filter of width 1.5 is used.
+    - k1 = 0.01, k2 = 0.03 as in the original paper.
+
+  The image sizes must be at least 11x11 because of the filter size.
+
+  Example:
+
+  ```python
+      # Read images (of size 255 x 255) from file.
+      im1 = tf.image.decode_image(tf.io.read_file('path/to/im1.png'))
+      im2 = tf.image.decode_image(tf.io.read_file('path/to/im2.png'))
+      tf.shape(im1)  # `img1.png` has 3 channels; shape is `(255, 255, 3)`
+      tf.shape(im2)  # `img2.png` has 3 channels; shape is `(255, 255, 3)`
+      # Add an outer batch for each image.
+      im1 = tf.expand_dims(im1, axis=0)
+      im2 = tf.expand_dims(im2, axis=0)
+      # Compute SSIM over tf.uint8 Tensors.
+      ssim1 = tf.image.ssim(im1, im2, max_val=255, filter_size=11,
+                            filter_sigma=1.5, k1=0.01, k2=0.03)
+
+      # Compute SSIM over tf.float32 Tensors.
+      im1 = tf.image.convert_image_dtype(im1, tf.float32)
+      im2 = tf.image.convert_image_dtype(im2, tf.float32)
+      ssim2 = tf.image.ssim(im1, im2, max_val=1.0, filter_size=11,
+                            filter_sigma=1.5, k1=0.01, k2=0.03)
+      # ssim1 and ssim2 both have type tf.float32 and are almost equal.
+  ```
+
+  Args:
+    img1: First image batch. 4-D Tensor of shape `[batch, height, width,
+      channels]` with only Positive Pixel Values.
+    img2: Second image batch. 4-D Tensor of shape `[batch, height, width,
+      channels]` with only Positive Pixel Values.
+    max_val: The dynamic range of the images (i.e., the difference between the
+      maximum the and minimum allowed values).
+    filter_size: Default value 11 (size of gaussian filter).
+    filter_sigma: Default value 1.5 (width of gaussian filter).
+    k1: Default value 0.01
+    k2: Default value 0.03 (SSIM is less sensitivity to K2 for lower values, so
+      it would be better if we took the values in the range of 0 < K2 < 0.4).
+    return_index_map: If True returns local SSIM map instead of the global mean.
+
+  Returns:
+    A tensor containing an SSIM value for each image in batch or a tensor
+    containing an SSIM value for each pixel for each image in batch if
+    return_index_map is True. Returned SSIM values are in range (-1, 1], when
+    pixel values are non-negative. Returns a tensor with shape:
+    broadcast(img1.shape[:-3], img2.shape[:-3]) or broadcast(img1.shape[:-1],
+    img2.shape[:-1]).
+
+[API Signature] img1: tensor, img2: tensor, max_val: float, filter_size: integer, filter_sigma: float, k1: float, k2: float, return_index_map: boolean
+
+[Error Messages]
+ValueError: Shape (0, 9) must have rank at least 3
+ValueError: Shapes (1, 33, 58) and (31, 4, 65) are incompatible
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 7 (first dimension of a tensor matches second dimension of the other)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) ≥ 1 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, 0) = shape(v_2, 1)
+
+Rule 32 (Integer indices only valid with int-compatible dtype)
+{v_1 : tuple(int), v_2 : dtype} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] ≥ 0 ∧ v_2 = 1 ∨ v_2 = 2 ∨ v_2 = 3 ∨ v_2 = 4 ∨ v_2 = 5
+
+Rule 30 (list of bools for masking or selection)
+{v_1 : tensor, v_2 : list(bool)} |= v_2.len = shape(v_1, 0)
+
+Rule 6 (last dimension of a tensor matches first dimension of the other)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, 0)
+
+Rule 24 (tuple of ints represents valid shape dimensions)
+{v_1 : tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] > 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 46 (img1 and img2 must have identical shapes)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i))
+Token usage: input=2536, output=319, total=6803
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.image.ssim API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Computes SSIM index between img1 and img2.
+
+  This function is based on the standard SSIM implementation from:
+  Wang, Z., Bovik, A. C., Sheikh, H. R., & Simoncelli, E. P. (2004). Image
+  quality assessment: from error visibility to structural similarity. IEEE
+  transactions on image processing.
+
+  Note: The true SSIM is only defined on grayscale.  This function does not
+  perform any colorspace transform.  (If the input is already YUV, then it will
+  compute YUV SSIM average.)
+
+  Details:
+    - 11x11 Gaussian filter of width 1.5 is used.
+    - k1 = 0.01, k2 = 0.03 as in the original paper.
+
+  The image sizes must be at least 11x11 because of the filter size.
+
+  Example:
+
+  ```python
+      # Read images (of size 255 x 255) from file.
+      im1 = tf.image.decode_image(tf.io.read_file('path/to/im1.png'))
+      im2 = tf.image.decode_image(tf.io.read_file('path/to/im2.png'))
+      tf.shape(im1)  # `img1.png` has 3 channels; shape is `(255, 255, 3)`
+      tf.shape(im2)  # `img2.png` has 3 channels; shape is `(255, 255, 3)`
+      # Add an outer batch for each image.
+      im1 = tf.expand_dims(im1, axis=0)
+      im2 = tf.expand_dims(im2, axis=0)
+      # Compute SSIM over tf.uint8 Tensors.
+      ssim1 = tf.image.ssim(im1, im2, max_val=255, filter_size=11,
+                            filter_sigma=1.5, k1=0.01, k2=0.03)
+
+      # Compute SSIM over tf.float32 Tensors.
+      im1 = tf.image.convert_image_dtype(im1, tf.float32)
+      im2 = tf.image.convert_image_dtype(im2, tf.float32)
+      ssim2 = tf.image.ssim(im1, im2, max_val=1.0, filter_size=11,
+                            filter_sigma=1.5, k1=0.01, k2=0.03)
+      # ssim1 and ssim2 both have type tf.float32 and are almost equal.
+  ```
+
+  Args:
+    img1: First image batch. 4-D Tensor of shape `[batch, height, width,
+      channels]` with only Positive Pixel Values.
+    img2: Second image batch. 4-D Tensor of shape `[batch, height, width,
+      channels]` with only Positive Pixel Values.
+    max_val: The dynamic range of the images (i.e., the difference between the
+      maximum the and minimum allowed values).
+    filter_size: Default value 11 (size of gaussian filter).
+    filter_sigma: Default value 1.5 (width of gaussian filter).
+    k1: Default value 0.01
+    k2: Default value 0.03 (SSIM is less sensitivity to K2 for lower values, so
+      it would be better if we took the values in the range of 0 < K2 < 0.4).
+    return_index_map: If True returns local SSIM map instead of the global mean.
+
+  Returns:
+    A tensor containing an SSIM value for each image in batch or a tensor
+    containing an SSIM value for each pixel for each image in batch if
+    return_index_map is True. Returned SSIM values are in range (-1, 1], when
+    pixel values are non-negative. Returns a tensor with shape:
+    broadcast(img1.shape[:-3], img2.shape[:-3]) or broadcast(img1.shape[:-1],
+    img2.shape[:-1]).
+
+[API Signature] img1: tensor, img2: tensor, max_val: float, filter_size: integer, filter_sigma: float, k1: float, k2: float, return_index_map: boolean
+
+[Error Messages]
+ValueError: Shape (0, 9) must have rank at least 3
+ValueError: Shapes (1, 33, 58) and (31, 4, 65) are incompatible
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 7 (first dimension of a tensor matches second dimension of the other)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) ≥ 1 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, 0) = shape(v_2, 1)
+
+Rule 32 (Integer indices only valid with int-compatible dtype)
+{v_1 : tuple(int), v_2 : dtype} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] ≥ 0 ∧ v_2 = 1 ∨ v_2 = 2 ∨ v_2 = 3 ∨ v_2 = 4 ∨ v_2 = 5
+
+Rule 30 (list of bools for masking or selection)
+{v_1 : tensor, v_2 : list(bool)} |= v_2.len = shape(v_1, 0)
+
+Rule 6 (last dimension of a tensor matches first dimension of the other)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, 0)
+
+Rule 24 (tuple of ints represents valid shape dimensions)
+{v_1 : tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] > 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 47 (filter_size must be positive)
+{v_4 : int} |= v_4 > 0
+Token usage: input=2536, output=319, total=6803
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.image.ssim API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Computes SSIM index between img1 and img2.
+
+  This function is based on the standard SSIM implementation from:
+  Wang, Z., Bovik, A. C., Sheikh, H. R., & Simoncelli, E. P. (2004). Image
+  quality assessment: from error visibility to structural similarity. IEEE
+  transactions on image processing.
+
+  Note: The true SSIM is only defined on grayscale.  This function does not
+  perform any colorspace transform.  (If the input is already YUV, then it will
+  compute YUV SSIM average.)
+
+  Details:
+    - 11x11 Gaussian filter of width 1.5 is used.
+    - k1 = 0.01, k2 = 0.03 as in the original paper.
+
+  The image sizes must be at least 11x11 because of the filter size.
+
+  Example:
+
+  ```python
+      # Read images (of size 255 x 255) from file.
+      im1 = tf.image.decode_image(tf.io.read_file('path/to/im1.png'))
+      im2 = tf.image.decode_image(tf.io.read_file('path/to/im2.png'))
+      tf.shape(im1)  # `img1.png` has 3 channels; shape is `(255, 255, 3)`
+      tf.shape(im2)  # `img2.png` has 3 channels; shape is `(255, 255, 3)`
+      # Add an outer batch for each image.
+      im1 = tf.expand_dims(im1, axis=0)
+      im2 = tf.expand_dims(im2, axis=0)
+      # Compute SSIM over tf.uint8 Tensors.
+      ssim1 = tf.image.ssim(im1, im2, max_val=255, filter_size=11,
+                            filter_sigma=1.5, k1=0.01, k2=0.03)
+
+      # Compute SSIM over tf.float32 Tensors.
+      im1 = tf.image.convert_image_dtype(im1, tf.float32)
+      im2 = tf.image.convert_image_dtype(im2, tf.float32)
+      ssim2 = tf.image.ssim(im1, im2, max_val=1.0, filter_size=11,
+                            filter_sigma=1.5, k1=0.01, k2=0.03)
+      # ssim1 and ssim2 both have type tf.float32 and are almost equal.
+  ```
+
+  Args:
+    img1: First image batch. 4-D Tensor of shape `[batch, height, width,
+      channels]` with only Positive Pixel Values.
+    img2: Second image batch. 4-D Tensor of shape `[batch, height, width,
+      channels]` with only Positive Pixel Values.
+    max_val: The dynamic range of the images (i.e., the difference between the
+      maximum the and minimum allowed values).
+    filter_size: Default value 11 (size of gaussian filter).
+    filter_sigma: Default value 1.5 (width of gaussian filter).
+    k1: Default value 0.01
+    k2: Default value 0.03 (SSIM is less sensitivity to K2 for lower values, so
+      it would be better if we took the values in the range of 0 < K2 < 0.4).
+    return_index_map: If True returns local SSIM map instead of the global mean.
+
+  Returns:
+    A tensor containing an SSIM value for each image in batch or a tensor
+    containing an SSIM value for each pixel for each image in batch if
+    return_index_map is True. Returned SSIM values are in range (-1, 1], when
+    pixel values are non-negative. Returns a tensor with shape:
+    broadcast(img1.shape[:-3], img2.shape[:-3]) or broadcast(img1.shape[:-1],
+    img2.shape[:-1]).
+
+[API Signature] img1: tensor, img2: tensor, max_val: float, filter_size: integer, filter_sigma: float, k1: float, k2: float, return_index_map: boolean
+
+[Error Messages]
+ValueError: Shape (0, 9) must have rank at least 3
+ValueError: Shapes (1, 33, 58) and (31, 4, 65) are incompatible
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 7 (first dimension of a tensor matches second dimension of the other)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) ≥ 1 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, 0) = shape(v_2, 1)
+
+Rule 32 (Integer indices only valid with int-compatible dtype)
+{v_1 : tuple(int), v_2 : dtype} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] ≥ 0 ∧ v_2 = 1 ∨ v_2 = 2 ∨ v_2 = 3 ∨ v_2 = 4 ∨ v_2 = 5
+
+Rule 30 (list of bools for masking or selection)
+{v_1 : tensor, v_2 : list(bool)} |= v_2.len = shape(v_1, 0)
+
+Rule 6 (last dimension of a tensor matches first dimension of the other)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, 0)
+
+Rule 24 (tuple of ints represents valid shape dimensions)
+{v_1 : tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] > 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 48 (image height and width must be at least filter_size)
+{v_1 : tensor, v_4 : int} |= ndim(v_1) ≥ 3 ∧ shape(v_1, ndim(v_1) - 3) ≥ v_4 ∧ shape(v_1, ndim(v_1) - 2) ≥ v_4
+Token usage: input=2536, output=319, total=6803
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.image.ssim API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Computes SSIM index between img1 and img2.
+
+  This function is based on the standard SSIM implementation from:
+  Wang, Z., Bovik, A. C., Sheikh, H. R., & Simoncelli, E. P. (2004). Image
+  quality assessment: from error visibility to structural similarity. IEEE
+  transactions on image processing.
+
+  Note: The true SSIM is only defined on grayscale.  This function does not
+  perform any colorspace transform.  (If the input is already YUV, then it will
+  compute YUV SSIM average.)
+
+  Details:
+    - 11x11 Gaussian filter of width 1.5 is used.
+    - k1 = 0.01, k2 = 0.03 as in the original paper.
+
+  The image sizes must be at least 11x11 because of the filter size.
+
+  Example:
+
+  ```python
+      # Read images (of size 255 x 255) from file.
+      im1 = tf.image.decode_image(tf.io.read_file('path/to/im1.png'))
+      im2 = tf.image.decode_image(tf.io.read_file('path/to/im2.png'))
+      tf.shape(im1)  # `img1.png` has 3 channels; shape is `(255, 255, 3)`
+      tf.shape(im2)  # `img2.png` has 3 channels; shape is `(255, 255, 3)`
+      # Add an outer batch for each image.
+      im1 = tf.expand_dims(im1, axis=0)
+      im2 = tf.expand_dims(im2, axis=0)
+      # Compute SSIM over tf.uint8 Tensors.
+      ssim1 = tf.image.ssim(im1, im2, max_val=255, filter_size=11,
+                            filter_sigma=1.5, k1=0.01, k2=0.03)
+
+      # Compute SSIM over tf.float32 Tensors.
+      im1 = tf.image.convert_image_dtype(im1, tf.float32)
+      im2 = tf.image.convert_image_dtype(im2, tf.float32)
+      ssim2 = tf.image.ssim(im1, im2, max_val=1.0, filter_size=11,
+                            filter_sigma=1.5, k1=0.01, k2=0.03)
+      # ssim1 and ssim2 both have type tf.float32 and are almost equal.
+  ```
+
+  Args:
+    img1: First image batch. 4-D Tensor of shape `[batch, height, width,
+      channels]` with only Positive Pixel Values.
+    img2: Second image batch. 4-D Tensor of shape `[batch, height, width,
+      channels]` with only Positive Pixel Values.
+    max_val: The dynamic range of the images (i.e., the difference between the
+      maximum the and minimum allowed values).
+    filter_size: Default value 11 (size of gaussian filter).
+    filter_sigma: Default value 1.5 (width of gaussian filter).
+    k1: Default value 0.01
+    k2: Default value 0.03 (SSIM is less sensitivity to K2 for lower values, so
+      it would be better if we took the values in the range of 0 < K2 < 0.4).
+    return_index_map: If True returns local SSIM map instead of the global mean.
+
+  Returns:
+    A tensor containing an SSIM value for each image in batch or a tensor
+    containing an SSIM value for each pixel for each image in batch if
+    return_index_map is True. Returned SSIM values are in range (-1, 1], when
+    pixel values are non-negative. Returns a tensor with shape:
+    broadcast(img1.shape[:-3], img2.shape[:-3]) or broadcast(img1.shape[:-1],
+    img2.shape[:-1]).
+
+[API Signature] img1: tensor, img2: tensor, max_val: float, filter_size: integer, filter_sigma: float, k1: float, k2: float, return_index_map: boolean
+
+[Error Messages]
+ValueError: Shape (0, 9) must have rank at least 3
+ValueError: Shapes (1, 33, 58) and (31, 4, 65) are incompatible
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 7 (first dimension of a tensor matches second dimension of the other)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) ≥ 1 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, 0) = shape(v_2, 1)
+
+Rule 32 (Integer indices only valid with int-compatible dtype)
+{v_1 : tuple(int), v_2 : dtype} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] ≥ 0 ∧ v_2 = 1 ∨ v_2 = 2 ∨ v_2 = 3 ∨ v_2 = 4 ∨ v_2 = 5
+
+Rule 30 (list of bools for masking or selection)
+{v_1 : tensor, v_2 : list(bool)} |= v_2.len = shape(v_1, 0)
+
+Rule 6 (last dimension of a tensor matches first dimension of the other)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, 0)
+
+Rule 24 (tuple of ints represents valid shape dimensions)
+{v_1 : tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] > 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 49 (filter_sigma must be positive)
+{v_5 : float} |= v_5 > 0
+Token usage: input=2536, output=319, total=6803
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.image.ssim API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Computes SSIM index between img1 and img2.
+
+  This function is based on the standard SSIM implementation from:
+  Wang, Z., Bovik, A. C., Sheikh, H. R., & Simoncelli, E. P. (2004). Image
+  quality assessment: from error visibility to structural similarity. IEEE
+  transactions on image processing.
+
+  Note: The true SSIM is only defined on grayscale.  This function does not
+  perform any colorspace transform.  (If the input is already YUV, then it will
+  compute YUV SSIM average.)
+
+  Details:
+    - 11x11 Gaussian filter of width 1.5 is used.
+    - k1 = 0.01, k2 = 0.03 as in the original paper.
+
+  The image sizes must be at least 11x11 because of the filter size.
+
+  Example:
+
+  ```python
+      # Read images (of size 255 x 255) from file.
+      im1 = tf.image.decode_image(tf.io.read_file('path/to/im1.png'))
+      im2 = tf.image.decode_image(tf.io.read_file('path/to/im2.png'))
+      tf.shape(im1)  # `img1.png` has 3 channels; shape is `(255, 255, 3)`
+      tf.shape(im2)  # `img2.png` has 3 channels; shape is `(255, 255, 3)`
+      # Add an outer batch for each image.
+      im1 = tf.expand_dims(im1, axis=0)
+      im2 = tf.expand_dims(im2, axis=0)
+      # Compute SSIM over tf.uint8 Tensors.
+      ssim1 = tf.image.ssim(im1, im2, max_val=255, filter_size=11,
+                            filter_sigma=1.5, k1=0.01, k2=0.03)
+
+      # Compute SSIM over tf.float32 Tensors.
+      im1 = tf.image.convert_image_dtype(im1, tf.float32)
+      im2 = tf.image.convert_image_dtype(im2, tf.float32)
+      ssim2 = tf.image.ssim(im1, im2, max_val=1.0, filter_size=11,
+                            filter_sigma=1.5, k1=0.01, k2=0.03)
+      # ssim1 and ssim2 both have type tf.float32 and are almost equal.
+  ```
+
+  Args:
+    img1: First image batch. 4-D Tensor of shape `[batch, height, width,
+      channels]` with only Positive Pixel Values.
+    img2: Second image batch. 4-D Tensor of shape `[batch, height, width,
+      channels]` with only Positive Pixel Values.
+    max_val: The dynamic range of the images (i.e., the difference between the
+      maximum the and minimum allowed values).
+    filter_size: Default value 11 (size of gaussian filter).
+    filter_sigma: Default value 1.5 (width of gaussian filter).
+    k1: Default value 0.01
+    k2: Default value 0.03 (SSIM is less sensitivity to K2 for lower values, so
+      it would be better if we took the values in the range of 0 < K2 < 0.4).
+    return_index_map: If True returns local SSIM map instead of the global mean.
+
+  Returns:
+    A tensor containing an SSIM value for each image in batch or a tensor
+    containing an SSIM value for each pixel for each image in batch if
+    return_index_map is True. Returned SSIM values are in range (-1, 1], when
+    pixel values are non-negative. Returns a tensor with shape:
+    broadcast(img1.shape[:-3], img2.shape[:-3]) or broadcast(img1.shape[:-1],
+    img2.shape[:-1]).
+
+[API Signature] img1: tensor, img2: tensor, max_val: float, filter_size: integer, filter_sigma: float, k1: float, k2: float, return_index_map: boolean
+
+[Error Messages]
+ValueError: Shape (0, 9) must have rank at least 3
+ValueError: Shapes (1, 33, 58) and (31, 4, 65) are incompatible
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 7 (first dimension of a tensor matches second dimension of the other)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) ≥ 1 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, 0) = shape(v_2, 1)
+
+Rule 32 (Integer indices only valid with int-compatible dtype)
+{v_1 : tuple(int), v_2 : dtype} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] ≥ 0 ∧ v_2 = 1 ∨ v_2 = 2 ∨ v_2 = 3 ∨ v_2 = 4 ∨ v_2 = 5
+
+Rule 30 (list of bools for masking or selection)
+{v_1 : tensor, v_2 : list(bool)} |= v_2.len = shape(v_1, 0)
+
+Rule 6 (last dimension of a tensor matches first dimension of the other)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, 0)
+
+Rule 24 (tuple of ints represents valid shape dimensions)
+{v_1 : tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] > 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 50 (max_val must be positive)
+{v_3 : float} |= v_3 > 0
+Token usage: input=2536, output=319, total=6803
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.image.ssim API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Computes SSIM index between img1 and img2.
+
+  This function is based on the standard SSIM implementation from:
+  Wang, Z., Bovik, A. C., Sheikh, H. R., & Simoncelli, E. P. (2004). Image
+  quality assessment: from error visibility to structural similarity. IEEE
+  transactions on image processing.
+
+  Note: The true SSIM is only defined on grayscale.  This function does not
+  perform any colorspace transform.  (If the input is already YUV, then it will
+  compute YUV SSIM average.)
+
+  Details:
+    - 11x11 Gaussian filter of width 1.5 is used.
+    - k1 = 0.01, k2 = 0.03 as in the original paper.
+
+  The image sizes must be at least 11x11 because of the filter size.
+
+  Example:
+
+  ```python
+      # Read images (of size 255 x 255) from file.
+      im1 = tf.image.decode_image(tf.io.read_file('path/to/im1.png'))
+      im2 = tf.image.decode_image(tf.io.read_file('path/to/im2.png'))
+      tf.shape(im1)  # `img1.png` has 3 channels; shape is `(255, 255, 3)`
+      tf.shape(im2)  # `img2.png` has 3 channels; shape is `(255, 255, 3)`
+      # Add an outer batch for each image.
+      im1 = tf.expand_dims(im1, axis=0)
+      im2 = tf.expand_dims(im2, axis=0)
+      # Compute SSIM over tf.uint8 Tensors.
+      ssim1 = tf.image.ssim(im1, im2, max_val=255, filter_size=11,
+                            filter_sigma=1.5, k1=0.01, k2=0.03)
+
+      # Compute SSIM over tf.float32 Tensors.
+      im1 = tf.image.convert_image_dtype(im1, tf.float32)
+      im2 = tf.image.convert_image_dtype(im2, tf.float32)
+      ssim2 = tf.image.ssim(im1, im2, max_val=1.0, filter_size=11,
+                            filter_sigma=1.5, k1=0.01, k2=0.03)
+      # ssim1 and ssim2 both have type tf.float32 and are almost equal.
+  ```
+
+  Args:
+    img1: First image batch. 4-D Tensor of shape `[batch, height, width,
+      channels]` with only Positive Pixel Values.
+    img2: Second image batch. 4-D Tensor of shape `[batch, height, width,
+      channels]` with only Positive Pixel Values.
+    max_val: The dynamic range of the images (i.e., the difference between the
+      maximum the and minimum allowed values).
+    filter_size: Default value 11 (size of gaussian filter).
+    filter_sigma: Default value 1.5 (width of gaussian filter).
+    k1: Default value 0.01
+    k2: Default value 0.03 (SSIM is less sensitivity to K2 for lower values, so
+      it would be better if we took the values in the range of 0 < K2 < 0.4).
+    return_index_map: If True returns local SSIM map instead of the global mean.
+
+  Returns:
+    A tensor containing an SSIM value for each image in batch or a tensor
+    containing an SSIM value for each pixel for each image in batch if
+    return_index_map is True. Returned SSIM values are in range (-1, 1], when
+    pixel values are non-negative. Returns a tensor with shape:
+    broadcast(img1.shape[:-3], img2.shape[:-3]) or broadcast(img1.shape[:-1],
+    img2.shape[:-1]).
+
+[API Signature] img1: tensor, img2: tensor, max_val: float, filter_size: integer, filter_sigma: float, k1: float, k2: float, return_index_map: boolean
+
+[Error Messages]
+ValueError: Shape (0, 9) must have rank at least 3
+ValueError: Shapes (1, 33, 58) and (31, 4, 65) are incompatible
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 4 (tensor data types should match)
+{v_1 : tensor, v_2 : tensor} |= dtype(v_1) = dtype(v_2)
+
+Rule 11 (index tensor (v_3) is within the input tensor along the specified dimension)
+{v_1 : tensor, v_2 : int, v_3 : tensor} |= min(v_3) ≥ 0 ∧ max(v_3) ≤ shape(v_1, v_2) − 1
+
+Rule 28 (list of ints used as dimensions/axes, all non-negative and valid for tensor shape)
+{v_1 : tensor, v_2 : list(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 2 (v_2 should be a valid dimension of input tensor)
+{v_1 : tensor, v_2 : int} |= −1 × ndim(v_1) ≤ v_2 ∧ v_2 ≤ ndim(v_1) − 1
+
+Rule 15 (broadcasting compatibility for tensor shapes)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ ∀i ∈ [0, if ndim(v_1) ≥ ndim(v_2) then ndim(v_1) − 1 else ndim(v_2) − 1] : ndim(v_1) − i − 1 < 0 ∨ ndim(v_2) − i − 1 < 0 ∨ shape(v_1, ndim(v_1) − i − 1) = 1 ∨ shape(v_2, ndim(v_2) − i − 1) = 1 ∨ shape(v_1, ndim(v_1) − i − 1) = shape(v_2, ndim(v_2) − i − 1)
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 51 (img1 must have rank at least 3)
+{v_1 : tensor} |= ndim(v_1) ≥ 3
+Token usage: input=9465, output=769, total=15563
+** DUPLICATED RULE ** (num_failures: 1)
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.image.ssim API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Computes SSIM index between img1 and img2.
+
+  This function is based on the standard SSIM implementation from:
+  Wang, Z., Bovik, A. C., Sheikh, H. R., & Simoncelli, E. P. (2004). Image
+  quality assessment: from error visibility to structural similarity. IEEE
+  transactions on image processing.
+
+  Note: The true SSIM is only defined on grayscale.  This function does not
+  perform any colorspace transform.  (If the input is already YUV, then it will
+  compute YUV SSIM average.)
+
+  Details:
+    - 11x11 Gaussian filter of width 1.5 is used.
+    - k1 = 0.01, k2 = 0.03 as in the original paper.
+
+  The image sizes must be at least 11x11 because of the filter size.
+
+  Example:
+
+  ```python
+      # Read images (of size 255 x 255) from file.
+      im1 = tf.image.decode_image(tf.io.read_file('path/to/im1.png'))
+      im2 = tf.image.decode_image(tf.io.read_file('path/to/im2.png'))
+      tf.shape(im1)  # `img1.png` has 3 channels; shape is `(255, 255, 3)`
+      tf.shape(im2)  # `img2.png` has 3 channels; shape is `(255, 255, 3)`
+      # Add an outer batch for each image.
+      im1 = tf.expand_dims(im1, axis=0)
+      im2 = tf.expand_dims(im2, axis=0)
+      # Compute SSIM over tf.uint8 Tensors.
+      ssim1 = tf.image.ssim(im1, im2, max_val=255, filter_size=11,
+                            filter_sigma=1.5, k1=0.01, k2=0.03)
+
+      # Compute SSIM over tf.float32 Tensors.
+      im1 = tf.image.convert_image_dtype(im1, tf.float32)
+      im2 = tf.image.convert_image_dtype(im2, tf.float32)
+      ssim2 = tf.image.ssim(im1, im2, max_val=1.0, filter_size=11,
+                            filter_sigma=1.5, k1=0.01, k2=0.03)
+      # ssim1 and ssim2 both have type tf.float32 and are almost equal.
+  ```
+
+  Args:
+    img1: First image batch. 4-D Tensor of shape `[batch, height, width,
+      channels]` with only Positive Pixel Values.
+    img2: Second image batch. 4-D Tensor of shape `[batch, height, width,
+      channels]` with only Positive Pixel Values.
+    max_val: The dynamic range of the images (i.e., the difference between the
+      maximum the and minimum allowed values).
+    filter_size: Default value 11 (size of gaussian filter).
+    filter_sigma: Default value 1.5 (width of gaussian filter).
+    k1: Default value 0.01
+    k2: Default value 0.03 (SSIM is less sensitivity to K2 for lower values, so
+      it would be better if we took the values in the range of 0 < K2 < 0.4).
+    return_index_map: If True returns local SSIM map instead of the global mean.
+
+  Returns:
+    A tensor containing an SSIM value for each image in batch or a tensor
+    containing an SSIM value for each pixel for each image in batch if
+    return_index_map is True. Returned SSIM values are in range (-1, 1], when
+    pixel values are non-negative. Returns a tensor with shape:
+    broadcast(img1.shape[:-3], img2.shape[:-3]) or broadcast(img1.shape[:-1],
+    img2.shape[:-1]).
+
+[API Signature] img1: tensor, img2: tensor, max_val: float, filter_size: integer, filter_sigma: float, k1: float, k2: float, return_index_map: boolean
+
+[Error Messages]
+ValueError: Shape (0, 9) must have rank at least 3
+ValueError: Shapes (1, 33, 58) and (31, 4, 65) are incompatible
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 4 (tensor data types should match)
+{v_1 : tensor, v_2 : tensor} |= dtype(v_1) = dtype(v_2)
+
+Rule 11 (index tensor (v_3) is within the input tensor along the specified dimension)
+{v_1 : tensor, v_2 : int, v_3 : tensor} |= min(v_3) ≥ 0 ∧ max(v_3) ≤ shape(v_1, v_2) − 1
+
+Rule 28 (list of ints used as dimensions/axes, all non-negative and valid for tensor shape)
+{v_1 : tensor, v_2 : list(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 2 (v_2 should be a valid dimension of input tensor)
+{v_1 : tensor, v_2 : int} |= −1 × ndim(v_1) ≤ v_2 ∧ v_2 ≤ ndim(v_1) − 1
+
+Rule 15 (broadcasting compatibility for tensor shapes)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ ∀i ∈ [0, if ndim(v_1) ≥ ndim(v_2) then ndim(v_1) − 1 else ndim(v_2) − 1] : ndim(v_1) − i − 1 < 0 ∨ ndim(v_2) − i − 1 < 0 ∨ shape(v_1, ndim(v_1) − i − 1) = 1 ∨ shape(v_2, ndim(v_2) − i − 1) = 1 ∨ shape(v_1, ndim(v_1) − i − 1) = shape(v_2, ndim(v_2) − i − 1)
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 52 (img2 must have rank at least 3)
+{v_2 : tensor} |= ndim(v_2) ≥ 3
+Token usage: input=9465, output=769, total=15563
+** DUPLICATED RULE ** (num_failures: 2)
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.image.ssim API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Computes SSIM index between img1 and img2.
+
+  This function is based on the standard SSIM implementation from:
+  Wang, Z., Bovik, A. C., Sheikh, H. R., & Simoncelli, E. P. (2004). Image
+  quality assessment: from error visibility to structural similarity. IEEE
+  transactions on image processing.
+
+  Note: The true SSIM is only defined on grayscale.  This function does not
+  perform any colorspace transform.  (If the input is already YUV, then it will
+  compute YUV SSIM average.)
+
+  Details:
+    - 11x11 Gaussian filter of width 1.5 is used.
+    - k1 = 0.01, k2 = 0.03 as in the original paper.
+
+  The image sizes must be at least 11x11 because of the filter size.
+
+  Example:
+
+  ```python
+      # Read images (of size 255 x 255) from file.
+      im1 = tf.image.decode_image(tf.io.read_file('path/to/im1.png'))
+      im2 = tf.image.decode_image(tf.io.read_file('path/to/im2.png'))
+      tf.shape(im1)  # `img1.png` has 3 channels; shape is `(255, 255, 3)`
+      tf.shape(im2)  # `img2.png` has 3 channels; shape is `(255, 255, 3)`
+      # Add an outer batch for each image.
+      im1 = tf.expand_dims(im1, axis=0)
+      im2 = tf.expand_dims(im2, axis=0)
+      # Compute SSIM over tf.uint8 Tensors.
+      ssim1 = tf.image.ssim(im1, im2, max_val=255, filter_size=11,
+                            filter_sigma=1.5, k1=0.01, k2=0.03)
+
+      # Compute SSIM over tf.float32 Tensors.
+      im1 = tf.image.convert_image_dtype(im1, tf.float32)
+      im2 = tf.image.convert_image_dtype(im2, tf.float32)
+      ssim2 = tf.image.ssim(im1, im2, max_val=1.0, filter_size=11,
+                            filter_sigma=1.5, k1=0.01, k2=0.03)
+      # ssim1 and ssim2 both have type tf.float32 and are almost equal.
+  ```
+
+  Args:
+    img1: First image batch. 4-D Tensor of shape `[batch, height, width,
+      channels]` with only Positive Pixel Values.
+    img2: Second image batch. 4-D Tensor of shape `[batch, height, width,
+      channels]` with only Positive Pixel Values.
+    max_val: The dynamic range of the images (i.e., the difference between the
+      maximum the and minimum allowed values).
+    filter_size: Default value 11 (size of gaussian filter).
+    filter_sigma: Default value 1.5 (width of gaussian filter).
+    k1: Default value 0.01
+    k2: Default value 0.03 (SSIM is less sensitivity to K2 for lower values, so
+      it would be better if we took the values in the range of 0 < K2 < 0.4).
+    return_index_map: If True returns local SSIM map instead of the global mean.
+
+  Returns:
+    A tensor containing an SSIM value for each image in batch or a tensor
+    containing an SSIM value for each pixel for each image in batch if
+    return_index_map is True. Returned SSIM values are in range (-1, 1], when
+    pixel values are non-negative. Returns a tensor with shape:
+    broadcast(img1.shape[:-3], img2.shape[:-3]) or broadcast(img1.shape[:-1],
+    img2.shape[:-1]).
+
+[API Signature] img1: tensor, img2: tensor, max_val: float, filter_size: integer, filter_sigma: float, k1: float, k2: float, return_index_map: boolean
+
+[Error Messages]
+ValueError: Shape (0, 9) must have rank at least 3
+ValueError: Shapes (1, 33, 58) and (31, 4, 65) are incompatible
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 4 (tensor data types should match)
+{v_1 : tensor, v_2 : tensor} |= dtype(v_1) = dtype(v_2)
+
+Rule 11 (index tensor (v_3) is within the input tensor along the specified dimension)
+{v_1 : tensor, v_2 : int, v_3 : tensor} |= min(v_3) ≥ 0 ∧ max(v_3) ≤ shape(v_1, v_2) − 1
+
+Rule 28 (list of ints used as dimensions/axes, all non-negative and valid for tensor shape)
+{v_1 : tensor, v_2 : list(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 2 (v_2 should be a valid dimension of input tensor)
+{v_1 : tensor, v_2 : int} |= −1 × ndim(v_1) ≤ v_2 ∧ v_2 ≤ ndim(v_1) − 1
+
+Rule 15 (broadcasting compatibility for tensor shapes)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ ∀i ∈ [0, if ndim(v_1) ≥ ndim(v_2) then ndim(v_1) − 1 else ndim(v_2) − 1] : ndim(v_1) − i − 1 < 0 ∨ ndim(v_2) − i − 1 < 0 ∨ shape(v_1, ndim(v_1) − i − 1) = 1 ∨ shape(v_2, ndim(v_2) − i − 1) = 1 ∨ shape(v_1, ndim(v_1) − i − 1) = shape(v_2, ndim(v_2) − i − 1)
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 53 (img1 and img2 must have the same data type)
+{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) = dtype_(v_2)
+Token usage: input=9465, output=769, total=15563
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.image.ssim API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Computes SSIM index between img1 and img2.
+
+  This function is based on the standard SSIM implementation from:
+  Wang, Z., Bovik, A. C., Sheikh, H. R., & Simoncelli, E. P. (2004). Image
+  quality assessment: from error visibility to structural similarity. IEEE
+  transactions on image processing.
+
+  Note: The true SSIM is only defined on grayscale.  This function does not
+  perform any colorspace transform.  (If the input is already YUV, then it will
+  compute YUV SSIM average.)
+
+  Details:
+    - 11x11 Gaussian filter of width 1.5 is used.
+    - k1 = 0.01, k2 = 0.03 as in the original paper.
+
+  The image sizes must be at least 11x11 because of the filter size.
+
+  Example:
+
+  ```python
+      # Read images (of size 255 x 255) from file.
+      im1 = tf.image.decode_image(tf.io.read_file('path/to/im1.png'))
+      im2 = tf.image.decode_image(tf.io.read_file('path/to/im2.png'))
+      tf.shape(im1)  # `img1.png` has 3 channels; shape is `(255, 255, 3)`
+      tf.shape(im2)  # `img2.png` has 3 channels; shape is `(255, 255, 3)`
+      # Add an outer batch for each image.
+      im1 = tf.expand_dims(im1, axis=0)
+      im2 = tf.expand_dims(im2, axis=0)
+      # Compute SSIM over tf.uint8 Tensors.
+      ssim1 = tf.image.ssim(im1, im2, max_val=255, filter_size=11,
+                            filter_sigma=1.5, k1=0.01, k2=0.03)
+
+      # Compute SSIM over tf.float32 Tensors.
+      im1 = tf.image.convert_image_dtype(im1, tf.float32)
+      im2 = tf.image.convert_image_dtype(im2, tf.float32)
+      ssim2 = tf.image.ssim(im1, im2, max_val=1.0, filter_size=11,
+                            filter_sigma=1.5, k1=0.01, k2=0.03)
+      # ssim1 and ssim2 both have type tf.float32 and are almost equal.
+  ```
+
+  Args:
+    img1: First image batch. 4-D Tensor of shape `[batch, height, width,
+      channels]` with only Positive Pixel Values.
+    img2: Second image batch. 4-D Tensor of shape `[batch, height, width,
+      channels]` with only Positive Pixel Values.
+    max_val: The dynamic range of the images (i.e., the difference between the
+      maximum the and minimum allowed values).
+    filter_size: Default value 11 (size of gaussian filter).
+    filter_sigma: Default value 1.5 (width of gaussian filter).
+    k1: Default value 0.01
+    k2: Default value 0.03 (SSIM is less sensitivity to K2 for lower values, so
+      it would be better if we took the values in the range of 0 < K2 < 0.4).
+    return_index_map: If True returns local SSIM map instead of the global mean.
+
+  Returns:
+    A tensor containing an SSIM value for each image in batch or a tensor
+    containing an SSIM value for each pixel for each image in batch if
+    return_index_map is True. Returned SSIM values are in range (-1, 1], when
+    pixel values are non-negative. Returns a tensor with shape:
+    broadcast(img1.shape[:-3], img2.shape[:-3]) or broadcast(img1.shape[:-1],
+    img2.shape[:-1]).
+
+[API Signature] img1: tensor, img2: tensor, max_val: float, filter_size: integer, filter_sigma: float, k1: float, k2: float, return_index_map: boolean
+
+[Error Messages]
+ValueError: Shape (0, 9) must have rank at least 3
+ValueError: Shapes (1, 33, 58) and (31, 4, 65) are incompatible
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 4 (tensor data types should match)
+{v_1 : tensor, v_2 : tensor} |= dtype(v_1) = dtype(v_2)
+
+Rule 11 (index tensor (v_3) is within the input tensor along the specified dimension)
+{v_1 : tensor, v_2 : int, v_3 : tensor} |= min(v_3) ≥ 0 ∧ max(v_3) ≤ shape(v_1, v_2) − 1
+
+Rule 28 (list of ints used as dimensions/axes, all non-negative and valid for tensor shape)
+{v_1 : tensor, v_2 : list(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 2 (v_2 should be a valid dimension of input tensor)
+{v_1 : tensor, v_2 : int} |= −1 × ndim(v_1) ≤ v_2 ∧ v_2 ≤ ndim(v_1) − 1
+
+Rule 15 (broadcasting compatibility for tensor shapes)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ ∀i ∈ [0, if ndim(v_1) ≥ ndim(v_2) then ndim(v_1) − 1 else ndim(v_2) − 1] : ndim(v_1) − i − 1 < 0 ∨ ndim(v_2) − i − 1 < 0 ∨ shape(v_1, ndim(v_1) − i − 1) = 1 ∨ shape(v_2, ndim(v_2) − i − 1) = 1 ∨ shape(v_1, ndim(v_1) − i − 1) = shape(v_2, ndim(v_2) − i − 1)
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 54 (The last three dimensions of img1 and img2 must match exactly)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) ≥ 3 ∧ ndim(v_2) ≥ 3 then shape(v_1, ndim(v_1) - 1) = shape(v_2, ndim(v_2) - 1) ∧ shape(v_1, ndim(v_1) - 2) = shape(v_2, ndim(v_2) - 2) ∧ shape(v_1, ndim(v_1) - 3) = shape(v_2, ndim(v_2) - 3)
+Token usage: input=9465, output=769, total=15563
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.image.ssim API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Computes SSIM index between img1 and img2.
+
+  This function is based on the standard SSIM implementation from:
+  Wang, Z., Bovik, A. C., Sheikh, H. R., & Simoncelli, E. P. (2004). Image
+  quality assessment: from error visibility to structural similarity. IEEE
+  transactions on image processing.
+
+  Note: The true SSIM is only defined on grayscale.  This function does not
+  perform any colorspace transform.  (If the input is already YUV, then it will
+  compute YUV SSIM average.)
+
+  Details:
+    - 11x11 Gaussian filter of width 1.5 is used.
+    - k1 = 0.01, k2 = 0.03 as in the original paper.
+
+  The image sizes must be at least 11x11 because of the filter size.
+
+  Example:
+
+  ```python
+      # Read images (of size 255 x 255) from file.
+      im1 = tf.image.decode_image(tf.io.read_file('path/to/im1.png'))
+      im2 = tf.image.decode_image(tf.io.read_file('path/to/im2.png'))
+      tf.shape(im1)  # `img1.png` has 3 channels; shape is `(255, 255, 3)`
+      tf.shape(im2)  # `img2.png` has 3 channels; shape is `(255, 255, 3)`
+      # Add an outer batch for each image.
+      im1 = tf.expand_dims(im1, axis=0)
+      im2 = tf.expand_dims(im2, axis=0)
+      # Compute SSIM over tf.uint8 Tensors.
+      ssim1 = tf.image.ssim(im1, im2, max_val=255, filter_size=11,
+                            filter_sigma=1.5, k1=0.01, k2=0.03)
+
+      # Compute SSIM over tf.float32 Tensors.
+      im1 = tf.image.convert_image_dtype(im1, tf.float32)
+      im2 = tf.image.convert_image_dtype(im2, tf.float32)
+      ssim2 = tf.image.ssim(im1, im2, max_val=1.0, filter_size=11,
+                            filter_sigma=1.5, k1=0.01, k2=0.03)
+      # ssim1 and ssim2 both have type tf.float32 and are almost equal.
+  ```
+
+  Args:
+    img1: First image batch. 4-D Tensor of shape `[batch, height, width,
+      channels]` with only Positive Pixel Values.
+    img2: Second image batch. 4-D Tensor of shape `[batch, height, width,
+      channels]` with only Positive Pixel Values.
+    max_val: The dynamic range of the images (i.e., the difference between the
+      maximum the and minimum allowed values).
+    filter_size: Default value 11 (size of gaussian filter).
+    filter_sigma: Default value 1.5 (width of gaussian filter).
+    k1: Default value 0.01
+    k2: Default value 0.03 (SSIM is less sensitivity to K2 for lower values, so
+      it would be better if we took the values in the range of 0 < K2 < 0.4).
+    return_index_map: If True returns local SSIM map instead of the global mean.
+
+  Returns:
+    A tensor containing an SSIM value for each image in batch or a tensor
+    containing an SSIM value for each pixel for each image in batch if
+    return_index_map is True. Returned SSIM values are in range (-1, 1], when
+    pixel values are non-negative. Returns a tensor with shape:
+    broadcast(img1.shape[:-3], img2.shape[:-3]) or broadcast(img1.shape[:-1],
+    img2.shape[:-1]).
+
+[API Signature] img1: tensor, img2: tensor, max_val: float, filter_size: integer, filter_sigma: float, k1: float, k2: float, return_index_map: boolean
+
+[Error Messages]
+ValueError: Shape (0, 9) must have rank at least 3
+ValueError: Shapes (1, 33, 58) and (31, 4, 65) are incompatible
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 4 (tensor data types should match)
+{v_1 : tensor, v_2 : tensor} |= dtype(v_1) = dtype(v_2)
+
+Rule 11 (index tensor (v_3) is within the input tensor along the specified dimension)
+{v_1 : tensor, v_2 : int, v_3 : tensor} |= min(v_3) ≥ 0 ∧ max(v_3) ≤ shape(v_1, v_2) − 1
+
+Rule 28 (list of ints used as dimensions/axes, all non-negative and valid for tensor shape)
+{v_1 : tensor, v_2 : list(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 2 (v_2 should be a valid dimension of input tensor)
+{v_1 : tensor, v_2 : int} |= −1 × ndim(v_1) ≤ v_2 ∧ v_2 ≤ ndim(v_1) − 1
+
+Rule 15 (broadcasting compatibility for tensor shapes)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ ∀i ∈ [0, if ndim(v_1) ≥ ndim(v_2) then ndim(v_1) − 1 else ndim(v_2) − 1] : ndim(v_1) − i − 1 < 0 ∨ ndim(v_2) − i − 1 < 0 ∨ shape(v_1, ndim(v_1) − i − 1) = 1 ∨ shape(v_2, ndim(v_2) − i − 1) = 1 ∨ shape(v_1, ndim(v_1) − i − 1) = shape(v_2, ndim(v_2) − i − 1)
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 55 (The spatial dimensions of img1 must be at least the filter size)
+{v_1 : tensor, v_4 : int} |= if ndim(v_1) ≥ 3 then shape(v_1, ndim(v_1) - 2) ≥ v_4 ∧ shape(v_1, ndim(v_1) - 3) ≥ v_4
+Token usage: input=9465, output=769, total=15563
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.image.ssim API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Computes SSIM index between img1 and img2.
+
+  This function is based on the standard SSIM implementation from:
+  Wang, Z., Bovik, A. C., Sheikh, H. R., & Simoncelli, E. P. (2004). Image
+  quality assessment: from error visibility to structural similarity. IEEE
+  transactions on image processing.
+
+  Note: The true SSIM is only defined on grayscale.  This function does not
+  perform any colorspace transform.  (If the input is already YUV, then it will
+  compute YUV SSIM average.)
+
+  Details:
+    - 11x11 Gaussian filter of width 1.5 is used.
+    - k1 = 0.01, k2 = 0.03 as in the original paper.
+
+  The image sizes must be at least 11x11 because of the filter size.
+
+  Example:
+
+  ```python
+      # Read images (of size 255 x 255) from file.
+      im1 = tf.image.decode_image(tf.io.read_file('path/to/im1.png'))
+      im2 = tf.image.decode_image(tf.io.read_file('path/to/im2.png'))
+      tf.shape(im1)  # `img1.png` has 3 channels; shape is `(255, 255, 3)`
+      tf.shape(im2)  # `img2.png` has 3 channels; shape is `(255, 255, 3)`
+      # Add an outer batch for each image.
+      im1 = tf.expand_dims(im1, axis=0)
+      im2 = tf.expand_dims(im2, axis=0)
+      # Compute SSIM over tf.uint8 Tensors.
+      ssim1 = tf.image.ssim(im1, im2, max_val=255, filter_size=11,
+                            filter_sigma=1.5, k1=0.01, k2=0.03)
+
+      # Compute SSIM over tf.float32 Tensors.
+      im1 = tf.image.convert_image_dtype(im1, tf.float32)
+      im2 = tf.image.convert_image_dtype(im2, tf.float32)
+      ssim2 = tf.image.ssim(im1, im2, max_val=1.0, filter_size=11,
+                            filter_sigma=1.5, k1=0.01, k2=0.03)
+      # ssim1 and ssim2 both have type tf.float32 and are almost equal.
+  ```
+
+  Args:
+    img1: First image batch. 4-D Tensor of shape `[batch, height, width,
+      channels]` with only Positive Pixel Values.
+    img2: Second image batch. 4-D Tensor of shape `[batch, height, width,
+      channels]` with only Positive Pixel Values.
+    max_val: The dynamic range of the images (i.e., the difference between the
+      maximum the and minimum allowed values).
+    filter_size: Default value 11 (size of gaussian filter).
+    filter_sigma: Default value 1.5 (width of gaussian filter).
+    k1: Default value 0.01
+    k2: Default value 0.03 (SSIM is less sensitivity to K2 for lower values, so
+      it would be better if we took the values in the range of 0 < K2 < 0.4).
+    return_index_map: If True returns local SSIM map instead of the global mean.
+
+  Returns:
+    A tensor containing an SSIM value for each image in batch or a tensor
+    containing an SSIM value for each pixel for each image in batch if
+    return_index_map is True. Returned SSIM values are in range (-1, 1], when
+    pixel values are non-negative. Returns a tensor with shape:
+    broadcast(img1.shape[:-3], img2.shape[:-3]) or broadcast(img1.shape[:-1],
+    img2.shape[:-1]).
+
+[API Signature] img1: tensor, img2: tensor, max_val: float, filter_size: integer, filter_sigma: float, k1: float, k2: float, return_index_map: boolean
+
+[Error Messages]
+ValueError: Shape (0, 9) must have rank at least 3
+ValueError: Shapes (1, 33, 58) and (31, 4, 65) are incompatible
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 4 (tensor data types should match)
+{v_1 : tensor, v_2 : tensor} |= dtype(v_1) = dtype(v_2)
+
+Rule 11 (index tensor (v_3) is within the input tensor along the specified dimension)
+{v_1 : tensor, v_2 : int, v_3 : tensor} |= min(v_3) ≥ 0 ∧ max(v_3) ≤ shape(v_1, v_2) − 1
+
+Rule 28 (list of ints used as dimensions/axes, all non-negative and valid for tensor shape)
+{v_1 : tensor, v_2 : list(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 2 (v_2 should be a valid dimension of input tensor)
+{v_1 : tensor, v_2 : int} |= −1 × ndim(v_1) ≤ v_2 ∧ v_2 ≤ ndim(v_1) − 1
+
+Rule 15 (broadcasting compatibility for tensor shapes)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ ∀i ∈ [0, if ndim(v_1) ≥ ndim(v_2) then ndim(v_1) − 1 else ndim(v_2) − 1] : ndim(v_1) − i − 1 < 0 ∨ ndim(v_2) − i − 1 < 0 ∨ shape(v_1, ndim(v_1) − i − 1) = 1 ∨ shape(v_2, ndim(v_2) − i − 1) = 1 ∨ shape(v_1, ndim(v_1) − i − 1) = shape(v_2, ndim(v_2) − i − 1)
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 56 (The spatial dimensions of img2 must be at least the filter size)
+{v_2 : tensor, v_4 : int} |= if ndim(v_2) ≥ 3 then shape(v_2, ndim(v_2) - 2) ≥ v_4 ∧ shape(v_2, ndim(v_2) - 3) ≥ v_4
+Token usage: input=9465, output=769, total=15563
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.image.ssim API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Computes SSIM index between img1 and img2.
+
+  This function is based on the standard SSIM implementation from:
+  Wang, Z., Bovik, A. C., Sheikh, H. R., & Simoncelli, E. P. (2004). Image
+  quality assessment: from error visibility to structural similarity. IEEE
+  transactions on image processing.
+
+  Note: The true SSIM is only defined on grayscale.  This function does not
+  perform any colorspace transform.  (If the input is already YUV, then it will
+  compute YUV SSIM average.)
+
+  Details:
+    - 11x11 Gaussian filter of width 1.5 is used.
+    - k1 = 0.01, k2 = 0.03 as in the original paper.
+
+  The image sizes must be at least 11x11 because of the filter size.
+
+  Example:
+
+  ```python
+      # Read images (of size 255 x 255) from file.
+      im1 = tf.image.decode_image(tf.io.read_file('path/to/im1.png'))
+      im2 = tf.image.decode_image(tf.io.read_file('path/to/im2.png'))
+      tf.shape(im1)  # `img1.png` has 3 channels; shape is `(255, 255, 3)`
+      tf.shape(im2)  # `img2.png` has 3 channels; shape is `(255, 255, 3)`
+      # Add an outer batch for each image.
+      im1 = tf.expand_dims(im1, axis=0)
+      im2 = tf.expand_dims(im2, axis=0)
+      # Compute SSIM over tf.uint8 Tensors.
+      ssim1 = tf.image.ssim(im1, im2, max_val=255, filter_size=11,
+                            filter_sigma=1.5, k1=0.01, k2=0.03)
+
+      # Compute SSIM over tf.float32 Tensors.
+      im1 = tf.image.convert_image_dtype(im1, tf.float32)
+      im2 = tf.image.convert_image_dtype(im2, tf.float32)
+      ssim2 = tf.image.ssim(im1, im2, max_val=1.0, filter_size=11,
+                            filter_sigma=1.5, k1=0.01, k2=0.03)
+      # ssim1 and ssim2 both have type tf.float32 and are almost equal.
+  ```
+
+  Args:
+    img1: First image batch. 4-D Tensor of shape `[batch, height, width,
+      channels]` with only Positive Pixel Values.
+    img2: Second image batch. 4-D Tensor of shape `[batch, height, width,
+      channels]` with only Positive Pixel Values.
+    max_val: The dynamic range of the images (i.e., the difference between the
+      maximum the and minimum allowed values).
+    filter_size: Default value 11 (size of gaussian filter).
+    filter_sigma: Default value 1.5 (width of gaussian filter).
+    k1: Default value 0.01
+    k2: Default value 0.03 (SSIM is less sensitivity to K2 for lower values, so
+      it would be better if we took the values in the range of 0 < K2 < 0.4).
+    return_index_map: If True returns local SSIM map instead of the global mean.
+
+  Returns:
+    A tensor containing an SSIM value for each image in batch or a tensor
+    containing an SSIM value for each pixel for each image in batch if
+    return_index_map is True. Returned SSIM values are in range (-1, 1], when
+    pixel values are non-negative. Returns a tensor with shape:
+    broadcast(img1.shape[:-3], img2.shape[:-3]) or broadcast(img1.shape[:-1],
+    img2.shape[:-1]).
+
+[API Signature] img1: tensor, img2: tensor, max_val: float, filter_size: integer, filter_sigma: float, k1: float, k2: float, return_index_map: boolean
+
+[Error Messages]
+ValueError: Shape (0, 9) must have rank at least 3
+ValueError: Shapes (1, 33, 58) and (31, 4, 65) are incompatible
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 4 (tensor data types should match)
+{v_1 : tensor, v_2 : tensor} |= dtype(v_1) = dtype(v_2)
+
+Rule 11 (index tensor (v_3) is within the input tensor along the specified dimension)
+{v_1 : tensor, v_2 : int, v_3 : tensor} |= min(v_3) ≥ 0 ∧ max(v_3) ≤ shape(v_1, v_2) − 1
+
+Rule 28 (list of ints used as dimensions/axes, all non-negative and valid for tensor shape)
+{v_1 : tensor, v_2 : list(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 2 (v_2 should be a valid dimension of input tensor)
+{v_1 : tensor, v_2 : int} |= −1 × ndim(v_1) ≤ v_2 ∧ v_2 ≤ ndim(v_1) − 1
+
+Rule 15 (broadcasting compatibility for tensor shapes)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ ∀i ∈ [0, if ndim(v_1) ≥ ndim(v_2) then ndim(v_1) − 1 else ndim(v_2) − 1] : ndim(v_1) − i − 1 < 0 ∨ ndim(v_2) − i − 1 < 0 ∨ shape(v_1, ndim(v_1) − i − 1) = 1 ∨ shape(v_2, ndim(v_2) − i − 1) = 1 ∨ shape(v_1, ndim(v_1) − i − 1) = shape(v_2, ndim(v_2) − i − 1)
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 57 (The batch dimensions of img1 and img2 must be broadcast compatible if they are 4D)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = 4 ∧ ndim(v_2) = 4 then shape(v_1, 0) = shape(v_2, 0) ∨ shape(v_1, 0) = 1 ∨ shape(v_2, 0) = 1
+Token usage: input=9465, output=769, total=15563
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.image.ssim API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Computes SSIM index between img1 and img2.
+
+  This function is based on the standard SSIM implementation from:
+  Wang, Z., Bovik, A. C., Sheikh, H. R., & Simoncelli, E. P. (2004). Image
+  quality assessment: from error visibility to structural similarity. IEEE
+  transactions on image processing.
+
+  Note: The true SSIM is only defined on grayscale.  This function does not
+  perform any colorspace transform.  (If the input is already YUV, then it will
+  compute YUV SSIM average.)
+
+  Details:
+    - 11x11 Gaussian filter of width 1.5 is used.
+    - k1 = 0.01, k2 = 0.03 as in the original paper.
+
+  The image sizes must be at least 11x11 because of the filter size.
+
+  Example:
+
+  ```python
+      # Read images (of size 255 x 255) from file.
+      im1 = tf.image.decode_image(tf.io.read_file('path/to/im1.png'))
+      im2 = tf.image.decode_image(tf.io.read_file('path/to/im2.png'))
+      tf.shape(im1)  # `img1.png` has 3 channels; shape is `(255, 255, 3)`
+      tf.shape(im2)  # `img2.png` has 3 channels; shape is `(255, 255, 3)`
+      # Add an outer batch for each image.
+      im1 = tf.expand_dims(im1, axis=0)
+      im2 = tf.expand_dims(im2, axis=0)
+      # Compute SSIM over tf.uint8 Tensors.
+      ssim1 = tf.image.ssim(im1, im2, max_val=255, filter_size=11,
+                            filter_sigma=1.5, k1=0.01, k2=0.03)
+
+      # Compute SSIM over tf.float32 Tensors.
+      im1 = tf.image.convert_image_dtype(im1, tf.float32)
+      im2 = tf.image.convert_image_dtype(im2, tf.float32)
+      ssim2 = tf.image.ssim(im1, im2, max_val=1.0, filter_size=11,
+                            filter_sigma=1.5, k1=0.01, k2=0.03)
+      # ssim1 and ssim2 both have type tf.float32 and are almost equal.
+  ```
+
+  Args:
+    img1: First image batch. 4-D Tensor of shape `[batch, height, width,
+      channels]` with only Positive Pixel Values.
+    img2: Second image batch. 4-D Tensor of shape `[batch, height, width,
+      channels]` with only Positive Pixel Values.
+    max_val: The dynamic range of the images (i.e., the difference between the
+      maximum the and minimum allowed values).
+    filter_size: Default value 11 (size of gaussian filter).
+    filter_sigma: Default value 1.5 (width of gaussian filter).
+    k1: Default value 0.01
+    k2: Default value 0.03 (SSIM is less sensitivity to K2 for lower values, so
+      it would be better if we took the values in the range of 0 < K2 < 0.4).
+    return_index_map: If True returns local SSIM map instead of the global mean.
+
+  Returns:
+    A tensor containing an SSIM value for each image in batch or a tensor
+    containing an SSIM value for each pixel for each image in batch if
+    return_index_map is True. Returned SSIM values are in range (-1, 1], when
+    pixel values are non-negative. Returns a tensor with shape:
+    broadcast(img1.shape[:-3], img2.shape[:-3]) or broadcast(img1.shape[:-1],
+    img2.shape[:-1]).
+
+[API Signature] img1: tensor, img2: tensor, max_val: float, filter_size: integer, filter_sigma: float, k1: float, k2: float, return_index_map: boolean
+
+[Error Messages]
+ValueError: Shape (0, 9) must have rank at least 3
+ValueError: Shapes (1, 33, 58) and (31, 4, 65) are incompatible
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 4 (tensor data types should match)
+{v_1 : tensor, v_2 : tensor} |= dtype(v_1) = dtype(v_2)
+
+Rule 11 (index tensor (v_3) is within the input tensor along the specified dimension)
+{v_1 : tensor, v_2 : int, v_3 : tensor} |= min(v_3) ≥ 0 ∧ max(v_3) ≤ shape(v_1, v_2) − 1
+
+Rule 28 (list of ints used as dimensions/axes, all non-negative and valid for tensor shape)
+{v_1 : tensor, v_2 : list(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 2 (v_2 should be a valid dimension of input tensor)
+{v_1 : tensor, v_2 : int} |= −1 × ndim(v_1) ≤ v_2 ∧ v_2 ≤ ndim(v_1) − 1
+
+Rule 15 (broadcasting compatibility for tensor shapes)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ ∀i ∈ [0, if ndim(v_1) ≥ ndim(v_2) then ndim(v_1) − 1 else ndim(v_2) − 1] : ndim(v_1) − i − 1 < 0 ∨ ndim(v_2) − i − 1 < 0 ∨ shape(v_1, ndim(v_1) − i − 1) = 1 ∨ shape(v_2, ndim(v_2) − i − 1) = 1 ∨ shape(v_1, ndim(v_1) − i − 1) = shape(v_2, ndim(v_2) − i − 1)
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 58 (filter_size must be a positive integer)
+{v_4 : int} |= v_4 > 0
+Token usage: input=9465, output=769, total=15563
+** DUPLICATED RULE ** (num_failures: 3)
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.image.ssim API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Computes SSIM index between img1 and img2.
+
+  This function is based on the standard SSIM implementation from:
+  Wang, Z., Bovik, A. C., Sheikh, H. R., & Simoncelli, E. P. (2004). Image
+  quality assessment: from error visibility to structural similarity. IEEE
+  transactions on image processing.
+
+  Note: The true SSIM is only defined on grayscale.  This function does not
+  perform any colorspace transform.  (If the input is already YUV, then it will
+  compute YUV SSIM average.)
+
+  Details:
+    - 11x11 Gaussian filter of width 1.5 is used.
+    - k1 = 0.01, k2 = 0.03 as in the original paper.
+
+  The image sizes must be at least 11x11 because of the filter size.
+
+  Example:
+
+  ```python
+      # Read images (of size 255 x 255) from file.
+      im1 = tf.image.decode_image(tf.io.read_file('path/to/im1.png'))
+      im2 = tf.image.decode_image(tf.io.read_file('path/to/im2.png'))
+      tf.shape(im1)  # `img1.png` has 3 channels; shape is `(255, 255, 3)`
+      tf.shape(im2)  # `img2.png` has 3 channels; shape is `(255, 255, 3)`
+      # Add an outer batch for each image.
+      im1 = tf.expand_dims(im1, axis=0)
+      im2 = tf.expand_dims(im2, axis=0)
+      # Compute SSIM over tf.uint8 Tensors.
+      ssim1 = tf.image.ssim(im1, im2, max_val=255, filter_size=11,
+                            filter_sigma=1.5, k1=0.01, k2=0.03)
+
+      # Compute SSIM over tf.float32 Tensors.
+      im1 = tf.image.convert_image_dtype(im1, tf.float32)
+      im2 = tf.image.convert_image_dtype(im2, tf.float32)
+      ssim2 = tf.image.ssim(im1, im2, max_val=1.0, filter_size=11,
+                            filter_sigma=1.5, k1=0.01, k2=0.03)
+      # ssim1 and ssim2 both have type tf.float32 and are almost equal.
+  ```
+
+  Args:
+    img1: First image batch. 4-D Tensor of shape `[batch, height, width,
+      channels]` with only Positive Pixel Values.
+    img2: Second image batch. 4-D Tensor of shape `[batch, height, width,
+      channels]` with only Positive Pixel Values.
+    max_val: The dynamic range of the images (i.e., the difference between the
+      maximum the and minimum allowed values).
+    filter_size: Default value 11 (size of gaussian filter).
+    filter_sigma: Default value 1.5 (width of gaussian filter).
+    k1: Default value 0.01
+    k2: Default value 0.03 (SSIM is less sensitivity to K2 for lower values, so
+      it would be better if we took the values in the range of 0 < K2 < 0.4).
+    return_index_map: If True returns local SSIM map instead of the global mean.
+
+  Returns:
+    A tensor containing an SSIM value for each image in batch or a tensor
+    containing an SSIM value for each pixel for each image in batch if
+    return_index_map is True. Returned SSIM values are in range (-1, 1], when
+    pixel values are non-negative. Returns a tensor with shape:
+    broadcast(img1.shape[:-3], img2.shape[:-3]) or broadcast(img1.shape[:-1],
+    img2.shape[:-1]).
+
+[API Signature] img1: tensor, img2: tensor, max_val: float, filter_size: integer, filter_sigma: float, k1: float, k2: float, return_index_map: boolean
+
+[Error Messages]
+ValueError: Shape (0, 9) must have rank at least 3
+ValueError: Shapes (1, 33, 58) and (31, 4, 65) are incompatible
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 4 (tensor data types should match)
+{v_1 : tensor, v_2 : tensor} |= dtype(v_1) = dtype(v_2)
+
+Rule 11 (index tensor (v_3) is within the input tensor along the specified dimension)
+{v_1 : tensor, v_2 : int, v_3 : tensor} |= min(v_3) ≥ 0 ∧ max(v_3) ≤ shape(v_1, v_2) − 1
+
+Rule 28 (list of ints used as dimensions/axes, all non-negative and valid for tensor shape)
+{v_1 : tensor, v_2 : list(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 2 (v_2 should be a valid dimension of input tensor)
+{v_1 : tensor, v_2 : int} |= −1 × ndim(v_1) ≤ v_2 ∧ v_2 ≤ ndim(v_1) − 1
+
+Rule 15 (broadcasting compatibility for tensor shapes)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ ∀i ∈ [0, if ndim(v_1) ≥ ndim(v_2) then ndim(v_1) − 1 else ndim(v_2) − 1] : ndim(v_1) − i − 1 < 0 ∨ ndim(v_2) − i − 1 < 0 ∨ shape(v_1, ndim(v_1) − i − 1) = 1 ∨ shape(v_2, ndim(v_2) − i − 1) = 1 ∨ shape(v_1, ndim(v_1) − i − 1) = shape(v_2, ndim(v_2) − i − 1)
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 59 (filter_sigma must be positive)
+{v_5 : float} |= v_5 > 0
+Token usage: input=9465, output=769, total=15563
+** DUPLICATED RULE ** (num_failures: 4)
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.image.ssim API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Computes SSIM index between img1 and img2.
+
+  This function is based on the standard SSIM implementation from:
+  Wang, Z., Bovik, A. C., Sheikh, H. R., & Simoncelli, E. P. (2004). Image
+  quality assessment: from error visibility to structural similarity. IEEE
+  transactions on image processing.
+
+  Note: The true SSIM is only defined on grayscale.  This function does not
+  perform any colorspace transform.  (If the input is already YUV, then it will
+  compute YUV SSIM average.)
+
+  Details:
+    - 11x11 Gaussian filter of width 1.5 is used.
+    - k1 = 0.01, k2 = 0.03 as in the original paper.
+
+  The image sizes must be at least 11x11 because of the filter size.
+
+  Example:
+
+  ```python
+      # Read images (of size 255 x 255) from file.
+      im1 = tf.image.decode_image(tf.io.read_file('path/to/im1.png'))
+      im2 = tf.image.decode_image(tf.io.read_file('path/to/im2.png'))
+      tf.shape(im1)  # `img1.png` has 3 channels; shape is `(255, 255, 3)`
+      tf.shape(im2)  # `img2.png` has 3 channels; shape is `(255, 255, 3)`
+      # Add an outer batch for each image.
+      im1 = tf.expand_dims(im1, axis=0)
+      im2 = tf.expand_dims(im2, axis=0)
+      # Compute SSIM over tf.uint8 Tensors.
+      ssim1 = tf.image.ssim(im1, im2, max_val=255, filter_size=11,
+                            filter_sigma=1.5, k1=0.01, k2=0.03)
+
+      # Compute SSIM over tf.float32 Tensors.
+      im1 = tf.image.convert_image_dtype(im1, tf.float32)
+      im2 = tf.image.convert_image_dtype(im2, tf.float32)
+      ssim2 = tf.image.ssim(im1, im2, max_val=1.0, filter_size=11,
+                            filter_sigma=1.5, k1=0.01, k2=0.03)
+      # ssim1 and ssim2 both have type tf.float32 and are almost equal.
+  ```
+
+  Args:
+    img1: First image batch. 4-D Tensor of shape `[batch, height, width,
+      channels]` with only Positive Pixel Values.
+    img2: Second image batch. 4-D Tensor of shape `[batch, height, width,
+      channels]` with only Positive Pixel Values.
+    max_val: The dynamic range of the images (i.e., the difference between the
+      maximum the and minimum allowed values).
+    filter_size: Default value 11 (size of gaussian filter).
+    filter_sigma: Default value 1.5 (width of gaussian filter).
+    k1: Default value 0.01
+    k2: Default value 0.03 (SSIM is less sensitivity to K2 for lower values, so
+      it would be better if we took the values in the range of 0 < K2 < 0.4).
+    return_index_map: If True returns local SSIM map instead of the global mean.
+
+  Returns:
+    A tensor containing an SSIM value for each image in batch or a tensor
+    containing an SSIM value for each pixel for each image in batch if
+    return_index_map is True. Returned SSIM values are in range (-1, 1], when
+    pixel values are non-negative. Returns a tensor with shape:
+    broadcast(img1.shape[:-3], img2.shape[:-3]) or broadcast(img1.shape[:-1],
+    img2.shape[:-1]).
+
+[API Signature] img1: tensor, img2: tensor, max_val: float, filter_size: integer, filter_sigma: float, k1: float, k2: float, return_index_map: boolean
+
+[Error Messages]
+ValueError: Shape (0, 9) must have rank at least 3
+ValueError: Shapes (1, 33, 58) and (31, 4, 65) are incompatible
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 4 (tensor data types should match)
+{v_1 : tensor, v_2 : tensor} |= dtype(v_1) = dtype(v_2)
+
+Rule 11 (index tensor (v_3) is within the input tensor along the specified dimension)
+{v_1 : tensor, v_2 : int, v_3 : tensor} |= min(v_3) ≥ 0 ∧ max(v_3) ≤ shape(v_1, v_2) − 1
+
+Rule 28 (list of ints used as dimensions/axes, all non-negative and valid for tensor shape)
+{v_1 : tensor, v_2 : list(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 2 (v_2 should be a valid dimension of input tensor)
+{v_1 : tensor, v_2 : int} |= −1 × ndim(v_1) ≤ v_2 ∧ v_2 ≤ ndim(v_1) − 1
+
+Rule 15 (broadcasting compatibility for tensor shapes)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ ∀i ∈ [0, if ndim(v_1) ≥ ndim(v_2) then ndim(v_1) − 1 else ndim(v_2) − 1] : ndim(v_1) − i − 1 < 0 ∨ ndim(v_2) − i − 1 < 0 ∨ shape(v_1, ndim(v_1) − i − 1) = 1 ∨ shape(v_2, ndim(v_2) − i − 1) = 1 ∨ shape(v_1, ndim(v_1) − i − 1) = shape(v_2, ndim(v_2) − i − 1)
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 60 (max_val must be positive)
+{v_3 : float} |= v_3 > 0
+Token usage: input=9465, output=769, total=15563
+** DUPLICATED RULE ** (num_failures: 5)
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.image.ssim API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Computes SSIM index between img1 and img2.
+
+  This function is based on the standard SSIM implementation from:
+  Wang, Z., Bovik, A. C., Sheikh, H. R., & Simoncelli, E. P. (2004). Image
+  quality assessment: from error visibility to structural similarity. IEEE
+  transactions on image processing.
+
+  Note: The true SSIM is only defined on grayscale.  This function does not
+  perform any colorspace transform.  (If the input is already YUV, then it will
+  compute YUV SSIM average.)
+
+  Details:
+    - 11x11 Gaussian filter of width 1.5 is used.
+    - k1 = 0.01, k2 = 0.03 as in the original paper.
+
+  The image sizes must be at least 11x11 because of the filter size.
+
+  Example:
+
+  ```python
+      # Read images (of size 255 x 255) from file.
+      im1 = tf.image.decode_image(tf.io.read_file('path/to/im1.png'))
+      im2 = tf.image.decode_image(tf.io.read_file('path/to/im2.png'))
+      tf.shape(im1)  # `img1.png` has 3 channels; shape is `(255, 255, 3)`
+      tf.shape(im2)  # `img2.png` has 3 channels; shape is `(255, 255, 3)`
+      # Add an outer batch for each image.
+      im1 = tf.expand_dims(im1, axis=0)
+      im2 = tf.expand_dims(im2, axis=0)
+      # Compute SSIM over tf.uint8 Tensors.
+      ssim1 = tf.image.ssim(im1, im2, max_val=255, filter_size=11,
+                            filter_sigma=1.5, k1=0.01, k2=0.03)
+
+      # Compute SSIM over tf.float32 Tensors.
+      im1 = tf.image.convert_image_dtype(im1, tf.float32)
+      im2 = tf.image.convert_image_dtype(im2, tf.float32)
+      ssim2 = tf.image.ssim(im1, im2, max_val=1.0, filter_size=11,
+                            filter_sigma=1.5, k1=0.01, k2=0.03)
+      # ssim1 and ssim2 both have type tf.float32 and are almost equal.
+  ```
+
+  Args:
+    img1: First image batch. 4-D Tensor of shape `[batch, height, width,
+      channels]` with only Positive Pixel Values.
+    img2: Second image batch. 4-D Tensor of shape `[batch, height, width,
+      channels]` with only Positive Pixel Values.
+    max_val: The dynamic range of the images (i.e., the difference between the
+      maximum the and minimum allowed values).
+    filter_size: Default value 11 (size of gaussian filter).
+    filter_sigma: Default value 1.5 (width of gaussian filter).
+    k1: Default value 0.01
+    k2: Default value 0.03 (SSIM is less sensitivity to K2 for lower values, so
+      it would be better if we took the values in the range of 0 < K2 < 0.4).
+    return_index_map: If True returns local SSIM map instead of the global mean.
+
+  Returns:
+    A tensor containing an SSIM value for each image in batch or a tensor
+    containing an SSIM value for each pixel for each image in batch if
+    return_index_map is True. Returned SSIM values are in range (-1, 1], when
+    pixel values are non-negative. Returns a tensor with shape:
+    broadcast(img1.shape[:-3], img2.shape[:-3]) or broadcast(img1.shape[:-1],
+    img2.shape[:-1]).
+
+[API Signature] img1: tensor, img2: tensor, max_val: float, filter_size: integer, filter_sigma: float, k1: float, k2: float, return_index_map: boolean
+
+[Error Messages]
+ValueError: Shape (0, 9) must have rank at least 3
+ValueError: Shapes (1, 33, 58) and (31, 4, 65) are incompatible
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 4 (tensor data types should match)
+{v_1 : tensor, v_2 : tensor} |= dtype(v_1) = dtype(v_2)
+
+Rule 11 (index tensor (v_3) is within the input tensor along the specified dimension)
+{v_1 : tensor, v_2 : int, v_3 : tensor} |= min(v_3) ≥ 0 ∧ max(v_3) ≤ shape(v_1, v_2) − 1
+
+Rule 28 (list of ints used as dimensions/axes, all non-negative and valid for tensor shape)
+{v_1 : tensor, v_2 : list(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 2 (v_2 should be a valid dimension of input tensor)
+{v_1 : tensor, v_2 : int} |= −1 × ndim(v_1) ≤ v_2 ∧ v_2 ≤ ndim(v_1) − 1
+
+Rule 15 (broadcasting compatibility for tensor shapes)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ ∀i ∈ [0, if ndim(v_1) ≥ ndim(v_2) then ndim(v_1) − 1 else ndim(v_2) − 1] : ndim(v_1) − i − 1 < 0 ∨ ndim(v_2) − i − 1 < 0 ∨ shape(v_1, ndim(v_1) − i − 1) = 1 ∨ shape(v_2, ndim(v_2) − i − 1) = 1 ∨ shape(v_1, ndim(v_1) − i − 1) = shape(v_2, ndim(v_2) − i − 1)
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 61 (k1 and k2 must be positive)
+{v_6 : float, v_7 : float} |= v_6 > 0 ∧ v_7 > 0
+Token usage: input=9465, output=769, total=15563
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.image.ssim API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Computes SSIM index between img1 and img2.
+
+  This function is based on the standard SSIM implementation from:
+  Wang, Z., Bovik, A. C., Sheikh, H. R., & Simoncelli, E. P. (2004). Image
+  quality assessment: from error visibility to structural similarity. IEEE
+  transactions on image processing.
+
+  Note: The true SSIM is only defined on grayscale.  This function does not
+  perform any colorspace transform.  (If the input is already YUV, then it will
+  compute YUV SSIM average.)
+
+  Details:
+    - 11x11 Gaussian filter of width 1.5 is used.
+    - k1 = 0.01, k2 = 0.03 as in the original paper.
+
+  The image sizes must be at least 11x11 because of the filter size.
+
+  Example:
+
+  ```python
+      # Read images (of size 255 x 255) from file.
+      im1 = tf.image.decode_image(tf.io.read_file('path/to/im1.png'))
+      im2 = tf.image.decode_image(tf.io.read_file('path/to/im2.png'))
+      tf.shape(im1)  # `img1.png` has 3 channels; shape is `(255, 255, 3)`
+      tf.shape(im2)  # `img2.png` has 3 channels; shape is `(255, 255, 3)`
+      # Add an outer batch for each image.
+      im1 = tf.expand_dims(im1, axis=0)
+      im2 = tf.expand_dims(im2, axis=0)
+      # Compute SSIM over tf.uint8 Tensors.
+      ssim1 = tf.image.ssim(im1, im2, max_val=255, filter_size=11,
+                            filter_sigma=1.5, k1=0.01, k2=0.03)
+
+      # Compute SSIM over tf.float32 Tensors.
+      im1 = tf.image.convert_image_dtype(im1, tf.float32)
+      im2 = tf.image.convert_image_dtype(im2, tf.float32)
+      ssim2 = tf.image.ssim(im1, im2, max_val=1.0, filter_size=11,
+                            filter_sigma=1.5, k1=0.01, k2=0.03)
+      # ssim1 and ssim2 both have type tf.float32 and are almost equal.
+  ```
+
+  Args:
+    img1: First image batch. 4-D Tensor of shape `[batch, height, width,
+      channels]` with only Positive Pixel Values.
+    img2: Second image batch. 4-D Tensor of shape `[batch, height, width,
+      channels]` with only Positive Pixel Values.
+    max_val: The dynamic range of the images (i.e., the difference between the
+      maximum the and minimum allowed values).
+    filter_size: Default value 11 (size of gaussian filter).
+    filter_sigma: Default value 1.5 (width of gaussian filter).
+    k1: Default value 0.01
+    k2: Default value 0.03 (SSIM is less sensitivity to K2 for lower values, so
+      it would be better if we took the values in the range of 0 < K2 < 0.4).
+    return_index_map: If True returns local SSIM map instead of the global mean.
+
+  Returns:
+    A tensor containing an SSIM value for each image in batch or a tensor
+    containing an SSIM value for each pixel for each image in batch if
+    return_index_map is True. Returned SSIM values are in range (-1, 1], when
+    pixel values are non-negative. Returns a tensor with shape:
+    broadcast(img1.shape[:-3], img2.shape[:-3]) or broadcast(img1.shape[:-1],
+    img2.shape[:-1]).
+
+[API Signature] img1: tensor, img2: tensor, max_val: float, filter_size: integer, filter_sigma: float, k1: float, k2: float, return_index_map: boolean
+
+[Error Messages]
+ValueError: Shape (0, 9) must have rank at least 3
+ValueError: Shapes (1, 33, 58) and (31, 4, 65) are incompatible
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 4 (tensor data types should match)
+{v_1 : tensor, v_2 : tensor} |= dtype(v_1) = dtype(v_2)
+
+Rule 11 (index tensor (v_3) is within the input tensor along the specified dimension)
+{v_1 : tensor, v_2 : int, v_3 : tensor} |= min(v_3) ≥ 0 ∧ max(v_3) ≤ shape(v_1, v_2) − 1
+
+Rule 28 (list of ints used as dimensions/axes, all non-negative and valid for tensor shape)
+{v_1 : tensor, v_2 : list(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 2 (v_2 should be a valid dimension of input tensor)
+{v_1 : tensor, v_2 : int} |= −1 × ndim(v_1) ≤ v_2 ∧ v_2 ≤ ndim(v_1) − 1
+
+Rule 15 (broadcasting compatibility for tensor shapes)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ ∀i ∈ [0, if ndim(v_1) ≥ ndim(v_2) then ndim(v_1) − 1 else ndim(v_2) − 1] : ndim(v_1) − i − 1 < 0 ∨ ndim(v_2) − i − 1 < 0 ∨ shape(v_1, ndim(v_1) − i − 1) = 1 ∨ shape(v_2, ndim(v_2) − i − 1) = 1 ∨ shape(v_1, ndim(v_1) − i − 1) = shape(v_2, ndim(v_2) − i − 1)
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 62 (The image tensors should be of uint8 or floating-point types)
+{v_1 : tensor} |= dtype_(v_1) = 5 ∨ dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8
+Token usage: input=9465, output=769, total=15563
+** SUCCESS **
+
+>>> PROMPT
+[Feedback Message from Prior Run]
+Duplicated rule: {v_1 : tensor} |= ndim(v_1) ≥ 3
+Duplicated rule: {v_2 : tensor} |= ndim(v_2) ≥ 3
+Duplicated rule: {v_4 : int} |= v_4 > 0
+Duplicated rule: {v_5 : float} |= v_5 > 0
+Duplicated rule: {v_3 : float} |= v_3 > 0
+
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.image.ssim API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Computes SSIM index between img1 and img2.
+
+  This function is based on the standard SSIM implementation from:
+  Wang, Z., Bovik, A. C., Sheikh, H. R., & Simoncelli, E. P. (2004). Image
+  quality assessment: from error visibility to structural similarity. IEEE
+  transactions on image processing.
+
+  Note: The true SSIM is only defined on grayscale.  This function does not
+  perform any colorspace transform.  (If the input is already YUV, then it will
+  compute YUV SSIM average.)
+
+  Details:
+    - 11x11 Gaussian filter of width 1.5 is used.
+    - k1 = 0.01, k2 = 0.03 as in the original paper.
+
+  The image sizes must be at least 11x11 because of the filter size.
+
+  Example:
+
+  ```python
+      # Read images (of size 255 x 255) from file.
+      im1 = tf.image.decode_image(tf.io.read_file('path/to/im1.png'))
+      im2 = tf.image.decode_image(tf.io.read_file('path/to/im2.png'))
+      tf.shape(im1)  # `img1.png` has 3 channels; shape is `(255, 255, 3)`
+      tf.shape(im2)  # `img2.png` has 3 channels; shape is `(255, 255, 3)`
+      # Add an outer batch for each image.
+      im1 = tf.expand_dims(im1, axis=0)
+      im2 = tf.expand_dims(im2, axis=0)
+      # Compute SSIM over tf.uint8 Tensors.
+      ssim1 = tf.image.ssim(im1, im2, max_val=255, filter_size=11,
+                            filter_sigma=1.5, k1=0.01, k2=0.03)
+
+      # Compute SSIM over tf.float32 Tensors.
+      im1 = tf.image.convert_image_dtype(im1, tf.float32)
+      im2 = tf.image.convert_image_dtype(im2, tf.float32)
+      ssim2 = tf.image.ssim(im1, im2, max_val=1.0, filter_size=11,
+                            filter_sigma=1.5, k1=0.01, k2=0.03)
+      # ssim1 and ssim2 both have type tf.float32 and are almost equal.
+  ```
+
+  Args:
+    img1: First image batch. 4-D Tensor of shape `[batch, height, width,
+      channels]` with only Positive Pixel Values.
+    img2: Second image batch. 4-D Tensor of shape `[batch, height, width,
+      channels]` with only Positive Pixel Values.
+    max_val: The dynamic range of the images (i.e., the difference between the
+      maximum the and minimum allowed values).
+    filter_size: Default value 11 (size of gaussian filter).
+    filter_sigma: Default value 1.5 (width of gaussian filter).
+    k1: Default value 0.01
+    k2: Default value 0.03 (SSIM is less sensitivity to K2 for lower values, so
+      it would be better if we took the values in the range of 0 < K2 < 0.4).
+    return_index_map: If True returns local SSIM map instead of the global mean.
+
+  Returns:
+    A tensor containing an SSIM value for each image in batch or a tensor
+    containing an SSIM value for each pixel for each image in batch if
+    return_index_map is True. Returned SSIM values are in range (-1, 1], when
+    pixel values are non-negative. Returns a tensor with shape:
+    broadcast(img1.shape[:-3], img2.shape[:-3]) or broadcast(img1.shape[:-1],
+    img2.shape[:-1]).
+
+[API Signature] img1: tensor, img2: tensor, max_val: float, filter_size: integer, filter_sigma: float, k1: float, k2: float, return_index_map: boolean
+
+[Error Messages]
+ValueError: Shape (0, 9) must have rank at least 3
+ValueError: Shapes (1, 33, 58) and (31, 4, 65) are incompatible
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 9 (4D tensor with all shape dimensions positive)
+{v_1 : tensor} |= ndim(v_1) = 4 ∧ ∀i ∈ [0, 3] : shape(v_1, i) > 0
+
+Rule 6 (last dimension of a tensor matches first dimension of the other)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, 0)
+
+Rule 8 (tensor must have an integer dtype: 1–5)
+{v1: tensor} |= 1 ≤ dtype(v1) ∧ dtype(v1) ≤ 5
+
+Rule 17 (primitive type variable must be non-negative)
+{v_1 : int ⊎ float} |= v_1 ≥ 0
+
+Rule 27 (reduction over valid dimensions)
+{v_1 : tensor, v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 63 (The rank of both image tensors must be at least 3, and their data types must be identical)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) ≥ 3 ∧ ndim(v_2) ≥ 3 ∧ dtype_(v_1) = dtype_(v_2)
+Token usage: input=18144, output=678, total=23555
+** SUCCESS **
+
+>>> PROMPT
+[Feedback Message from Prior Run]
+Duplicated rule: {v_1 : tensor} |= ndim(v_1) ≥ 3
+Duplicated rule: {v_2 : tensor} |= ndim(v_2) ≥ 3
+Duplicated rule: {v_4 : int} |= v_4 > 0
+Duplicated rule: {v_5 : float} |= v_5 > 0
+Duplicated rule: {v_3 : float} |= v_3 > 0
+
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.image.ssim API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Computes SSIM index between img1 and img2.
+
+  This function is based on the standard SSIM implementation from:
+  Wang, Z., Bovik, A. C., Sheikh, H. R., & Simoncelli, E. P. (2004). Image
+  quality assessment: from error visibility to structural similarity. IEEE
+  transactions on image processing.
+
+  Note: The true SSIM is only defined on grayscale.  This function does not
+  perform any colorspace transform.  (If the input is already YUV, then it will
+  compute YUV SSIM average.)
+
+  Details:
+    - 11x11 Gaussian filter of width 1.5 is used.
+    - k1 = 0.01, k2 = 0.03 as in the original paper.
+
+  The image sizes must be at least 11x11 because of the filter size.
+
+  Example:
+
+  ```python
+      # Read images (of size 255 x 255) from file.
+      im1 = tf.image.decode_image(tf.io.read_file('path/to/im1.png'))
+      im2 = tf.image.decode_image(tf.io.read_file('path/to/im2.png'))
+      tf.shape(im1)  # `img1.png` has 3 channels; shape is `(255, 255, 3)`
+      tf.shape(im2)  # `img2.png` has 3 channels; shape is `(255, 255, 3)`
+      # Add an outer batch for each image.
+      im1 = tf.expand_dims(im1, axis=0)
+      im2 = tf.expand_dims(im2, axis=0)
+      # Compute SSIM over tf.uint8 Tensors.
+      ssim1 = tf.image.ssim(im1, im2, max_val=255, filter_size=11,
+                            filter_sigma=1.5, k1=0.01, k2=0.03)
+
+      # Compute SSIM over tf.float32 Tensors.
+      im1 = tf.image.convert_image_dtype(im1, tf.float32)
+      im2 = tf.image.convert_image_dtype(im2, tf.float32)
+      ssim2 = tf.image.ssim(im1, im2, max_val=1.0, filter_size=11,
+                            filter_sigma=1.5, k1=0.01, k2=0.03)
+      # ssim1 and ssim2 both have type tf.float32 and are almost equal.
+  ```
+
+  Args:
+    img1: First image batch. 4-D Tensor of shape `[batch, height, width,
+      channels]` with only Positive Pixel Values.
+    img2: Second image batch. 4-D Tensor of shape `[batch, height, width,
+      channels]` with only Positive Pixel Values.
+    max_val: The dynamic range of the images (i.e., the difference between the
+      maximum the and minimum allowed values).
+    filter_size: Default value 11 (size of gaussian filter).
+    filter_sigma: Default value 1.5 (width of gaussian filter).
+    k1: Default value 0.01
+    k2: Default value 0.03 (SSIM is less sensitivity to K2 for lower values, so
+      it would be better if we took the values in the range of 0 < K2 < 0.4).
+    return_index_map: If True returns local SSIM map instead of the global mean.
+
+  Returns:
+    A tensor containing an SSIM value for each image in batch or a tensor
+    containing an SSIM value for each pixel for each image in batch if
+    return_index_map is True. Returned SSIM values are in range (-1, 1], when
+    pixel values are non-negative. Returns a tensor with shape:
+    broadcast(img1.shape[:-3], img2.shape[:-3]) or broadcast(img1.shape[:-1],
+    img2.shape[:-1]).
+
+[API Signature] img1: tensor, img2: tensor, max_val: float, filter_size: integer, filter_sigma: float, k1: float, k2: float, return_index_map: boolean
+
+[Error Messages]
+ValueError: Shape (0, 9) must have rank at least 3
+ValueError: Shapes (1, 33, 58) and (31, 4, 65) are incompatible
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 9 (4D tensor with all shape dimensions positive)
+{v_1 : tensor} |= ndim(v_1) = 4 ∧ ∀i ∈ [0, 3] : shape(v_1, i) > 0
+
+Rule 6 (last dimension of a tensor matches first dimension of the other)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, 0)
+
+Rule 8 (tensor must have an integer dtype: 1–5)
+{v1: tensor} |= 1 ≤ dtype(v1) ∧ dtype(v1) ≤ 5
+
+Rule 17 (primitive type variable must be non-negative)
+{v_1 : int ⊎ float} |= v_1 ≥ 0
+
+Rule 27 (reduction over valid dimensions)
+{v_1 : tensor, v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 64 (The last three dimensions of img1 and img2 must match exactly)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) ≥ 3 ∧ ndim(v_2) ≥ 3 then shape(v_1, ndim(v_1) - 1) = shape(v_2, ndim(v_2) - 1) ∧ shape(v_1, ndim(v_1) - 2) = shape(v_2, ndim(v_2) - 2) ∧ shape(v_1, ndim(v_1) - 3) = shape(v_2, ndim(v_2) - 3)
+Token usage: input=18144, output=678, total=23555
+** DUPLICATED RULE ** (num_failures: 6)
+
+>>> PROMPT
+[Feedback Message from Prior Run]
+Duplicated rule: {v_1 : tensor} |= ndim(v_1) ≥ 3
+Duplicated rule: {v_2 : tensor} |= ndim(v_2) ≥ 3
+Duplicated rule: {v_4 : int} |= v_4 > 0
+Duplicated rule: {v_5 : float} |= v_5 > 0
+Duplicated rule: {v_3 : float} |= v_3 > 0
+
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.image.ssim API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Computes SSIM index between img1 and img2.
+
+  This function is based on the standard SSIM implementation from:
+  Wang, Z., Bovik, A. C., Sheikh, H. R., & Simoncelli, E. P. (2004). Image
+  quality assessment: from error visibility to structural similarity. IEEE
+  transactions on image processing.
+
+  Note: The true SSIM is only defined on grayscale.  This function does not
+  perform any colorspace transform.  (If the input is already YUV, then it will
+  compute YUV SSIM average.)
+
+  Details:
+    - 11x11 Gaussian filter of width 1.5 is used.
+    - k1 = 0.01, k2 = 0.03 as in the original paper.
+
+  The image sizes must be at least 11x11 because of the filter size.
+
+  Example:
+
+  ```python
+      # Read images (of size 255 x 255) from file.
+      im1 = tf.image.decode_image(tf.io.read_file('path/to/im1.png'))
+      im2 = tf.image.decode_image(tf.io.read_file('path/to/im2.png'))
+      tf.shape(im1)  # `img1.png` has 3 channels; shape is `(255, 255, 3)`
+      tf.shape(im2)  # `img2.png` has 3 channels; shape is `(255, 255, 3)`
+      # Add an outer batch for each image.
+      im1 = tf.expand_dims(im1, axis=0)
+      im2 = tf.expand_dims(im2, axis=0)
+      # Compute SSIM over tf.uint8 Tensors.
+      ssim1 = tf.image.ssim(im1, im2, max_val=255, filter_size=11,
+                            filter_sigma=1.5, k1=0.01, k2=0.03)
+
+      # Compute SSIM over tf.float32 Tensors.
+      im1 = tf.image.convert_image_dtype(im1, tf.float32)
+      im2 = tf.image.convert_image_dtype(im2, tf.float32)
+      ssim2 = tf.image.ssim(im1, im2, max_val=1.0, filter_size=11,
+                            filter_sigma=1.5, k1=0.01, k2=0.03)
+      # ssim1 and ssim2 both have type tf.float32 and are almost equal.
+  ```
+
+  Args:
+    img1: First image batch. 4-D Tensor of shape `[batch, height, width,
+      channels]` with only Positive Pixel Values.
+    img2: Second image batch. 4-D Tensor of shape `[batch, height, width,
+      channels]` with only Positive Pixel Values.
+    max_val: The dynamic range of the images (i.e., the difference between the
+      maximum the and minimum allowed values).
+    filter_size: Default value 11 (size of gaussian filter).
+    filter_sigma: Default value 1.5 (width of gaussian filter).
+    k1: Default value 0.01
+    k2: Default value 0.03 (SSIM is less sensitivity to K2 for lower values, so
+      it would be better if we took the values in the range of 0 < K2 < 0.4).
+    return_index_map: If True returns local SSIM map instead of the global mean.
+
+  Returns:
+    A tensor containing an SSIM value for each image in batch or a tensor
+    containing an SSIM value for each pixel for each image in batch if
+    return_index_map is True. Returned SSIM values are in range (-1, 1], when
+    pixel values are non-negative. Returns a tensor with shape:
+    broadcast(img1.shape[:-3], img2.shape[:-3]) or broadcast(img1.shape[:-1],
+    img2.shape[:-1]).
+
+[API Signature] img1: tensor, img2: tensor, max_val: float, filter_size: integer, filter_sigma: float, k1: float, k2: float, return_index_map: boolean
+
+[Error Messages]
+ValueError: Shape (0, 9) must have rank at least 3
+ValueError: Shapes (1, 33, 58) and (31, 4, 65) are incompatible
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 9 (4D tensor with all shape dimensions positive)
+{v_1 : tensor} |= ndim(v_1) = 4 ∧ ∀i ∈ [0, 3] : shape(v_1, i) > 0
+
+Rule 6 (last dimension of a tensor matches first dimension of the other)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, 0)
+
+Rule 8 (tensor must have an integer dtype: 1–5)
+{v1: tensor} |= 1 ≤ dtype(v1) ∧ dtype(v1) ≤ 5
+
+Rule 17 (primitive type variable must be non-negative)
+{v_1 : int ⊎ float} |= v_1 ≥ 0
+
+Rule 27 (reduction over valid dimensions)
+{v_1 : tensor, v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 65 (The spatial dimensions of both images must be at least the filter size, and filter size must be positive)
+{v_1 : tensor, v_2 : tensor, v_4 : int} |= if ndim(v_1) ≥ 3 ∧ ndim(v_2) ≥ 3 then shape(v_1, ndim(v_1) - 2) ≥ v_4 ∧ shape(v_1, ndim(v_1) - 3) ≥ v_4 ∧ shape(v_2, ndim(v_2) - 2) ≥ v_4 ∧ shape(v_2, ndim(v_2) - 3) ≥ v_4 ∧ v_4 > 0
+Token usage: input=18144, output=678, total=23555
+** SUCCESS **
+
+>>> PROMPT
+[Feedback Message from Prior Run]
+Duplicated rule: {v_1 : tensor} |= ndim(v_1) ≥ 3
+Duplicated rule: {v_2 : tensor} |= ndim(v_2) ≥ 3
+Duplicated rule: {v_4 : int} |= v_4 > 0
+Duplicated rule: {v_5 : float} |= v_5 > 0
+Duplicated rule: {v_3 : float} |= v_3 > 0
+
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.image.ssim API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Computes SSIM index between img1 and img2.
+
+  This function is based on the standard SSIM implementation from:
+  Wang, Z., Bovik, A. C., Sheikh, H. R., & Simoncelli, E. P. (2004). Image
+  quality assessment: from error visibility to structural similarity. IEEE
+  transactions on image processing.
+
+  Note: The true SSIM is only defined on grayscale.  This function does not
+  perform any colorspace transform.  (If the input is already YUV, then it will
+  compute YUV SSIM average.)
+
+  Details:
+    - 11x11 Gaussian filter of width 1.5 is used.
+    - k1 = 0.01, k2 = 0.03 as in the original paper.
+
+  The image sizes must be at least 11x11 because of the filter size.
+
+  Example:
+
+  ```python
+      # Read images (of size 255 x 255) from file.
+      im1 = tf.image.decode_image(tf.io.read_file('path/to/im1.png'))
+      im2 = tf.image.decode_image(tf.io.read_file('path/to/im2.png'))
+      tf.shape(im1)  # `img1.png` has 3 channels; shape is `(255, 255, 3)`
+      tf.shape(im2)  # `img2.png` has 3 channels; shape is `(255, 255, 3)`
+      # Add an outer batch for each image.
+      im1 = tf.expand_dims(im1, axis=0)
+      im2 = tf.expand_dims(im2, axis=0)
+      # Compute SSIM over tf.uint8 Tensors.
+      ssim1 = tf.image.ssim(im1, im2, max_val=255, filter_size=11,
+                            filter_sigma=1.5, k1=0.01, k2=0.03)
+
+      # Compute SSIM over tf.float32 Tensors.
+      im1 = tf.image.convert_image_dtype(im1, tf.float32)
+      im2 = tf.image.convert_image_dtype(im2, tf.float32)
+      ssim2 = tf.image.ssim(im1, im2, max_val=1.0, filter_size=11,
+                            filter_sigma=1.5, k1=0.01, k2=0.03)
+      # ssim1 and ssim2 both have type tf.float32 and are almost equal.
+  ```
+
+  Args:
+    img1: First image batch. 4-D Tensor of shape `[batch, height, width,
+      channels]` with only Positive Pixel Values.
+    img2: Second image batch. 4-D Tensor of shape `[batch, height, width,
+      channels]` with only Positive Pixel Values.
+    max_val: The dynamic range of the images (i.e., the difference between the
+      maximum the and minimum allowed values).
+    filter_size: Default value 11 (size of gaussian filter).
+    filter_sigma: Default value 1.5 (width of gaussian filter).
+    k1: Default value 0.01
+    k2: Default value 0.03 (SSIM is less sensitivity to K2 for lower values, so
+      it would be better if we took the values in the range of 0 < K2 < 0.4).
+    return_index_map: If True returns local SSIM map instead of the global mean.
+
+  Returns:
+    A tensor containing an SSIM value for each image in batch or a tensor
+    containing an SSIM value for each pixel for each image in batch if
+    return_index_map is True. Returned SSIM values are in range (-1, 1], when
+    pixel values are non-negative. Returns a tensor with shape:
+    broadcast(img1.shape[:-3], img2.shape[:-3]) or broadcast(img1.shape[:-1],
+    img2.shape[:-1]).
+
+[API Signature] img1: tensor, img2: tensor, max_val: float, filter_size: integer, filter_sigma: float, k1: float, k2: float, return_index_map: boolean
+
+[Error Messages]
+ValueError: Shape (0, 9) must have rank at least 3
+ValueError: Shapes (1, 33, 58) and (31, 4, 65) are incompatible
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 9 (4D tensor with all shape dimensions positive)
+{v_1 : tensor} |= ndim(v_1) = 4 ∧ ∀i ∈ [0, 3] : shape(v_1, i) > 0
+
+Rule 6 (last dimension of a tensor matches first dimension of the other)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, 0)
+
+Rule 8 (tensor must have an integer dtype: 1–5)
+{v1: tensor} |= 1 ≤ dtype(v1) ∧ dtype(v1) ≤ 5
+
+Rule 17 (primitive type variable must be non-negative)
+{v_1 : int ⊎ float} |= v_1 ≥ 0
+
+Rule 27 (reduction over valid dimensions)
+{v_1 : tensor, v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 66 (The filter_sigma, k1, and k2 parameters must be positive)
+{v_5 : float, v_6 : float, v_7 : float} |= v_5 > 0 ∧ v_6 > 0 ∧ v_7 > 0
+Token usage: input=18144, output=678, total=23555
+** SUCCESS **
+
+>>> PROMPT
+[Feedback Message from Prior Run]
+Duplicated rule: {v_1 : tensor} |= ndim(v_1) ≥ 3
+Duplicated rule: {v_2 : tensor} |= ndim(v_2) ≥ 3
+Duplicated rule: {v_4 : int} |= v_4 > 0
+Duplicated rule: {v_5 : float} |= v_5 > 0
+Duplicated rule: {v_3 : float} |= v_3 > 0
+
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.image.ssim API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Computes SSIM index between img1 and img2.
+
+  This function is based on the standard SSIM implementation from:
+  Wang, Z., Bovik, A. C., Sheikh, H. R., & Simoncelli, E. P. (2004). Image
+  quality assessment: from error visibility to structural similarity. IEEE
+  transactions on image processing.
+
+  Note: The true SSIM is only defined on grayscale.  This function does not
+  perform any colorspace transform.  (If the input is already YUV, then it will
+  compute YUV SSIM average.)
+
+  Details:
+    - 11x11 Gaussian filter of width 1.5 is used.
+    - k1 = 0.01, k2 = 0.03 as in the original paper.
+
+  The image sizes must be at least 11x11 because of the filter size.
+
+  Example:
+
+  ```python
+      # Read images (of size 255 x 255) from file.
+      im1 = tf.image.decode_image(tf.io.read_file('path/to/im1.png'))
+      im2 = tf.image.decode_image(tf.io.read_file('path/to/im2.png'))
+      tf.shape(im1)  # `img1.png` has 3 channels; shape is `(255, 255, 3)`
+      tf.shape(im2)  # `img2.png` has 3 channels; shape is `(255, 255, 3)`
+      # Add an outer batch for each image.
+      im1 = tf.expand_dims(im1, axis=0)
+      im2 = tf.expand_dims(im2, axis=0)
+      # Compute SSIM over tf.uint8 Tensors.
+      ssim1 = tf.image.ssim(im1, im2, max_val=255, filter_size=11,
+                            filter_sigma=1.5, k1=0.01, k2=0.03)
+
+      # Compute SSIM over tf.float32 Tensors.
+      im1 = tf.image.convert_image_dtype(im1, tf.float32)
+      im2 = tf.image.convert_image_dtype(im2, tf.float32)
+      ssim2 = tf.image.ssim(im1, im2, max_val=1.0, filter_size=11,
+                            filter_sigma=1.5, k1=0.01, k2=0.03)
+      # ssim1 and ssim2 both have type tf.float32 and are almost equal.
+  ```
+
+  Args:
+    img1: First image batch. 4-D Tensor of shape `[batch, height, width,
+      channels]` with only Positive Pixel Values.
+    img2: Second image batch. 4-D Tensor of shape `[batch, height, width,
+      channels]` with only Positive Pixel Values.
+    max_val: The dynamic range of the images (i.e., the difference between the
+      maximum the and minimum allowed values).
+    filter_size: Default value 11 (size of gaussian filter).
+    filter_sigma: Default value 1.5 (width of gaussian filter).
+    k1: Default value 0.01
+    k2: Default value 0.03 (SSIM is less sensitivity to K2 for lower values, so
+      it would be better if we took the values in the range of 0 < K2 < 0.4).
+    return_index_map: If True returns local SSIM map instead of the global mean.
+
+  Returns:
+    A tensor containing an SSIM value for each image in batch or a tensor
+    containing an SSIM value for each pixel for each image in batch if
+    return_index_map is True. Returned SSIM values are in range (-1, 1], when
+    pixel values are non-negative. Returns a tensor with shape:
+    broadcast(img1.shape[:-3], img2.shape[:-3]) or broadcast(img1.shape[:-1],
+    img2.shape[:-1]).
+
+[API Signature] img1: tensor, img2: tensor, max_val: float, filter_size: integer, filter_sigma: float, k1: float, k2: float, return_index_map: boolean
+
+[Error Messages]
+ValueError: Shape (0, 9) must have rank at least 3
+ValueError: Shapes (1, 33, 58) and (31, 4, 65) are incompatible
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 9 (4D tensor with all shape dimensions positive)
+{v_1 : tensor} |= ndim(v_1) = 4 ∧ ∀i ∈ [0, 3] : shape(v_1, i) > 0
+
+Rule 6 (last dimension of a tensor matches first dimension of the other)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, 0)
+
+Rule 8 (tensor must have an integer dtype: 1–5)
+{v1: tensor} |= 1 ≤ dtype(v1) ∧ dtype(v1) ≤ 5
+
+Rule 17 (primitive type variable must be non-negative)
+{v_1 : int ⊎ float} |= v_1 ≥ 0
+
+Rule 27 (reduction over valid dimensions)
+{v_1 : tensor, v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 67 (The dynamic range max_val must be positive and both image tensors must have matching dtype)
+{v_1 : tensor, v_3 : float} |= v_3 > 0 ∧ (dtype_(v_1) = 5 ∨ dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8)
+Token usage: input=18144, output=678, total=23555
+** SUCCESS **
+
+>>> PROMPT
+[Feedback Message from Prior Run]
+Duplicated rule: {v_1 : tensor} |= ndim(v_1) ≥ 3
+Duplicated rule: {v_2 : tensor} |= ndim(v_2) ≥ 3
+Duplicated rule: {v_4 : int} |= v_4 > 0
+Duplicated rule: {v_5 : float} |= v_5 > 0
+Duplicated rule: {v_3 : float} |= v_3 > 0
+
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.image.ssim API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Computes SSIM index between img1 and img2.
+
+  This function is based on the standard SSIM implementation from:
+  Wang, Z., Bovik, A. C., Sheikh, H. R., & Simoncelli, E. P. (2004). Image
+  quality assessment: from error visibility to structural similarity. IEEE
+  transactions on image processing.
+
+  Note: The true SSIM is only defined on grayscale.  This function does not
+  perform any colorspace transform.  (If the input is already YUV, then it will
+  compute YUV SSIM average.)
+
+  Details:
+    - 11x11 Gaussian filter of width 1.5 is used.
+    - k1 = 0.01, k2 = 0.03 as in the original paper.
+
+  The image sizes must be at least 11x11 because of the filter size.
+
+  Example:
+
+  ```python
+      # Read images (of size 255 x 255) from file.
+      im1 = tf.image.decode_image(tf.io.read_file('path/to/im1.png'))
+      im2 = tf.image.decode_image(tf.io.read_file('path/to/im2.png'))
+      tf.shape(im1)  # `img1.png` has 3 channels; shape is `(255, 255, 3)`
+      tf.shape(im2)  # `img2.png` has 3 channels; shape is `(255, 255, 3)`
+      # Add an outer batch for each image.
+      im1 = tf.expand_dims(im1, axis=0)
+      im2 = tf.expand_dims(im2, axis=0)
+      # Compute SSIM over tf.uint8 Tensors.
+      ssim1 = tf.image.ssim(im1, im2, max_val=255, filter_size=11,
+                            filter_sigma=1.5, k1=0.01, k2=0.03)
+
+      # Compute SSIM over tf.float32 Tensors.
+      im1 = tf.image.convert_image_dtype(im1, tf.float32)
+      im2 = tf.image.convert_image_dtype(im2, tf.float32)
+      ssim2 = tf.image.ssim(im1, im2, max_val=1.0, filter_size=11,
+                            filter_sigma=1.5, k1=0.01, k2=0.03)
+      # ssim1 and ssim2 both have type tf.float32 and are almost equal.
+  ```
+
+  Args:
+    img1: First image batch. 4-D Tensor of shape `[batch, height, width,
+      channels]` with only Positive Pixel Values.
+    img2: Second image batch. 4-D Tensor of shape `[batch, height, width,
+      channels]` with only Positive Pixel Values.
+    max_val: The dynamic range of the images (i.e., the difference between the
+      maximum the and minimum allowed values).
+    filter_size: Default value 11 (size of gaussian filter).
+    filter_sigma: Default value 1.5 (width of gaussian filter).
+    k1: Default value 0.01
+    k2: Default value 0.03 (SSIM is less sensitivity to K2 for lower values, so
+      it would be better if we took the values in the range of 0 < K2 < 0.4).
+    return_index_map: If True returns local SSIM map instead of the global mean.
+
+  Returns:
+    A tensor containing an SSIM value for each image in batch or a tensor
+    containing an SSIM value for each pixel for each image in batch if
+    return_index_map is True. Returned SSIM values are in range (-1, 1], when
+    pixel values are non-negative. Returns a tensor with shape:
+    broadcast(img1.shape[:-3], img2.shape[:-3]) or broadcast(img1.shape[:-1],
+    img2.shape[:-1]).
+
+[API Signature] img1: tensor, img2: tensor, max_val: float, filter_size: integer, filter_sigma: float, k1: float, k2: float, return_index_map: boolean
+
+[Error Messages]
+ValueError: Shape (0, 9) must have rank at least 3
+ValueError: Shapes (1, 33, 58) and (31, 4, 65) are incompatible
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 9 (4D tensor with all shape dimensions positive)
+{v_1 : tensor} |= ndim(v_1) = 4 ∧ ∀i ∈ [0, 3] : shape(v_1, i) > 0
+
+Rule 6 (last dimension of a tensor matches first dimension of the other)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, 0)
+
+Rule 8 (tensor must have an integer dtype: 1–5)
+{v1: tensor} |= 1 ≤ dtype(v1) ∧ dtype(v1) ≤ 5
+
+Rule 17 (primitive type variable must be non-negative)
+{v_1 : int ⊎ float} |= v_1 ≥ 0
+
+Rule 27 (reduction over valid dimensions)
+{v_1 : tensor, v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 68 (The batch dimensions of img1 and img2 must be broadcast compatible if they are 4D)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = 4 ∧ ndim(v_2) = 4 then shape(v_1, 0) = shape(v_2, 0) ∨ shape(v_1, 0) = 1 ∨ shape(v_2, 0) = 1
+Token usage: input=18144, output=678, total=23555
+** DUPLICATED RULE ** (num_failures: 7)
+

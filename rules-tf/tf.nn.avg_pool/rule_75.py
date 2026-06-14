@@ -34,7 +34,7 @@ def rule_75_func(arg1, arg2, arg3, arg4, solver=None, neg=False):
         arg1_ndim = Int('arg1_ndim')
         arg2_length = Int('arg2_length')
         arg3_length = Int('arg3_length')
-        arg4_value = String('arg4_value')
+        arg4_value = Int('arg4_value')
 
         # Value assignments
         solver.add(arg1_ndim == arg1.ndim)

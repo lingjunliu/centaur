@@ -53,9 +53,9 @@ def rule_58_func(arg1, arg2, arg3, arg4, solver=None, neg=False):
         solver.add(arg4_dtype == list_of_available_dtypes.index(arg4.dtype))
 
         # Constraints for rule 58
-        rule_58(solver, {'arg1_ndim': arg1_ndim, 'arg1_dtype': arg1_dtype, 'arg1_shape': arg1_shape, 'arg2_value': arg2_value, 'arg3_value': arg3_value, 'arg4_ndim': arg4_ndim, 'arg4_dtype': arg4_dtype, 'arg4_shape': arg4_shape})
+        rule_58(solver, {'arg1_dtype': arg1_dtype, 'arg1_ndim': arg1_ndim, 'arg1_shape': arg1_shape, 'arg2_value': arg2_value, 'arg3_value': arg3_value, 'arg4_dtype': arg4_dtype, 'arg4_ndim': arg4_ndim, 'arg4_shape': arg4_shape})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_58(solver, {'arg1_ndim': arg1['ndim'], 'arg1_dtype': arg1['dtype'], 'arg1_shape': arg1['shape'], 'arg2_value': arg2['value'], 'arg3_value': arg3['value'], 'arg4_ndim': arg4['ndim'], 'arg4_dtype': arg4['dtype'], 'arg4_shape': arg4['shape']}, neg)
+        rule_58(solver, {'arg1_dtype': arg1['dtype'], 'arg1_ndim': arg1['ndim'], 'arg1_shape': arg1['shape'], 'arg2_value': arg2['value'], 'arg3_value': arg3['value'], 'arg4_dtype': arg4['dtype'], 'arg4_ndim': arg4['ndim'], 'arg4_shape': arg4['shape']}, neg)

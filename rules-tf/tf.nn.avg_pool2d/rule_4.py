@@ -8,8 +8,8 @@ from z3 import *
 # padding must be either "VALID" or "SAME" (Rule 4)
 
 rule_4 = lambda s, v, n=False: (
-    s.add(Not(Or(v["arg1_value"] == 21, v["arg1_value"] == 22)) if n else
-          Or(v["arg1_value"] == 21, v["arg1_value"] == 22))
+    s.add(Not(Or(v["arg1_value"] == 26, v["arg1_value"] == 27)) if n else
+          Or(v["arg1_value"] == 26, v["arg1_value"] == 27))
 )
 
 def rule_4_func(arg1, solver=None, neg=False):
@@ -22,7 +22,7 @@ def rule_4_func(arg1, solver=None, neg=False):
 
         # Variable declarations
         solver = Solver()
-        arg1_value = String('arg1_value')
+        arg1_value = Int('arg1_value')
 
         # Value assignments
         solver.add(arg1_value == list_of_string_values_tf.index(arg1))

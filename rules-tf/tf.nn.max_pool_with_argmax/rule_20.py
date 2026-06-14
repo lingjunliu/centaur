@@ -32,7 +32,7 @@ def rule_20_func(arg1, arg2, arg3, arg4, solver=None, neg=False):
         # Variable declarations
         solver = Solver()
         arg1_shape = Array('arg1_shape', IntSort(), IntSort())
-        arg2_value = String('arg2_value')
+        arg2_value = Int('arg2_value')
         arg3_length = Int('arg3_length')
         arg3_values = Array('arg3_values', IntSort(), IntSort())
         arg4_length = Int('arg4_length')
@@ -50,9 +50,9 @@ def rule_20_func(arg1, arg2, arg3, arg4, solver=None, neg=False):
             arg4_values = Store(arg4_values, i, arg4[i])
 
         # Constraints for rule 20
-        rule_20(solver, {'arg1_shape': arg1_shape, 'arg2_value': arg2_value, 'arg3_length': arg3_length, 'arg3_values': arg3_values, 'arg4_length': arg4_length, 'arg4_values': arg4_values})
+        rule_20(solver, {'arg1_shape': arg1_shape, 'arg2_value': arg2_value, 'arg3_values': arg3_values, 'arg3_length': arg3_length, 'arg4_values': arg4_values, 'arg4_length': arg4_length})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_20(solver, {'arg1_shape': arg1['shape'], 'arg2_value': arg2['value'], 'arg3_length': arg3['length'], 'arg3_values': arg3['values'], 'arg4_length': arg4['length'], 'arg4_values': arg4['values']}, neg)
+        rule_20(solver, {'arg1_shape': arg1['shape'], 'arg2_value': arg2['value'], 'arg3_values': arg3['values'], 'arg3_length': arg3['length'], 'arg4_values': arg4['values'], 'arg4_length': arg4['length']}, neg)

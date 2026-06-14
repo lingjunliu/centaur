@@ -13167,3 +13167,3555 @@ Rule 85 (if data_format is NCHW, input channels must be a positive integer)
 {v_1 : tensor, v_2 : str} |= if v_2 = "NCHW" then shape(v_1, 1) > 0
 ** SUCCESS **
 
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.raw_ops.Conv2D API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Computes a 2-D convolution given 4-D `input` and `filter` tensors.
+
+  Given an input tensor of shape `[batch, in_height, in_width, in_channels]`
+  and a filter / kernel tensor of shape
+  `[filter_height, filter_width, in_channels, out_channels]`, this op
+  performs the following:
+
+  1. Flattens the filter to a 2-D matrix with shape
+     `[filter_height * filter_width * in_channels, output_channels]`.
+  2. Extracts image patches from the input tensor to form a *virtual*
+     tensor of shape `[batch, out_height, out_width,
+     filter_height * filter_width * in_channels]`.
+  3. For each patch, right-multiplies the filter matrix and the image patch
+     vector.
+
+  In detail, with the default NHWC format,
+
+      output[b, i, j, k] =
+          sum_{di, dj, q} input[b, strides[1] * i + di, strides[2] * j + dj, q] *
+                          filter[di, dj, q, k]
+
+  Must have `strides[0] = strides[3] = 1`.  For the most common case of the same
+  horizontal and vertices strides, `strides = [1, stride, stride, 1]`.
+
+  Args:
+    input: A `Tensor`. Must be one of the following types: `half`, `bfloat16`, `float32`, `float64`, `int32`.
+      A 4-D tensor. The dimension order is interpreted according to the value
+      of `data_format`, see below for details.
+    filter: A `Tensor`. Must have the same type as `input`.
+      A 4-D tensor of shape
+      `[filter_height, filter_width, in_channels, out_channels]`
+    strides: A list of `ints`.
+      1-D tensor of length 4.  The stride of the sliding window for each
+      dimension of `input`. The dimension order is determined by the value of
+      `data_format`, see below for details.
+    padding: A `string` from: `"SAME", "VALID", "EXPLICIT"`.
+      The type of padding algorithm to use.
+    use_cudnn_on_gpu: An optional `bool`. Defaults to `True`.
+    explicit_paddings: An optional list of `ints`. Defaults to `[]`.
+      If `padding` is `"EXPLICIT"`, the list of explicit padding amounts. For the ith
+      dimension, the amount of padding inserted before and after the dimension is
+      `explicit_paddings[2 * i]` and `explicit_paddings[2 * i + 1]`, respectively. If
+      `padding` is not `"EXPLICIT"`, `explicit_paddings` must be empty.
+    data_format: An optional `string` from: `"NHWC", "NCHW"`. Defaults to `"NHWC"`.
+      Specify the data format of the input and output data. With the
+      default format "NHWC", the data is stored in the order of:
+          [batch, height, width, channels].
+      Alternatively, the format could be "NCHW", the data storage order of:
+          [batch, channels, height, width].
+    dilations: An optional list of `ints`. Defaults to `[1, 1, 1, 1]`.
+      1-D tensor of length 4.  The dilation factor for each dimension of
+      `input`. If set to k > 1, there will be k-1 skipped cells between each
+      filter element on that dimension. The dimension order is determined by the
+      value of `data_format`, see above for details. Dilations in the batch and
+      depth dimensions must be 1.
+    name: A name for the operation (optional).
+
+  Returns:
+    A `Tensor`. Has the same type as `input`.
+
+[API Signature] use_cudnn_on_gpu: boolean, explicit_paddings: list, data_format: string, dilations: list, name: string, input: tensor, filter: tensor, strides: list, padding: string
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 3 (input tensors must have the same number of dimensions)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2)
+
+Rule 23 (3-dimensional tensor with all positive shape dimensions)
+{v_1 : tensor} |= ndim(v_1) = 3 ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+
+Rule 24 (tuple of ints represents valid shape dimensions)
+{v_1 : tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] > 0
+
+Rule 1 (tensor shapes should be the same)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = shape(v_2, i)
+
+Rule 26 (tuple of ints used as kernel size must have length 2)
+{v_1 : tuple(int)} |= v_1.len = 2 ∧ ∀i ∈ [0, 1] : v_1[i] > 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 86 (dimension and type constraints of input and filter tensors)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = 4 ∧ ndim(v_2) = 4 ∧ dtype_(v_1) = dtype_(v_2)
+Token usage: input=2366, output=627, total=10616
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.raw_ops.Conv2D API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Computes a 2-D convolution given 4-D `input` and `filter` tensors.
+
+  Given an input tensor of shape `[batch, in_height, in_width, in_channels]`
+  and a filter / kernel tensor of shape
+  `[filter_height, filter_width, in_channels, out_channels]`, this op
+  performs the following:
+
+  1. Flattens the filter to a 2-D matrix with shape
+     `[filter_height * filter_width * in_channels, output_channels]`.
+  2. Extracts image patches from the input tensor to form a *virtual*
+     tensor of shape `[batch, out_height, out_width,
+     filter_height * filter_width * in_channels]`.
+  3. For each patch, right-multiplies the filter matrix and the image patch
+     vector.
+
+  In detail, with the default NHWC format,
+
+      output[b, i, j, k] =
+          sum_{di, dj, q} input[b, strides[1] * i + di, strides[2] * j + dj, q] *
+                          filter[di, dj, q, k]
+
+  Must have `strides[0] = strides[3] = 1`.  For the most common case of the same
+  horizontal and vertices strides, `strides = [1, stride, stride, 1]`.
+
+  Args:
+    input: A `Tensor`. Must be one of the following types: `half`, `bfloat16`, `float32`, `float64`, `int32`.
+      A 4-D tensor. The dimension order is interpreted according to the value
+      of `data_format`, see below for details.
+    filter: A `Tensor`. Must have the same type as `input`.
+      A 4-D tensor of shape
+      `[filter_height, filter_width, in_channels, out_channels]`
+    strides: A list of `ints`.
+      1-D tensor of length 4.  The stride of the sliding window for each
+      dimension of `input`. The dimension order is determined by the value of
+      `data_format`, see below for details.
+    padding: A `string` from: `"SAME", "VALID", "EXPLICIT"`.
+      The type of padding algorithm to use.
+    use_cudnn_on_gpu: An optional `bool`. Defaults to `True`.
+    explicit_paddings: An optional list of `ints`. Defaults to `[]`.
+      If `padding` is `"EXPLICIT"`, the list of explicit padding amounts. For the ith
+      dimension, the amount of padding inserted before and after the dimension is
+      `explicit_paddings[2 * i]` and `explicit_paddings[2 * i + 1]`, respectively. If
+      `padding` is not `"EXPLICIT"`, `explicit_paddings` must be empty.
+    data_format: An optional `string` from: `"NHWC", "NCHW"`. Defaults to `"NHWC"`.
+      Specify the data format of the input and output data. With the
+      default format "NHWC", the data is stored in the order of:
+          [batch, height, width, channels].
+      Alternatively, the format could be "NCHW", the data storage order of:
+          [batch, channels, height, width].
+    dilations: An optional list of `ints`. Defaults to `[1, 1, 1, 1]`.
+      1-D tensor of length 4.  The dilation factor for each dimension of
+      `input`. If set to k > 1, there will be k-1 skipped cells between each
+      filter element on that dimension. The dimension order is determined by the
+      value of `data_format`, see above for details. Dilations in the batch and
+      depth dimensions must be 1.
+    name: A name for the operation (optional).
+
+  Returns:
+    A `Tensor`. Has the same type as `input`.
+
+[API Signature] use_cudnn_on_gpu: boolean, explicit_paddings: list, data_format: string, dilations: list, name: string, input: tensor, filter: tensor, strides: list, padding: string
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 3 (input tensors must have the same number of dimensions)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2)
+
+Rule 23 (3-dimensional tensor with all positive shape dimensions)
+{v_1 : tensor} |= ndim(v_1) = 3 ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+
+Rule 24 (tuple of ints represents valid shape dimensions)
+{v_1 : tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] > 0
+
+Rule 1 (tensor shapes should be the same)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = shape(v_2, i)
+
+Rule 26 (tuple of ints used as kernel size must have length 2)
+{v_1 : tuple(int)} |= v_1.len = 2 ∧ ∀i ∈ [0, 1] : v_1[i] > 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 87 (data format configuration options)
+{v_1 : str} |= v_1 = "NHWC" ∨ v_1 = "NCHW"
+Token usage: input=2366, output=627, total=10616
+** DUPLICATED RULE ** (num_failures: 1)
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.raw_ops.Conv2D API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Computes a 2-D convolution given 4-D `input` and `filter` tensors.
+
+  Given an input tensor of shape `[batch, in_height, in_width, in_channels]`
+  and a filter / kernel tensor of shape
+  `[filter_height, filter_width, in_channels, out_channels]`, this op
+  performs the following:
+
+  1. Flattens the filter to a 2-D matrix with shape
+     `[filter_height * filter_width * in_channels, output_channels]`.
+  2. Extracts image patches from the input tensor to form a *virtual*
+     tensor of shape `[batch, out_height, out_width,
+     filter_height * filter_width * in_channels]`.
+  3. For each patch, right-multiplies the filter matrix and the image patch
+     vector.
+
+  In detail, with the default NHWC format,
+
+      output[b, i, j, k] =
+          sum_{di, dj, q} input[b, strides[1] * i + di, strides[2] * j + dj, q] *
+                          filter[di, dj, q, k]
+
+  Must have `strides[0] = strides[3] = 1`.  For the most common case of the same
+  horizontal and vertices strides, `strides = [1, stride, stride, 1]`.
+
+  Args:
+    input: A `Tensor`. Must be one of the following types: `half`, `bfloat16`, `float32`, `float64`, `int32`.
+      A 4-D tensor. The dimension order is interpreted according to the value
+      of `data_format`, see below for details.
+    filter: A `Tensor`. Must have the same type as `input`.
+      A 4-D tensor of shape
+      `[filter_height, filter_width, in_channels, out_channels]`
+    strides: A list of `ints`.
+      1-D tensor of length 4.  The stride of the sliding window for each
+      dimension of `input`. The dimension order is determined by the value of
+      `data_format`, see below for details.
+    padding: A `string` from: `"SAME", "VALID", "EXPLICIT"`.
+      The type of padding algorithm to use.
+    use_cudnn_on_gpu: An optional `bool`. Defaults to `True`.
+    explicit_paddings: An optional list of `ints`. Defaults to `[]`.
+      If `padding` is `"EXPLICIT"`, the list of explicit padding amounts. For the ith
+      dimension, the amount of padding inserted before and after the dimension is
+      `explicit_paddings[2 * i]` and `explicit_paddings[2 * i + 1]`, respectively. If
+      `padding` is not `"EXPLICIT"`, `explicit_paddings` must be empty.
+    data_format: An optional `string` from: `"NHWC", "NCHW"`. Defaults to `"NHWC"`.
+      Specify the data format of the input and output data. With the
+      default format "NHWC", the data is stored in the order of:
+          [batch, height, width, channels].
+      Alternatively, the format could be "NCHW", the data storage order of:
+          [batch, channels, height, width].
+    dilations: An optional list of `ints`. Defaults to `[1, 1, 1, 1]`.
+      1-D tensor of length 4.  The dilation factor for each dimension of
+      `input`. If set to k > 1, there will be k-1 skipped cells between each
+      filter element on that dimension. The dimension order is determined by the
+      value of `data_format`, see above for details. Dilations in the batch and
+      depth dimensions must be 1.
+    name: A name for the operation (optional).
+
+  Returns:
+    A `Tensor`. Has the same type as `input`.
+
+[API Signature] use_cudnn_on_gpu: boolean, explicit_paddings: list, data_format: string, dilations: list, name: string, input: tensor, filter: tensor, strides: list, padding: string
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 3 (input tensors must have the same number of dimensions)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2)
+
+Rule 23 (3-dimensional tensor with all positive shape dimensions)
+{v_1 : tensor} |= ndim(v_1) = 3 ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+
+Rule 24 (tuple of ints represents valid shape dimensions)
+{v_1 : tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] > 0
+
+Rule 1 (tensor shapes should be the same)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = shape(v_2, i)
+
+Rule 26 (tuple of ints used as kernel size must have length 2)
+{v_1 : tuple(int)} |= v_1.len = 2 ∧ ∀i ∈ [0, 1] : v_1[i] > 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 88 (padding strategy constraints)
+{v_1 : str} |= v_1 = "SAME" ∨ v_1 = "VALID" ∨ v_1 = "EXPLICIT"
+Token usage: input=2366, output=627, total=10616
+** DUPLICATED RULE ** (num_failures: 2)
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.raw_ops.Conv2D API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Computes a 2-D convolution given 4-D `input` and `filter` tensors.
+
+  Given an input tensor of shape `[batch, in_height, in_width, in_channels]`
+  and a filter / kernel tensor of shape
+  `[filter_height, filter_width, in_channels, out_channels]`, this op
+  performs the following:
+
+  1. Flattens the filter to a 2-D matrix with shape
+     `[filter_height * filter_width * in_channels, output_channels]`.
+  2. Extracts image patches from the input tensor to form a *virtual*
+     tensor of shape `[batch, out_height, out_width,
+     filter_height * filter_width * in_channels]`.
+  3. For each patch, right-multiplies the filter matrix and the image patch
+     vector.
+
+  In detail, with the default NHWC format,
+
+      output[b, i, j, k] =
+          sum_{di, dj, q} input[b, strides[1] * i + di, strides[2] * j + dj, q] *
+                          filter[di, dj, q, k]
+
+  Must have `strides[0] = strides[3] = 1`.  For the most common case of the same
+  horizontal and vertices strides, `strides = [1, stride, stride, 1]`.
+
+  Args:
+    input: A `Tensor`. Must be one of the following types: `half`, `bfloat16`, `float32`, `float64`, `int32`.
+      A 4-D tensor. The dimension order is interpreted according to the value
+      of `data_format`, see below for details.
+    filter: A `Tensor`. Must have the same type as `input`.
+      A 4-D tensor of shape
+      `[filter_height, filter_width, in_channels, out_channels]`
+    strides: A list of `ints`.
+      1-D tensor of length 4.  The stride of the sliding window for each
+      dimension of `input`. The dimension order is determined by the value of
+      `data_format`, see below for details.
+    padding: A `string` from: `"SAME", "VALID", "EXPLICIT"`.
+      The type of padding algorithm to use.
+    use_cudnn_on_gpu: An optional `bool`. Defaults to `True`.
+    explicit_paddings: An optional list of `ints`. Defaults to `[]`.
+      If `padding` is `"EXPLICIT"`, the list of explicit padding amounts. For the ith
+      dimension, the amount of padding inserted before and after the dimension is
+      `explicit_paddings[2 * i]` and `explicit_paddings[2 * i + 1]`, respectively. If
+      `padding` is not `"EXPLICIT"`, `explicit_paddings` must be empty.
+    data_format: An optional `string` from: `"NHWC", "NCHW"`. Defaults to `"NHWC"`.
+      Specify the data format of the input and output data. With the
+      default format "NHWC", the data is stored in the order of:
+          [batch, height, width, channels].
+      Alternatively, the format could be "NCHW", the data storage order of:
+          [batch, channels, height, width].
+    dilations: An optional list of `ints`. Defaults to `[1, 1, 1, 1]`.
+      1-D tensor of length 4.  The dilation factor for each dimension of
+      `input`. If set to k > 1, there will be k-1 skipped cells between each
+      filter element on that dimension. The dimension order is determined by the
+      value of `data_format`, see above for details. Dilations in the batch and
+      depth dimensions must be 1.
+    name: A name for the operation (optional).
+
+  Returns:
+    A `Tensor`. Has the same type as `input`.
+
+[API Signature] use_cudnn_on_gpu: boolean, explicit_paddings: list, data_format: string, dilations: list, name: string, input: tensor, filter: tensor, strides: list, padding: string
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 3 (input tensors must have the same number of dimensions)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2)
+
+Rule 23 (3-dimensional tensor with all positive shape dimensions)
+{v_1 : tensor} |= ndim(v_1) = 3 ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+
+Rule 24 (tuple of ints represents valid shape dimensions)
+{v_1 : tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] > 0
+
+Rule 1 (tensor shapes should be the same)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = shape(v_2, i)
+
+Rule 26 (tuple of ints used as kernel size must have length 2)
+{v_1 : tuple(int)} |= v_1.len = 2 ∧ ∀i ∈ [0, 1] : v_1[i] > 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 89 (strides collection size and positive element constraints)
+{v_1 : list(int) ⊎ tuple(int)} |= v_1.len = 4 ∧ ∀i ∈ [0, 3] : v_1[i] > 0
+Token usage: input=2366, output=627, total=10616
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.raw_ops.Conv2D API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Computes a 2-D convolution given 4-D `input` and `filter` tensors.
+
+  Given an input tensor of shape `[batch, in_height, in_width, in_channels]`
+  and a filter / kernel tensor of shape
+  `[filter_height, filter_width, in_channels, out_channels]`, this op
+  performs the following:
+
+  1. Flattens the filter to a 2-D matrix with shape
+     `[filter_height * filter_width * in_channels, output_channels]`.
+  2. Extracts image patches from the input tensor to form a *virtual*
+     tensor of shape `[batch, out_height, out_width,
+     filter_height * filter_width * in_channels]`.
+  3. For each patch, right-multiplies the filter matrix and the image patch
+     vector.
+
+  In detail, with the default NHWC format,
+
+      output[b, i, j, k] =
+          sum_{di, dj, q} input[b, strides[1] * i + di, strides[2] * j + dj, q] *
+                          filter[di, dj, q, k]
+
+  Must have `strides[0] = strides[3] = 1`.  For the most common case of the same
+  horizontal and vertices strides, `strides = [1, stride, stride, 1]`.
+
+  Args:
+    input: A `Tensor`. Must be one of the following types: `half`, `bfloat16`, `float32`, `float64`, `int32`.
+      A 4-D tensor. The dimension order is interpreted according to the value
+      of `data_format`, see below for details.
+    filter: A `Tensor`. Must have the same type as `input`.
+      A 4-D tensor of shape
+      `[filter_height, filter_width, in_channels, out_channels]`
+    strides: A list of `ints`.
+      1-D tensor of length 4.  The stride of the sliding window for each
+      dimension of `input`. The dimension order is determined by the value of
+      `data_format`, see below for details.
+    padding: A `string` from: `"SAME", "VALID", "EXPLICIT"`.
+      The type of padding algorithm to use.
+    use_cudnn_on_gpu: An optional `bool`. Defaults to `True`.
+    explicit_paddings: An optional list of `ints`. Defaults to `[]`.
+      If `padding` is `"EXPLICIT"`, the list of explicit padding amounts. For the ith
+      dimension, the amount of padding inserted before and after the dimension is
+      `explicit_paddings[2 * i]` and `explicit_paddings[2 * i + 1]`, respectively. If
+      `padding` is not `"EXPLICIT"`, `explicit_paddings` must be empty.
+    data_format: An optional `string` from: `"NHWC", "NCHW"`. Defaults to `"NHWC"`.
+      Specify the data format of the input and output data. With the
+      default format "NHWC", the data is stored in the order of:
+          [batch, height, width, channels].
+      Alternatively, the format could be "NCHW", the data storage order of:
+          [batch, channels, height, width].
+    dilations: An optional list of `ints`. Defaults to `[1, 1, 1, 1]`.
+      1-D tensor of length 4.  The dilation factor for each dimension of
+      `input`. If set to k > 1, there will be k-1 skipped cells between each
+      filter element on that dimension. The dimension order is determined by the
+      value of `data_format`, see above for details. Dilations in the batch and
+      depth dimensions must be 1.
+    name: A name for the operation (optional).
+
+  Returns:
+    A `Tensor`. Has the same type as `input`.
+
+[API Signature] use_cudnn_on_gpu: boolean, explicit_paddings: list, data_format: string, dilations: list, name: string, input: tensor, filter: tensor, strides: list, padding: string
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 3 (input tensors must have the same number of dimensions)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2)
+
+Rule 23 (3-dimensional tensor with all positive shape dimensions)
+{v_1 : tensor} |= ndim(v_1) = 3 ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+
+Rule 24 (tuple of ints represents valid shape dimensions)
+{v_1 : tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] > 0
+
+Rule 1 (tensor shapes should be the same)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = shape(v_2, i)
+
+Rule 26 (tuple of ints used as kernel size must have length 2)
+{v_1 : tuple(int)} |= v_1.len = 2 ∧ ∀i ∈ [0, 1] : v_1[i] > 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 90 (stride values restriction based on data format)
+{v_1 : str, v_2 : list(int) ⊎ tuple(int)} |= if v_1 = "NHWC" then v_2[0] = 1 ∧ v_2[3] = 1 else v_2[0] = 1 ∧ v_2[1] = 1
+Token usage: input=2366, output=627, total=10616
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.raw_ops.Conv2D API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Computes a 2-D convolution given 4-D `input` and `filter` tensors.
+
+  Given an input tensor of shape `[batch, in_height, in_width, in_channels]`
+  and a filter / kernel tensor of shape
+  `[filter_height, filter_width, in_channels, out_channels]`, this op
+  performs the following:
+
+  1. Flattens the filter to a 2-D matrix with shape
+     `[filter_height * filter_width * in_channels, output_channels]`.
+  2. Extracts image patches from the input tensor to form a *virtual*
+     tensor of shape `[batch, out_height, out_width,
+     filter_height * filter_width * in_channels]`.
+  3. For each patch, right-multiplies the filter matrix and the image patch
+     vector.
+
+  In detail, with the default NHWC format,
+
+      output[b, i, j, k] =
+          sum_{di, dj, q} input[b, strides[1] * i + di, strides[2] * j + dj, q] *
+                          filter[di, dj, q, k]
+
+  Must have `strides[0] = strides[3] = 1`.  For the most common case of the same
+  horizontal and vertices strides, `strides = [1, stride, stride, 1]`.
+
+  Args:
+    input: A `Tensor`. Must be one of the following types: `half`, `bfloat16`, `float32`, `float64`, `int32`.
+      A 4-D tensor. The dimension order is interpreted according to the value
+      of `data_format`, see below for details.
+    filter: A `Tensor`. Must have the same type as `input`.
+      A 4-D tensor of shape
+      `[filter_height, filter_width, in_channels, out_channels]`
+    strides: A list of `ints`.
+      1-D tensor of length 4.  The stride of the sliding window for each
+      dimension of `input`. The dimension order is determined by the value of
+      `data_format`, see below for details.
+    padding: A `string` from: `"SAME", "VALID", "EXPLICIT"`.
+      The type of padding algorithm to use.
+    use_cudnn_on_gpu: An optional `bool`. Defaults to `True`.
+    explicit_paddings: An optional list of `ints`. Defaults to `[]`.
+      If `padding` is `"EXPLICIT"`, the list of explicit padding amounts. For the ith
+      dimension, the amount of padding inserted before and after the dimension is
+      `explicit_paddings[2 * i]` and `explicit_paddings[2 * i + 1]`, respectively. If
+      `padding` is not `"EXPLICIT"`, `explicit_paddings` must be empty.
+    data_format: An optional `string` from: `"NHWC", "NCHW"`. Defaults to `"NHWC"`.
+      Specify the data format of the input and output data. With the
+      default format "NHWC", the data is stored in the order of:
+          [batch, height, width, channels].
+      Alternatively, the format could be "NCHW", the data storage order of:
+          [batch, channels, height, width].
+    dilations: An optional list of `ints`. Defaults to `[1, 1, 1, 1]`.
+      1-D tensor of length 4.  The dilation factor for each dimension of
+      `input`. If set to k > 1, there will be k-1 skipped cells between each
+      filter element on that dimension. The dimension order is determined by the
+      value of `data_format`, see above for details. Dilations in the batch and
+      depth dimensions must be 1.
+    name: A name for the operation (optional).
+
+  Returns:
+    A `Tensor`. Has the same type as `input`.
+
+[API Signature] use_cudnn_on_gpu: boolean, explicit_paddings: list, data_format: string, dilations: list, name: string, input: tensor, filter: tensor, strides: list, padding: string
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 3 (input tensors must have the same number of dimensions)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2)
+
+Rule 23 (3-dimensional tensor with all positive shape dimensions)
+{v_1 : tensor} |= ndim(v_1) = 3 ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+
+Rule 24 (tuple of ints represents valid shape dimensions)
+{v_1 : tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] > 0
+
+Rule 1 (tensor shapes should be the same)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = shape(v_2, i)
+
+Rule 26 (tuple of ints used as kernel size must have length 2)
+{v_1 : tuple(int)} |= v_1.len = 2 ∧ ∀i ∈ [0, 1] : v_1[i] > 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 91 (dilations collection format and value constraints)
+{v_1 : str, v_2 : list(int) ⊎ tuple(int)} |= v_2.len = 4 ∧ (∀i ∈ [0, 3] : v_2[i] > 0) ∧ (if v_1 = "NHWC" then v_2[0] = 1 ∧ v_2[3] = 1 else v_2[0] = 1 ∧ v_2[1] = 1)
+Token usage: input=2366, output=627, total=10616
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.raw_ops.Conv2D API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Computes a 2-D convolution given 4-D `input` and `filter` tensors.
+
+  Given an input tensor of shape `[batch, in_height, in_width, in_channels]`
+  and a filter / kernel tensor of shape
+  `[filter_height, filter_width, in_channels, out_channels]`, this op
+  performs the following:
+
+  1. Flattens the filter to a 2-D matrix with shape
+     `[filter_height * filter_width * in_channels, output_channels]`.
+  2. Extracts image patches from the input tensor to form a *virtual*
+     tensor of shape `[batch, out_height, out_width,
+     filter_height * filter_width * in_channels]`.
+  3. For each patch, right-multiplies the filter matrix and the image patch
+     vector.
+
+  In detail, with the default NHWC format,
+
+      output[b, i, j, k] =
+          sum_{di, dj, q} input[b, strides[1] * i + di, strides[2] * j + dj, q] *
+                          filter[di, dj, q, k]
+
+  Must have `strides[0] = strides[3] = 1`.  For the most common case of the same
+  horizontal and vertices strides, `strides = [1, stride, stride, 1]`.
+
+  Args:
+    input: A `Tensor`. Must be one of the following types: `half`, `bfloat16`, `float32`, `float64`, `int32`.
+      A 4-D tensor. The dimension order is interpreted according to the value
+      of `data_format`, see below for details.
+    filter: A `Tensor`. Must have the same type as `input`.
+      A 4-D tensor of shape
+      `[filter_height, filter_width, in_channels, out_channels]`
+    strides: A list of `ints`.
+      1-D tensor of length 4.  The stride of the sliding window for each
+      dimension of `input`. The dimension order is determined by the value of
+      `data_format`, see below for details.
+    padding: A `string` from: `"SAME", "VALID", "EXPLICIT"`.
+      The type of padding algorithm to use.
+    use_cudnn_on_gpu: An optional `bool`. Defaults to `True`.
+    explicit_paddings: An optional list of `ints`. Defaults to `[]`.
+      If `padding` is `"EXPLICIT"`, the list of explicit padding amounts. For the ith
+      dimension, the amount of padding inserted before and after the dimension is
+      `explicit_paddings[2 * i]` and `explicit_paddings[2 * i + 1]`, respectively. If
+      `padding` is not `"EXPLICIT"`, `explicit_paddings` must be empty.
+    data_format: An optional `string` from: `"NHWC", "NCHW"`. Defaults to `"NHWC"`.
+      Specify the data format of the input and output data. With the
+      default format "NHWC", the data is stored in the order of:
+          [batch, height, width, channels].
+      Alternatively, the format could be "NCHW", the data storage order of:
+          [batch, channels, height, width].
+    dilations: An optional list of `ints`. Defaults to `[1, 1, 1, 1]`.
+      1-D tensor of length 4.  The dilation factor for each dimension of
+      `input`. If set to k > 1, there will be k-1 skipped cells between each
+      filter element on that dimension. The dimension order is determined by the
+      value of `data_format`, see above for details. Dilations in the batch and
+      depth dimensions must be 1.
+    name: A name for the operation (optional).
+
+  Returns:
+    A `Tensor`. Has the same type as `input`.
+
+[API Signature] use_cudnn_on_gpu: boolean, explicit_paddings: list, data_format: string, dilations: list, name: string, input: tensor, filter: tensor, strides: list, padding: string
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 3 (input tensors must have the same number of dimensions)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2)
+
+Rule 23 (3-dimensional tensor with all positive shape dimensions)
+{v_1 : tensor} |= ndim(v_1) = 3 ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+
+Rule 24 (tuple of ints represents valid shape dimensions)
+{v_1 : tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] > 0
+
+Rule 1 (tensor shapes should be the same)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = shape(v_2, i)
+
+Rule 26 (tuple of ints used as kernel size must have length 2)
+{v_1 : tuple(int)} |= v_1.len = 2 ∧ ∀i ∈ [0, 1] : v_1[i] > 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 92 (explicit padding list length and values constraint)
+{v_1 : list(int) ⊎ tuple(int), v_2 : str} |= if v_2 = "EXPLICIT" then v_1.len = 8 ∧ (∀i ∈ [0, 7] : v_1[i] ≥ 0) else v_1.len = 0
+Token usage: input=2366, output=627, total=10616
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.raw_ops.Conv2D API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Computes a 2-D convolution given 4-D `input` and `filter` tensors.
+
+  Given an input tensor of shape `[batch, in_height, in_width, in_channels]`
+  and a filter / kernel tensor of shape
+  `[filter_height, filter_width, in_channels, out_channels]`, this op
+  performs the following:
+
+  1. Flattens the filter to a 2-D matrix with shape
+     `[filter_height * filter_width * in_channels, output_channels]`.
+  2. Extracts image patches from the input tensor to form a *virtual*
+     tensor of shape `[batch, out_height, out_width,
+     filter_height * filter_width * in_channels]`.
+  3. For each patch, right-multiplies the filter matrix and the image patch
+     vector.
+
+  In detail, with the default NHWC format,
+
+      output[b, i, j, k] =
+          sum_{di, dj, q} input[b, strides[1] * i + di, strides[2] * j + dj, q] *
+                          filter[di, dj, q, k]
+
+  Must have `strides[0] = strides[3] = 1`.  For the most common case of the same
+  horizontal and vertices strides, `strides = [1, stride, stride, 1]`.
+
+  Args:
+    input: A `Tensor`. Must be one of the following types: `half`, `bfloat16`, `float32`, `float64`, `int32`.
+      A 4-D tensor. The dimension order is interpreted according to the value
+      of `data_format`, see below for details.
+    filter: A `Tensor`. Must have the same type as `input`.
+      A 4-D tensor of shape
+      `[filter_height, filter_width, in_channels, out_channels]`
+    strides: A list of `ints`.
+      1-D tensor of length 4.  The stride of the sliding window for each
+      dimension of `input`. The dimension order is determined by the value of
+      `data_format`, see below for details.
+    padding: A `string` from: `"SAME", "VALID", "EXPLICIT"`.
+      The type of padding algorithm to use.
+    use_cudnn_on_gpu: An optional `bool`. Defaults to `True`.
+    explicit_paddings: An optional list of `ints`. Defaults to `[]`.
+      If `padding` is `"EXPLICIT"`, the list of explicit padding amounts. For the ith
+      dimension, the amount of padding inserted before and after the dimension is
+      `explicit_paddings[2 * i]` and `explicit_paddings[2 * i + 1]`, respectively. If
+      `padding` is not `"EXPLICIT"`, `explicit_paddings` must be empty.
+    data_format: An optional `string` from: `"NHWC", "NCHW"`. Defaults to `"NHWC"`.
+      Specify the data format of the input and output data. With the
+      default format "NHWC", the data is stored in the order of:
+          [batch, height, width, channels].
+      Alternatively, the format could be "NCHW", the data storage order of:
+          [batch, channels, height, width].
+    dilations: An optional list of `ints`. Defaults to `[1, 1, 1, 1]`.
+      1-D tensor of length 4.  The dilation factor for each dimension of
+      `input`. If set to k > 1, there will be k-1 skipped cells between each
+      filter element on that dimension. The dimension order is determined by the
+      value of `data_format`, see above for details. Dilations in the batch and
+      depth dimensions must be 1.
+    name: A name for the operation (optional).
+
+  Returns:
+    A `Tensor`. Has the same type as `input`.
+
+[API Signature] use_cudnn_on_gpu: boolean, explicit_paddings: list, data_format: string, dilations: list, name: string, input: tensor, filter: tensor, strides: list, padding: string
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 3 (input tensors must have the same number of dimensions)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2)
+
+Rule 23 (3-dimensional tensor with all positive shape dimensions)
+{v_1 : tensor} |= ndim(v_1) = 3 ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+
+Rule 24 (tuple of ints represents valid shape dimensions)
+{v_1 : tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] > 0
+
+Rule 1 (tensor shapes should be the same)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = shape(v_2, i)
+
+Rule 26 (tuple of ints used as kernel size must have length 2)
+{v_1 : tuple(int)} |= v_1.len = 2 ∧ ∀i ∈ [0, 1] : v_1[i] > 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 93 (channel size compatibility between input and filter)
+{v_1 : str, v_2 : tensor, v_3 : tensor} |= if v_1 = "NHWC" then shape(v_2, 3) = shape(v_3, 2) else shape(v_2, 1) = shape(v_3, 2)
+Token usage: input=2366, output=627, total=10616
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.raw_ops.Conv2D API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Computes a 2-D convolution given 4-D `input` and `filter` tensors.
+
+  Given an input tensor of shape `[batch, in_height, in_width, in_channels]`
+  and a filter / kernel tensor of shape
+  `[filter_height, filter_width, in_channels, out_channels]`, this op
+  performs the following:
+
+  1. Flattens the filter to a 2-D matrix with shape
+     `[filter_height * filter_width * in_channels, output_channels]`.
+  2. Extracts image patches from the input tensor to form a *virtual*
+     tensor of shape `[batch, out_height, out_width,
+     filter_height * filter_width * in_channels]`.
+  3. For each patch, right-multiplies the filter matrix and the image patch
+     vector.
+
+  In detail, with the default NHWC format,
+
+      output[b, i, j, k] =
+          sum_{di, dj, q} input[b, strides[1] * i + di, strides[2] * j + dj, q] *
+                          filter[di, dj, q, k]
+
+  Must have `strides[0] = strides[3] = 1`.  For the most common case of the same
+  horizontal and vertices strides, `strides = [1, stride, stride, 1]`.
+
+  Args:
+    input: A `Tensor`. Must be one of the following types: `half`, `bfloat16`, `float32`, `float64`, `int32`.
+      A 4-D tensor. The dimension order is interpreted according to the value
+      of `data_format`, see below for details.
+    filter: A `Tensor`. Must have the same type as `input`.
+      A 4-D tensor of shape
+      `[filter_height, filter_width, in_channels, out_channels]`
+    strides: A list of `ints`.
+      1-D tensor of length 4.  The stride of the sliding window for each
+      dimension of `input`. The dimension order is determined by the value of
+      `data_format`, see below for details.
+    padding: A `string` from: `"SAME", "VALID", "EXPLICIT"`.
+      The type of padding algorithm to use.
+    use_cudnn_on_gpu: An optional `bool`. Defaults to `True`.
+    explicit_paddings: An optional list of `ints`. Defaults to `[]`.
+      If `padding` is `"EXPLICIT"`, the list of explicit padding amounts. For the ith
+      dimension, the amount of padding inserted before and after the dimension is
+      `explicit_paddings[2 * i]` and `explicit_paddings[2 * i + 1]`, respectively. If
+      `padding` is not `"EXPLICIT"`, `explicit_paddings` must be empty.
+    data_format: An optional `string` from: `"NHWC", "NCHW"`. Defaults to `"NHWC"`.
+      Specify the data format of the input and output data. With the
+      default format "NHWC", the data is stored in the order of:
+          [batch, height, width, channels].
+      Alternatively, the format could be "NCHW", the data storage order of:
+          [batch, channels, height, width].
+    dilations: An optional list of `ints`. Defaults to `[1, 1, 1, 1]`.
+      1-D tensor of length 4.  The dilation factor for each dimension of
+      `input`. If set to k > 1, there will be k-1 skipped cells between each
+      filter element on that dimension. The dimension order is determined by the
+      value of `data_format`, see above for details. Dilations in the batch and
+      depth dimensions must be 1.
+    name: A name for the operation (optional).
+
+  Returns:
+    A `Tensor`. Has the same type as `input`.
+
+[API Signature] use_cudnn_on_gpu: boolean, explicit_paddings: list, data_format: string, dilations: list, name: string, input: tensor, filter: tensor, strides: list, padding: string
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 3 (input tensors must have the same number of dimensions)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2)
+
+Rule 23 (3-dimensional tensor with all positive shape dimensions)
+{v_1 : tensor} |= ndim(v_1) = 3 ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+
+Rule 24 (tuple of ints represents valid shape dimensions)
+{v_1 : tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] > 0
+
+Rule 1 (tensor shapes should be the same)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = shape(v_2, i)
+
+Rule 26 (tuple of ints used as kernel size must have length 2)
+{v_1 : tuple(int)} |= v_1.len = 2 ∧ ∀i ∈ [0, 1] : v_1[i] > 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 94 (boolean parameter for GPU acceleration)
+{v_1 : bool} |= v_1 = true ∨ v_1 = false
+Token usage: input=2366, output=627, total=10616
+** DUPLICATED RULE ** (num_failures: 3)
+
+>>> PROMPT
+[Feedback Message from Prior Run]
+Duplicated rule: {v_1 : str} |= v_1 = "NHWC" ∨ v_1 = "NCHW"
+Duplicated rule: {v_1 : str} |= v_1 = "SAME" ∨ v_1 = "VALID" ∨ v_1 = "EXPLICIT"
+Duplicated rule: {v_1 : bool} |= v_1 = true ∨ v_1 = false
+
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.raw_ops.Conv2D API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Computes a 2-D convolution given 4-D `input` and `filter` tensors.
+
+  Given an input tensor of shape `[batch, in_height, in_width, in_channels]`
+  and a filter / kernel tensor of shape
+  `[filter_height, filter_width, in_channels, out_channels]`, this op
+  performs the following:
+
+  1. Flattens the filter to a 2-D matrix with shape
+     `[filter_height * filter_width * in_channels, output_channels]`.
+  2. Extracts image patches from the input tensor to form a *virtual*
+     tensor of shape `[batch, out_height, out_width,
+     filter_height * filter_width * in_channels]`.
+  3. For each patch, right-multiplies the filter matrix and the image patch
+     vector.
+
+  In detail, with the default NHWC format,
+
+      output[b, i, j, k] =
+          sum_{di, dj, q} input[b, strides[1] * i + di, strides[2] * j + dj, q] *
+                          filter[di, dj, q, k]
+
+  Must have `strides[0] = strides[3] = 1`.  For the most common case of the same
+  horizontal and vertices strides, `strides = [1, stride, stride, 1]`.
+
+  Args:
+    input: A `Tensor`. Must be one of the following types: `half`, `bfloat16`, `float32`, `float64`, `int32`.
+      A 4-D tensor. The dimension order is interpreted according to the value
+      of `data_format`, see below for details.
+    filter: A `Tensor`. Must have the same type as `input`.
+      A 4-D tensor of shape
+      `[filter_height, filter_width, in_channels, out_channels]`
+    strides: A list of `ints`.
+      1-D tensor of length 4.  The stride of the sliding window for each
+      dimension of `input`. The dimension order is determined by the value of
+      `data_format`, see below for details.
+    padding: A `string` from: `"SAME", "VALID", "EXPLICIT"`.
+      The type of padding algorithm to use.
+    use_cudnn_on_gpu: An optional `bool`. Defaults to `True`.
+    explicit_paddings: An optional list of `ints`. Defaults to `[]`.
+      If `padding` is `"EXPLICIT"`, the list of explicit padding amounts. For the ith
+      dimension, the amount of padding inserted before and after the dimension is
+      `explicit_paddings[2 * i]` and `explicit_paddings[2 * i + 1]`, respectively. If
+      `padding` is not `"EXPLICIT"`, `explicit_paddings` must be empty.
+    data_format: An optional `string` from: `"NHWC", "NCHW"`. Defaults to `"NHWC"`.
+      Specify the data format of the input and output data. With the
+      default format "NHWC", the data is stored in the order of:
+          [batch, height, width, channels].
+      Alternatively, the format could be "NCHW", the data storage order of:
+          [batch, channels, height, width].
+    dilations: An optional list of `ints`. Defaults to `[1, 1, 1, 1]`.
+      1-D tensor of length 4.  The dilation factor for each dimension of
+      `input`. If set to k > 1, there will be k-1 skipped cells between each
+      filter element on that dimension. The dimension order is determined by the
+      value of `data_format`, see above for details. Dilations in the batch and
+      depth dimensions must be 1.
+    name: A name for the operation (optional).
+
+  Returns:
+    A `Tensor`. Has the same type as `input`.
+
+[API Signature] use_cudnn_on_gpu: boolean, explicit_paddings: list, data_format: string, dilations: list, name: string, input: tensor, filter: tensor, strides: list, padding: string
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 7 (first dimension of a tensor matches second dimension of the other)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) ≥ 1 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, 0) = shape(v_2, 1)
+
+Rule 2 (v_2 should be a valid dimension of input tensor)
+{v_1 : tensor, v_2 : int} |= −1 × ndim(v_1) ≤ v_2 ∧ v_2 ≤ ndim(v_1) − 1
+
+Rule 9 (4D tensor with all shape dimensions positive)
+{v_1 : tensor} |= ndim(v_1) = 4 ∧ ∀i ∈ [0, 3] : shape(v_1, i) > 0
+
+Rule 5 (index tensor (v_2) should be within the range of input tensor)
+{v_1 : tensor, v_2 : tensor} |= min(v_2) ≥ 0 ∧ ∀i ∈ [0, ndim(v_1) − 1] : max(v_2) ≤ shape(v_1, i) − 1
+
+Rule 1 (tensor shapes should be the same)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = shape(v_2, i)
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 95 (dimension and type constraints of input and filter tensors)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = 4 ∧ ndim(v_2) = 4 ∧ dtype_(v_1) = dtype_(v_2)
+Token usage: input=13143, output=626, total=18053
+** DUPLICATED RULE ** (num_failures: 4)
+
+>>> PROMPT
+[Feedback Message from Prior Run]
+Duplicated rule: {v_1 : str} |= v_1 = "NHWC" ∨ v_1 = "NCHW"
+Duplicated rule: {v_1 : str} |= v_1 = "SAME" ∨ v_1 = "VALID" ∨ v_1 = "EXPLICIT"
+Duplicated rule: {v_1 : bool} |= v_1 = true ∨ v_1 = false
+
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.raw_ops.Conv2D API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Computes a 2-D convolution given 4-D `input` and `filter` tensors.
+
+  Given an input tensor of shape `[batch, in_height, in_width, in_channels]`
+  and a filter / kernel tensor of shape
+  `[filter_height, filter_width, in_channels, out_channels]`, this op
+  performs the following:
+
+  1. Flattens the filter to a 2-D matrix with shape
+     `[filter_height * filter_width * in_channels, output_channels]`.
+  2. Extracts image patches from the input tensor to form a *virtual*
+     tensor of shape `[batch, out_height, out_width,
+     filter_height * filter_width * in_channels]`.
+  3. For each patch, right-multiplies the filter matrix and the image patch
+     vector.
+
+  In detail, with the default NHWC format,
+
+      output[b, i, j, k] =
+          sum_{di, dj, q} input[b, strides[1] * i + di, strides[2] * j + dj, q] *
+                          filter[di, dj, q, k]
+
+  Must have `strides[0] = strides[3] = 1`.  For the most common case of the same
+  horizontal and vertices strides, `strides = [1, stride, stride, 1]`.
+
+  Args:
+    input: A `Tensor`. Must be one of the following types: `half`, `bfloat16`, `float32`, `float64`, `int32`.
+      A 4-D tensor. The dimension order is interpreted according to the value
+      of `data_format`, see below for details.
+    filter: A `Tensor`. Must have the same type as `input`.
+      A 4-D tensor of shape
+      `[filter_height, filter_width, in_channels, out_channels]`
+    strides: A list of `ints`.
+      1-D tensor of length 4.  The stride of the sliding window for each
+      dimension of `input`. The dimension order is determined by the value of
+      `data_format`, see below for details.
+    padding: A `string` from: `"SAME", "VALID", "EXPLICIT"`.
+      The type of padding algorithm to use.
+    use_cudnn_on_gpu: An optional `bool`. Defaults to `True`.
+    explicit_paddings: An optional list of `ints`. Defaults to `[]`.
+      If `padding` is `"EXPLICIT"`, the list of explicit padding amounts. For the ith
+      dimension, the amount of padding inserted before and after the dimension is
+      `explicit_paddings[2 * i]` and `explicit_paddings[2 * i + 1]`, respectively. If
+      `padding` is not `"EXPLICIT"`, `explicit_paddings` must be empty.
+    data_format: An optional `string` from: `"NHWC", "NCHW"`. Defaults to `"NHWC"`.
+      Specify the data format of the input and output data. With the
+      default format "NHWC", the data is stored in the order of:
+          [batch, height, width, channels].
+      Alternatively, the format could be "NCHW", the data storage order of:
+          [batch, channels, height, width].
+    dilations: An optional list of `ints`. Defaults to `[1, 1, 1, 1]`.
+      1-D tensor of length 4.  The dilation factor for each dimension of
+      `input`. If set to k > 1, there will be k-1 skipped cells between each
+      filter element on that dimension. The dimension order is determined by the
+      value of `data_format`, see above for details. Dilations in the batch and
+      depth dimensions must be 1.
+    name: A name for the operation (optional).
+
+  Returns:
+    A `Tensor`. Has the same type as `input`.
+
+[API Signature] use_cudnn_on_gpu: boolean, explicit_paddings: list, data_format: string, dilations: list, name: string, input: tensor, filter: tensor, strides: list, padding: string
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 7 (first dimension of a tensor matches second dimension of the other)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) ≥ 1 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, 0) = shape(v_2, 1)
+
+Rule 2 (v_2 should be a valid dimension of input tensor)
+{v_1 : tensor, v_2 : int} |= −1 × ndim(v_1) ≤ v_2 ∧ v_2 ≤ ndim(v_1) − 1
+
+Rule 9 (4D tensor with all shape dimensions positive)
+{v_1 : tensor} |= ndim(v_1) = 4 ∧ ∀i ∈ [0, 3] : shape(v_1, i) > 0
+
+Rule 5 (index tensor (v_2) should be within the range of input tensor)
+{v_1 : tensor, v_2 : tensor} |= min(v_2) ≥ 0 ∧ ∀i ∈ [0, ndim(v_1) − 1] : max(v_2) ≤ shape(v_1, i) − 1
+
+Rule 1 (tensor shapes should be the same)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = shape(v_2, i)
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 96 (supported input data types constraint)
+{v_1 : tensor} |= dtype_(v_1) = 3 ∨ dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8
+Token usage: input=13143, output=626, total=18053
+** SUCCESS **
+
+>>> PROMPT
+[Feedback Message from Prior Run]
+Duplicated rule: {v_1 : str} |= v_1 = "NHWC" ∨ v_1 = "NCHW"
+Duplicated rule: {v_1 : str} |= v_1 = "SAME" ∨ v_1 = "VALID" ∨ v_1 = "EXPLICIT"
+Duplicated rule: {v_1 : bool} |= v_1 = true ∨ v_1 = false
+
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.raw_ops.Conv2D API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Computes a 2-D convolution given 4-D `input` and `filter` tensors.
+
+  Given an input tensor of shape `[batch, in_height, in_width, in_channels]`
+  and a filter / kernel tensor of shape
+  `[filter_height, filter_width, in_channels, out_channels]`, this op
+  performs the following:
+
+  1. Flattens the filter to a 2-D matrix with shape
+     `[filter_height * filter_width * in_channels, output_channels]`.
+  2. Extracts image patches from the input tensor to form a *virtual*
+     tensor of shape `[batch, out_height, out_width,
+     filter_height * filter_width * in_channels]`.
+  3. For each patch, right-multiplies the filter matrix and the image patch
+     vector.
+
+  In detail, with the default NHWC format,
+
+      output[b, i, j, k] =
+          sum_{di, dj, q} input[b, strides[1] * i + di, strides[2] * j + dj, q] *
+                          filter[di, dj, q, k]
+
+  Must have `strides[0] = strides[3] = 1`.  For the most common case of the same
+  horizontal and vertices strides, `strides = [1, stride, stride, 1]`.
+
+  Args:
+    input: A `Tensor`. Must be one of the following types: `half`, `bfloat16`, `float32`, `float64`, `int32`.
+      A 4-D tensor. The dimension order is interpreted according to the value
+      of `data_format`, see below for details.
+    filter: A `Tensor`. Must have the same type as `input`.
+      A 4-D tensor of shape
+      `[filter_height, filter_width, in_channels, out_channels]`
+    strides: A list of `ints`.
+      1-D tensor of length 4.  The stride of the sliding window for each
+      dimension of `input`. The dimension order is determined by the value of
+      `data_format`, see below for details.
+    padding: A `string` from: `"SAME", "VALID", "EXPLICIT"`.
+      The type of padding algorithm to use.
+    use_cudnn_on_gpu: An optional `bool`. Defaults to `True`.
+    explicit_paddings: An optional list of `ints`. Defaults to `[]`.
+      If `padding` is `"EXPLICIT"`, the list of explicit padding amounts. For the ith
+      dimension, the amount of padding inserted before and after the dimension is
+      `explicit_paddings[2 * i]` and `explicit_paddings[2 * i + 1]`, respectively. If
+      `padding` is not `"EXPLICIT"`, `explicit_paddings` must be empty.
+    data_format: An optional `string` from: `"NHWC", "NCHW"`. Defaults to `"NHWC"`.
+      Specify the data format of the input and output data. With the
+      default format "NHWC", the data is stored in the order of:
+          [batch, height, width, channels].
+      Alternatively, the format could be "NCHW", the data storage order of:
+          [batch, channels, height, width].
+    dilations: An optional list of `ints`. Defaults to `[1, 1, 1, 1]`.
+      1-D tensor of length 4.  The dilation factor for each dimension of
+      `input`. If set to k > 1, there will be k-1 skipped cells between each
+      filter element on that dimension. The dimension order is determined by the
+      value of `data_format`, see above for details. Dilations in the batch and
+      depth dimensions must be 1.
+    name: A name for the operation (optional).
+
+  Returns:
+    A `Tensor`. Has the same type as `input`.
+
+[API Signature] use_cudnn_on_gpu: boolean, explicit_paddings: list, data_format: string, dilations: list, name: string, input: tensor, filter: tensor, strides: list, padding: string
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 7 (first dimension of a tensor matches second dimension of the other)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) ≥ 1 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, 0) = shape(v_2, 1)
+
+Rule 2 (v_2 should be a valid dimension of input tensor)
+{v_1 : tensor, v_2 : int} |= −1 × ndim(v_1) ≤ v_2 ∧ v_2 ≤ ndim(v_1) − 1
+
+Rule 9 (4D tensor with all shape dimensions positive)
+{v_1 : tensor} |= ndim(v_1) = 4 ∧ ∀i ∈ [0, 3] : shape(v_1, i) > 0
+
+Rule 5 (index tensor (v_2) should be within the range of input tensor)
+{v_1 : tensor, v_2 : tensor} |= min(v_2) ≥ 0 ∧ ∀i ∈ [0, ndim(v_1) − 1] : max(v_2) ≤ shape(v_1, i) − 1
+
+Rule 1 (tensor shapes should be the same)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = shape(v_2, i)
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 97 (strides size and elements must be positive)
+{v_1 : list(int)} |= v_1.len = 4 ∧ ∀i ∈ [0, 3] : v_1[i] > 0
+Token usage: input=13143, output=626, total=18053
+** SUCCESS **
+
+>>> PROMPT
+[Feedback Message from Prior Run]
+Duplicated rule: {v_1 : str} |= v_1 = "NHWC" ∨ v_1 = "NCHW"
+Duplicated rule: {v_1 : str} |= v_1 = "SAME" ∨ v_1 = "VALID" ∨ v_1 = "EXPLICIT"
+Duplicated rule: {v_1 : bool} |= v_1 = true ∨ v_1 = false
+
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.raw_ops.Conv2D API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Computes a 2-D convolution given 4-D `input` and `filter` tensors.
+
+  Given an input tensor of shape `[batch, in_height, in_width, in_channels]`
+  and a filter / kernel tensor of shape
+  `[filter_height, filter_width, in_channels, out_channels]`, this op
+  performs the following:
+
+  1. Flattens the filter to a 2-D matrix with shape
+     `[filter_height * filter_width * in_channels, output_channels]`.
+  2. Extracts image patches from the input tensor to form a *virtual*
+     tensor of shape `[batch, out_height, out_width,
+     filter_height * filter_width * in_channels]`.
+  3. For each patch, right-multiplies the filter matrix and the image patch
+     vector.
+
+  In detail, with the default NHWC format,
+
+      output[b, i, j, k] =
+          sum_{di, dj, q} input[b, strides[1] * i + di, strides[2] * j + dj, q] *
+                          filter[di, dj, q, k]
+
+  Must have `strides[0] = strides[3] = 1`.  For the most common case of the same
+  horizontal and vertices strides, `strides = [1, stride, stride, 1]`.
+
+  Args:
+    input: A `Tensor`. Must be one of the following types: `half`, `bfloat16`, `float32`, `float64`, `int32`.
+      A 4-D tensor. The dimension order is interpreted according to the value
+      of `data_format`, see below for details.
+    filter: A `Tensor`. Must have the same type as `input`.
+      A 4-D tensor of shape
+      `[filter_height, filter_width, in_channels, out_channels]`
+    strides: A list of `ints`.
+      1-D tensor of length 4.  The stride of the sliding window for each
+      dimension of `input`. The dimension order is determined by the value of
+      `data_format`, see below for details.
+    padding: A `string` from: `"SAME", "VALID", "EXPLICIT"`.
+      The type of padding algorithm to use.
+    use_cudnn_on_gpu: An optional `bool`. Defaults to `True`.
+    explicit_paddings: An optional list of `ints`. Defaults to `[]`.
+      If `padding` is `"EXPLICIT"`, the list of explicit padding amounts. For the ith
+      dimension, the amount of padding inserted before and after the dimension is
+      `explicit_paddings[2 * i]` and `explicit_paddings[2 * i + 1]`, respectively. If
+      `padding` is not `"EXPLICIT"`, `explicit_paddings` must be empty.
+    data_format: An optional `string` from: `"NHWC", "NCHW"`. Defaults to `"NHWC"`.
+      Specify the data format of the input and output data. With the
+      default format "NHWC", the data is stored in the order of:
+          [batch, height, width, channels].
+      Alternatively, the format could be "NCHW", the data storage order of:
+          [batch, channels, height, width].
+    dilations: An optional list of `ints`. Defaults to `[1, 1, 1, 1]`.
+      1-D tensor of length 4.  The dilation factor for each dimension of
+      `input`. If set to k > 1, there will be k-1 skipped cells between each
+      filter element on that dimension. The dimension order is determined by the
+      value of `data_format`, see above for details. Dilations in the batch and
+      depth dimensions must be 1.
+    name: A name for the operation (optional).
+
+  Returns:
+    A `Tensor`. Has the same type as `input`.
+
+[API Signature] use_cudnn_on_gpu: boolean, explicit_paddings: list, data_format: string, dilations: list, name: string, input: tensor, filter: tensor, strides: list, padding: string
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 7 (first dimension of a tensor matches second dimension of the other)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) ≥ 1 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, 0) = shape(v_2, 1)
+
+Rule 2 (v_2 should be a valid dimension of input tensor)
+{v_1 : tensor, v_2 : int} |= −1 × ndim(v_1) ≤ v_2 ∧ v_2 ≤ ndim(v_1) − 1
+
+Rule 9 (4D tensor with all shape dimensions positive)
+{v_1 : tensor} |= ndim(v_1) = 4 ∧ ∀i ∈ [0, 3] : shape(v_1, i) > 0
+
+Rule 5 (index tensor (v_2) should be within the range of input tensor)
+{v_1 : tensor, v_2 : tensor} |= min(v_2) ≥ 0 ∧ ∀i ∈ [0, ndim(v_1) − 1] : max(v_2) ≤ shape(v_1, i) − 1
+
+Rule 1 (tensor shapes should be the same)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = shape(v_2, i)
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 98 (strides values layout dependency on data format)
+{v_1 : str, v_2 : list(int)} |= v_2.len = 4 ∧ ((v_1 = "NHWC" ∧ v_2[0] = 1 ∧ v_2[3] = 1) ∨ (v_1 = "NCHW" ∧ v_2[0] = 1 ∧ v_2[1] = 1))
+Token usage: input=13143, output=626, total=18053
+** SUCCESS **
+
+>>> PROMPT
+[Feedback Message from Prior Run]
+Duplicated rule: {v_1 : str} |= v_1 = "NHWC" ∨ v_1 = "NCHW"
+Duplicated rule: {v_1 : str} |= v_1 = "SAME" ∨ v_1 = "VALID" ∨ v_1 = "EXPLICIT"
+Duplicated rule: {v_1 : bool} |= v_1 = true ∨ v_1 = false
+
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.raw_ops.Conv2D API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Computes a 2-D convolution given 4-D `input` and `filter` tensors.
+
+  Given an input tensor of shape `[batch, in_height, in_width, in_channels]`
+  and a filter / kernel tensor of shape
+  `[filter_height, filter_width, in_channels, out_channels]`, this op
+  performs the following:
+
+  1. Flattens the filter to a 2-D matrix with shape
+     `[filter_height * filter_width * in_channels, output_channels]`.
+  2. Extracts image patches from the input tensor to form a *virtual*
+     tensor of shape `[batch, out_height, out_width,
+     filter_height * filter_width * in_channels]`.
+  3. For each patch, right-multiplies the filter matrix and the image patch
+     vector.
+
+  In detail, with the default NHWC format,
+
+      output[b, i, j, k] =
+          sum_{di, dj, q} input[b, strides[1] * i + di, strides[2] * j + dj, q] *
+                          filter[di, dj, q, k]
+
+  Must have `strides[0] = strides[3] = 1`.  For the most common case of the same
+  horizontal and vertices strides, `strides = [1, stride, stride, 1]`.
+
+  Args:
+    input: A `Tensor`. Must be one of the following types: `half`, `bfloat16`, `float32`, `float64`, `int32`.
+      A 4-D tensor. The dimension order is interpreted according to the value
+      of `data_format`, see below for details.
+    filter: A `Tensor`. Must have the same type as `input`.
+      A 4-D tensor of shape
+      `[filter_height, filter_width, in_channels, out_channels]`
+    strides: A list of `ints`.
+      1-D tensor of length 4.  The stride of the sliding window for each
+      dimension of `input`. The dimension order is determined by the value of
+      `data_format`, see below for details.
+    padding: A `string` from: `"SAME", "VALID", "EXPLICIT"`.
+      The type of padding algorithm to use.
+    use_cudnn_on_gpu: An optional `bool`. Defaults to `True`.
+    explicit_paddings: An optional list of `ints`. Defaults to `[]`.
+      If `padding` is `"EXPLICIT"`, the list of explicit padding amounts. For the ith
+      dimension, the amount of padding inserted before and after the dimension is
+      `explicit_paddings[2 * i]` and `explicit_paddings[2 * i + 1]`, respectively. If
+      `padding` is not `"EXPLICIT"`, `explicit_paddings` must be empty.
+    data_format: An optional `string` from: `"NHWC", "NCHW"`. Defaults to `"NHWC"`.
+      Specify the data format of the input and output data. With the
+      default format "NHWC", the data is stored in the order of:
+          [batch, height, width, channels].
+      Alternatively, the format could be "NCHW", the data storage order of:
+          [batch, channels, height, width].
+    dilations: An optional list of `ints`. Defaults to `[1, 1, 1, 1]`.
+      1-D tensor of length 4.  The dilation factor for each dimension of
+      `input`. If set to k > 1, there will be k-1 skipped cells between each
+      filter element on that dimension. The dimension order is determined by the
+      value of `data_format`, see above for details. Dilations in the batch and
+      depth dimensions must be 1.
+    name: A name for the operation (optional).
+
+  Returns:
+    A `Tensor`. Has the same type as `input`.
+
+[API Signature] use_cudnn_on_gpu: boolean, explicit_paddings: list, data_format: string, dilations: list, name: string, input: tensor, filter: tensor, strides: list, padding: string
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 7 (first dimension of a tensor matches second dimension of the other)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) ≥ 1 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, 0) = shape(v_2, 1)
+
+Rule 2 (v_2 should be a valid dimension of input tensor)
+{v_1 : tensor, v_2 : int} |= −1 × ndim(v_1) ≤ v_2 ∧ v_2 ≤ ndim(v_1) − 1
+
+Rule 9 (4D tensor with all shape dimensions positive)
+{v_1 : tensor} |= ndim(v_1) = 4 ∧ ∀i ∈ [0, 3] : shape(v_1, i) > 0
+
+Rule 5 (index tensor (v_2) should be within the range of input tensor)
+{v_1 : tensor, v_2 : tensor} |= min(v_2) ≥ 0 ∧ ∀i ∈ [0, ndim(v_1) − 1] : max(v_2) ≤ shape(v_1, i) − 1
+
+Rule 1 (tensor shapes should be the same)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = shape(v_2, i)
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 99 (dilations layout and values constraints based on data format)
+{v_1 : str, v_2 : list(int)} |= v_2.len = 4 ∧ (∀i ∈ [0, 3] : v_2[i] > 0) ∧ ((v_1 = "NHWC" ∧ v_2[0] = 1 ∧ v_2[3] = 1) ∨ (v_1 = "NCHW" ∧ v_2[0] = 1 ∧ v_2[1] = 1))
+Token usage: input=13143, output=626, total=18053
+** SUCCESS **
+
+>>> PROMPT
+[Feedback Message from Prior Run]
+Duplicated rule: {v_1 : str} |= v_1 = "NHWC" ∨ v_1 = "NCHW"
+Duplicated rule: {v_1 : str} |= v_1 = "SAME" ∨ v_1 = "VALID" ∨ v_1 = "EXPLICIT"
+Duplicated rule: {v_1 : bool} |= v_1 = true ∨ v_1 = false
+
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.raw_ops.Conv2D API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Computes a 2-D convolution given 4-D `input` and `filter` tensors.
+
+  Given an input tensor of shape `[batch, in_height, in_width, in_channels]`
+  and a filter / kernel tensor of shape
+  `[filter_height, filter_width, in_channels, out_channels]`, this op
+  performs the following:
+
+  1. Flattens the filter to a 2-D matrix with shape
+     `[filter_height * filter_width * in_channels, output_channels]`.
+  2. Extracts image patches from the input tensor to form a *virtual*
+     tensor of shape `[batch, out_height, out_width,
+     filter_height * filter_width * in_channels]`.
+  3. For each patch, right-multiplies the filter matrix and the image patch
+     vector.
+
+  In detail, with the default NHWC format,
+
+      output[b, i, j, k] =
+          sum_{di, dj, q} input[b, strides[1] * i + di, strides[2] * j + dj, q] *
+                          filter[di, dj, q, k]
+
+  Must have `strides[0] = strides[3] = 1`.  For the most common case of the same
+  horizontal and vertices strides, `strides = [1, stride, stride, 1]`.
+
+  Args:
+    input: A `Tensor`. Must be one of the following types: `half`, `bfloat16`, `float32`, `float64`, `int32`.
+      A 4-D tensor. The dimension order is interpreted according to the value
+      of `data_format`, see below for details.
+    filter: A `Tensor`. Must have the same type as `input`.
+      A 4-D tensor of shape
+      `[filter_height, filter_width, in_channels, out_channels]`
+    strides: A list of `ints`.
+      1-D tensor of length 4.  The stride of the sliding window for each
+      dimension of `input`. The dimension order is determined by the value of
+      `data_format`, see below for details.
+    padding: A `string` from: `"SAME", "VALID", "EXPLICIT"`.
+      The type of padding algorithm to use.
+    use_cudnn_on_gpu: An optional `bool`. Defaults to `True`.
+    explicit_paddings: An optional list of `ints`. Defaults to `[]`.
+      If `padding` is `"EXPLICIT"`, the list of explicit padding amounts. For the ith
+      dimension, the amount of padding inserted before and after the dimension is
+      `explicit_paddings[2 * i]` and `explicit_paddings[2 * i + 1]`, respectively. If
+      `padding` is not `"EXPLICIT"`, `explicit_paddings` must be empty.
+    data_format: An optional `string` from: `"NHWC", "NCHW"`. Defaults to `"NHWC"`.
+      Specify the data format of the input and output data. With the
+      default format "NHWC", the data is stored in the order of:
+          [batch, height, width, channels].
+      Alternatively, the format could be "NCHW", the data storage order of:
+          [batch, channels, height, width].
+    dilations: An optional list of `ints`. Defaults to `[1, 1, 1, 1]`.
+      1-D tensor of length 4.  The dilation factor for each dimension of
+      `input`. If set to k > 1, there will be k-1 skipped cells between each
+      filter element on that dimension. The dimension order is determined by the
+      value of `data_format`, see above for details. Dilations in the batch and
+      depth dimensions must be 1.
+    name: A name for the operation (optional).
+
+  Returns:
+    A `Tensor`. Has the same type as `input`.
+
+[API Signature] use_cudnn_on_gpu: boolean, explicit_paddings: list, data_format: string, dilations: list, name: string, input: tensor, filter: tensor, strides: list, padding: string
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 7 (first dimension of a tensor matches second dimension of the other)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) ≥ 1 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, 0) = shape(v_2, 1)
+
+Rule 2 (v_2 should be a valid dimension of input tensor)
+{v_1 : tensor, v_2 : int} |= −1 × ndim(v_1) ≤ v_2 ∧ v_2 ≤ ndim(v_1) − 1
+
+Rule 9 (4D tensor with all shape dimensions positive)
+{v_1 : tensor} |= ndim(v_1) = 4 ∧ ∀i ∈ [0, 3] : shape(v_1, i) > 0
+
+Rule 5 (index tensor (v_2) should be within the range of input tensor)
+{v_1 : tensor, v_2 : tensor} |= min(v_2) ≥ 0 ∧ ∀i ∈ [0, ndim(v_1) − 1] : max(v_2) ≤ shape(v_1, i) − 1
+
+Rule 1 (tensor shapes should be the same)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = shape(v_2, i)
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 100 (explicit padding list length and positive values constraint)
+{v_1 : list(int), v_2 : str} |= if v_2 = "EXPLICIT" then v_1.len = 8 ∧ (∀i ∈ [0, 7] : v_1[i] ≥ 0) else v_1.len = 0
+Token usage: input=13143, output=626, total=18053
+** SUCCESS **
+
+>>> PROMPT
+[Feedback Message from Prior Run]
+Duplicated rule: {v_1 : str} |= v_1 = "NHWC" ∨ v_1 = "NCHW"
+Duplicated rule: {v_1 : str} |= v_1 = "SAME" ∨ v_1 = "VALID" ∨ v_1 = "EXPLICIT"
+Duplicated rule: {v_1 : bool} |= v_1 = true ∨ v_1 = false
+
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.raw_ops.Conv2D API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Computes a 2-D convolution given 4-D `input` and `filter` tensors.
+
+  Given an input tensor of shape `[batch, in_height, in_width, in_channels]`
+  and a filter / kernel tensor of shape
+  `[filter_height, filter_width, in_channels, out_channels]`, this op
+  performs the following:
+
+  1. Flattens the filter to a 2-D matrix with shape
+     `[filter_height * filter_width * in_channels, output_channels]`.
+  2. Extracts image patches from the input tensor to form a *virtual*
+     tensor of shape `[batch, out_height, out_width,
+     filter_height * filter_width * in_channels]`.
+  3. For each patch, right-multiplies the filter matrix and the image patch
+     vector.
+
+  In detail, with the default NHWC format,
+
+      output[b, i, j, k] =
+          sum_{di, dj, q} input[b, strides[1] * i + di, strides[2] * j + dj, q] *
+                          filter[di, dj, q, k]
+
+  Must have `strides[0] = strides[3] = 1`.  For the most common case of the same
+  horizontal and vertices strides, `strides = [1, stride, stride, 1]`.
+
+  Args:
+    input: A `Tensor`. Must be one of the following types: `half`, `bfloat16`, `float32`, `float64`, `int32`.
+      A 4-D tensor. The dimension order is interpreted according to the value
+      of `data_format`, see below for details.
+    filter: A `Tensor`. Must have the same type as `input`.
+      A 4-D tensor of shape
+      `[filter_height, filter_width, in_channels, out_channels]`
+    strides: A list of `ints`.
+      1-D tensor of length 4.  The stride of the sliding window for each
+      dimension of `input`. The dimension order is determined by the value of
+      `data_format`, see below for details.
+    padding: A `string` from: `"SAME", "VALID", "EXPLICIT"`.
+      The type of padding algorithm to use.
+    use_cudnn_on_gpu: An optional `bool`. Defaults to `True`.
+    explicit_paddings: An optional list of `ints`. Defaults to `[]`.
+      If `padding` is `"EXPLICIT"`, the list of explicit padding amounts. For the ith
+      dimension, the amount of padding inserted before and after the dimension is
+      `explicit_paddings[2 * i]` and `explicit_paddings[2 * i + 1]`, respectively. If
+      `padding` is not `"EXPLICIT"`, `explicit_paddings` must be empty.
+    data_format: An optional `string` from: `"NHWC", "NCHW"`. Defaults to `"NHWC"`.
+      Specify the data format of the input and output data. With the
+      default format "NHWC", the data is stored in the order of:
+          [batch, height, width, channels].
+      Alternatively, the format could be "NCHW", the data storage order of:
+          [batch, channels, height, width].
+    dilations: An optional list of `ints`. Defaults to `[1, 1, 1, 1]`.
+      1-D tensor of length 4.  The dilation factor for each dimension of
+      `input`. If set to k > 1, there will be k-1 skipped cells between each
+      filter element on that dimension. The dimension order is determined by the
+      value of `data_format`, see above for details. Dilations in the batch and
+      depth dimensions must be 1.
+    name: A name for the operation (optional).
+
+  Returns:
+    A `Tensor`. Has the same type as `input`.
+
+[API Signature] use_cudnn_on_gpu: boolean, explicit_paddings: list, data_format: string, dilations: list, name: string, input: tensor, filter: tensor, strides: list, padding: string
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 7 (first dimension of a tensor matches second dimension of the other)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) ≥ 1 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, 0) = shape(v_2, 1)
+
+Rule 2 (v_2 should be a valid dimension of input tensor)
+{v_1 : tensor, v_2 : int} |= −1 × ndim(v_1) ≤ v_2 ∧ v_2 ≤ ndim(v_1) − 1
+
+Rule 9 (4D tensor with all shape dimensions positive)
+{v_1 : tensor} |= ndim(v_1) = 4 ∧ ∀i ∈ [0, 3] : shape(v_1, i) > 0
+
+Rule 5 (index tensor (v_2) should be within the range of input tensor)
+{v_1 : tensor, v_2 : tensor} |= min(v_2) ≥ 0 ∧ ∀i ∈ [0, ndim(v_1) − 1] : max(v_2) ≤ shape(v_1, i) − 1
+
+Rule 1 (tensor shapes should be the same)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = shape(v_2, i)
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 101 (channel compatibility between input and filter based on data format)
+{v_1 : str, v_2 : tensor, v_3 : tensor} |= ndim(v_2) = 4 ∧ ndim(v_3) = 4 ∧ ((v_1 = "NHWC" ∧ shape(v_2, 3) = shape(v_3, 2)) ∨ (v_1 = "NCHW" ∧ shape(v_2, 1) = shape(v_3, 2)))
+Token usage: input=13143, output=626, total=18053
+** SUCCESS **
+
+>>> PROMPT
+[Feedback Message from Prior Run]
+Duplicated rule: {v_1 : tensor, v_2 : tensor} |= ndim(v_1) = 4 ∧ ndim(v_2) = 4 ∧ dtype_(v_1) = dtype_(v_2)
+
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.raw_ops.Conv2D API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Computes a 2-D convolution given 4-D `input` and `filter` tensors.
+
+  Given an input tensor of shape `[batch, in_height, in_width, in_channels]`
+  and a filter / kernel tensor of shape
+  `[filter_height, filter_width, in_channels, out_channels]`, this op
+  performs the following:
+
+  1. Flattens the filter to a 2-D matrix with shape
+     `[filter_height * filter_width * in_channels, output_channels]`.
+  2. Extracts image patches from the input tensor to form a *virtual*
+     tensor of shape `[batch, out_height, out_width,
+     filter_height * filter_width * in_channels]`.
+  3. For each patch, right-multiplies the filter matrix and the image patch
+     vector.
+
+  In detail, with the default NHWC format,
+
+      output[b, i, j, k] =
+          sum_{di, dj, q} input[b, strides[1] * i + di, strides[2] * j + dj, q] *
+                          filter[di, dj, q, k]
+
+  Must have `strides[0] = strides[3] = 1`.  For the most common case of the same
+  horizontal and vertices strides, `strides = [1, stride, stride, 1]`.
+
+  Args:
+    input: A `Tensor`. Must be one of the following types: `half`, `bfloat16`, `float32`, `float64`, `int32`.
+      A 4-D tensor. The dimension order is interpreted according to the value
+      of `data_format`, see below for details.
+    filter: A `Tensor`. Must have the same type as `input`.
+      A 4-D tensor of shape
+      `[filter_height, filter_width, in_channels, out_channels]`
+    strides: A list of `ints`.
+      1-D tensor of length 4.  The stride of the sliding window for each
+      dimension of `input`. The dimension order is determined by the value of
+      `data_format`, see below for details.
+    padding: A `string` from: `"SAME", "VALID", "EXPLICIT"`.
+      The type of padding algorithm to use.
+    use_cudnn_on_gpu: An optional `bool`. Defaults to `True`.
+    explicit_paddings: An optional list of `ints`. Defaults to `[]`.
+      If `padding` is `"EXPLICIT"`, the list of explicit padding amounts. For the ith
+      dimension, the amount of padding inserted before and after the dimension is
+      `explicit_paddings[2 * i]` and `explicit_paddings[2 * i + 1]`, respectively. If
+      `padding` is not `"EXPLICIT"`, `explicit_paddings` must be empty.
+    data_format: An optional `string` from: `"NHWC", "NCHW"`. Defaults to `"NHWC"`.
+      Specify the data format of the input and output data. With the
+      default format "NHWC", the data is stored in the order of:
+          [batch, height, width, channels].
+      Alternatively, the format could be "NCHW", the data storage order of:
+          [batch, channels, height, width].
+    dilations: An optional list of `ints`. Defaults to `[1, 1, 1, 1]`.
+      1-D tensor of length 4.  The dilation factor for each dimension of
+      `input`. If set to k > 1, there will be k-1 skipped cells between each
+      filter element on that dimension. The dimension order is determined by the
+      value of `data_format`, see above for details. Dilations in the batch and
+      depth dimensions must be 1.
+    name: A name for the operation (optional).
+
+  Returns:
+    A `Tensor`. Has the same type as `input`.
+
+[API Signature] use_cudnn_on_gpu: boolean, explicit_paddings: list, data_format: string, dilations: list, name: string, input: tensor, filter: tensor, strides: list, padding: string
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 31 (dtype must be a floating-point type)
+{v_1 : dtype} |= v_1 = 6 ∨ v_1 = 7 ∨ v_1 = 8
+
+Rule 19 (compatibility of integer or float (data) type tensor and variable)
+{v1 : tensor, v2 : int ⊎ float} |= if 1 ≤ dtype(v1) ∧ dtype(v1) ≤ 5 then 1 ≤ v2 ∧ v2 ≤ 5 else if 6 ≤ dtype(v1) ∧ dtype(v1) ≤ 8 then 1 ≤ v2 ∧ v2 ≤ 8 else false
+
+Rule 28 (list of ints used as dimensions/axes, all non-negative and valid for tensor shape)
+{v_1 : tensor, v_2 : list(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 16 (shape alignment for matrix multiplication)
+{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) ≥ 2 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, ndim(v_2) − 2)) ∨ (ndim(v_1) ≥ 2 ∧ ndim(v_2) = 1 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, 0))
+
+Rule 7 (first dimension of a tensor matches second dimension of the other)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) ≥ 1 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, 0) = shape(v_2, 1)
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 102 (dimension, type, and shape positivity constraints of input and filter tensors)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = 4 ∧ ndim(v_2) = 4 ∧ dtype_(v_1) = dtype_(v_2) ∧ (∀i ∈ [0, 3] : shape(v_1, i) > 0 ∧ shape(v_2, i) > 0)
+Token usage: input=20632, output=684, total=25023
+** SUCCESS **
+
+>>> PROMPT
+[Feedback Message from Prior Run]
+Duplicated rule: {v_1 : tensor, v_2 : tensor} |= ndim(v_1) = 4 ∧ ndim(v_2) = 4 ∧ dtype_(v_1) = dtype_(v_2)
+
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.raw_ops.Conv2D API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Computes a 2-D convolution given 4-D `input` and `filter` tensors.
+
+  Given an input tensor of shape `[batch, in_height, in_width, in_channels]`
+  and a filter / kernel tensor of shape
+  `[filter_height, filter_width, in_channels, out_channels]`, this op
+  performs the following:
+
+  1. Flattens the filter to a 2-D matrix with shape
+     `[filter_height * filter_width * in_channels, output_channels]`.
+  2. Extracts image patches from the input tensor to form a *virtual*
+     tensor of shape `[batch, out_height, out_width,
+     filter_height * filter_width * in_channels]`.
+  3. For each patch, right-multiplies the filter matrix and the image patch
+     vector.
+
+  In detail, with the default NHWC format,
+
+      output[b, i, j, k] =
+          sum_{di, dj, q} input[b, strides[1] * i + di, strides[2] * j + dj, q] *
+                          filter[di, dj, q, k]
+
+  Must have `strides[0] = strides[3] = 1`.  For the most common case of the same
+  horizontal and vertices strides, `strides = [1, stride, stride, 1]`.
+
+  Args:
+    input: A `Tensor`. Must be one of the following types: `half`, `bfloat16`, `float32`, `float64`, `int32`.
+      A 4-D tensor. The dimension order is interpreted according to the value
+      of `data_format`, see below for details.
+    filter: A `Tensor`. Must have the same type as `input`.
+      A 4-D tensor of shape
+      `[filter_height, filter_width, in_channels, out_channels]`
+    strides: A list of `ints`.
+      1-D tensor of length 4.  The stride of the sliding window for each
+      dimension of `input`. The dimension order is determined by the value of
+      `data_format`, see below for details.
+    padding: A `string` from: `"SAME", "VALID", "EXPLICIT"`.
+      The type of padding algorithm to use.
+    use_cudnn_on_gpu: An optional `bool`. Defaults to `True`.
+    explicit_paddings: An optional list of `ints`. Defaults to `[]`.
+      If `padding` is `"EXPLICIT"`, the list of explicit padding amounts. For the ith
+      dimension, the amount of padding inserted before and after the dimension is
+      `explicit_paddings[2 * i]` and `explicit_paddings[2 * i + 1]`, respectively. If
+      `padding` is not `"EXPLICIT"`, `explicit_paddings` must be empty.
+    data_format: An optional `string` from: `"NHWC", "NCHW"`. Defaults to `"NHWC"`.
+      Specify the data format of the input and output data. With the
+      default format "NHWC", the data is stored in the order of:
+          [batch, height, width, channels].
+      Alternatively, the format could be "NCHW", the data storage order of:
+          [batch, channels, height, width].
+    dilations: An optional list of `ints`. Defaults to `[1, 1, 1, 1]`.
+      1-D tensor of length 4.  The dilation factor for each dimension of
+      `input`. If set to k > 1, there will be k-1 skipped cells between each
+      filter element on that dimension. The dimension order is determined by the
+      value of `data_format`, see above for details. Dilations in the batch and
+      depth dimensions must be 1.
+    name: A name for the operation (optional).
+
+  Returns:
+    A `Tensor`. Has the same type as `input`.
+
+[API Signature] use_cudnn_on_gpu: boolean, explicit_paddings: list, data_format: string, dilations: list, name: string, input: tensor, filter: tensor, strides: list, padding: string
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 31 (dtype must be a floating-point type)
+{v_1 : dtype} |= v_1 = 6 ∨ v_1 = 7 ∨ v_1 = 8
+
+Rule 19 (compatibility of integer or float (data) type tensor and variable)
+{v1 : tensor, v2 : int ⊎ float} |= if 1 ≤ dtype(v1) ∧ dtype(v1) ≤ 5 then 1 ≤ v2 ∧ v2 ≤ 5 else if 6 ≤ dtype(v1) ∧ dtype(v1) ≤ 8 then 1 ≤ v2 ∧ v2 ≤ 8 else false
+
+Rule 28 (list of ints used as dimensions/axes, all non-negative and valid for tensor shape)
+{v_1 : tensor, v_2 : list(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 16 (shape alignment for matrix multiplication)
+{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) ≥ 2 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, ndim(v_2) − 2)) ∨ (ndim(v_1) ≥ 2 ∧ ndim(v_2) = 1 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, 0))
+
+Rule 7 (first dimension of a tensor matches second dimension of the other)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) ≥ 1 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, 0) = shape(v_2, 1)
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 103 (supported input data types constraint)
+{v_1 : tensor} |= ndim(v_1) = 4 ∧ (dtype_(v_1) = 3 ∨ dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8)
+Token usage: input=20632, output=684, total=25023
+** SUCCESS **
+
+>>> PROMPT
+[Feedback Message from Prior Run]
+Duplicated rule: {v_1 : tensor, v_2 : tensor} |= ndim(v_1) = 4 ∧ ndim(v_2) = 4 ∧ dtype_(v_1) = dtype_(v_2)
+
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.raw_ops.Conv2D API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Computes a 2-D convolution given 4-D `input` and `filter` tensors.
+
+  Given an input tensor of shape `[batch, in_height, in_width, in_channels]`
+  and a filter / kernel tensor of shape
+  `[filter_height, filter_width, in_channels, out_channels]`, this op
+  performs the following:
+
+  1. Flattens the filter to a 2-D matrix with shape
+     `[filter_height * filter_width * in_channels, output_channels]`.
+  2. Extracts image patches from the input tensor to form a *virtual*
+     tensor of shape `[batch, out_height, out_width,
+     filter_height * filter_width * in_channels]`.
+  3. For each patch, right-multiplies the filter matrix and the image patch
+     vector.
+
+  In detail, with the default NHWC format,
+
+      output[b, i, j, k] =
+          sum_{di, dj, q} input[b, strides[1] * i + di, strides[2] * j + dj, q] *
+                          filter[di, dj, q, k]
+
+  Must have `strides[0] = strides[3] = 1`.  For the most common case of the same
+  horizontal and vertices strides, `strides = [1, stride, stride, 1]`.
+
+  Args:
+    input: A `Tensor`. Must be one of the following types: `half`, `bfloat16`, `float32`, `float64`, `int32`.
+      A 4-D tensor. The dimension order is interpreted according to the value
+      of `data_format`, see below for details.
+    filter: A `Tensor`. Must have the same type as `input`.
+      A 4-D tensor of shape
+      `[filter_height, filter_width, in_channels, out_channels]`
+    strides: A list of `ints`.
+      1-D tensor of length 4.  The stride of the sliding window for each
+      dimension of `input`. The dimension order is determined by the value of
+      `data_format`, see below for details.
+    padding: A `string` from: `"SAME", "VALID", "EXPLICIT"`.
+      The type of padding algorithm to use.
+    use_cudnn_on_gpu: An optional `bool`. Defaults to `True`.
+    explicit_paddings: An optional list of `ints`. Defaults to `[]`.
+      If `padding` is `"EXPLICIT"`, the list of explicit padding amounts. For the ith
+      dimension, the amount of padding inserted before and after the dimension is
+      `explicit_paddings[2 * i]` and `explicit_paddings[2 * i + 1]`, respectively. If
+      `padding` is not `"EXPLICIT"`, `explicit_paddings` must be empty.
+    data_format: An optional `string` from: `"NHWC", "NCHW"`. Defaults to `"NHWC"`.
+      Specify the data format of the input and output data. With the
+      default format "NHWC", the data is stored in the order of:
+          [batch, height, width, channels].
+      Alternatively, the format could be "NCHW", the data storage order of:
+          [batch, channels, height, width].
+    dilations: An optional list of `ints`. Defaults to `[1, 1, 1, 1]`.
+      1-D tensor of length 4.  The dilation factor for each dimension of
+      `input`. If set to k > 1, there will be k-1 skipped cells between each
+      filter element on that dimension. The dimension order is determined by the
+      value of `data_format`, see above for details. Dilations in the batch and
+      depth dimensions must be 1.
+    name: A name for the operation (optional).
+
+  Returns:
+    A `Tensor`. Has the same type as `input`.
+
+[API Signature] use_cudnn_on_gpu: boolean, explicit_paddings: list, data_format: string, dilations: list, name: string, input: tensor, filter: tensor, strides: list, padding: string
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 31 (dtype must be a floating-point type)
+{v_1 : dtype} |= v_1 = 6 ∨ v_1 = 7 ∨ v_1 = 8
+
+Rule 19 (compatibility of integer or float (data) type tensor and variable)
+{v1 : tensor, v2 : int ⊎ float} |= if 1 ≤ dtype(v1) ∧ dtype(v1) ≤ 5 then 1 ≤ v2 ∧ v2 ≤ 5 else if 6 ≤ dtype(v1) ∧ dtype(v1) ≤ 8 then 1 ≤ v2 ∧ v2 ≤ 8 else false
+
+Rule 28 (list of ints used as dimensions/axes, all non-negative and valid for tensor shape)
+{v_1 : tensor, v_2 : list(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 16 (shape alignment for matrix multiplication)
+{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) ≥ 2 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, ndim(v_2) − 2)) ∨ (ndim(v_1) ≥ 2 ∧ ndim(v_2) = 1 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, 0))
+
+Rule 7 (first dimension of a tensor matches second dimension of the other)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) ≥ 1 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, 0) = shape(v_2, 1)
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 104 (strides size and elements must be positive)
+{v_1 : list(int)} |= v_1.len = 4 ∧ (∀i ∈ [0, 3] : v_1[i] ≥ 1)
+Token usage: input=20632, output=684, total=25023
+** SUCCESS **
+
+>>> PROMPT
+[Feedback Message from Prior Run]
+Duplicated rule: {v_1 : tensor, v_2 : tensor} |= ndim(v_1) = 4 ∧ ndim(v_2) = 4 ∧ dtype_(v_1) = dtype_(v_2)
+
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.raw_ops.Conv2D API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Computes a 2-D convolution given 4-D `input` and `filter` tensors.
+
+  Given an input tensor of shape `[batch, in_height, in_width, in_channels]`
+  and a filter / kernel tensor of shape
+  `[filter_height, filter_width, in_channels, out_channels]`, this op
+  performs the following:
+
+  1. Flattens the filter to a 2-D matrix with shape
+     `[filter_height * filter_width * in_channels, output_channels]`.
+  2. Extracts image patches from the input tensor to form a *virtual*
+     tensor of shape `[batch, out_height, out_width,
+     filter_height * filter_width * in_channels]`.
+  3. For each patch, right-multiplies the filter matrix and the image patch
+     vector.
+
+  In detail, with the default NHWC format,
+
+      output[b, i, j, k] =
+          sum_{di, dj, q} input[b, strides[1] * i + di, strides[2] * j + dj, q] *
+                          filter[di, dj, q, k]
+
+  Must have `strides[0] = strides[3] = 1`.  For the most common case of the same
+  horizontal and vertices strides, `strides = [1, stride, stride, 1]`.
+
+  Args:
+    input: A `Tensor`. Must be one of the following types: `half`, `bfloat16`, `float32`, `float64`, `int32`.
+      A 4-D tensor. The dimension order is interpreted according to the value
+      of `data_format`, see below for details.
+    filter: A `Tensor`. Must have the same type as `input`.
+      A 4-D tensor of shape
+      `[filter_height, filter_width, in_channels, out_channels]`
+    strides: A list of `ints`.
+      1-D tensor of length 4.  The stride of the sliding window for each
+      dimension of `input`. The dimension order is determined by the value of
+      `data_format`, see below for details.
+    padding: A `string` from: `"SAME", "VALID", "EXPLICIT"`.
+      The type of padding algorithm to use.
+    use_cudnn_on_gpu: An optional `bool`. Defaults to `True`.
+    explicit_paddings: An optional list of `ints`. Defaults to `[]`.
+      If `padding` is `"EXPLICIT"`, the list of explicit padding amounts. For the ith
+      dimension, the amount of padding inserted before and after the dimension is
+      `explicit_paddings[2 * i]` and `explicit_paddings[2 * i + 1]`, respectively. If
+      `padding` is not `"EXPLICIT"`, `explicit_paddings` must be empty.
+    data_format: An optional `string` from: `"NHWC", "NCHW"`. Defaults to `"NHWC"`.
+      Specify the data format of the input and output data. With the
+      default format "NHWC", the data is stored in the order of:
+          [batch, height, width, channels].
+      Alternatively, the format could be "NCHW", the data storage order of:
+          [batch, channels, height, width].
+    dilations: An optional list of `ints`. Defaults to `[1, 1, 1, 1]`.
+      1-D tensor of length 4.  The dilation factor for each dimension of
+      `input`. If set to k > 1, there will be k-1 skipped cells between each
+      filter element on that dimension. The dimension order is determined by the
+      value of `data_format`, see above for details. Dilations in the batch and
+      depth dimensions must be 1.
+    name: A name for the operation (optional).
+
+  Returns:
+    A `Tensor`. Has the same type as `input`.
+
+[API Signature] use_cudnn_on_gpu: boolean, explicit_paddings: list, data_format: string, dilations: list, name: string, input: tensor, filter: tensor, strides: list, padding: string
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 31 (dtype must be a floating-point type)
+{v_1 : dtype} |= v_1 = 6 ∨ v_1 = 7 ∨ v_1 = 8
+
+Rule 19 (compatibility of integer or float (data) type tensor and variable)
+{v1 : tensor, v2 : int ⊎ float} |= if 1 ≤ dtype(v1) ∧ dtype(v1) ≤ 5 then 1 ≤ v2 ∧ v2 ≤ 5 else if 6 ≤ dtype(v1) ∧ dtype(v1) ≤ 8 then 1 ≤ v2 ∧ v2 ≤ 8 else false
+
+Rule 28 (list of ints used as dimensions/axes, all non-negative and valid for tensor shape)
+{v_1 : tensor, v_2 : list(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 16 (shape alignment for matrix multiplication)
+{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) ≥ 2 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, ndim(v_2) − 2)) ∨ (ndim(v_1) ≥ 2 ∧ ndim(v_2) = 1 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, 0))
+
+Rule 7 (first dimension of a tensor matches second dimension of the other)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) ≥ 1 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, 0) = shape(v_2, 1)
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 105 (strides values layout dependency on data format)
+{v_1 : str, v_2 : list(int)} |= v_2.len = 4 ∧ (if v_1 = "NHWC" then v_2[0] = 1 ∧ v_2[3] = 1 else (if v_1 = "NCHW" then v_2[0] = 1 ∧ v_2[1] = 1 else false))
+Token usage: input=20632, output=684, total=25023
+** SUCCESS **
+
+>>> PROMPT
+[Feedback Message from Prior Run]
+Duplicated rule: {v_1 : tensor, v_2 : tensor} |= ndim(v_1) = 4 ∧ ndim(v_2) = 4 ∧ dtype_(v_1) = dtype_(v_2)
+
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.raw_ops.Conv2D API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Computes a 2-D convolution given 4-D `input` and `filter` tensors.
+
+  Given an input tensor of shape `[batch, in_height, in_width, in_channels]`
+  and a filter / kernel tensor of shape
+  `[filter_height, filter_width, in_channels, out_channels]`, this op
+  performs the following:
+
+  1. Flattens the filter to a 2-D matrix with shape
+     `[filter_height * filter_width * in_channels, output_channels]`.
+  2. Extracts image patches from the input tensor to form a *virtual*
+     tensor of shape `[batch, out_height, out_width,
+     filter_height * filter_width * in_channels]`.
+  3. For each patch, right-multiplies the filter matrix and the image patch
+     vector.
+
+  In detail, with the default NHWC format,
+
+      output[b, i, j, k] =
+          sum_{di, dj, q} input[b, strides[1] * i + di, strides[2] * j + dj, q] *
+                          filter[di, dj, q, k]
+
+  Must have `strides[0] = strides[3] = 1`.  For the most common case of the same
+  horizontal and vertices strides, `strides = [1, stride, stride, 1]`.
+
+  Args:
+    input: A `Tensor`. Must be one of the following types: `half`, `bfloat16`, `float32`, `float64`, `int32`.
+      A 4-D tensor. The dimension order is interpreted according to the value
+      of `data_format`, see below for details.
+    filter: A `Tensor`. Must have the same type as `input`.
+      A 4-D tensor of shape
+      `[filter_height, filter_width, in_channels, out_channels]`
+    strides: A list of `ints`.
+      1-D tensor of length 4.  The stride of the sliding window for each
+      dimension of `input`. The dimension order is determined by the value of
+      `data_format`, see below for details.
+    padding: A `string` from: `"SAME", "VALID", "EXPLICIT"`.
+      The type of padding algorithm to use.
+    use_cudnn_on_gpu: An optional `bool`. Defaults to `True`.
+    explicit_paddings: An optional list of `ints`. Defaults to `[]`.
+      If `padding` is `"EXPLICIT"`, the list of explicit padding amounts. For the ith
+      dimension, the amount of padding inserted before and after the dimension is
+      `explicit_paddings[2 * i]` and `explicit_paddings[2 * i + 1]`, respectively. If
+      `padding` is not `"EXPLICIT"`, `explicit_paddings` must be empty.
+    data_format: An optional `string` from: `"NHWC", "NCHW"`. Defaults to `"NHWC"`.
+      Specify the data format of the input and output data. With the
+      default format "NHWC", the data is stored in the order of:
+          [batch, height, width, channels].
+      Alternatively, the format could be "NCHW", the data storage order of:
+          [batch, channels, height, width].
+    dilations: An optional list of `ints`. Defaults to `[1, 1, 1, 1]`.
+      1-D tensor of length 4.  The dilation factor for each dimension of
+      `input`. If set to k > 1, there will be k-1 skipped cells between each
+      filter element on that dimension. The dimension order is determined by the
+      value of `data_format`, see above for details. Dilations in the batch and
+      depth dimensions must be 1.
+    name: A name for the operation (optional).
+
+  Returns:
+    A `Tensor`. Has the same type as `input`.
+
+[API Signature] use_cudnn_on_gpu: boolean, explicit_paddings: list, data_format: string, dilations: list, name: string, input: tensor, filter: tensor, strides: list, padding: string
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 31 (dtype must be a floating-point type)
+{v_1 : dtype} |= v_1 = 6 ∨ v_1 = 7 ∨ v_1 = 8
+
+Rule 19 (compatibility of integer or float (data) type tensor and variable)
+{v1 : tensor, v2 : int ⊎ float} |= if 1 ≤ dtype(v1) ∧ dtype(v1) ≤ 5 then 1 ≤ v2 ∧ v2 ≤ 5 else if 6 ≤ dtype(v1) ∧ dtype(v1) ≤ 8 then 1 ≤ v2 ∧ v2 ≤ 8 else false
+
+Rule 28 (list of ints used as dimensions/axes, all non-negative and valid for tensor shape)
+{v_1 : tensor, v_2 : list(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 16 (shape alignment for matrix multiplication)
+{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) ≥ 2 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, ndim(v_2) − 2)) ∨ (ndim(v_1) ≥ 2 ∧ ndim(v_2) = 1 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, 0))
+
+Rule 7 (first dimension of a tensor matches second dimension of the other)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) ≥ 1 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, 0) = shape(v_2, 1)
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 106 (dilations layout and values constraints based on data format)
+{v_1 : str, v_2 : list(int)} |= v_2.len = 4 ∧ (∀i ∈ [0, 3] : v_2[i] ≥ 1) ∧ ((v_1 = "NHWC" ∧ v_2[0] = 1 ∧ v_2[3] = 1) ∨ (v_1 = "NCHW" ∧ v_2[0] = 1 ∧ v_2[1] = 1))
+Token usage: input=20632, output=684, total=25023
+** SUCCESS **
+
+>>> PROMPT
+[Feedback Message from Prior Run]
+Duplicated rule: {v_1 : tensor, v_2 : tensor} |= ndim(v_1) = 4 ∧ ndim(v_2) = 4 ∧ dtype_(v_1) = dtype_(v_2)
+
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.raw_ops.Conv2D API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Computes a 2-D convolution given 4-D `input` and `filter` tensors.
+
+  Given an input tensor of shape `[batch, in_height, in_width, in_channels]`
+  and a filter / kernel tensor of shape
+  `[filter_height, filter_width, in_channels, out_channels]`, this op
+  performs the following:
+
+  1. Flattens the filter to a 2-D matrix with shape
+     `[filter_height * filter_width * in_channels, output_channels]`.
+  2. Extracts image patches from the input tensor to form a *virtual*
+     tensor of shape `[batch, out_height, out_width,
+     filter_height * filter_width * in_channels]`.
+  3. For each patch, right-multiplies the filter matrix and the image patch
+     vector.
+
+  In detail, with the default NHWC format,
+
+      output[b, i, j, k] =
+          sum_{di, dj, q} input[b, strides[1] * i + di, strides[2] * j + dj, q] *
+                          filter[di, dj, q, k]
+
+  Must have `strides[0] = strides[3] = 1`.  For the most common case of the same
+  horizontal and vertices strides, `strides = [1, stride, stride, 1]`.
+
+  Args:
+    input: A `Tensor`. Must be one of the following types: `half`, `bfloat16`, `float32`, `float64`, `int32`.
+      A 4-D tensor. The dimension order is interpreted according to the value
+      of `data_format`, see below for details.
+    filter: A `Tensor`. Must have the same type as `input`.
+      A 4-D tensor of shape
+      `[filter_height, filter_width, in_channels, out_channels]`
+    strides: A list of `ints`.
+      1-D tensor of length 4.  The stride of the sliding window for each
+      dimension of `input`. The dimension order is determined by the value of
+      `data_format`, see below for details.
+    padding: A `string` from: `"SAME", "VALID", "EXPLICIT"`.
+      The type of padding algorithm to use.
+    use_cudnn_on_gpu: An optional `bool`. Defaults to `True`.
+    explicit_paddings: An optional list of `ints`. Defaults to `[]`.
+      If `padding` is `"EXPLICIT"`, the list of explicit padding amounts. For the ith
+      dimension, the amount of padding inserted before and after the dimension is
+      `explicit_paddings[2 * i]` and `explicit_paddings[2 * i + 1]`, respectively. If
+      `padding` is not `"EXPLICIT"`, `explicit_paddings` must be empty.
+    data_format: An optional `string` from: `"NHWC", "NCHW"`. Defaults to `"NHWC"`.
+      Specify the data format of the input and output data. With the
+      default format "NHWC", the data is stored in the order of:
+          [batch, height, width, channels].
+      Alternatively, the format could be "NCHW", the data storage order of:
+          [batch, channels, height, width].
+    dilations: An optional list of `ints`. Defaults to `[1, 1, 1, 1]`.
+      1-D tensor of length 4.  The dilation factor for each dimension of
+      `input`. If set to k > 1, there will be k-1 skipped cells between each
+      filter element on that dimension. The dimension order is determined by the
+      value of `data_format`, see above for details. Dilations in the batch and
+      depth dimensions must be 1.
+    name: A name for the operation (optional).
+
+  Returns:
+    A `Tensor`. Has the same type as `input`.
+
+[API Signature] use_cudnn_on_gpu: boolean, explicit_paddings: list, data_format: string, dilations: list, name: string, input: tensor, filter: tensor, strides: list, padding: string
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 31 (dtype must be a floating-point type)
+{v_1 : dtype} |= v_1 = 6 ∨ v_1 = 7 ∨ v_1 = 8
+
+Rule 19 (compatibility of integer or float (data) type tensor and variable)
+{v1 : tensor, v2 : int ⊎ float} |= if 1 ≤ dtype(v1) ∧ dtype(v1) ≤ 5 then 1 ≤ v2 ∧ v2 ≤ 5 else if 6 ≤ dtype(v1) ∧ dtype(v1) ≤ 8 then 1 ≤ v2 ∧ v2 ≤ 8 else false
+
+Rule 28 (list of ints used as dimensions/axes, all non-negative and valid for tensor shape)
+{v_1 : tensor, v_2 : list(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 16 (shape alignment for matrix multiplication)
+{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) ≥ 2 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, ndim(v_2) − 2)) ∨ (ndim(v_1) ≥ 2 ∧ ndim(v_2) = 1 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, 0))
+
+Rule 7 (first dimension of a tensor matches second dimension of the other)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) ≥ 1 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, 0) = shape(v_2, 1)
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 107 (explicit padding list length and positive values constraint)
+{v_1 : list(int), v_2 : str} |= if v_2 = "EXPLICIT" then v_1.len = 8 ∧ (∀i ∈ [0, 7] : v_1[i] ≥ 0) else v_1.len = 0
+Token usage: input=20632, output=684, total=25023
+** DUPLICATED RULE ** (num_failures: 5)
+
+>>> PROMPT
+[Feedback Message from Prior Run]
+Duplicated rule: {v_1 : tensor, v_2 : tensor} |= ndim(v_1) = 4 ∧ ndim(v_2) = 4 ∧ dtype_(v_1) = dtype_(v_2)
+
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.raw_ops.Conv2D API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Computes a 2-D convolution given 4-D `input` and `filter` tensors.
+
+  Given an input tensor of shape `[batch, in_height, in_width, in_channels]`
+  and a filter / kernel tensor of shape
+  `[filter_height, filter_width, in_channels, out_channels]`, this op
+  performs the following:
+
+  1. Flattens the filter to a 2-D matrix with shape
+     `[filter_height * filter_width * in_channels, output_channels]`.
+  2. Extracts image patches from the input tensor to form a *virtual*
+     tensor of shape `[batch, out_height, out_width,
+     filter_height * filter_width * in_channels]`.
+  3. For each patch, right-multiplies the filter matrix and the image patch
+     vector.
+
+  In detail, with the default NHWC format,
+
+      output[b, i, j, k] =
+          sum_{di, dj, q} input[b, strides[1] * i + di, strides[2] * j + dj, q] *
+                          filter[di, dj, q, k]
+
+  Must have `strides[0] = strides[3] = 1`.  For the most common case of the same
+  horizontal and vertices strides, `strides = [1, stride, stride, 1]`.
+
+  Args:
+    input: A `Tensor`. Must be one of the following types: `half`, `bfloat16`, `float32`, `float64`, `int32`.
+      A 4-D tensor. The dimension order is interpreted according to the value
+      of `data_format`, see below for details.
+    filter: A `Tensor`. Must have the same type as `input`.
+      A 4-D tensor of shape
+      `[filter_height, filter_width, in_channels, out_channels]`
+    strides: A list of `ints`.
+      1-D tensor of length 4.  The stride of the sliding window for each
+      dimension of `input`. The dimension order is determined by the value of
+      `data_format`, see below for details.
+    padding: A `string` from: `"SAME", "VALID", "EXPLICIT"`.
+      The type of padding algorithm to use.
+    use_cudnn_on_gpu: An optional `bool`. Defaults to `True`.
+    explicit_paddings: An optional list of `ints`. Defaults to `[]`.
+      If `padding` is `"EXPLICIT"`, the list of explicit padding amounts. For the ith
+      dimension, the amount of padding inserted before and after the dimension is
+      `explicit_paddings[2 * i]` and `explicit_paddings[2 * i + 1]`, respectively. If
+      `padding` is not `"EXPLICIT"`, `explicit_paddings` must be empty.
+    data_format: An optional `string` from: `"NHWC", "NCHW"`. Defaults to `"NHWC"`.
+      Specify the data format of the input and output data. With the
+      default format "NHWC", the data is stored in the order of:
+          [batch, height, width, channels].
+      Alternatively, the format could be "NCHW", the data storage order of:
+          [batch, channels, height, width].
+    dilations: An optional list of `ints`. Defaults to `[1, 1, 1, 1]`.
+      1-D tensor of length 4.  The dilation factor for each dimension of
+      `input`. If set to k > 1, there will be k-1 skipped cells between each
+      filter element on that dimension. The dimension order is determined by the
+      value of `data_format`, see above for details. Dilations in the batch and
+      depth dimensions must be 1.
+    name: A name for the operation (optional).
+
+  Returns:
+    A `Tensor`. Has the same type as `input`.
+
+[API Signature] use_cudnn_on_gpu: boolean, explicit_paddings: list, data_format: string, dilations: list, name: string, input: tensor, filter: tensor, strides: list, padding: string
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 31 (dtype must be a floating-point type)
+{v_1 : dtype} |= v_1 = 6 ∨ v_1 = 7 ∨ v_1 = 8
+
+Rule 19 (compatibility of integer or float (data) type tensor and variable)
+{v1 : tensor, v2 : int ⊎ float} |= if 1 ≤ dtype(v1) ∧ dtype(v1) ≤ 5 then 1 ≤ v2 ∧ v2 ≤ 5 else if 6 ≤ dtype(v1) ∧ dtype(v1) ≤ 8 then 1 ≤ v2 ∧ v2 ≤ 8 else false
+
+Rule 28 (list of ints used as dimensions/axes, all non-negative and valid for tensor shape)
+{v_1 : tensor, v_2 : list(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 16 (shape alignment for matrix multiplication)
+{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) ≥ 2 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, ndim(v_2) − 2)) ∨ (ndim(v_1) ≥ 2 ∧ ndim(v_2) = 1 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, 0))
+
+Rule 7 (first dimension of a tensor matches second dimension of the other)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) ≥ 1 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, 0) = shape(v_2, 1)
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 108 (channel compatibility between input and filter based on data format)
+{v_1 : str, v_2 : tensor, v_3 : tensor} |= ndim(v_2) = 4 ∧ ndim(v_3) = 4 ∧ ((v_1 = "NHWC" ∧ shape(v_2, 3) = shape(v_3, 2)) ∨ (v_1 = "NCHW" ∧ shape(v_2, 1) = shape(v_3, 2)))
+Token usage: input=20632, output=684, total=25023
+** DUPLICATED RULE ** (num_failures: 6)
+

@@ -121,3 +121,39 @@ Rule 91 (If shape is not defined and input tensor has a shape, make sure the num
 >>
 Rule 95 (if input has a shape, shape should have the same number of dimensions, either fully specified or partially specified. )
 {input : tensor, shape : list(int)} |= if ndim(input) > 0 then shape.len = ndim(input)
+>>
+Rule 96 (The rank of the default tensor must match the length of the placeholder shape)
+{v_1 : tensor, v_2 : list(int)} |= ndim(v_1) = v_2.len
+>>
+Rule 97 (Placeholder shape dimensions must be non-negative or -1 for unknown dimensions)
+{v_2 : list(int)} |= ∀i ∈ [0, v_2.len - 1] : v_2[i] ≥ -1
+>>
+Rule 98 (Placeholder shape dimensions must match the default tensor shape for defined dimensions)
+{v_1 : tensor, v_2 : list(int)} |= ∀i ∈ [0, v_2.len - 1] : v_2[i] < 0 ∨ shape(v_1, i) = v_2[i]
+>>
+Rule 99 (Placeholder shape dimensions must be non-negative or -1 for unknown dimensions)
+{v_1 : list(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] ≥ -1
+>>
+Rule 100 (Default input tensor shape must be compatible with the placeholder shape)
+{v_1 : tensor, v_2 : list(int)} |= ndim(v_1) = v_2.len ∧ (∀i ∈ [0, v_2.len - 1] : v_2[i] < 0 ∨ shape(v_1, i) = v_2[i])
+>>
+Rule 101 (A scalar placeholder shape requires a 0-dimensional default input)
+{v_1 : tensor, v_2 : list(int)} |= if v_2.len = 0 then ndim(v_1) = 0
+>>
+Rule 102 (The rank of the default input tensor must be equal to the length of the placeholder shape list or tuple)
+{v_1 : tensor, v_2 : list(int) ⊎ tuple(int)} |= ndim(v_1) = v_2.len
+>>
+Rule 103 (Each specified dimension in the placeholder shape must match the default input tensor's dimension)
+{v_1 : tensor, v_2 : list(int) ⊎ tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : v_2[i] < 0 ∨ shape(v_1, i) = v_2[i]
+>>
+Rule 104 (If the default input tensor is a scalar, the placeholder shape must be empty)
+{v_1 : tensor, v_2 : list(int) ⊎ tuple(int)} |= if ndim(v_1) = 0 then v_2.len = 0
+>>
+Rule 105 (1D placeholder shape compatibility with default input)
+{v_1 : tensor, v_2 : list(int) ⊎ tuple(int)} |= if v_2.len = 1 then ndim(v_1) = 1 ∧ (v_2[0] < 0 ∨ shape(v_1, 0) = v_2[0])
+>>
+Rule 106 (Placeholder shape dimensions must be valid non-negative integers or -1)
+{v_2 : list(int) ⊎ tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : v_2[i] ≥ -1
+>>
+Rule 107 (An empty dimension in the default input must correspond to an empty or dynamic dimension in the placeholder shape)
+{v_1 : tensor, v_2 : list(int) ⊎ tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : if shape(v_1, i) = 0 then v_2[i] = 0 ∨ v_2[i] = -1

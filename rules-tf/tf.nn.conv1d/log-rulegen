@@ -19247,3 +19247,2919 @@ Rule 118 (If dilation is an integer, it must be greater than 0)
 {v_1 : int} |= v_1 > 0
 ** DUPLICATED RULE ** (num_failures: 101)
 
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.nn.conv1d API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Computes a 1-D convolution given 3-D input and filter tensors.
+
+  Given an input tensor of shape
+    `batch_shape + [in_width, in_channels]`
+  if `data_format` is `"NWC"`, or
+    `batch_shape + [in_channels, in_width]`
+  if `data_format` is `"NCW"`,
+  and a filter / kernel tensor of shape
+  `[filter_width, in_channels, out_channels]`, this op reshapes
+  the arguments to pass them to `conv2d` to perform the equivalent
+  convolution operation.
+
+  Internally, this op reshapes the input tensors and invokes `tf.nn.conv2d`.
+  For example, if `data_format` does not start with `"NC"`, a tensor of shape
+    `batch_shape + [in_width, in_channels]`
+  is reshaped to
+    `batch_shape + [1, in_width, in_channels]`,
+  and the filter is reshaped to
+    `[1, filter_width, in_channels, out_channels]`.
+  The result is then reshaped back to
+    `batch_shape + [out_width, out_channels]`
+  \(where out_width is a function of the stride and padding as in conv2d\) and
+  returned to the caller.
+
+  Args:
+    input: A Tensor of rank at least 3. Must be of type `float16`, `float32`, or
+      `float64`.
+    filters: A Tensor of rank at least 3.  Must have the same type as `input`.
+    stride: An int or list of `ints` that has length `1` or `3`.  The number of
+      entries by which the filter is moved right at each step.
+    padding: 'SAME' or 'VALID'. See
+      [here](https://www.tensorflow.org/api_docs/python/tf/nn#notes_on_padding_2)
+      for more information.
+    data_format: An optional `string` from `"NWC", "NCW"`.  Defaults to `"NWC"`,
+      the data is stored in the order of
+      `batch_shape + [in_width, in_channels]`.  The `"NCW"` format stores data
+      as `batch_shape + [in_channels, in_width]`.
+    dilations: An int or list of `ints` that has length `1` or `3` which
+      defaults to 1. The dilation factor for each dimension of input. If set to
+      k > 1, there will be k-1 skipped cells between each filter element on that
+      dimension. Dilations in the batch and depth dimensions must be 1.
+    name: A name for the operation (optional).
+
+  Returns:
+    A `Tensor`.  Has the same type as input.
+
+  Raises:
+    ValueError: if `data_format` is invalid.
+
+[API Signature] input: tensor, filters: tensor, stride: integer, padding: string, data_format: string, dilations: list, name: string
+
+[Error Messages]
+ValueError: `data_format` must be 'NWC' or 'NCW'. Received: data_format=0
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 1 (tensor shapes should be the same)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = shape(v_2, i)
+
+Rule 28 (list of ints used as dimensions/axes, all non-negative and valid for tensor shape)
+{v_1 : tensor, v_2 : list(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 2 (v_2 should be a valid dimension of input tensor)
+{v_1 : tensor, v_2 : int} |= −1 × ndim(v_1) ≤ v_2 ∧ v_2 ≤ ndim(v_1) − 1
+
+Rule 17 (primitive type variable must be non-negative)
+{v_1 : int ⊎ float} |= v_1 ≥ 0
+
+Rule 18 (input tensor is empty or only contains non-negative values)
+{v_1 : tensor} |= (∃i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = 0) ∨ min(v_1) ≥ 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 117 (input tensor must be of rank at least 3)
+{v_1 : tensor} |= ndim(v_1) ≥ 3
+Token usage: input=2179, output=572, total=11991
+** DUPLICATED RULE ** (num_failures: 1)
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.nn.conv1d API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Computes a 1-D convolution given 3-D input and filter tensors.
+
+  Given an input tensor of shape
+    `batch_shape + [in_width, in_channels]`
+  if `data_format` is `"NWC"`, or
+    `batch_shape + [in_channels, in_width]`
+  if `data_format` is `"NCW"`,
+  and a filter / kernel tensor of shape
+  `[filter_width, in_channels, out_channels]`, this op reshapes
+  the arguments to pass them to `conv2d` to perform the equivalent
+  convolution operation.
+
+  Internally, this op reshapes the input tensors and invokes `tf.nn.conv2d`.
+  For example, if `data_format` does not start with `"NC"`, a tensor of shape
+    `batch_shape + [in_width, in_channels]`
+  is reshaped to
+    `batch_shape + [1, in_width, in_channels]`,
+  and the filter is reshaped to
+    `[1, filter_width, in_channels, out_channels]`.
+  The result is then reshaped back to
+    `batch_shape + [out_width, out_channels]`
+  \(where out_width is a function of the stride and padding as in conv2d\) and
+  returned to the caller.
+
+  Args:
+    input: A Tensor of rank at least 3. Must be of type `float16`, `float32`, or
+      `float64`.
+    filters: A Tensor of rank at least 3.  Must have the same type as `input`.
+    stride: An int or list of `ints` that has length `1` or `3`.  The number of
+      entries by which the filter is moved right at each step.
+    padding: 'SAME' or 'VALID'. See
+      [here](https://www.tensorflow.org/api_docs/python/tf/nn#notes_on_padding_2)
+      for more information.
+    data_format: An optional `string` from `"NWC", "NCW"`.  Defaults to `"NWC"`,
+      the data is stored in the order of
+      `batch_shape + [in_width, in_channels]`.  The `"NCW"` format stores data
+      as `batch_shape + [in_channels, in_width]`.
+    dilations: An int or list of `ints` that has length `1` or `3` which
+      defaults to 1. The dilation factor for each dimension of input. If set to
+      k > 1, there will be k-1 skipped cells between each filter element on that
+      dimension. Dilations in the batch and depth dimensions must be 1.
+    name: A name for the operation (optional).
+
+  Returns:
+    A `Tensor`.  Has the same type as input.
+
+  Raises:
+    ValueError: if `data_format` is invalid.
+
+[API Signature] input: tensor, filters: tensor, stride: integer, padding: string, data_format: string, dilations: list, name: string
+
+[Error Messages]
+ValueError: `data_format` must be 'NWC' or 'NCW'. Received: data_format=0
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 1 (tensor shapes should be the same)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = shape(v_2, i)
+
+Rule 28 (list of ints used as dimensions/axes, all non-negative and valid for tensor shape)
+{v_1 : tensor, v_2 : list(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 2 (v_2 should be a valid dimension of input tensor)
+{v_1 : tensor, v_2 : int} |= −1 × ndim(v_1) ≤ v_2 ∧ v_2 ≤ ndim(v_1) − 1
+
+Rule 17 (primitive type variable must be non-negative)
+{v_1 : int ⊎ float} |= v_1 ≥ 0
+
+Rule 18 (input tensor is empty or only contains non-negative values)
+{v_1 : tensor} |= (∃i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = 0) ∨ min(v_1) ≥ 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 118 (filters tensor must be of rank at least 3)
+{v_2 : tensor} |= ndim(v_2) ≥ 3
+Token usage: input=2179, output=572, total=11991
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.nn.conv1d API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Computes a 1-D convolution given 3-D input and filter tensors.
+
+  Given an input tensor of shape
+    `batch_shape + [in_width, in_channels]`
+  if `data_format` is `"NWC"`, or
+    `batch_shape + [in_channels, in_width]`
+  if `data_format` is `"NCW"`,
+  and a filter / kernel tensor of shape
+  `[filter_width, in_channels, out_channels]`, this op reshapes
+  the arguments to pass them to `conv2d` to perform the equivalent
+  convolution operation.
+
+  Internally, this op reshapes the input tensors and invokes `tf.nn.conv2d`.
+  For example, if `data_format` does not start with `"NC"`, a tensor of shape
+    `batch_shape + [in_width, in_channels]`
+  is reshaped to
+    `batch_shape + [1, in_width, in_channels]`,
+  and the filter is reshaped to
+    `[1, filter_width, in_channels, out_channels]`.
+  The result is then reshaped back to
+    `batch_shape + [out_width, out_channels]`
+  \(where out_width is a function of the stride and padding as in conv2d\) and
+  returned to the caller.
+
+  Args:
+    input: A Tensor of rank at least 3. Must be of type `float16`, `float32`, or
+      `float64`.
+    filters: A Tensor of rank at least 3.  Must have the same type as `input`.
+    stride: An int or list of `ints` that has length `1` or `3`.  The number of
+      entries by which the filter is moved right at each step.
+    padding: 'SAME' or 'VALID'. See
+      [here](https://www.tensorflow.org/api_docs/python/tf/nn#notes_on_padding_2)
+      for more information.
+    data_format: An optional `string` from `"NWC", "NCW"`.  Defaults to `"NWC"`,
+      the data is stored in the order of
+      `batch_shape + [in_width, in_channels]`.  The `"NCW"` format stores data
+      as `batch_shape + [in_channels, in_width]`.
+    dilations: An int or list of `ints` that has length `1` or `3` which
+      defaults to 1. The dilation factor for each dimension of input. If set to
+      k > 1, there will be k-1 skipped cells between each filter element on that
+      dimension. Dilations in the batch and depth dimensions must be 1.
+    name: A name for the operation (optional).
+
+  Returns:
+    A `Tensor`.  Has the same type as input.
+
+  Raises:
+    ValueError: if `data_format` is invalid.
+
+[API Signature] input: tensor, filters: tensor, stride: integer, padding: string, data_format: string, dilations: list, name: string
+
+[Error Messages]
+ValueError: `data_format` must be 'NWC' or 'NCW'. Received: data_format=0
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 1 (tensor shapes should be the same)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = shape(v_2, i)
+
+Rule 28 (list of ints used as dimensions/axes, all non-negative and valid for tensor shape)
+{v_1 : tensor, v_2 : list(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 2 (v_2 should be a valid dimension of input tensor)
+{v_1 : tensor, v_2 : int} |= −1 × ndim(v_1) ≤ v_2 ∧ v_2 ≤ ndim(v_1) − 1
+
+Rule 17 (primitive type variable must be non-negative)
+{v_1 : int ⊎ float} |= v_1 ≥ 0
+
+Rule 18 (input tensor is empty or only contains non-negative values)
+{v_1 : tensor} |= (∃i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = 0) ∨ min(v_1) ≥ 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 119 (input tensor must be of float16, float32, or float64 types)
+{v_1 : tensor} |= dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8
+Token usage: input=2179, output=572, total=11991
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.nn.conv1d API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Computes a 1-D convolution given 3-D input and filter tensors.
+
+  Given an input tensor of shape
+    `batch_shape + [in_width, in_channels]`
+  if `data_format` is `"NWC"`, or
+    `batch_shape + [in_channels, in_width]`
+  if `data_format` is `"NCW"`,
+  and a filter / kernel tensor of shape
+  `[filter_width, in_channels, out_channels]`, this op reshapes
+  the arguments to pass them to `conv2d` to perform the equivalent
+  convolution operation.
+
+  Internally, this op reshapes the input tensors and invokes `tf.nn.conv2d`.
+  For example, if `data_format` does not start with `"NC"`, a tensor of shape
+    `batch_shape + [in_width, in_channels]`
+  is reshaped to
+    `batch_shape + [1, in_width, in_channels]`,
+  and the filter is reshaped to
+    `[1, filter_width, in_channels, out_channels]`.
+  The result is then reshaped back to
+    `batch_shape + [out_width, out_channels]`
+  \(where out_width is a function of the stride and padding as in conv2d\) and
+  returned to the caller.
+
+  Args:
+    input: A Tensor of rank at least 3. Must be of type `float16`, `float32`, or
+      `float64`.
+    filters: A Tensor of rank at least 3.  Must have the same type as `input`.
+    stride: An int or list of `ints` that has length `1` or `3`.  The number of
+      entries by which the filter is moved right at each step.
+    padding: 'SAME' or 'VALID'. See
+      [here](https://www.tensorflow.org/api_docs/python/tf/nn#notes_on_padding_2)
+      for more information.
+    data_format: An optional `string` from `"NWC", "NCW"`.  Defaults to `"NWC"`,
+      the data is stored in the order of
+      `batch_shape + [in_width, in_channels]`.  The `"NCW"` format stores data
+      as `batch_shape + [in_channels, in_width]`.
+    dilations: An int or list of `ints` that has length `1` or `3` which
+      defaults to 1. The dilation factor for each dimension of input. If set to
+      k > 1, there will be k-1 skipped cells between each filter element on that
+      dimension. Dilations in the batch and depth dimensions must be 1.
+    name: A name for the operation (optional).
+
+  Returns:
+    A `Tensor`.  Has the same type as input.
+
+  Raises:
+    ValueError: if `data_format` is invalid.
+
+[API Signature] input: tensor, filters: tensor, stride: integer, padding: string, data_format: string, dilations: list, name: string
+
+[Error Messages]
+ValueError: `data_format` must be 'NWC' or 'NCW'. Received: data_format=0
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 1 (tensor shapes should be the same)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = shape(v_2, i)
+
+Rule 28 (list of ints used as dimensions/axes, all non-negative and valid for tensor shape)
+{v_1 : tensor, v_2 : list(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 2 (v_2 should be a valid dimension of input tensor)
+{v_1 : tensor, v_2 : int} |= −1 × ndim(v_1) ≤ v_2 ∧ v_2 ≤ ndim(v_1) − 1
+
+Rule 17 (primitive type variable must be non-negative)
+{v_1 : int ⊎ float} |= v_1 ≥ 0
+
+Rule 18 (input tensor is empty or only contains non-negative values)
+{v_1 : tensor} |= (∃i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = 0) ∨ min(v_1) ≥ 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 120 (filters tensor must have the same type as input tensor)
+{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) = dtype_(v_2)
+Token usage: input=2179, output=572, total=11991
+** DUPLICATED RULE ** (num_failures: 2)
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.nn.conv1d API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Computes a 1-D convolution given 3-D input and filter tensors.
+
+  Given an input tensor of shape
+    `batch_shape + [in_width, in_channels]`
+  if `data_format` is `"NWC"`, or
+    `batch_shape + [in_channels, in_width]`
+  if `data_format` is `"NCW"`,
+  and a filter / kernel tensor of shape
+  `[filter_width, in_channels, out_channels]`, this op reshapes
+  the arguments to pass them to `conv2d` to perform the equivalent
+  convolution operation.
+
+  Internally, this op reshapes the input tensors and invokes `tf.nn.conv2d`.
+  For example, if `data_format` does not start with `"NC"`, a tensor of shape
+    `batch_shape + [in_width, in_channels]`
+  is reshaped to
+    `batch_shape + [1, in_width, in_channels]`,
+  and the filter is reshaped to
+    `[1, filter_width, in_channels, out_channels]`.
+  The result is then reshaped back to
+    `batch_shape + [out_width, out_channels]`
+  \(where out_width is a function of the stride and padding as in conv2d\) and
+  returned to the caller.
+
+  Args:
+    input: A Tensor of rank at least 3. Must be of type `float16`, `float32`, or
+      `float64`.
+    filters: A Tensor of rank at least 3.  Must have the same type as `input`.
+    stride: An int or list of `ints` that has length `1` or `3`.  The number of
+      entries by which the filter is moved right at each step.
+    padding: 'SAME' or 'VALID'. See
+      [here](https://www.tensorflow.org/api_docs/python/tf/nn#notes_on_padding_2)
+      for more information.
+    data_format: An optional `string` from `"NWC", "NCW"`.  Defaults to `"NWC"`,
+      the data is stored in the order of
+      `batch_shape + [in_width, in_channels]`.  The `"NCW"` format stores data
+      as `batch_shape + [in_channels, in_width]`.
+    dilations: An int or list of `ints` that has length `1` or `3` which
+      defaults to 1. The dilation factor for each dimension of input. If set to
+      k > 1, there will be k-1 skipped cells between each filter element on that
+      dimension. Dilations in the batch and depth dimensions must be 1.
+    name: A name for the operation (optional).
+
+  Returns:
+    A `Tensor`.  Has the same type as input.
+
+  Raises:
+    ValueError: if `data_format` is invalid.
+
+[API Signature] input: tensor, filters: tensor, stride: integer, padding: string, data_format: string, dilations: list, name: string
+
+[Error Messages]
+ValueError: `data_format` must be 'NWC' or 'NCW'. Received: data_format=0
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 1 (tensor shapes should be the same)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = shape(v_2, i)
+
+Rule 28 (list of ints used as dimensions/axes, all non-negative and valid for tensor shape)
+{v_1 : tensor, v_2 : list(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 2 (v_2 should be a valid dimension of input tensor)
+{v_1 : tensor, v_2 : int} |= −1 × ndim(v_1) ≤ v_2 ∧ v_2 ≤ ndim(v_1) − 1
+
+Rule 17 (primitive type variable must be non-negative)
+{v_1 : int ⊎ float} |= v_1 ≥ 0
+
+Rule 18 (input tensor is empty or only contains non-negative values)
+{v_1 : tensor} |= (∃i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = 0) ∨ min(v_1) ≥ 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 121 (stride must be positive)
+{v_3 : int} |= v_3 > 0
+Token usage: input=2179, output=572, total=11991
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.nn.conv1d API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Computes a 1-D convolution given 3-D input and filter tensors.
+
+  Given an input tensor of shape
+    `batch_shape + [in_width, in_channels]`
+  if `data_format` is `"NWC"`, or
+    `batch_shape + [in_channels, in_width]`
+  if `data_format` is `"NCW"`,
+  and a filter / kernel tensor of shape
+  `[filter_width, in_channels, out_channels]`, this op reshapes
+  the arguments to pass them to `conv2d` to perform the equivalent
+  convolution operation.
+
+  Internally, this op reshapes the input tensors and invokes `tf.nn.conv2d`.
+  For example, if `data_format` does not start with `"NC"`, a tensor of shape
+    `batch_shape + [in_width, in_channels]`
+  is reshaped to
+    `batch_shape + [1, in_width, in_channels]`,
+  and the filter is reshaped to
+    `[1, filter_width, in_channels, out_channels]`.
+  The result is then reshaped back to
+    `batch_shape + [out_width, out_channels]`
+  \(where out_width is a function of the stride and padding as in conv2d\) and
+  returned to the caller.
+
+  Args:
+    input: A Tensor of rank at least 3. Must be of type `float16`, `float32`, or
+      `float64`.
+    filters: A Tensor of rank at least 3.  Must have the same type as `input`.
+    stride: An int or list of `ints` that has length `1` or `3`.  The number of
+      entries by which the filter is moved right at each step.
+    padding: 'SAME' or 'VALID'. See
+      [here](https://www.tensorflow.org/api_docs/python/tf/nn#notes_on_padding_2)
+      for more information.
+    data_format: An optional `string` from `"NWC", "NCW"`.  Defaults to `"NWC"`,
+      the data is stored in the order of
+      `batch_shape + [in_width, in_channels]`.  The `"NCW"` format stores data
+      as `batch_shape + [in_channels, in_width]`.
+    dilations: An int or list of `ints` that has length `1` or `3` which
+      defaults to 1. The dilation factor for each dimension of input. If set to
+      k > 1, there will be k-1 skipped cells between each filter element on that
+      dimension. Dilations in the batch and depth dimensions must be 1.
+    name: A name for the operation (optional).
+
+  Returns:
+    A `Tensor`.  Has the same type as input.
+
+  Raises:
+    ValueError: if `data_format` is invalid.
+
+[API Signature] input: tensor, filters: tensor, stride: integer, padding: string, data_format: string, dilations: list, name: string
+
+[Error Messages]
+ValueError: `data_format` must be 'NWC' or 'NCW'. Received: data_format=0
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 1 (tensor shapes should be the same)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = shape(v_2, i)
+
+Rule 28 (list of ints used as dimensions/axes, all non-negative and valid for tensor shape)
+{v_1 : tensor, v_2 : list(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 2 (v_2 should be a valid dimension of input tensor)
+{v_1 : tensor, v_2 : int} |= −1 × ndim(v_1) ≤ v_2 ∧ v_2 ≤ ndim(v_1) − 1
+
+Rule 17 (primitive type variable must be non-negative)
+{v_1 : int ⊎ float} |= v_1 ≥ 0
+
+Rule 18 (input tensor is empty or only contains non-negative values)
+{v_1 : tensor} |= (∃i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = 0) ∨ min(v_1) ≥ 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 122 (data_format must be 'NWC' or 'NCW')
+{v_5 : str} |= v_5 = "NWC" ∨ v_5 = "NCW"
+Token usage: input=2179, output=572, total=11991
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.nn.conv1d API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Computes a 1-D convolution given 3-D input and filter tensors.
+
+  Given an input tensor of shape
+    `batch_shape + [in_width, in_channels]`
+  if `data_format` is `"NWC"`, or
+    `batch_shape + [in_channels, in_width]`
+  if `data_format` is `"NCW"`,
+  and a filter / kernel tensor of shape
+  `[filter_width, in_channels, out_channels]`, this op reshapes
+  the arguments to pass them to `conv2d` to perform the equivalent
+  convolution operation.
+
+  Internally, this op reshapes the input tensors and invokes `tf.nn.conv2d`.
+  For example, if `data_format` does not start with `"NC"`, a tensor of shape
+    `batch_shape + [in_width, in_channels]`
+  is reshaped to
+    `batch_shape + [1, in_width, in_channels]`,
+  and the filter is reshaped to
+    `[1, filter_width, in_channels, out_channels]`.
+  The result is then reshaped back to
+    `batch_shape + [out_width, out_channels]`
+  \(where out_width is a function of the stride and padding as in conv2d\) and
+  returned to the caller.
+
+  Args:
+    input: A Tensor of rank at least 3. Must be of type `float16`, `float32`, or
+      `float64`.
+    filters: A Tensor of rank at least 3.  Must have the same type as `input`.
+    stride: An int or list of `ints` that has length `1` or `3`.  The number of
+      entries by which the filter is moved right at each step.
+    padding: 'SAME' or 'VALID'. See
+      [here](https://www.tensorflow.org/api_docs/python/tf/nn#notes_on_padding_2)
+      for more information.
+    data_format: An optional `string` from `"NWC", "NCW"`.  Defaults to `"NWC"`,
+      the data is stored in the order of
+      `batch_shape + [in_width, in_channels]`.  The `"NCW"` format stores data
+      as `batch_shape + [in_channels, in_width]`.
+    dilations: An int or list of `ints` that has length `1` or `3` which
+      defaults to 1. The dilation factor for each dimension of input. If set to
+      k > 1, there will be k-1 skipped cells between each filter element on that
+      dimension. Dilations in the batch and depth dimensions must be 1.
+    name: A name for the operation (optional).
+
+  Returns:
+    A `Tensor`.  Has the same type as input.
+
+  Raises:
+    ValueError: if `data_format` is invalid.
+
+[API Signature] input: tensor, filters: tensor, stride: integer, padding: string, data_format: string, dilations: list, name: string
+
+[Error Messages]
+ValueError: `data_format` must be 'NWC' or 'NCW'. Received: data_format=0
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 1 (tensor shapes should be the same)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = shape(v_2, i)
+
+Rule 28 (list of ints used as dimensions/axes, all non-negative and valid for tensor shape)
+{v_1 : tensor, v_2 : list(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 2 (v_2 should be a valid dimension of input tensor)
+{v_1 : tensor, v_2 : int} |= −1 × ndim(v_1) ≤ v_2 ∧ v_2 ≤ ndim(v_1) − 1
+
+Rule 17 (primitive type variable must be non-negative)
+{v_1 : int ⊎ float} |= v_1 ≥ 0
+
+Rule 18 (input tensor is empty or only contains non-negative values)
+{v_1 : tensor} |= (∃i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = 0) ∨ min(v_1) ≥ 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 123 (dilations list must contain elements greater than 0)
+{v_6 : list(int)} |= ∀i ∈ [0, v_6.len - 1] : v_6[i] > 0
+Token usage: input=2179, output=572, total=11991
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.nn.conv1d API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Computes a 1-D convolution given 3-D input and filter tensors.
+
+  Given an input tensor of shape
+    `batch_shape + [in_width, in_channels]`
+  if `data_format` is `"NWC"`, or
+    `batch_shape + [in_channels, in_width]`
+  if `data_format` is `"NCW"`,
+  and a filter / kernel tensor of shape
+  `[filter_width, in_channels, out_channels]`, this op reshapes
+  the arguments to pass them to `conv2d` to perform the equivalent
+  convolution operation.
+
+  Internally, this op reshapes the input tensors and invokes `tf.nn.conv2d`.
+  For example, if `data_format` does not start with `"NC"`, a tensor of shape
+    `batch_shape + [in_width, in_channels]`
+  is reshaped to
+    `batch_shape + [1, in_width, in_channels]`,
+  and the filter is reshaped to
+    `[1, filter_width, in_channels, out_channels]`.
+  The result is then reshaped back to
+    `batch_shape + [out_width, out_channels]`
+  \(where out_width is a function of the stride and padding as in conv2d\) and
+  returned to the caller.
+
+  Args:
+    input: A Tensor of rank at least 3. Must be of type `float16`, `float32`, or
+      `float64`.
+    filters: A Tensor of rank at least 3.  Must have the same type as `input`.
+    stride: An int or list of `ints` that has length `1` or `3`.  The number of
+      entries by which the filter is moved right at each step.
+    padding: 'SAME' or 'VALID'. See
+      [here](https://www.tensorflow.org/api_docs/python/tf/nn#notes_on_padding_2)
+      for more information.
+    data_format: An optional `string` from `"NWC", "NCW"`.  Defaults to `"NWC"`,
+      the data is stored in the order of
+      `batch_shape + [in_width, in_channels]`.  The `"NCW"` format stores data
+      as `batch_shape + [in_channels, in_width]`.
+    dilations: An int or list of `ints` that has length `1` or `3` which
+      defaults to 1. The dilation factor for each dimension of input. If set to
+      k > 1, there will be k-1 skipped cells between each filter element on that
+      dimension. Dilations in the batch and depth dimensions must be 1.
+    name: A name for the operation (optional).
+
+  Returns:
+    A `Tensor`.  Has the same type as input.
+
+  Raises:
+    ValueError: if `data_format` is invalid.
+
+[API Signature] input: tensor, filters: tensor, stride: integer, padding: string, data_format: string, dilations: list, name: string
+
+[Error Messages]
+ValueError: `data_format` must be 'NWC' or 'NCW'. Received: data_format=0
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 1 (tensor shapes should be the same)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = shape(v_2, i)
+
+Rule 28 (list of ints used as dimensions/axes, all non-negative and valid for tensor shape)
+{v_1 : tensor, v_2 : list(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 2 (v_2 should be a valid dimension of input tensor)
+{v_1 : tensor, v_2 : int} |= −1 × ndim(v_1) ≤ v_2 ∧ v_2 ≤ ndim(v_1) − 1
+
+Rule 17 (primitive type variable must be non-negative)
+{v_1 : int ⊎ float} |= v_1 ≥ 0
+
+Rule 18 (input tensor is empty or only contains non-negative values)
+{v_1 : tensor} |= (∃i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = 0) ∨ min(v_1) ≥ 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 124 (dilations list length must be 1 or 3)
+{v_6 : list(int)} |= v_6.len = 1 ∨ v_6.len = 3
+Token usage: input=2179, output=572, total=11991
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.nn.conv1d API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Computes a 1-D convolution given 3-D input and filter tensors.
+
+  Given an input tensor of shape
+    `batch_shape + [in_width, in_channels]`
+  if `data_format` is `"NWC"`, or
+    `batch_shape + [in_channels, in_width]`
+  if `data_format` is `"NCW"`,
+  and a filter / kernel tensor of shape
+  `[filter_width, in_channels, out_channels]`, this op reshapes
+  the arguments to pass them to `conv2d` to perform the equivalent
+  convolution operation.
+
+  Internally, this op reshapes the input tensors and invokes `tf.nn.conv2d`.
+  For example, if `data_format` does not start with `"NC"`, a tensor of shape
+    `batch_shape + [in_width, in_channels]`
+  is reshaped to
+    `batch_shape + [1, in_width, in_channels]`,
+  and the filter is reshaped to
+    `[1, filter_width, in_channels, out_channels]`.
+  The result is then reshaped back to
+    `batch_shape + [out_width, out_channels]`
+  \(where out_width is a function of the stride and padding as in conv2d\) and
+  returned to the caller.
+
+  Args:
+    input: A Tensor of rank at least 3. Must be of type `float16`, `float32`, or
+      `float64`.
+    filters: A Tensor of rank at least 3.  Must have the same type as `input`.
+    stride: An int or list of `ints` that has length `1` or `3`.  The number of
+      entries by which the filter is moved right at each step.
+    padding: 'SAME' or 'VALID'. See
+      [here](https://www.tensorflow.org/api_docs/python/tf/nn#notes_on_padding_2)
+      for more information.
+    data_format: An optional `string` from `"NWC", "NCW"`.  Defaults to `"NWC"`,
+      the data is stored in the order of
+      `batch_shape + [in_width, in_channels]`.  The `"NCW"` format stores data
+      as `batch_shape + [in_channels, in_width]`.
+    dilations: An int or list of `ints` that has length `1` or `3` which
+      defaults to 1. The dilation factor for each dimension of input. If set to
+      k > 1, there will be k-1 skipped cells between each filter element on that
+      dimension. Dilations in the batch and depth dimensions must be 1.
+    name: A name for the operation (optional).
+
+  Returns:
+    A `Tensor`.  Has the same type as input.
+
+  Raises:
+    ValueError: if `data_format` is invalid.
+
+[API Signature] input: tensor, filters: tensor, stride: integer, padding: string, data_format: string, dilations: list, name: string
+
+[Error Messages]
+ValueError: `data_format` must be 'NWC' or 'NCW'. Received: data_format=0
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 1 (tensor shapes should be the same)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = shape(v_2, i)
+
+Rule 28 (list of ints used as dimensions/axes, all non-negative and valid for tensor shape)
+{v_1 : tensor, v_2 : list(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 2 (v_2 should be a valid dimension of input tensor)
+{v_1 : tensor, v_2 : int} |= −1 × ndim(v_1) ≤ v_2 ∧ v_2 ≤ ndim(v_1) − 1
+
+Rule 17 (primitive type variable must be non-negative)
+{v_1 : int ⊎ float} |= v_1 ≥ 0
+
+Rule 18 (input tensor is empty or only contains non-negative values)
+{v_1 : tensor} |= (∃i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = 0) ∨ min(v_1) ≥ 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 125 (dilations in batch and depth dimensions must be 1 if length is 3)
+{v_6 : list(int)} |= if v_6.len = 3 then v_6[0] = 1 ∧ v_6[2] = 1
+Token usage: input=2179, output=572, total=11991
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.nn.conv1d API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Computes a 1-D convolution given 3-D input and filter tensors.
+
+  Given an input tensor of shape
+    `batch_shape + [in_width, in_channels]`
+  if `data_format` is `"NWC"`, or
+    `batch_shape + [in_channels, in_width]`
+  if `data_format` is `"NCW"`,
+  and a filter / kernel tensor of shape
+  `[filter_width, in_channels, out_channels]`, this op reshapes
+  the arguments to pass them to `conv2d` to perform the equivalent
+  convolution operation.
+
+  Internally, this op reshapes the input tensors and invokes `tf.nn.conv2d`.
+  For example, if `data_format` does not start with `"NC"`, a tensor of shape
+    `batch_shape + [in_width, in_channels]`
+  is reshaped to
+    `batch_shape + [1, in_width, in_channels]`,
+  and the filter is reshaped to
+    `[1, filter_width, in_channels, out_channels]`.
+  The result is then reshaped back to
+    `batch_shape + [out_width, out_channels]`
+  \(where out_width is a function of the stride and padding as in conv2d\) and
+  returned to the caller.
+
+  Args:
+    input: A Tensor of rank at least 3. Must be of type `float16`, `float32`, or
+      `float64`.
+    filters: A Tensor of rank at least 3.  Must have the same type as `input`.
+    stride: An int or list of `ints` that has length `1` or `3`.  The number of
+      entries by which the filter is moved right at each step.
+    padding: 'SAME' or 'VALID'. See
+      [here](https://www.tensorflow.org/api_docs/python/tf/nn#notes_on_padding_2)
+      for more information.
+    data_format: An optional `string` from `"NWC", "NCW"`.  Defaults to `"NWC"`,
+      the data is stored in the order of
+      `batch_shape + [in_width, in_channels]`.  The `"NCW"` format stores data
+      as `batch_shape + [in_channels, in_width]`.
+    dilations: An int or list of `ints` that has length `1` or `3` which
+      defaults to 1. The dilation factor for each dimension of input. If set to
+      k > 1, there will be k-1 skipped cells between each filter element on that
+      dimension. Dilations in the batch and depth dimensions must be 1.
+    name: A name for the operation (optional).
+
+  Returns:
+    A `Tensor`.  Has the same type as input.
+
+  Raises:
+    ValueError: if `data_format` is invalid.
+
+[API Signature] input: tensor, filters: tensor, stride: integer, padding: string, data_format: string, dilations: list, name: string
+
+[Error Messages]
+ValueError: `data_format` must be 'NWC' or 'NCW'. Received: data_format=0
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 1 (tensor shapes should be the same)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = shape(v_2, i)
+
+Rule 28 (list of ints used as dimensions/axes, all non-negative and valid for tensor shape)
+{v_1 : tensor, v_2 : list(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 2 (v_2 should be a valid dimension of input tensor)
+{v_1 : tensor, v_2 : int} |= −1 × ndim(v_1) ≤ v_2 ∧ v_2 ≤ ndim(v_1) − 1
+
+Rule 17 (primitive type variable must be non-negative)
+{v_1 : int ⊎ float} |= v_1 ≥ 0
+
+Rule 18 (input tensor is empty or only contains non-negative values)
+{v_1 : tensor} |= (∃i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = 0) ∨ min(v_1) ≥ 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 126 (input and filter channels must match based on data_format)
+{v_1 : tensor, v_2 : tensor, v_5 : str} |= if v_5 = "NWC" then shape(v_1, ndim(v_1) - 1) = shape(v_2, 1) else shape(v_1, ndim(v_1) - 2) = shape(v_2, 1)
+Token usage: input=2179, output=572, total=11991
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.nn.conv1d API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Computes a 1-D convolution given 3-D input and filter tensors.
+
+  Given an input tensor of shape
+    `batch_shape + [in_width, in_channels]`
+  if `data_format` is `"NWC"`, or
+    `batch_shape + [in_channels, in_width]`
+  if `data_format` is `"NCW"`,
+  and a filter / kernel tensor of shape
+  `[filter_width, in_channels, out_channels]`, this op reshapes
+  the arguments to pass them to `conv2d` to perform the equivalent
+  convolution operation.
+
+  Internally, this op reshapes the input tensors and invokes `tf.nn.conv2d`.
+  For example, if `data_format` does not start with `"NC"`, a tensor of shape
+    `batch_shape + [in_width, in_channels]`
+  is reshaped to
+    `batch_shape + [1, in_width, in_channels]`,
+  and the filter is reshaped to
+    `[1, filter_width, in_channels, out_channels]`.
+  The result is then reshaped back to
+    `batch_shape + [out_width, out_channels]`
+  \(where out_width is a function of the stride and padding as in conv2d\) and
+  returned to the caller.
+
+  Args:
+    input: A Tensor of rank at least 3. Must be of type `float16`, `float32`, or
+      `float64`.
+    filters: A Tensor of rank at least 3.  Must have the same type as `input`.
+    stride: An int or list of `ints` that has length `1` or `3`.  The number of
+      entries by which the filter is moved right at each step.
+    padding: 'SAME' or 'VALID'. See
+      [here](https://www.tensorflow.org/api_docs/python/tf/nn#notes_on_padding_2)
+      for more information.
+    data_format: An optional `string` from `"NWC", "NCW"`.  Defaults to `"NWC"`,
+      the data is stored in the order of
+      `batch_shape + [in_width, in_channels]`.  The `"NCW"` format stores data
+      as `batch_shape + [in_channels, in_width]`.
+    dilations: An int or list of `ints` that has length `1` or `3` which
+      defaults to 1. The dilation factor for each dimension of input. If set to
+      k > 1, there will be k-1 skipped cells between each filter element on that
+      dimension. Dilations in the batch and depth dimensions must be 1.
+    name: A name for the operation (optional).
+
+  Returns:
+    A `Tensor`.  Has the same type as input.
+
+  Raises:
+    ValueError: if `data_format` is invalid.
+
+[API Signature] input: tensor, filters: tensor, stride: integer, padding: string, data_format: string, dilations: list, name: string
+
+[Error Messages]
+ValueError: `data_format` must be 'NWC' or 'NCW'. Received: data_format=0
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 1 (tensor shapes should be the same)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = shape(v_2, i)
+
+Rule 28 (list of ints used as dimensions/axes, all non-negative and valid for tensor shape)
+{v_1 : tensor, v_2 : list(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 2 (v_2 should be a valid dimension of input tensor)
+{v_1 : tensor, v_2 : int} |= −1 × ndim(v_1) ≤ v_2 ∧ v_2 ≤ ndim(v_1) − 1
+
+Rule 17 (primitive type variable must be non-negative)
+{v_1 : int ⊎ float} |= v_1 ≥ 0
+
+Rule 18 (input tensor is empty or only contains non-negative values)
+{v_1 : tensor} |= (∃i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = 0) ∨ min(v_1) ≥ 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 127 (padding must be 'SAME' or 'VALID')
+{v_4 : str} |= v_4 = "SAME" ∨ v_4 = "VALID" ∨ v_4 = "same" ∨ v_4 = "valid"
+Token usage: input=2179, output=572, total=11991
+** SUCCESS **
+
+>>> PROMPT
+[Feedback Message from Prior Run]
+Duplicated rule: {v_1 : tensor} |= ndim(v_1) ≥ 3
+Duplicated rule: {v_1 : tensor, v_2 : tensor} |= dtype_(v_1) = dtype_(v_2)
+
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.nn.conv1d API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Computes a 1-D convolution given 3-D input and filter tensors.
+
+  Given an input tensor of shape
+    `batch_shape + [in_width, in_channels]`
+  if `data_format` is `"NWC"`, or
+    `batch_shape + [in_channels, in_width]`
+  if `data_format` is `"NCW"`,
+  and a filter / kernel tensor of shape
+  `[filter_width, in_channels, out_channels]`, this op reshapes
+  the arguments to pass them to `conv2d` to perform the equivalent
+  convolution operation.
+
+  Internally, this op reshapes the input tensors and invokes `tf.nn.conv2d`.
+  For example, if `data_format` does not start with `"NC"`, a tensor of shape
+    `batch_shape + [in_width, in_channels]`
+  is reshaped to
+    `batch_shape + [1, in_width, in_channels]`,
+  and the filter is reshaped to
+    `[1, filter_width, in_channels, out_channels]`.
+  The result is then reshaped back to
+    `batch_shape + [out_width, out_channels]`
+  \(where out_width is a function of the stride and padding as in conv2d\) and
+  returned to the caller.
+
+  Args:
+    input: A Tensor of rank at least 3. Must be of type `float16`, `float32`, or
+      `float64`.
+    filters: A Tensor of rank at least 3.  Must have the same type as `input`.
+    stride: An int or list of `ints` that has length `1` or `3`.  The number of
+      entries by which the filter is moved right at each step.
+    padding: 'SAME' or 'VALID'. See
+      [here](https://www.tensorflow.org/api_docs/python/tf/nn#notes_on_padding_2)
+      for more information.
+    data_format: An optional `string` from `"NWC", "NCW"`.  Defaults to `"NWC"`,
+      the data is stored in the order of
+      `batch_shape + [in_width, in_channels]`.  The `"NCW"` format stores data
+      as `batch_shape + [in_channels, in_width]`.
+    dilations: An int or list of `ints` that has length `1` or `3` which
+      defaults to 1. The dilation factor for each dimension of input. If set to
+      k > 1, there will be k-1 skipped cells between each filter element on that
+      dimension. Dilations in the batch and depth dimensions must be 1.
+    name: A name for the operation (optional).
+
+  Returns:
+    A `Tensor`.  Has the same type as input.
+
+  Raises:
+    ValueError: if `data_format` is invalid.
+
+[API Signature] input: tensor, filters: tensor, stride: integer, padding: string, data_format: string, dilations: list, name: string
+
+[Error Messages]
+ValueError: `data_format` must be 'NWC' or 'NCW'. Received: data_format=0
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 32 (Integer indices only valid with int-compatible dtype)
+{v_1 : tuple(int), v_2 : dtype} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] ≥ 0 ∧ v_2 = 1 ∨ v_2 = 2 ∨ v_2 = 3 ∨ v_2 = 4 ∨ v_2 = 5
+
+Rule 31 (dtype must be a floating-point type)
+{v_1 : dtype} |= v_1 = 6 ∨ v_1 = 7 ∨ v_1 = 8
+
+Rule 8 (tensor must have an integer dtype: 1–5)
+{v1: tensor} |= 1 ≤ dtype(v1) ∧ dtype(v1) ≤ 5
+
+Rule 18 (input tensor is empty or only contains non-negative values)
+{v_1 : tensor} |= (∃i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = 0) ∨ min(v_1) ≥ 0
+
+Rule 27 (reduction over valid dimensions)
+{v_1 : tensor, v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 128 (input and filters must both have rank at least 3)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 2 ∧ ndim(v_2) > 2
+Token usage: input=14231, output=563, total=20009
+** SUCCESS **
+
+>>> PROMPT
+[Feedback Message from Prior Run]
+Duplicated rule: {v_1 : tensor} |= ndim(v_1) ≥ 3
+Duplicated rule: {v_1 : tensor, v_2 : tensor} |= dtype_(v_1) = dtype_(v_2)
+
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.nn.conv1d API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Computes a 1-D convolution given 3-D input and filter tensors.
+
+  Given an input tensor of shape
+    `batch_shape + [in_width, in_channels]`
+  if `data_format` is `"NWC"`, or
+    `batch_shape + [in_channels, in_width]`
+  if `data_format` is `"NCW"`,
+  and a filter / kernel tensor of shape
+  `[filter_width, in_channels, out_channels]`, this op reshapes
+  the arguments to pass them to `conv2d` to perform the equivalent
+  convolution operation.
+
+  Internally, this op reshapes the input tensors and invokes `tf.nn.conv2d`.
+  For example, if `data_format` does not start with `"NC"`, a tensor of shape
+    `batch_shape + [in_width, in_channels]`
+  is reshaped to
+    `batch_shape + [1, in_width, in_channels]`,
+  and the filter is reshaped to
+    `[1, filter_width, in_channels, out_channels]`.
+  The result is then reshaped back to
+    `batch_shape + [out_width, out_channels]`
+  \(where out_width is a function of the stride and padding as in conv2d\) and
+  returned to the caller.
+
+  Args:
+    input: A Tensor of rank at least 3. Must be of type `float16`, `float32`, or
+      `float64`.
+    filters: A Tensor of rank at least 3.  Must have the same type as `input`.
+    stride: An int or list of `ints` that has length `1` or `3`.  The number of
+      entries by which the filter is moved right at each step.
+    padding: 'SAME' or 'VALID'. See
+      [here](https://www.tensorflow.org/api_docs/python/tf/nn#notes_on_padding_2)
+      for more information.
+    data_format: An optional `string` from `"NWC", "NCW"`.  Defaults to `"NWC"`,
+      the data is stored in the order of
+      `batch_shape + [in_width, in_channels]`.  The `"NCW"` format stores data
+      as `batch_shape + [in_channels, in_width]`.
+    dilations: An int or list of `ints` that has length `1` or `3` which
+      defaults to 1. The dilation factor for each dimension of input. If set to
+      k > 1, there will be k-1 skipped cells between each filter element on that
+      dimension. Dilations in the batch and depth dimensions must be 1.
+    name: A name for the operation (optional).
+
+  Returns:
+    A `Tensor`.  Has the same type as input.
+
+  Raises:
+    ValueError: if `data_format` is invalid.
+
+[API Signature] input: tensor, filters: tensor, stride: integer, padding: string, data_format: string, dilations: list, name: string
+
+[Error Messages]
+ValueError: `data_format` must be 'NWC' or 'NCW'. Received: data_format=0
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 32 (Integer indices only valid with int-compatible dtype)
+{v_1 : tuple(int), v_2 : dtype} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] ≥ 0 ∧ v_2 = 1 ∨ v_2 = 2 ∨ v_2 = 3 ∨ v_2 = 4 ∨ v_2 = 5
+
+Rule 31 (dtype must be a floating-point type)
+{v_1 : dtype} |= v_1 = 6 ∨ v_1 = 7 ∨ v_1 = 8
+
+Rule 8 (tensor must have an integer dtype: 1–5)
+{v1: tensor} |= 1 ≤ dtype(v1) ∧ dtype(v1) ≤ 5
+
+Rule 18 (input tensor is empty or only contains non-negative values)
+{v_1 : tensor} |= (∃i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = 0) ∨ min(v_1) ≥ 0
+
+Rule 27 (reduction over valid dimensions)
+{v_1 : tensor, v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 129 (input and filters must have matching floating-point types: float16, float32, or float64)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 6 then dtype_(v_2) = 6 else (if dtype_(v_1) = 7 then dtype_(v_2) = 7 else (if dtype_(v_1) = 8 then dtype_(v_2) = 8 else false))
+Token usage: input=14231, output=563, total=20009
+** SUCCESS **
+
+>>> PROMPT
+[Feedback Message from Prior Run]
+Duplicated rule: {v_1 : tensor} |= ndim(v_1) ≥ 3
+Duplicated rule: {v_1 : tensor, v_2 : tensor} |= dtype_(v_1) = dtype_(v_2)
+
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.nn.conv1d API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Computes a 1-D convolution given 3-D input and filter tensors.
+
+  Given an input tensor of shape
+    `batch_shape + [in_width, in_channels]`
+  if `data_format` is `"NWC"`, or
+    `batch_shape + [in_channels, in_width]`
+  if `data_format` is `"NCW"`,
+  and a filter / kernel tensor of shape
+  `[filter_width, in_channels, out_channels]`, this op reshapes
+  the arguments to pass them to `conv2d` to perform the equivalent
+  convolution operation.
+
+  Internally, this op reshapes the input tensors and invokes `tf.nn.conv2d`.
+  For example, if `data_format` does not start with `"NC"`, a tensor of shape
+    `batch_shape + [in_width, in_channels]`
+  is reshaped to
+    `batch_shape + [1, in_width, in_channels]`,
+  and the filter is reshaped to
+    `[1, filter_width, in_channels, out_channels]`.
+  The result is then reshaped back to
+    `batch_shape + [out_width, out_channels]`
+  \(where out_width is a function of the stride and padding as in conv2d\) and
+  returned to the caller.
+
+  Args:
+    input: A Tensor of rank at least 3. Must be of type `float16`, `float32`, or
+      `float64`.
+    filters: A Tensor of rank at least 3.  Must have the same type as `input`.
+    stride: An int or list of `ints` that has length `1` or `3`.  The number of
+      entries by which the filter is moved right at each step.
+    padding: 'SAME' or 'VALID'. See
+      [here](https://www.tensorflow.org/api_docs/python/tf/nn#notes_on_padding_2)
+      for more information.
+    data_format: An optional `string` from `"NWC", "NCW"`.  Defaults to `"NWC"`,
+      the data is stored in the order of
+      `batch_shape + [in_width, in_channels]`.  The `"NCW"` format stores data
+      as `batch_shape + [in_channels, in_width]`.
+    dilations: An int or list of `ints` that has length `1` or `3` which
+      defaults to 1. The dilation factor for each dimension of input. If set to
+      k > 1, there will be k-1 skipped cells between each filter element on that
+      dimension. Dilations in the batch and depth dimensions must be 1.
+    name: A name for the operation (optional).
+
+  Returns:
+    A `Tensor`.  Has the same type as input.
+
+  Raises:
+    ValueError: if `data_format` is invalid.
+
+[API Signature] input: tensor, filters: tensor, stride: integer, padding: string, data_format: string, dilations: list, name: string
+
+[Error Messages]
+ValueError: `data_format` must be 'NWC' or 'NCW'. Received: data_format=0
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 32 (Integer indices only valid with int-compatible dtype)
+{v_1 : tuple(int), v_2 : dtype} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] ≥ 0 ∧ v_2 = 1 ∨ v_2 = 2 ∨ v_2 = 3 ∨ v_2 = 4 ∨ v_2 = 5
+
+Rule 31 (dtype must be a floating-point type)
+{v_1 : dtype} |= v_1 = 6 ∨ v_1 = 7 ∨ v_1 = 8
+
+Rule 8 (tensor must have an integer dtype: 1–5)
+{v1: tensor} |= 1 ≤ dtype(v1) ∧ dtype(v1) ≤ 5
+
+Rule 18 (input tensor is empty or only contains non-negative values)
+{v_1 : tensor} |= (∃i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = 0) ∨ min(v_1) ≥ 0
+
+Rule 27 (reduction over valid dimensions)
+{v_1 : tensor, v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 130 (stride must be positive)
+{v_3 : int} |= v_3 > 0
+Token usage: input=14231, output=563, total=20009
+** DUPLICATED RULE ** (num_failures: 3)
+
+>>> PROMPT
+[Feedback Message from Prior Run]
+Duplicated rule: {v_1 : tensor} |= ndim(v_1) ≥ 3
+Duplicated rule: {v_1 : tensor, v_2 : tensor} |= dtype_(v_1) = dtype_(v_2)
+
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.nn.conv1d API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Computes a 1-D convolution given 3-D input and filter tensors.
+
+  Given an input tensor of shape
+    `batch_shape + [in_width, in_channels]`
+  if `data_format` is `"NWC"`, or
+    `batch_shape + [in_channels, in_width]`
+  if `data_format` is `"NCW"`,
+  and a filter / kernel tensor of shape
+  `[filter_width, in_channels, out_channels]`, this op reshapes
+  the arguments to pass them to `conv2d` to perform the equivalent
+  convolution operation.
+
+  Internally, this op reshapes the input tensors and invokes `tf.nn.conv2d`.
+  For example, if `data_format` does not start with `"NC"`, a tensor of shape
+    `batch_shape + [in_width, in_channels]`
+  is reshaped to
+    `batch_shape + [1, in_width, in_channels]`,
+  and the filter is reshaped to
+    `[1, filter_width, in_channels, out_channels]`.
+  The result is then reshaped back to
+    `batch_shape + [out_width, out_channels]`
+  \(where out_width is a function of the stride and padding as in conv2d\) and
+  returned to the caller.
+
+  Args:
+    input: A Tensor of rank at least 3. Must be of type `float16`, `float32`, or
+      `float64`.
+    filters: A Tensor of rank at least 3.  Must have the same type as `input`.
+    stride: An int or list of `ints` that has length `1` or `3`.  The number of
+      entries by which the filter is moved right at each step.
+    padding: 'SAME' or 'VALID'. See
+      [here](https://www.tensorflow.org/api_docs/python/tf/nn#notes_on_padding_2)
+      for more information.
+    data_format: An optional `string` from `"NWC", "NCW"`.  Defaults to `"NWC"`,
+      the data is stored in the order of
+      `batch_shape + [in_width, in_channels]`.  The `"NCW"` format stores data
+      as `batch_shape + [in_channels, in_width]`.
+    dilations: An int or list of `ints` that has length `1` or `3` which
+      defaults to 1. The dilation factor for each dimension of input. If set to
+      k > 1, there will be k-1 skipped cells between each filter element on that
+      dimension. Dilations in the batch and depth dimensions must be 1.
+    name: A name for the operation (optional).
+
+  Returns:
+    A `Tensor`.  Has the same type as input.
+
+  Raises:
+    ValueError: if `data_format` is invalid.
+
+[API Signature] input: tensor, filters: tensor, stride: integer, padding: string, data_format: string, dilations: list, name: string
+
+[Error Messages]
+ValueError: `data_format` must be 'NWC' or 'NCW'. Received: data_format=0
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 32 (Integer indices only valid with int-compatible dtype)
+{v_1 : tuple(int), v_2 : dtype} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] ≥ 0 ∧ v_2 = 1 ∨ v_2 = 2 ∨ v_2 = 3 ∨ v_2 = 4 ∨ v_2 = 5
+
+Rule 31 (dtype must be a floating-point type)
+{v_1 : dtype} |= v_1 = 6 ∨ v_1 = 7 ∨ v_1 = 8
+
+Rule 8 (tensor must have an integer dtype: 1–5)
+{v1: tensor} |= 1 ≤ dtype(v1) ∧ dtype(v1) ≤ 5
+
+Rule 18 (input tensor is empty or only contains non-negative values)
+{v_1 : tensor} |= (∃i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = 0) ∨ min(v_1) ≥ 0
+
+Rule 27 (reduction over valid dimensions)
+{v_1 : tensor, v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 131 (data_format must be 'NWC' or 'NCW')
+{v_5 : str} |= v_5 = "NWC" ∨ v_5 = "NCW"
+Token usage: input=14231, output=563, total=20009
+** DUPLICATED RULE ** (num_failures: 4)
+
+>>> PROMPT
+[Feedback Message from Prior Run]
+Duplicated rule: {v_1 : tensor} |= ndim(v_1) ≥ 3
+Duplicated rule: {v_1 : tensor, v_2 : tensor} |= dtype_(v_1) = dtype_(v_2)
+
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.nn.conv1d API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Computes a 1-D convolution given 3-D input and filter tensors.
+
+  Given an input tensor of shape
+    `batch_shape + [in_width, in_channels]`
+  if `data_format` is `"NWC"`, or
+    `batch_shape + [in_channels, in_width]`
+  if `data_format` is `"NCW"`,
+  and a filter / kernel tensor of shape
+  `[filter_width, in_channels, out_channels]`, this op reshapes
+  the arguments to pass them to `conv2d` to perform the equivalent
+  convolution operation.
+
+  Internally, this op reshapes the input tensors and invokes `tf.nn.conv2d`.
+  For example, if `data_format` does not start with `"NC"`, a tensor of shape
+    `batch_shape + [in_width, in_channels]`
+  is reshaped to
+    `batch_shape + [1, in_width, in_channels]`,
+  and the filter is reshaped to
+    `[1, filter_width, in_channels, out_channels]`.
+  The result is then reshaped back to
+    `batch_shape + [out_width, out_channels]`
+  \(where out_width is a function of the stride and padding as in conv2d\) and
+  returned to the caller.
+
+  Args:
+    input: A Tensor of rank at least 3. Must be of type `float16`, `float32`, or
+      `float64`.
+    filters: A Tensor of rank at least 3.  Must have the same type as `input`.
+    stride: An int or list of `ints` that has length `1` or `3`.  The number of
+      entries by which the filter is moved right at each step.
+    padding: 'SAME' or 'VALID'. See
+      [here](https://www.tensorflow.org/api_docs/python/tf/nn#notes_on_padding_2)
+      for more information.
+    data_format: An optional `string` from `"NWC", "NCW"`.  Defaults to `"NWC"`,
+      the data is stored in the order of
+      `batch_shape + [in_width, in_channels]`.  The `"NCW"` format stores data
+      as `batch_shape + [in_channels, in_width]`.
+    dilations: An int or list of `ints` that has length `1` or `3` which
+      defaults to 1. The dilation factor for each dimension of input. If set to
+      k > 1, there will be k-1 skipped cells between each filter element on that
+      dimension. Dilations in the batch and depth dimensions must be 1.
+    name: A name for the operation (optional).
+
+  Returns:
+    A `Tensor`.  Has the same type as input.
+
+  Raises:
+    ValueError: if `data_format` is invalid.
+
+[API Signature] input: tensor, filters: tensor, stride: integer, padding: string, data_format: string, dilations: list, name: string
+
+[Error Messages]
+ValueError: `data_format` must be 'NWC' or 'NCW'. Received: data_format=0
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 32 (Integer indices only valid with int-compatible dtype)
+{v_1 : tuple(int), v_2 : dtype} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] ≥ 0 ∧ v_2 = 1 ∨ v_2 = 2 ∨ v_2 = 3 ∨ v_2 = 4 ∨ v_2 = 5
+
+Rule 31 (dtype must be a floating-point type)
+{v_1 : dtype} |= v_1 = 6 ∨ v_1 = 7 ∨ v_1 = 8
+
+Rule 8 (tensor must have an integer dtype: 1–5)
+{v1: tensor} |= 1 ≤ dtype(v1) ∧ dtype(v1) ≤ 5
+
+Rule 18 (input tensor is empty or only contains non-negative values)
+{v_1 : tensor} |= (∃i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = 0) ∨ min(v_1) ≥ 0
+
+Rule 27 (reduction over valid dimensions)
+{v_1 : tensor, v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 132 (dilations list must contain elements greater than or equal to 1)
+{v_6 : list(int)} |= ∀i ∈ [0, v_6.len - 1] : v_6[i] ≥ 1
+Token usage: input=14231, output=563, total=20009
+** SUCCESS **
+
+>>> PROMPT
+[Feedback Message from Prior Run]
+Duplicated rule: {v_1 : tensor} |= ndim(v_1) ≥ 3
+Duplicated rule: {v_1 : tensor, v_2 : tensor} |= dtype_(v_1) = dtype_(v_2)
+
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.nn.conv1d API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Computes a 1-D convolution given 3-D input and filter tensors.
+
+  Given an input tensor of shape
+    `batch_shape + [in_width, in_channels]`
+  if `data_format` is `"NWC"`, or
+    `batch_shape + [in_channels, in_width]`
+  if `data_format` is `"NCW"`,
+  and a filter / kernel tensor of shape
+  `[filter_width, in_channels, out_channels]`, this op reshapes
+  the arguments to pass them to `conv2d` to perform the equivalent
+  convolution operation.
+
+  Internally, this op reshapes the input tensors and invokes `tf.nn.conv2d`.
+  For example, if `data_format` does not start with `"NC"`, a tensor of shape
+    `batch_shape + [in_width, in_channels]`
+  is reshaped to
+    `batch_shape + [1, in_width, in_channels]`,
+  and the filter is reshaped to
+    `[1, filter_width, in_channels, out_channels]`.
+  The result is then reshaped back to
+    `batch_shape + [out_width, out_channels]`
+  \(where out_width is a function of the stride and padding as in conv2d\) and
+  returned to the caller.
+
+  Args:
+    input: A Tensor of rank at least 3. Must be of type `float16`, `float32`, or
+      `float64`.
+    filters: A Tensor of rank at least 3.  Must have the same type as `input`.
+    stride: An int or list of `ints` that has length `1` or `3`.  The number of
+      entries by which the filter is moved right at each step.
+    padding: 'SAME' or 'VALID'. See
+      [here](https://www.tensorflow.org/api_docs/python/tf/nn#notes_on_padding_2)
+      for more information.
+    data_format: An optional `string` from `"NWC", "NCW"`.  Defaults to `"NWC"`,
+      the data is stored in the order of
+      `batch_shape + [in_width, in_channels]`.  The `"NCW"` format stores data
+      as `batch_shape + [in_channels, in_width]`.
+    dilations: An int or list of `ints` that has length `1` or `3` which
+      defaults to 1. The dilation factor for each dimension of input. If set to
+      k > 1, there will be k-1 skipped cells between each filter element on that
+      dimension. Dilations in the batch and depth dimensions must be 1.
+    name: A name for the operation (optional).
+
+  Returns:
+    A `Tensor`.  Has the same type as input.
+
+  Raises:
+    ValueError: if `data_format` is invalid.
+
+[API Signature] input: tensor, filters: tensor, stride: integer, padding: string, data_format: string, dilations: list, name: string
+
+[Error Messages]
+ValueError: `data_format` must be 'NWC' or 'NCW'. Received: data_format=0
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 32 (Integer indices only valid with int-compatible dtype)
+{v_1 : tuple(int), v_2 : dtype} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] ≥ 0 ∧ v_2 = 1 ∨ v_2 = 2 ∨ v_2 = 3 ∨ v_2 = 4 ∨ v_2 = 5
+
+Rule 31 (dtype must be a floating-point type)
+{v_1 : dtype} |= v_1 = 6 ∨ v_1 = 7 ∨ v_1 = 8
+
+Rule 8 (tensor must have an integer dtype: 1–5)
+{v1: tensor} |= 1 ≤ dtype(v1) ∧ dtype(v1) ≤ 5
+
+Rule 18 (input tensor is empty or only contains non-negative values)
+{v_1 : tensor} |= (∃i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = 0) ∨ min(v_1) ≥ 0
+
+Rule 27 (reduction over valid dimensions)
+{v_1 : tensor, v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 133 (dilations list length must be 1 or 3)
+{v_6 : list(int)} |= v_6.len = 1 ∨ v_6.len = 3
+Token usage: input=14231, output=563, total=20009
+** DUPLICATED RULE ** (num_failures: 5)
+
+>>> PROMPT
+[Feedback Message from Prior Run]
+Duplicated rule: {v_1 : tensor} |= ndim(v_1) ≥ 3
+Duplicated rule: {v_1 : tensor, v_2 : tensor} |= dtype_(v_1) = dtype_(v_2)
+
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.nn.conv1d API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Computes a 1-D convolution given 3-D input and filter tensors.
+
+  Given an input tensor of shape
+    `batch_shape + [in_width, in_channels]`
+  if `data_format` is `"NWC"`, or
+    `batch_shape + [in_channels, in_width]`
+  if `data_format` is `"NCW"`,
+  and a filter / kernel tensor of shape
+  `[filter_width, in_channels, out_channels]`, this op reshapes
+  the arguments to pass them to `conv2d` to perform the equivalent
+  convolution operation.
+
+  Internally, this op reshapes the input tensors and invokes `tf.nn.conv2d`.
+  For example, if `data_format` does not start with `"NC"`, a tensor of shape
+    `batch_shape + [in_width, in_channels]`
+  is reshaped to
+    `batch_shape + [1, in_width, in_channels]`,
+  and the filter is reshaped to
+    `[1, filter_width, in_channels, out_channels]`.
+  The result is then reshaped back to
+    `batch_shape + [out_width, out_channels]`
+  \(where out_width is a function of the stride and padding as in conv2d\) and
+  returned to the caller.
+
+  Args:
+    input: A Tensor of rank at least 3. Must be of type `float16`, `float32`, or
+      `float64`.
+    filters: A Tensor of rank at least 3.  Must have the same type as `input`.
+    stride: An int or list of `ints` that has length `1` or `3`.  The number of
+      entries by which the filter is moved right at each step.
+    padding: 'SAME' or 'VALID'. See
+      [here](https://www.tensorflow.org/api_docs/python/tf/nn#notes_on_padding_2)
+      for more information.
+    data_format: An optional `string` from `"NWC", "NCW"`.  Defaults to `"NWC"`,
+      the data is stored in the order of
+      `batch_shape + [in_width, in_channels]`.  The `"NCW"` format stores data
+      as `batch_shape + [in_channels, in_width]`.
+    dilations: An int or list of `ints` that has length `1` or `3` which
+      defaults to 1. The dilation factor for each dimension of input. If set to
+      k > 1, there will be k-1 skipped cells between each filter element on that
+      dimension. Dilations in the batch and depth dimensions must be 1.
+    name: A name for the operation (optional).
+
+  Returns:
+    A `Tensor`.  Has the same type as input.
+
+  Raises:
+    ValueError: if `data_format` is invalid.
+
+[API Signature] input: tensor, filters: tensor, stride: integer, padding: string, data_format: string, dilations: list, name: string
+
+[Error Messages]
+ValueError: `data_format` must be 'NWC' or 'NCW'. Received: data_format=0
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 32 (Integer indices only valid with int-compatible dtype)
+{v_1 : tuple(int), v_2 : dtype} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] ≥ 0 ∧ v_2 = 1 ∨ v_2 = 2 ∨ v_2 = 3 ∨ v_2 = 4 ∨ v_2 = 5
+
+Rule 31 (dtype must be a floating-point type)
+{v_1 : dtype} |= v_1 = 6 ∨ v_1 = 7 ∨ v_1 = 8
+
+Rule 8 (tensor must have an integer dtype: 1–5)
+{v1: tensor} |= 1 ≤ dtype(v1) ∧ dtype(v1) ≤ 5
+
+Rule 18 (input tensor is empty or only contains non-negative values)
+{v_1 : tensor} |= (∃i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = 0) ∨ min(v_1) ≥ 0
+
+Rule 27 (reduction over valid dimensions)
+{v_1 : tensor, v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 134 (dilations in batch and depth dimensions must be 1 if dilations list length is 3)
+{v_6 : list(int)} |= if v_6.len = 3 then v_6[0] = 1 ∧ v_6[2] = 1
+Token usage: input=14231, output=563, total=20009
+** DUPLICATED RULE ** (num_failures: 6)
+
+>>> PROMPT
+[Feedback Message from Prior Run]
+Duplicated rule: {v_1 : tensor} |= ndim(v_1) ≥ 3
+Duplicated rule: {v_1 : tensor, v_2 : tensor} |= dtype_(v_1) = dtype_(v_2)
+
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.nn.conv1d API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Computes a 1-D convolution given 3-D input and filter tensors.
+
+  Given an input tensor of shape
+    `batch_shape + [in_width, in_channels]`
+  if `data_format` is `"NWC"`, or
+    `batch_shape + [in_channels, in_width]`
+  if `data_format` is `"NCW"`,
+  and a filter / kernel tensor of shape
+  `[filter_width, in_channels, out_channels]`, this op reshapes
+  the arguments to pass them to `conv2d` to perform the equivalent
+  convolution operation.
+
+  Internally, this op reshapes the input tensors and invokes `tf.nn.conv2d`.
+  For example, if `data_format` does not start with `"NC"`, a tensor of shape
+    `batch_shape + [in_width, in_channels]`
+  is reshaped to
+    `batch_shape + [1, in_width, in_channels]`,
+  and the filter is reshaped to
+    `[1, filter_width, in_channels, out_channels]`.
+  The result is then reshaped back to
+    `batch_shape + [out_width, out_channels]`
+  \(where out_width is a function of the stride and padding as in conv2d\) and
+  returned to the caller.
+
+  Args:
+    input: A Tensor of rank at least 3. Must be of type `float16`, `float32`, or
+      `float64`.
+    filters: A Tensor of rank at least 3.  Must have the same type as `input`.
+    stride: An int or list of `ints` that has length `1` or `3`.  The number of
+      entries by which the filter is moved right at each step.
+    padding: 'SAME' or 'VALID'. See
+      [here](https://www.tensorflow.org/api_docs/python/tf/nn#notes_on_padding_2)
+      for more information.
+    data_format: An optional `string` from `"NWC", "NCW"`.  Defaults to `"NWC"`,
+      the data is stored in the order of
+      `batch_shape + [in_width, in_channels]`.  The `"NCW"` format stores data
+      as `batch_shape + [in_channels, in_width]`.
+    dilations: An int or list of `ints` that has length `1` or `3` which
+      defaults to 1. The dilation factor for each dimension of input. If set to
+      k > 1, there will be k-1 skipped cells between each filter element on that
+      dimension. Dilations in the batch and depth dimensions must be 1.
+    name: A name for the operation (optional).
+
+  Returns:
+    A `Tensor`.  Has the same type as input.
+
+  Raises:
+    ValueError: if `data_format` is invalid.
+
+[API Signature] input: tensor, filters: tensor, stride: integer, padding: string, data_format: string, dilations: list, name: string
+
+[Error Messages]
+ValueError: `data_format` must be 'NWC' or 'NCW'. Received: data_format=0
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 32 (Integer indices only valid with int-compatible dtype)
+{v_1 : tuple(int), v_2 : dtype} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] ≥ 0 ∧ v_2 = 1 ∨ v_2 = 2 ∨ v_2 = 3 ∨ v_2 = 4 ∨ v_2 = 5
+
+Rule 31 (dtype must be a floating-point type)
+{v_1 : dtype} |= v_1 = 6 ∨ v_1 = 7 ∨ v_1 = 8
+
+Rule 8 (tensor must have an integer dtype: 1–5)
+{v1: tensor} |= 1 ≤ dtype(v1) ∧ dtype(v1) ≤ 5
+
+Rule 18 (input tensor is empty or only contains non-negative values)
+{v_1 : tensor} |= (∃i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = 0) ∨ min(v_1) ≥ 0
+
+Rule 27 (reduction over valid dimensions)
+{v_1 : tensor, v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 135 (input and filter channels must match based on the data format)
+{v_1 : tensor, v_2 : tensor, v_5 : str} |= if v_5 = "NWC" then shape(v_1, ndim(v_1) - 1) = shape(v_2, 1) else shape(v_1, ndim(v_1) - 2) = shape(v_2, 1)
+Token usage: input=14231, output=563, total=20009
+** DUPLICATED RULE ** (num_failures: 7)
+
+>>> PROMPT
+[Feedback Message from Prior Run]
+Duplicated rule: {v_1 : tensor} |= ndim(v_1) ≥ 3
+Duplicated rule: {v_1 : tensor, v_2 : tensor} |= dtype_(v_1) = dtype_(v_2)
+
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.nn.conv1d API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Computes a 1-D convolution given 3-D input and filter tensors.
+
+  Given an input tensor of shape
+    `batch_shape + [in_width, in_channels]`
+  if `data_format` is `"NWC"`, or
+    `batch_shape + [in_channels, in_width]`
+  if `data_format` is `"NCW"`,
+  and a filter / kernel tensor of shape
+  `[filter_width, in_channels, out_channels]`, this op reshapes
+  the arguments to pass them to `conv2d` to perform the equivalent
+  convolution operation.
+
+  Internally, this op reshapes the input tensors and invokes `tf.nn.conv2d`.
+  For example, if `data_format` does not start with `"NC"`, a tensor of shape
+    `batch_shape + [in_width, in_channels]`
+  is reshaped to
+    `batch_shape + [1, in_width, in_channels]`,
+  and the filter is reshaped to
+    `[1, filter_width, in_channels, out_channels]`.
+  The result is then reshaped back to
+    `batch_shape + [out_width, out_channels]`
+  \(where out_width is a function of the stride and padding as in conv2d\) and
+  returned to the caller.
+
+  Args:
+    input: A Tensor of rank at least 3. Must be of type `float16`, `float32`, or
+      `float64`.
+    filters: A Tensor of rank at least 3.  Must have the same type as `input`.
+    stride: An int or list of `ints` that has length `1` or `3`.  The number of
+      entries by which the filter is moved right at each step.
+    padding: 'SAME' or 'VALID'. See
+      [here](https://www.tensorflow.org/api_docs/python/tf/nn#notes_on_padding_2)
+      for more information.
+    data_format: An optional `string` from `"NWC", "NCW"`.  Defaults to `"NWC"`,
+      the data is stored in the order of
+      `batch_shape + [in_width, in_channels]`.  The `"NCW"` format stores data
+      as `batch_shape + [in_channels, in_width]`.
+    dilations: An int or list of `ints` that has length `1` or `3` which
+      defaults to 1. The dilation factor for each dimension of input. If set to
+      k > 1, there will be k-1 skipped cells between each filter element on that
+      dimension. Dilations in the batch and depth dimensions must be 1.
+    name: A name for the operation (optional).
+
+  Returns:
+    A `Tensor`.  Has the same type as input.
+
+  Raises:
+    ValueError: if `data_format` is invalid.
+
+[API Signature] input: tensor, filters: tensor, stride: integer, padding: string, data_format: string, dilations: list, name: string
+
+[Error Messages]
+ValueError: `data_format` must be 'NWC' or 'NCW'. Received: data_format=0
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 32 (Integer indices only valid with int-compatible dtype)
+{v_1 : tuple(int), v_2 : dtype} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] ≥ 0 ∧ v_2 = 1 ∨ v_2 = 2 ∨ v_2 = 3 ∨ v_2 = 4 ∨ v_2 = 5
+
+Rule 31 (dtype must be a floating-point type)
+{v_1 : dtype} |= v_1 = 6 ∨ v_1 = 7 ∨ v_1 = 8
+
+Rule 8 (tensor must have an integer dtype: 1–5)
+{v1: tensor} |= 1 ≤ dtype(v1) ∧ dtype(v1) ≤ 5
+
+Rule 18 (input tensor is empty or only contains non-negative values)
+{v_1 : tensor} |= (∃i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = 0) ∨ min(v_1) ≥ 0
+
+Rule 27 (reduction over valid dimensions)
+{v_1 : tensor, v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 136 (padding must be 'SAME' or 'VALID')
+{v_4 : str} |= v_4 = "SAME" ∨ v_4 = "VALID" ∨ v_4 = "same" ∨ v_4 = "valid"
+Token usage: input=14231, output=563, total=20009
+** DUPLICATED RULE ** (num_failures: 8)
+

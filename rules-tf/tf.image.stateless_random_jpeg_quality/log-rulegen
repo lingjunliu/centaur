@@ -13143,3 +13143,2314 @@ Rule 96 (Check that the image qualities are of integer type, enforces a single c
 {v_1 : int ⊎ float, v_2: int ⊎ float} |= if (v_1 % 1) = 0 ∧ (v_2 % 1) = 0 then true else false
 ** SUCCESS **
 
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.image.stateless_random_jpeg_quality API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Deterministically radomize jpeg encoding quality for inducing jpeg noise.
+
+  Guarantees the same results given the same `seed` independent of how many
+  times the function is called, and independent of global seed settings (e.g.
+  `tf.random.set_seed`).
+
+  `min_jpeg_quality` must be in the interval `[0, 100]` and less than
+  `max_jpeg_quality`.
+  `max_jpeg_quality` must be in the interval `[0, 100]`.
+
+  Usage Example:
+
+  >>> x = tf.constant([[[1, 2, 3],
+  ...                   [4, 5, 6]],
+  ...                  [[7, 8, 9],
+  ...                   [10, 11, 12]]], dtype=tf.uint8)
+  >>> seed = (1, 2)
+  >>> tf.image.stateless_random_jpeg_quality(x, 75, 95, seed)
+  <tf.Tensor: shape=(2, 2, 3), dtype=uint8, numpy=
+  array([[[ 0,  4,  5],
+          [ 1,  5,  6]],
+         [[ 5,  9, 10],
+          [ 5,  9, 10]]], dtype=uint8)>
+
+  Args:
+    image: 3D image. Size of the last dimension must be 1 or 3.
+    min_jpeg_quality: Minimum jpeg encoding quality to use.
+    max_jpeg_quality: Maximum jpeg encoding quality to use.
+    seed: A shape [2] Tensor, the seed to the random number generator. Must have
+      dtype `int32` or `int64`. (When using XLA, only `int32` is allowed.)
+
+  Returns:
+    Adjusted image(s), same shape and DType as `image`.
+
+  Raises:
+    ValueError: if `min_jpeg_quality` or `max_jpeg_quality` is invalid.
+
+[API Signature] image: tensor, min_jpeg_quality: integer, max_jpeg_quality: integer, seed: tensor
+
+[Error Messages]
+InvalidArgumentError: {{function_node __wrapped__StatelessRandomGetKeyCounter_device_/job:localhost/replica:0/task:0/device:CPU:0}} seed must have shape [2], not [100,75,10,84,30] [Op:StatelessRandomGetKeyCounter]
+ValueError: `min_jpeg_quality` must be less than `max_jpeg_quality`.
+ValueError: jpeg encoding range must be between 0 and 100.
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 25 (tensor shape matches given tuple shape)
+{v_1 : tensor, v_2 : tuple(int)} |= ndim(v_1) = v_2.len ∧ ∀i ∈ [0, v_2.len - 1] : shape(v_1, i) = v_2[i]
+
+Rule 8 (tensor must have an integer dtype: 1–5)
+{v1: tensor} |= 1 ≤ dtype(v1) ∧ dtype(v1) ≤ 5
+
+Rule 27 (reduction over valid dimensions)
+{v_1 : tensor, v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 12 (a primitive type variable is smaller than the other)
+{v_1 : int ⊎ float, v_2 : int ⊎ float} |= v_1 ≤ v_2
+
+Rule 29 (list of floats for weights must match length of a tensor dimension)
+{v_1 : tensor, v_2 : list(float)} |= v_2.len = shape(v_1, 0) ∧ ∀i ∈ [0, v_2.len - 1] : v_2[i] ≥ 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 97 (seed shape and dtype constraints)
+{v_4 : tensor} |= ndim(v_4) = 1 ∧ shape(v_4, 0) = 2 ∧ (dtype_(v_4) = 3 ∨ dtype_(v_4) = 4)
+Token usage: input=2042, output=247, total=5340
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.image.stateless_random_jpeg_quality API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Deterministically radomize jpeg encoding quality for inducing jpeg noise.
+
+  Guarantees the same results given the same `seed` independent of how many
+  times the function is called, and independent of global seed settings (e.g.
+  `tf.random.set_seed`).
+
+  `min_jpeg_quality` must be in the interval `[0, 100]` and less than
+  `max_jpeg_quality`.
+  `max_jpeg_quality` must be in the interval `[0, 100]`.
+
+  Usage Example:
+
+  >>> x = tf.constant([[[1, 2, 3],
+  ...                   [4, 5, 6]],
+  ...                  [[7, 8, 9],
+  ...                   [10, 11, 12]]], dtype=tf.uint8)
+  >>> seed = (1, 2)
+  >>> tf.image.stateless_random_jpeg_quality(x, 75, 95, seed)
+  <tf.Tensor: shape=(2, 2, 3), dtype=uint8, numpy=
+  array([[[ 0,  4,  5],
+          [ 1,  5,  6]],
+         [[ 5,  9, 10],
+          [ 5,  9, 10]]], dtype=uint8)>
+
+  Args:
+    image: 3D image. Size of the last dimension must be 1 or 3.
+    min_jpeg_quality: Minimum jpeg encoding quality to use.
+    max_jpeg_quality: Maximum jpeg encoding quality to use.
+    seed: A shape [2] Tensor, the seed to the random number generator. Must have
+      dtype `int32` or `int64`. (When using XLA, only `int32` is allowed.)
+
+  Returns:
+    Adjusted image(s), same shape and DType as `image`.
+
+  Raises:
+    ValueError: if `min_jpeg_quality` or `max_jpeg_quality` is invalid.
+
+[API Signature] image: tensor, min_jpeg_quality: integer, max_jpeg_quality: integer, seed: tensor
+
+[Error Messages]
+InvalidArgumentError: {{function_node __wrapped__StatelessRandomGetKeyCounter_device_/job:localhost/replica:0/task:0/device:CPU:0}} seed must have shape [2], not [100,75,10,84,30] [Op:StatelessRandomGetKeyCounter]
+ValueError: `min_jpeg_quality` must be less than `max_jpeg_quality`.
+ValueError: jpeg encoding range must be between 0 and 100.
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 25 (tensor shape matches given tuple shape)
+{v_1 : tensor, v_2 : tuple(int)} |= ndim(v_1) = v_2.len ∧ ∀i ∈ [0, v_2.len - 1] : shape(v_1, i) = v_2[i]
+
+Rule 8 (tensor must have an integer dtype: 1–5)
+{v1: tensor} |= 1 ≤ dtype(v1) ∧ dtype(v1) ≤ 5
+
+Rule 27 (reduction over valid dimensions)
+{v_1 : tensor, v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 12 (a primitive type variable is smaller than the other)
+{v_1 : int ⊎ float, v_2 : int ⊎ float} |= v_1 ≤ v_2
+
+Rule 29 (list of floats for weights must match length of a tensor dimension)
+{v_1 : tensor, v_2 : list(float)} |= v_2.len = shape(v_1, 0) ∧ ∀i ∈ [0, v_2.len - 1] : v_2[i] ≥ 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 98 (min_jpeg_quality must be less than max_jpeg_quality)
+{v_2 : int, v_3 : int} |= v_2 < v_3
+Token usage: input=2042, output=247, total=5340
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.image.stateless_random_jpeg_quality API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Deterministically radomize jpeg encoding quality for inducing jpeg noise.
+
+  Guarantees the same results given the same `seed` independent of how many
+  times the function is called, and independent of global seed settings (e.g.
+  `tf.random.set_seed`).
+
+  `min_jpeg_quality` must be in the interval `[0, 100]` and less than
+  `max_jpeg_quality`.
+  `max_jpeg_quality` must be in the interval `[0, 100]`.
+
+  Usage Example:
+
+  >>> x = tf.constant([[[1, 2, 3],
+  ...                   [4, 5, 6]],
+  ...                  [[7, 8, 9],
+  ...                   [10, 11, 12]]], dtype=tf.uint8)
+  >>> seed = (1, 2)
+  >>> tf.image.stateless_random_jpeg_quality(x, 75, 95, seed)
+  <tf.Tensor: shape=(2, 2, 3), dtype=uint8, numpy=
+  array([[[ 0,  4,  5],
+          [ 1,  5,  6]],
+         [[ 5,  9, 10],
+          [ 5,  9, 10]]], dtype=uint8)>
+
+  Args:
+    image: 3D image. Size of the last dimension must be 1 or 3.
+    min_jpeg_quality: Minimum jpeg encoding quality to use.
+    max_jpeg_quality: Maximum jpeg encoding quality to use.
+    seed: A shape [2] Tensor, the seed to the random number generator. Must have
+      dtype `int32` or `int64`. (When using XLA, only `int32` is allowed.)
+
+  Returns:
+    Adjusted image(s), same shape and DType as `image`.
+
+  Raises:
+    ValueError: if `min_jpeg_quality` or `max_jpeg_quality` is invalid.
+
+[API Signature] image: tensor, min_jpeg_quality: integer, max_jpeg_quality: integer, seed: tensor
+
+[Error Messages]
+InvalidArgumentError: {{function_node __wrapped__StatelessRandomGetKeyCounter_device_/job:localhost/replica:0/task:0/device:CPU:0}} seed must have shape [2], not [100,75,10,84,30] [Op:StatelessRandomGetKeyCounter]
+ValueError: `min_jpeg_quality` must be less than `max_jpeg_quality`.
+ValueError: jpeg encoding range must be between 0 and 100.
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 25 (tensor shape matches given tuple shape)
+{v_1 : tensor, v_2 : tuple(int)} |= ndim(v_1) = v_2.len ∧ ∀i ∈ [0, v_2.len - 1] : shape(v_1, i) = v_2[i]
+
+Rule 8 (tensor must have an integer dtype: 1–5)
+{v1: tensor} |= 1 ≤ dtype(v1) ∧ dtype(v1) ≤ 5
+
+Rule 27 (reduction over valid dimensions)
+{v_1 : tensor, v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 12 (a primitive type variable is smaller than the other)
+{v_1 : int ⊎ float, v_2 : int ⊎ float} |= v_1 ≤ v_2
+
+Rule 29 (list of floats for weights must match length of a tensor dimension)
+{v_1 : tensor, v_2 : list(float)} |= v_2.len = shape(v_1, 0) ∧ ∀i ∈ [0, v_2.len - 1] : v_2[i] ≥ 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 99 (jpeg encoding quality must be between 0 and 100)
+{v_2 : int, v_3 : int} |= 0 ≤ v_2 ∧ v_2 ≤ 100 ∧ 0 ≤ v_3 ∧ v_3 ≤ 100
+Token usage: input=2042, output=247, total=5340
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.image.stateless_random_jpeg_quality API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Deterministically radomize jpeg encoding quality for inducing jpeg noise.
+
+  Guarantees the same results given the same `seed` independent of how many
+  times the function is called, and independent of global seed settings (e.g.
+  `tf.random.set_seed`).
+
+  `min_jpeg_quality` must be in the interval `[0, 100]` and less than
+  `max_jpeg_quality`.
+  `max_jpeg_quality` must be in the interval `[0, 100]`.
+
+  Usage Example:
+
+  >>> x = tf.constant([[[1, 2, 3],
+  ...                   [4, 5, 6]],
+  ...                  [[7, 8, 9],
+  ...                   [10, 11, 12]]], dtype=tf.uint8)
+  >>> seed = (1, 2)
+  >>> tf.image.stateless_random_jpeg_quality(x, 75, 95, seed)
+  <tf.Tensor: shape=(2, 2, 3), dtype=uint8, numpy=
+  array([[[ 0,  4,  5],
+          [ 1,  5,  6]],
+         [[ 5,  9, 10],
+          [ 5,  9, 10]]], dtype=uint8)>
+
+  Args:
+    image: 3D image. Size of the last dimension must be 1 or 3.
+    min_jpeg_quality: Minimum jpeg encoding quality to use.
+    max_jpeg_quality: Maximum jpeg encoding quality to use.
+    seed: A shape [2] Tensor, the seed to the random number generator. Must have
+      dtype `int32` or `int64`. (When using XLA, only `int32` is allowed.)
+
+  Returns:
+    Adjusted image(s), same shape and DType as `image`.
+
+  Raises:
+    ValueError: if `min_jpeg_quality` or `max_jpeg_quality` is invalid.
+
+[API Signature] image: tensor, min_jpeg_quality: integer, max_jpeg_quality: integer, seed: tensor
+
+[Error Messages]
+InvalidArgumentError: {{function_node __wrapped__StatelessRandomGetKeyCounter_device_/job:localhost/replica:0/task:0/device:CPU:0}} seed must have shape [2], not [100,75,10,84,30] [Op:StatelessRandomGetKeyCounter]
+ValueError: `min_jpeg_quality` must be less than `max_jpeg_quality`.
+ValueError: jpeg encoding range must be between 0 and 100.
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 25 (tensor shape matches given tuple shape)
+{v_1 : tensor, v_2 : tuple(int)} |= ndim(v_1) = v_2.len ∧ ∀i ∈ [0, v_2.len - 1] : shape(v_1, i) = v_2[i]
+
+Rule 8 (tensor must have an integer dtype: 1–5)
+{v1: tensor} |= 1 ≤ dtype(v1) ∧ dtype(v1) ≤ 5
+
+Rule 27 (reduction over valid dimensions)
+{v_1 : tensor, v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 12 (a primitive type variable is smaller than the other)
+{v_1 : int ⊎ float, v_2 : int ⊎ float} |= v_1 ≤ v_2
+
+Rule 29 (list of floats for weights must match length of a tensor dimension)
+{v_1 : tensor, v_2 : list(float)} |= v_2.len = shape(v_1, 0) ∧ ∀i ∈ [0, v_2.len - 1] : v_2[i] ≥ 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 100 (image must be a 3D tensor with 1 or 3 channels)
+{v_1 : tensor} |= ndim(v_1) = 3 ∧ (shape(v_1, 2) = 1 ∨ shape(v_1, 2) = 3)
+Token usage: input=2042, output=247, total=5340
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.image.stateless_random_jpeg_quality API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Deterministically radomize jpeg encoding quality for inducing jpeg noise.
+
+  Guarantees the same results given the same `seed` independent of how many
+  times the function is called, and independent of global seed settings (e.g.
+  `tf.random.set_seed`).
+
+  `min_jpeg_quality` must be in the interval `[0, 100]` and less than
+  `max_jpeg_quality`.
+  `max_jpeg_quality` must be in the interval `[0, 100]`.
+
+  Usage Example:
+
+  >>> x = tf.constant([[[1, 2, 3],
+  ...                   [4, 5, 6]],
+  ...                  [[7, 8, 9],
+  ...                   [10, 11, 12]]], dtype=tf.uint8)
+  >>> seed = (1, 2)
+  >>> tf.image.stateless_random_jpeg_quality(x, 75, 95, seed)
+  <tf.Tensor: shape=(2, 2, 3), dtype=uint8, numpy=
+  array([[[ 0,  4,  5],
+          [ 1,  5,  6]],
+         [[ 5,  9, 10],
+          [ 5,  9, 10]]], dtype=uint8)>
+
+  Args:
+    image: 3D image. Size of the last dimension must be 1 or 3.
+    min_jpeg_quality: Minimum jpeg encoding quality to use.
+    max_jpeg_quality: Maximum jpeg encoding quality to use.
+    seed: A shape [2] Tensor, the seed to the random number generator. Must have
+      dtype `int32` or `int64`. (When using XLA, only `int32` is allowed.)
+
+  Returns:
+    Adjusted image(s), same shape and DType as `image`.
+
+  Raises:
+    ValueError: if `min_jpeg_quality` or `max_jpeg_quality` is invalid.
+
+[API Signature] image: tensor, min_jpeg_quality: integer, max_jpeg_quality: integer, seed: tensor
+
+[Error Messages]
+InvalidArgumentError: {{function_node __wrapped__StatelessRandomGetKeyCounter_device_/job:localhost/replica:0/task:0/device:CPU:0}} seed must have shape [2], not [100,75,10,84,30] [Op:StatelessRandomGetKeyCounter]
+ValueError: `min_jpeg_quality` must be less than `max_jpeg_quality`.
+ValueError: jpeg encoding range must be between 0 and 100.
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 24 (tuple of ints represents valid shape dimensions)
+{v_1 : tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] > 0
+
+Rule 30 (list of bools for masking or selection)
+{v_1 : tensor, v_2 : list(bool)} |= v_2.len = shape(v_1, 0)
+
+Rule 1 (tensor shapes should be the same)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = shape(v_2, i)
+
+Rule 10 (valid 2D transposed convolution)
+{v_1 : tensor, v_2 : tensor, v_3 : int, v_4 : int} |= ndim(v_1) = 4 ∧ ndim(v_2) = 4 ∧ v_3 ≥ 1 ∧ v_4 ≥ 0 ∧ v_3 × (shape(v_1, 2) − 1) + shape(v_2, 2) − 2 × v_4 > 0 ∧ v_3 × (shape(v_1, 3) − 1) + shape(v_2, 3) − 2 × v_4 > 0
+
+Rule 7 (first dimension of a tensor matches second dimension of the other)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) ≥ 1 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, 0) = shape(v_2, 1)
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 101 (seed must be a 1-D tensor of shape [2] and dtype int32 or int64)
+{v_4 : tensor} |= ndim(v_4) = 1 ∧ shape(v_4, 0) = 2 ∧ (dtype_(v_4) = 3 ∨ dtype_(v_4) = 4)
+Token usage: input=7478, output=267, total=10533
+** DUPLICATED RULE ** (num_failures: 1)
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.image.stateless_random_jpeg_quality API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Deterministically radomize jpeg encoding quality for inducing jpeg noise.
+
+  Guarantees the same results given the same `seed` independent of how many
+  times the function is called, and independent of global seed settings (e.g.
+  `tf.random.set_seed`).
+
+  `min_jpeg_quality` must be in the interval `[0, 100]` and less than
+  `max_jpeg_quality`.
+  `max_jpeg_quality` must be in the interval `[0, 100]`.
+
+  Usage Example:
+
+  >>> x = tf.constant([[[1, 2, 3],
+  ...                   [4, 5, 6]],
+  ...                  [[7, 8, 9],
+  ...                   [10, 11, 12]]], dtype=tf.uint8)
+  >>> seed = (1, 2)
+  >>> tf.image.stateless_random_jpeg_quality(x, 75, 95, seed)
+  <tf.Tensor: shape=(2, 2, 3), dtype=uint8, numpy=
+  array([[[ 0,  4,  5],
+          [ 1,  5,  6]],
+         [[ 5,  9, 10],
+          [ 5,  9, 10]]], dtype=uint8)>
+
+  Args:
+    image: 3D image. Size of the last dimension must be 1 or 3.
+    min_jpeg_quality: Minimum jpeg encoding quality to use.
+    max_jpeg_quality: Maximum jpeg encoding quality to use.
+    seed: A shape [2] Tensor, the seed to the random number generator. Must have
+      dtype `int32` or `int64`. (When using XLA, only `int32` is allowed.)
+
+  Returns:
+    Adjusted image(s), same shape and DType as `image`.
+
+  Raises:
+    ValueError: if `min_jpeg_quality` or `max_jpeg_quality` is invalid.
+
+[API Signature] image: tensor, min_jpeg_quality: integer, max_jpeg_quality: integer, seed: tensor
+
+[Error Messages]
+InvalidArgumentError: {{function_node __wrapped__StatelessRandomGetKeyCounter_device_/job:localhost/replica:0/task:0/device:CPU:0}} seed must have shape [2], not [100,75,10,84,30] [Op:StatelessRandomGetKeyCounter]
+ValueError: `min_jpeg_quality` must be less than `max_jpeg_quality`.
+ValueError: jpeg encoding range must be between 0 and 100.
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 24 (tuple of ints represents valid shape dimensions)
+{v_1 : tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] > 0
+
+Rule 30 (list of bools for masking or selection)
+{v_1 : tensor, v_2 : list(bool)} |= v_2.len = shape(v_1, 0)
+
+Rule 1 (tensor shapes should be the same)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = shape(v_2, i)
+
+Rule 10 (valid 2D transposed convolution)
+{v_1 : tensor, v_2 : tensor, v_3 : int, v_4 : int} |= ndim(v_1) = 4 ∧ ndim(v_2) = 4 ∧ v_3 ≥ 1 ∧ v_4 ≥ 0 ∧ v_3 × (shape(v_1, 2) − 1) + shape(v_2, 2) − 2 × v_4 > 0 ∧ v_3 × (shape(v_1, 3) − 1) + shape(v_2, 3) − 2 × v_4 > 0
+
+Rule 7 (first dimension of a tensor matches second dimension of the other)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) ≥ 1 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, 0) = shape(v_2, 1)
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 102 (min_jpeg_quality must be less than max_jpeg_quality)
+{v_2 : int, v_3 : int} |= v_2 < v_3
+Token usage: input=7478, output=267, total=10533
+** DUPLICATED RULE ** (num_failures: 2)
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.image.stateless_random_jpeg_quality API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Deterministically radomize jpeg encoding quality for inducing jpeg noise.
+
+  Guarantees the same results given the same `seed` independent of how many
+  times the function is called, and independent of global seed settings (e.g.
+  `tf.random.set_seed`).
+
+  `min_jpeg_quality` must be in the interval `[0, 100]` and less than
+  `max_jpeg_quality`.
+  `max_jpeg_quality` must be in the interval `[0, 100]`.
+
+  Usage Example:
+
+  >>> x = tf.constant([[[1, 2, 3],
+  ...                   [4, 5, 6]],
+  ...                  [[7, 8, 9],
+  ...                   [10, 11, 12]]], dtype=tf.uint8)
+  >>> seed = (1, 2)
+  >>> tf.image.stateless_random_jpeg_quality(x, 75, 95, seed)
+  <tf.Tensor: shape=(2, 2, 3), dtype=uint8, numpy=
+  array([[[ 0,  4,  5],
+          [ 1,  5,  6]],
+         [[ 5,  9, 10],
+          [ 5,  9, 10]]], dtype=uint8)>
+
+  Args:
+    image: 3D image. Size of the last dimension must be 1 or 3.
+    min_jpeg_quality: Minimum jpeg encoding quality to use.
+    max_jpeg_quality: Maximum jpeg encoding quality to use.
+    seed: A shape [2] Tensor, the seed to the random number generator. Must have
+      dtype `int32` or `int64`. (When using XLA, only `int32` is allowed.)
+
+  Returns:
+    Adjusted image(s), same shape and DType as `image`.
+
+  Raises:
+    ValueError: if `min_jpeg_quality` or `max_jpeg_quality` is invalid.
+
+[API Signature] image: tensor, min_jpeg_quality: integer, max_jpeg_quality: integer, seed: tensor
+
+[Error Messages]
+InvalidArgumentError: {{function_node __wrapped__StatelessRandomGetKeyCounter_device_/job:localhost/replica:0/task:0/device:CPU:0}} seed must have shape [2], not [100,75,10,84,30] [Op:StatelessRandomGetKeyCounter]
+ValueError: `min_jpeg_quality` must be less than `max_jpeg_quality`.
+ValueError: jpeg encoding range must be between 0 and 100.
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 24 (tuple of ints represents valid shape dimensions)
+{v_1 : tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] > 0
+
+Rule 30 (list of bools for masking or selection)
+{v_1 : tensor, v_2 : list(bool)} |= v_2.len = shape(v_1, 0)
+
+Rule 1 (tensor shapes should be the same)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = shape(v_2, i)
+
+Rule 10 (valid 2D transposed convolution)
+{v_1 : tensor, v_2 : tensor, v_3 : int, v_4 : int} |= ndim(v_1) = 4 ∧ ndim(v_2) = 4 ∧ v_3 ≥ 1 ∧ v_4 ≥ 0 ∧ v_3 × (shape(v_1, 2) − 1) + shape(v_2, 2) − 2 × v_4 > 0 ∧ v_3 × (shape(v_1, 3) − 1) + shape(v_2, 3) − 2 × v_4 > 0
+
+Rule 7 (first dimension of a tensor matches second dimension of the other)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) ≥ 1 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, 0) = shape(v_2, 1)
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 103 (jpeg encoding quality must be in the interval [0, 100])
+{v_2 : int, v_3 : int} |= 0 ≤ v_2 ∧ v_2 ≤ 100 ∧ 0 ≤ v_3 ∧ v_3 ≤ 100
+Token usage: input=7478, output=267, total=10533
+** DUPLICATED RULE ** (num_failures: 3)
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.image.stateless_random_jpeg_quality API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Deterministically radomize jpeg encoding quality for inducing jpeg noise.
+
+  Guarantees the same results given the same `seed` independent of how many
+  times the function is called, and independent of global seed settings (e.g.
+  `tf.random.set_seed`).
+
+  `min_jpeg_quality` must be in the interval `[0, 100]` and less than
+  `max_jpeg_quality`.
+  `max_jpeg_quality` must be in the interval `[0, 100]`.
+
+  Usage Example:
+
+  >>> x = tf.constant([[[1, 2, 3],
+  ...                   [4, 5, 6]],
+  ...                  [[7, 8, 9],
+  ...                   [10, 11, 12]]], dtype=tf.uint8)
+  >>> seed = (1, 2)
+  >>> tf.image.stateless_random_jpeg_quality(x, 75, 95, seed)
+  <tf.Tensor: shape=(2, 2, 3), dtype=uint8, numpy=
+  array([[[ 0,  4,  5],
+          [ 1,  5,  6]],
+         [[ 5,  9, 10],
+          [ 5,  9, 10]]], dtype=uint8)>
+
+  Args:
+    image: 3D image. Size of the last dimension must be 1 or 3.
+    min_jpeg_quality: Minimum jpeg encoding quality to use.
+    max_jpeg_quality: Maximum jpeg encoding quality to use.
+    seed: A shape [2] Tensor, the seed to the random number generator. Must have
+      dtype `int32` or `int64`. (When using XLA, only `int32` is allowed.)
+
+  Returns:
+    Adjusted image(s), same shape and DType as `image`.
+
+  Raises:
+    ValueError: if `min_jpeg_quality` or `max_jpeg_quality` is invalid.
+
+[API Signature] image: tensor, min_jpeg_quality: integer, max_jpeg_quality: integer, seed: tensor
+
+[Error Messages]
+InvalidArgumentError: {{function_node __wrapped__StatelessRandomGetKeyCounter_device_/job:localhost/replica:0/task:0/device:CPU:0}} seed must have shape [2], not [100,75,10,84,30] [Op:StatelessRandomGetKeyCounter]
+ValueError: `min_jpeg_quality` must be less than `max_jpeg_quality`.
+ValueError: jpeg encoding range must be between 0 and 100.
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 24 (tuple of ints represents valid shape dimensions)
+{v_1 : tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] > 0
+
+Rule 30 (list of bools for masking or selection)
+{v_1 : tensor, v_2 : list(bool)} |= v_2.len = shape(v_1, 0)
+
+Rule 1 (tensor shapes should be the same)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = shape(v_2, i)
+
+Rule 10 (valid 2D transposed convolution)
+{v_1 : tensor, v_2 : tensor, v_3 : int, v_4 : int} |= ndim(v_1) = 4 ∧ ndim(v_2) = 4 ∧ v_3 ≥ 1 ∧ v_4 ≥ 0 ∧ v_3 × (shape(v_1, 2) − 1) + shape(v_2, 2) − 2 × v_4 > 0 ∧ v_3 × (shape(v_1, 3) − 1) + shape(v_2, 3) − 2 × v_4 > 0
+
+Rule 7 (first dimension of a tensor matches second dimension of the other)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) ≥ 1 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, 0) = shape(v_2, 1)
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 104 (image must be a 3D tensor with 1 or 3 channels)
+{v_1 : tensor} |= ndim(v_1) = 3 ∧ (shape(v_1, 2) = 1 ∨ shape(v_1, 2) = 3)
+Token usage: input=7478, output=267, total=10533
+** DUPLICATED RULE ** (num_failures: 4)
+
+>>> PROMPT
+[Feedback Message from Prior Run]
+Duplicated rule: {v_4 : tensor} |= ndim(v_4) = 1 ∧ shape(v_4, 0) = 2 ∧ (dtype_(v_4) = 3 ∨ dtype_(v_4) = 4)
+Duplicated rule: {v_2 : int, v_3 : int} |= v_2 < v_3
+Duplicated rule: {v_2 : int, v_3 : int} |= 0 ≤ v_2 ∧ v_2 ≤ 100 ∧ 0 ≤ v_3 ∧ v_3 ≤ 100
+Duplicated rule: {v_1 : tensor} |= ndim(v_1) = 3 ∧ (shape(v_1, 2) = 1 ∨ shape(v_1, 2) = 3)
+
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.image.stateless_random_jpeg_quality API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Deterministically radomize jpeg encoding quality for inducing jpeg noise.
+
+  Guarantees the same results given the same `seed` independent of how many
+  times the function is called, and independent of global seed settings (e.g.
+  `tf.random.set_seed`).
+
+  `min_jpeg_quality` must be in the interval `[0, 100]` and less than
+  `max_jpeg_quality`.
+  `max_jpeg_quality` must be in the interval `[0, 100]`.
+
+  Usage Example:
+
+  >>> x = tf.constant([[[1, 2, 3],
+  ...                   [4, 5, 6]],
+  ...                  [[7, 8, 9],
+  ...                   [10, 11, 12]]], dtype=tf.uint8)
+  >>> seed = (1, 2)
+  >>> tf.image.stateless_random_jpeg_quality(x, 75, 95, seed)
+  <tf.Tensor: shape=(2, 2, 3), dtype=uint8, numpy=
+  array([[[ 0,  4,  5],
+          [ 1,  5,  6]],
+         [[ 5,  9, 10],
+          [ 5,  9, 10]]], dtype=uint8)>
+
+  Args:
+    image: 3D image. Size of the last dimension must be 1 or 3.
+    min_jpeg_quality: Minimum jpeg encoding quality to use.
+    max_jpeg_quality: Maximum jpeg encoding quality to use.
+    seed: A shape [2] Tensor, the seed to the random number generator. Must have
+      dtype `int32` or `int64`. (When using XLA, only `int32` is allowed.)
+
+  Returns:
+    Adjusted image(s), same shape and DType as `image`.
+
+  Raises:
+    ValueError: if `min_jpeg_quality` or `max_jpeg_quality` is invalid.
+
+[API Signature] image: tensor, min_jpeg_quality: integer, max_jpeg_quality: integer, seed: tensor
+
+[Error Messages]
+InvalidArgumentError: {{function_node __wrapped__StatelessRandomGetKeyCounter_device_/job:localhost/replica:0/task:0/device:CPU:0}} seed must have shape [2], not [100,75,10,84,30] [Op:StatelessRandomGetKeyCounter]
+ValueError: `min_jpeg_quality` must be less than `max_jpeg_quality`.
+ValueError: jpeg encoding range must be between 0 and 100.
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 16 (shape alignment for matrix multiplication)
+{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) ≥ 2 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, ndim(v_2) − 2)) ∨ (ndim(v_1) ≥ 2 ∧ ndim(v_2) = 1 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, 0))
+
+Rule 17 (primitive type variable must be non-negative)
+{v_1 : int ⊎ float} |= v_1 ≥ 0
+
+Rule 18 (input tensor is empty or only contains non-negative values)
+{v_1 : tensor} |= (∃i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = 0) ∨ min(v_1) ≥ 0
+
+Rule 20 (input tensor must be 1-dimensional)
+{v_1 : tensor} |= ndim(v_1) = 1
+
+Rule 4 (tensor data types should match)
+{v_1 : tensor, v_2 : tensor} |= dtype(v_1) = dtype(v_2)
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 105 (seed shape and dtype constraints)
+{v_4 : tensor} |= ndim(v_4) = 1 ∧ shape(v_4, 0) = 2 ∧ 3 ≤ dtype_(v_4) ∧ dtype_(v_4) ≤ 4
+Token usage: input=12779, output=190, total=16466
+** SUCCESS **
+
+>>> PROMPT
+[Feedback Message from Prior Run]
+Duplicated rule: {v_4 : tensor} |= ndim(v_4) = 1 ∧ shape(v_4, 0) = 2 ∧ (dtype_(v_4) = 3 ∨ dtype_(v_4) = 4)
+Duplicated rule: {v_2 : int, v_3 : int} |= v_2 < v_3
+Duplicated rule: {v_2 : int, v_3 : int} |= 0 ≤ v_2 ∧ v_2 ≤ 100 ∧ 0 ≤ v_3 ∧ v_3 ≤ 100
+Duplicated rule: {v_1 : tensor} |= ndim(v_1) = 3 ∧ (shape(v_1, 2) = 1 ∨ shape(v_1, 2) = 3)
+
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.image.stateless_random_jpeg_quality API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Deterministically radomize jpeg encoding quality for inducing jpeg noise.
+
+  Guarantees the same results given the same `seed` independent of how many
+  times the function is called, and independent of global seed settings (e.g.
+  `tf.random.set_seed`).
+
+  `min_jpeg_quality` must be in the interval `[0, 100]` and less than
+  `max_jpeg_quality`.
+  `max_jpeg_quality` must be in the interval `[0, 100]`.
+
+  Usage Example:
+
+  >>> x = tf.constant([[[1, 2, 3],
+  ...                   [4, 5, 6]],
+  ...                  [[7, 8, 9],
+  ...                   [10, 11, 12]]], dtype=tf.uint8)
+  >>> seed = (1, 2)
+  >>> tf.image.stateless_random_jpeg_quality(x, 75, 95, seed)
+  <tf.Tensor: shape=(2, 2, 3), dtype=uint8, numpy=
+  array([[[ 0,  4,  5],
+          [ 1,  5,  6]],
+         [[ 5,  9, 10],
+          [ 5,  9, 10]]], dtype=uint8)>
+
+  Args:
+    image: 3D image. Size of the last dimension must be 1 or 3.
+    min_jpeg_quality: Minimum jpeg encoding quality to use.
+    max_jpeg_quality: Maximum jpeg encoding quality to use.
+    seed: A shape [2] Tensor, the seed to the random number generator. Must have
+      dtype `int32` or `int64`. (When using XLA, only `int32` is allowed.)
+
+  Returns:
+    Adjusted image(s), same shape and DType as `image`.
+
+  Raises:
+    ValueError: if `min_jpeg_quality` or `max_jpeg_quality` is invalid.
+
+[API Signature] image: tensor, min_jpeg_quality: integer, max_jpeg_quality: integer, seed: tensor
+
+[Error Messages]
+InvalidArgumentError: {{function_node __wrapped__StatelessRandomGetKeyCounter_device_/job:localhost/replica:0/task:0/device:CPU:0}} seed must have shape [2], not [100,75,10,84,30] [Op:StatelessRandomGetKeyCounter]
+ValueError: `min_jpeg_quality` must be less than `max_jpeg_quality`.
+ValueError: jpeg encoding range must be between 0 and 100.
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 16 (shape alignment for matrix multiplication)
+{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) ≥ 2 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, ndim(v_2) − 2)) ∨ (ndim(v_1) ≥ 2 ∧ ndim(v_2) = 1 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, 0))
+
+Rule 17 (primitive type variable must be non-negative)
+{v_1 : int ⊎ float} |= v_1 ≥ 0
+
+Rule 18 (input tensor is empty or only contains non-negative values)
+{v_1 : tensor} |= (∃i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = 0) ∨ min(v_1) ≥ 0
+
+Rule 20 (input tensor must be 1-dimensional)
+{v_1 : tensor} |= ndim(v_1) = 1
+
+Rule 4 (tensor data types should match)
+{v_1 : tensor, v_2 : tensor} |= dtype(v_1) = dtype(v_2)
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 106 (jpeg quality range and ordering constraints)
+{v_2 : int, v_3 : int} |= 0 ≤ v_2 ∧ v_2 < v_3 ∧ v_3 ≤ 100
+Token usage: input=12779, output=190, total=16466
+** SUCCESS **
+
+>>> PROMPT
+[Feedback Message from Prior Run]
+Duplicated rule: {v_4 : tensor} |= ndim(v_4) = 1 ∧ shape(v_4, 0) = 2 ∧ (dtype_(v_4) = 3 ∨ dtype_(v_4) = 4)
+Duplicated rule: {v_2 : int, v_3 : int} |= v_2 < v_3
+Duplicated rule: {v_2 : int, v_3 : int} |= 0 ≤ v_2 ∧ v_2 ≤ 100 ∧ 0 ≤ v_3 ∧ v_3 ≤ 100
+Duplicated rule: {v_1 : tensor} |= ndim(v_1) = 3 ∧ (shape(v_1, 2) = 1 ∨ shape(v_1, 2) = 3)
+
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.image.stateless_random_jpeg_quality API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Deterministically radomize jpeg encoding quality for inducing jpeg noise.
+
+  Guarantees the same results given the same `seed` independent of how many
+  times the function is called, and independent of global seed settings (e.g.
+  `tf.random.set_seed`).
+
+  `min_jpeg_quality` must be in the interval `[0, 100]` and less than
+  `max_jpeg_quality`.
+  `max_jpeg_quality` must be in the interval `[0, 100]`.
+
+  Usage Example:
+
+  >>> x = tf.constant([[[1, 2, 3],
+  ...                   [4, 5, 6]],
+  ...                  [[7, 8, 9],
+  ...                   [10, 11, 12]]], dtype=tf.uint8)
+  >>> seed = (1, 2)
+  >>> tf.image.stateless_random_jpeg_quality(x, 75, 95, seed)
+  <tf.Tensor: shape=(2, 2, 3), dtype=uint8, numpy=
+  array([[[ 0,  4,  5],
+          [ 1,  5,  6]],
+         [[ 5,  9, 10],
+          [ 5,  9, 10]]], dtype=uint8)>
+
+  Args:
+    image: 3D image. Size of the last dimension must be 1 or 3.
+    min_jpeg_quality: Minimum jpeg encoding quality to use.
+    max_jpeg_quality: Maximum jpeg encoding quality to use.
+    seed: A shape [2] Tensor, the seed to the random number generator. Must have
+      dtype `int32` or `int64`. (When using XLA, only `int32` is allowed.)
+
+  Returns:
+    Adjusted image(s), same shape and DType as `image`.
+
+  Raises:
+    ValueError: if `min_jpeg_quality` or `max_jpeg_quality` is invalid.
+
+[API Signature] image: tensor, min_jpeg_quality: integer, max_jpeg_quality: integer, seed: tensor
+
+[Error Messages]
+InvalidArgumentError: {{function_node __wrapped__StatelessRandomGetKeyCounter_device_/job:localhost/replica:0/task:0/device:CPU:0}} seed must have shape [2], not [100,75,10,84,30] [Op:StatelessRandomGetKeyCounter]
+ValueError: `min_jpeg_quality` must be less than `max_jpeg_quality`.
+ValueError: jpeg encoding range must be between 0 and 100.
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 16 (shape alignment for matrix multiplication)
+{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) ≥ 2 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, ndim(v_2) − 2)) ∨ (ndim(v_1) ≥ 2 ∧ ndim(v_2) = 1 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, 0))
+
+Rule 17 (primitive type variable must be non-negative)
+{v_1 : int ⊎ float} |= v_1 ≥ 0
+
+Rule 18 (input tensor is empty or only contains non-negative values)
+{v_1 : tensor} |= (∃i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = 0) ∨ min(v_1) ≥ 0
+
+Rule 20 (input tensor must be 1-dimensional)
+{v_1 : tensor} |= ndim(v_1) = 1
+
+Rule 4 (tensor data types should match)
+{v_1 : tensor, v_2 : tensor} |= dtype(v_1) = dtype(v_2)
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 107 (image tensor dimensions and channel constraints)
+{v_1 : tensor} |= ndim(v_1) = 3 ∧ shape(v_1, 2) ≥ 1 ∧ shape(v_1, 2) ≤ 3 ∧ shape(v_1, 2) ≠ 2
+Token usage: input=12779, output=190, total=16466
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.image.stateless_random_jpeg_quality API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Deterministically radomize jpeg encoding quality for inducing jpeg noise.
+
+  Guarantees the same results given the same `seed` independent of how many
+  times the function is called, and independent of global seed settings (e.g.
+  `tf.random.set_seed`).
+
+  `min_jpeg_quality` must be in the interval `[0, 100]` and less than
+  `max_jpeg_quality`.
+  `max_jpeg_quality` must be in the interval `[0, 100]`.
+
+  Usage Example:
+
+  >>> x = tf.constant([[[1, 2, 3],
+  ...                   [4, 5, 6]],
+  ...                  [[7, 8, 9],
+  ...                   [10, 11, 12]]], dtype=tf.uint8)
+  >>> seed = (1, 2)
+  >>> tf.image.stateless_random_jpeg_quality(x, 75, 95, seed)
+  <tf.Tensor: shape=(2, 2, 3), dtype=uint8, numpy=
+  array([[[ 0,  4,  5],
+          [ 1,  5,  6]],
+         [[ 5,  9, 10],
+          [ 5,  9, 10]]], dtype=uint8)>
+
+  Args:
+    image: 3D image. Size of the last dimension must be 1 or 3.
+    min_jpeg_quality: Minimum jpeg encoding quality to use.
+    max_jpeg_quality: Maximum jpeg encoding quality to use.
+    seed: A shape [2] Tensor, the seed to the random number generator. Must have
+      dtype `int32` or `int64`. (When using XLA, only `int32` is allowed.)
+
+  Returns:
+    Adjusted image(s), same shape and DType as `image`.
+
+  Raises:
+    ValueError: if `min_jpeg_quality` or `max_jpeg_quality` is invalid.
+
+[API Signature] image: tensor, min_jpeg_quality: integer, max_jpeg_quality: integer, seed: tensor
+
+[Error Messages]
+InvalidArgumentError: {{function_node __wrapped__StatelessRandomGetKeyCounter_device_/job:localhost/replica:0/task:0/device:CPU:0}} seed must have shape [2], not [100,75,10,84,30] [Op:StatelessRandomGetKeyCounter]
+ValueError: `min_jpeg_quality` must be less than `max_jpeg_quality`.
+ValueError: jpeg encoding range must be between 0 and 100.
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 6 (last dimension of a tensor matches first dimension of the other)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, 0)
+
+Rule 8 (tensor must have an integer dtype: 1–5)
+{v1: tensor} |= 1 ≤ dtype(v1) ∧ dtype(v1) ≤ 5
+
+Rule 19 (compatibility of integer or float (data) type tensor and variable)
+{v1 : tensor, v2 : int ⊎ float} |= if 1 ≤ dtype(v1) ∧ dtype(v1) ≤ 5 then 1 ≤ v2 ∧ v2 ≤ 5 else if 6 ≤ dtype(v1) ∧ dtype(v1) ≤ 8 then 1 ≤ v2 ∧ v2 ≤ 8 else false
+
+Rule 28 (list of ints used as dimensions/axes, all non-negative and valid for tensor shape)
+{v_1 : tensor, v_2 : list(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 23 (3-dimensional tensor with all positive shape dimensions)
+{v_1 : tensor} |= ndim(v_1) = 3 ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 108 (seed shape and dtype constraints)
+{v_4 : tensor} |= ndim(v_4) = 1 ∧ shape(v_4, 0) = 2 ∧ 3 ≤ dtype_(v_4) ∧ dtype_(v_4) ≤ 4
+Token usage: input=18574, output=190, total=20555
+** DUPLICATED RULE ** (num_failures: 5)
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.image.stateless_random_jpeg_quality API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Deterministically radomize jpeg encoding quality for inducing jpeg noise.
+
+  Guarantees the same results given the same `seed` independent of how many
+  times the function is called, and independent of global seed settings (e.g.
+  `tf.random.set_seed`).
+
+  `min_jpeg_quality` must be in the interval `[0, 100]` and less than
+  `max_jpeg_quality`.
+  `max_jpeg_quality` must be in the interval `[0, 100]`.
+
+  Usage Example:
+
+  >>> x = tf.constant([[[1, 2, 3],
+  ...                   [4, 5, 6]],
+  ...                  [[7, 8, 9],
+  ...                   [10, 11, 12]]], dtype=tf.uint8)
+  >>> seed = (1, 2)
+  >>> tf.image.stateless_random_jpeg_quality(x, 75, 95, seed)
+  <tf.Tensor: shape=(2, 2, 3), dtype=uint8, numpy=
+  array([[[ 0,  4,  5],
+          [ 1,  5,  6]],
+         [[ 5,  9, 10],
+          [ 5,  9, 10]]], dtype=uint8)>
+
+  Args:
+    image: 3D image. Size of the last dimension must be 1 or 3.
+    min_jpeg_quality: Minimum jpeg encoding quality to use.
+    max_jpeg_quality: Maximum jpeg encoding quality to use.
+    seed: A shape [2] Tensor, the seed to the random number generator. Must have
+      dtype `int32` or `int64`. (When using XLA, only `int32` is allowed.)
+
+  Returns:
+    Adjusted image(s), same shape and DType as `image`.
+
+  Raises:
+    ValueError: if `min_jpeg_quality` or `max_jpeg_quality` is invalid.
+
+[API Signature] image: tensor, min_jpeg_quality: integer, max_jpeg_quality: integer, seed: tensor
+
+[Error Messages]
+InvalidArgumentError: {{function_node __wrapped__StatelessRandomGetKeyCounter_device_/job:localhost/replica:0/task:0/device:CPU:0}} seed must have shape [2], not [100,75,10,84,30] [Op:StatelessRandomGetKeyCounter]
+ValueError: `min_jpeg_quality` must be less than `max_jpeg_quality`.
+ValueError: jpeg encoding range must be between 0 and 100.
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 6 (last dimension of a tensor matches first dimension of the other)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, 0)
+
+Rule 8 (tensor must have an integer dtype: 1–5)
+{v1: tensor} |= 1 ≤ dtype(v1) ∧ dtype(v1) ≤ 5
+
+Rule 19 (compatibility of integer or float (data) type tensor and variable)
+{v1 : tensor, v2 : int ⊎ float} |= if 1 ≤ dtype(v1) ∧ dtype(v1) ≤ 5 then 1 ≤ v2 ∧ v2 ≤ 5 else if 6 ≤ dtype(v1) ∧ dtype(v1) ≤ 8 then 1 ≤ v2 ∧ v2 ≤ 8 else false
+
+Rule 28 (list of ints used as dimensions/axes, all non-negative and valid for tensor shape)
+{v_1 : tensor, v_2 : list(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 23 (3-dimensional tensor with all positive shape dimensions)
+{v_1 : tensor} |= ndim(v_1) = 3 ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 109 (jpeg quality range and ordering constraints)
+{v_2 : int, v_3 : int} |= 0 ≤ v_2 ∧ v_2 < v_3 ∧ v_3 ≤ 100
+Token usage: input=18574, output=190, total=20555
+** DUPLICATED RULE ** (num_failures: 6)
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.image.stateless_random_jpeg_quality API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Deterministically radomize jpeg encoding quality for inducing jpeg noise.
+
+  Guarantees the same results given the same `seed` independent of how many
+  times the function is called, and independent of global seed settings (e.g.
+  `tf.random.set_seed`).
+
+  `min_jpeg_quality` must be in the interval `[0, 100]` and less than
+  `max_jpeg_quality`.
+  `max_jpeg_quality` must be in the interval `[0, 100]`.
+
+  Usage Example:
+
+  >>> x = tf.constant([[[1, 2, 3],
+  ...                   [4, 5, 6]],
+  ...                  [[7, 8, 9],
+  ...                   [10, 11, 12]]], dtype=tf.uint8)
+  >>> seed = (1, 2)
+  >>> tf.image.stateless_random_jpeg_quality(x, 75, 95, seed)
+  <tf.Tensor: shape=(2, 2, 3), dtype=uint8, numpy=
+  array([[[ 0,  4,  5],
+          [ 1,  5,  6]],
+         [[ 5,  9, 10],
+          [ 5,  9, 10]]], dtype=uint8)>
+
+  Args:
+    image: 3D image. Size of the last dimension must be 1 or 3.
+    min_jpeg_quality: Minimum jpeg encoding quality to use.
+    max_jpeg_quality: Maximum jpeg encoding quality to use.
+    seed: A shape [2] Tensor, the seed to the random number generator. Must have
+      dtype `int32` or `int64`. (When using XLA, only `int32` is allowed.)
+
+  Returns:
+    Adjusted image(s), same shape and DType as `image`.
+
+  Raises:
+    ValueError: if `min_jpeg_quality` or `max_jpeg_quality` is invalid.
+
+[API Signature] image: tensor, min_jpeg_quality: integer, max_jpeg_quality: integer, seed: tensor
+
+[Error Messages]
+InvalidArgumentError: {{function_node __wrapped__StatelessRandomGetKeyCounter_device_/job:localhost/replica:0/task:0/device:CPU:0}} seed must have shape [2], not [100,75,10,84,30] [Op:StatelessRandomGetKeyCounter]
+ValueError: `min_jpeg_quality` must be less than `max_jpeg_quality`.
+ValueError: jpeg encoding range must be between 0 and 100.
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 6 (last dimension of a tensor matches first dimension of the other)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, 0)
+
+Rule 8 (tensor must have an integer dtype: 1–5)
+{v1: tensor} |= 1 ≤ dtype(v1) ∧ dtype(v1) ≤ 5
+
+Rule 19 (compatibility of integer or float (data) type tensor and variable)
+{v1 : tensor, v2 : int ⊎ float} |= if 1 ≤ dtype(v1) ∧ dtype(v1) ≤ 5 then 1 ≤ v2 ∧ v2 ≤ 5 else if 6 ≤ dtype(v1) ∧ dtype(v1) ≤ 8 then 1 ≤ v2 ∧ v2 ≤ 8 else false
+
+Rule 28 (list of ints used as dimensions/axes, all non-negative and valid for tensor shape)
+{v_1 : tensor, v_2 : list(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 23 (3-dimensional tensor with all positive shape dimensions)
+{v_1 : tensor} |= ndim(v_1) = 3 ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 110 (image tensor dimensions and channel constraints)
+{v_1 : tensor} |= ndim(v_1) = 3 ∧ shape(v_1, 2) ≥ 1 ∧ shape(v_1, 2) ≤ 3 ∧ shape(v_1, 2) ≠ 2
+Token usage: input=18574, output=190, total=20555
+** DUPLICATED RULE ** (num_failures: 7)
+
+>>> PROMPT
+[Feedback Message from Prior Run]
+Duplicated rule: {v_4 : tensor} |= ndim(v_4) = 1 ∧ shape(v_4, 0) = 2 ∧ 3 ≤ dtype_(v_4) ∧ dtype_(v_4) ≤ 4
+Duplicated rule: {v_2 : int, v_3 : int} |= 0 ≤ v_2 ∧ v_2 < v_3 ∧ v_3 ≤ 100
+Duplicated rule: {v_1 : tensor} |= ndim(v_1) = 3 ∧ shape(v_1, 2) ≥ 1 ∧ shape(v_1, 2) ≤ 3 ∧ shape(v_1, 2) ≠ 2
+
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.image.stateless_random_jpeg_quality API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Deterministically radomize jpeg encoding quality for inducing jpeg noise.
+
+  Guarantees the same results given the same `seed` independent of how many
+  times the function is called, and independent of global seed settings (e.g.
+  `tf.random.set_seed`).
+
+  `min_jpeg_quality` must be in the interval `[0, 100]` and less than
+  `max_jpeg_quality`.
+  `max_jpeg_quality` must be in the interval `[0, 100]`.
+
+  Usage Example:
+
+  >>> x = tf.constant([[[1, 2, 3],
+  ...                   [4, 5, 6]],
+  ...                  [[7, 8, 9],
+  ...                   [10, 11, 12]]], dtype=tf.uint8)
+  >>> seed = (1, 2)
+  >>> tf.image.stateless_random_jpeg_quality(x, 75, 95, seed)
+  <tf.Tensor: shape=(2, 2, 3), dtype=uint8, numpy=
+  array([[[ 0,  4,  5],
+          [ 1,  5,  6]],
+         [[ 5,  9, 10],
+          [ 5,  9, 10]]], dtype=uint8)>
+
+  Args:
+    image: 3D image. Size of the last dimension must be 1 or 3.
+    min_jpeg_quality: Minimum jpeg encoding quality to use.
+    max_jpeg_quality: Maximum jpeg encoding quality to use.
+    seed: A shape [2] Tensor, the seed to the random number generator. Must have
+      dtype `int32` or `int64`. (When using XLA, only `int32` is allowed.)
+
+  Returns:
+    Adjusted image(s), same shape and DType as `image`.
+
+  Raises:
+    ValueError: if `min_jpeg_quality` or `max_jpeg_quality` is invalid.
+
+[API Signature] image: tensor, min_jpeg_quality: integer, max_jpeg_quality: integer, seed: tensor
+
+[Error Messages]
+InvalidArgumentError: {{function_node __wrapped__StatelessRandomGetKeyCounter_device_/job:localhost/replica:0/task:0/device:CPU:0}} seed must have shape [2], not [100,75,10,84,30] [Op:StatelessRandomGetKeyCounter]
+ValueError: `min_jpeg_quality` must be less than `max_jpeg_quality`.
+ValueError: jpeg encoding range must be between 0 and 100.
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 20 (input tensor must be 1-dimensional)
+{v_1 : tensor} |= ndim(v_1) = 1
+
+Rule 13 (tensor must have a floating-point dtype: 6–8)
+{v1: tensor} |= 6 ≤ dtype(v1) ∧ dtype(v1) ≤ 8
+
+Rule 6 (last dimension of a tensor matches first dimension of the other)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, 0)
+
+Rule 28 (list of ints used as dimensions/axes, all non-negative and valid for tensor shape)
+{v_1 : tensor, v_2 : list(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 24 (tuple of ints represents valid shape dimensions)
+{v_1 : tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] > 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 111 (seed shape and dtype constraints)
+{v_4 : tensor} |= ndim(v_4) = 1 ∧ shape(v_4, 0) = 2 ∧ (dtype_(v_4) - 3) * (dtype_(v_4) - 4) = 0
+Token usage: input=22756, output=196, total=26550
+** SUCCESS **
+
+>>> PROMPT
+[Feedback Message from Prior Run]
+Duplicated rule: {v_4 : tensor} |= ndim(v_4) = 1 ∧ shape(v_4, 0) = 2 ∧ 3 ≤ dtype_(v_4) ∧ dtype_(v_4) ≤ 4
+Duplicated rule: {v_2 : int, v_3 : int} |= 0 ≤ v_2 ∧ v_2 < v_3 ∧ v_3 ≤ 100
+Duplicated rule: {v_1 : tensor} |= ndim(v_1) = 3 ∧ shape(v_1, 2) ≥ 1 ∧ shape(v_1, 2) ≤ 3 ∧ shape(v_1, 2) ≠ 2
+
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.image.stateless_random_jpeg_quality API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Deterministically radomize jpeg encoding quality for inducing jpeg noise.
+
+  Guarantees the same results given the same `seed` independent of how many
+  times the function is called, and independent of global seed settings (e.g.
+  `tf.random.set_seed`).
+
+  `min_jpeg_quality` must be in the interval `[0, 100]` and less than
+  `max_jpeg_quality`.
+  `max_jpeg_quality` must be in the interval `[0, 100]`.
+
+  Usage Example:
+
+  >>> x = tf.constant([[[1, 2, 3],
+  ...                   [4, 5, 6]],
+  ...                  [[7, 8, 9],
+  ...                   [10, 11, 12]]], dtype=tf.uint8)
+  >>> seed = (1, 2)
+  >>> tf.image.stateless_random_jpeg_quality(x, 75, 95, seed)
+  <tf.Tensor: shape=(2, 2, 3), dtype=uint8, numpy=
+  array([[[ 0,  4,  5],
+          [ 1,  5,  6]],
+         [[ 5,  9, 10],
+          [ 5,  9, 10]]], dtype=uint8)>
+
+  Args:
+    image: 3D image. Size of the last dimension must be 1 or 3.
+    min_jpeg_quality: Minimum jpeg encoding quality to use.
+    max_jpeg_quality: Maximum jpeg encoding quality to use.
+    seed: A shape [2] Tensor, the seed to the random number generator. Must have
+      dtype `int32` or `int64`. (When using XLA, only `int32` is allowed.)
+
+  Returns:
+    Adjusted image(s), same shape and DType as `image`.
+
+  Raises:
+    ValueError: if `min_jpeg_quality` or `max_jpeg_quality` is invalid.
+
+[API Signature] image: tensor, min_jpeg_quality: integer, max_jpeg_quality: integer, seed: tensor
+
+[Error Messages]
+InvalidArgumentError: {{function_node __wrapped__StatelessRandomGetKeyCounter_device_/job:localhost/replica:0/task:0/device:CPU:0}} seed must have shape [2], not [100,75,10,84,30] [Op:StatelessRandomGetKeyCounter]
+ValueError: `min_jpeg_quality` must be less than `max_jpeg_quality`.
+ValueError: jpeg encoding range must be between 0 and 100.
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 20 (input tensor must be 1-dimensional)
+{v_1 : tensor} |= ndim(v_1) = 1
+
+Rule 13 (tensor must have a floating-point dtype: 6–8)
+{v1: tensor} |= 6 ≤ dtype(v1) ∧ dtype(v1) ≤ 8
+
+Rule 6 (last dimension of a tensor matches first dimension of the other)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, 0)
+
+Rule 28 (list of ints used as dimensions/axes, all non-negative and valid for tensor shape)
+{v_1 : tensor, v_2 : list(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 24 (tuple of ints represents valid shape dimensions)
+{v_1 : tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] > 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 112 (jpeg quality range and ordering constraints)
+{v_2 : int, v_3 : int} |= if v_2 < v_3 then 0 ≤ v_2 ∧ v_3 ≤ 100 else false
+Token usage: input=22756, output=196, total=26550
+** SUCCESS **
+
+>>> PROMPT
+[Feedback Message from Prior Run]
+Duplicated rule: {v_4 : tensor} |= ndim(v_4) = 1 ∧ shape(v_4, 0) = 2 ∧ 3 ≤ dtype_(v_4) ∧ dtype_(v_4) ≤ 4
+Duplicated rule: {v_2 : int, v_3 : int} |= 0 ≤ v_2 ∧ v_2 < v_3 ∧ v_3 ≤ 100
+Duplicated rule: {v_1 : tensor} |= ndim(v_1) = 3 ∧ shape(v_1, 2) ≥ 1 ∧ shape(v_1, 2) ≤ 3 ∧ shape(v_1, 2) ≠ 2
+
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.image.stateless_random_jpeg_quality API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Deterministically radomize jpeg encoding quality for inducing jpeg noise.
+
+  Guarantees the same results given the same `seed` independent of how many
+  times the function is called, and independent of global seed settings (e.g.
+  `tf.random.set_seed`).
+
+  `min_jpeg_quality` must be in the interval `[0, 100]` and less than
+  `max_jpeg_quality`.
+  `max_jpeg_quality` must be in the interval `[0, 100]`.
+
+  Usage Example:
+
+  >>> x = tf.constant([[[1, 2, 3],
+  ...                   [4, 5, 6]],
+  ...                  [[7, 8, 9],
+  ...                   [10, 11, 12]]], dtype=tf.uint8)
+  >>> seed = (1, 2)
+  >>> tf.image.stateless_random_jpeg_quality(x, 75, 95, seed)
+  <tf.Tensor: shape=(2, 2, 3), dtype=uint8, numpy=
+  array([[[ 0,  4,  5],
+          [ 1,  5,  6]],
+         [[ 5,  9, 10],
+          [ 5,  9, 10]]], dtype=uint8)>
+
+  Args:
+    image: 3D image. Size of the last dimension must be 1 or 3.
+    min_jpeg_quality: Minimum jpeg encoding quality to use.
+    max_jpeg_quality: Maximum jpeg encoding quality to use.
+    seed: A shape [2] Tensor, the seed to the random number generator. Must have
+      dtype `int32` or `int64`. (When using XLA, only `int32` is allowed.)
+
+  Returns:
+    Adjusted image(s), same shape and DType as `image`.
+
+  Raises:
+    ValueError: if `min_jpeg_quality` or `max_jpeg_quality` is invalid.
+
+[API Signature] image: tensor, min_jpeg_quality: integer, max_jpeg_quality: integer, seed: tensor
+
+[Error Messages]
+InvalidArgumentError: {{function_node __wrapped__StatelessRandomGetKeyCounter_device_/job:localhost/replica:0/task:0/device:CPU:0}} seed must have shape [2], not [100,75,10,84,30] [Op:StatelessRandomGetKeyCounter]
+ValueError: `min_jpeg_quality` must be less than `max_jpeg_quality`.
+ValueError: jpeg encoding range must be between 0 and 100.
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 20 (input tensor must be 1-dimensional)
+{v_1 : tensor} |= ndim(v_1) = 1
+
+Rule 13 (tensor must have a floating-point dtype: 6–8)
+{v1: tensor} |= 6 ≤ dtype(v1) ∧ dtype(v1) ≤ 8
+
+Rule 6 (last dimension of a tensor matches first dimension of the other)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, 0)
+
+Rule 28 (list of ints used as dimensions/axes, all non-negative and valid for tensor shape)
+{v_1 : tensor, v_2 : list(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 24 (tuple of ints represents valid shape dimensions)
+{v_1 : tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] > 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 113 (image tensor dimensions and channel constraints)
+{v_1 : tensor} |= ndim(v_1) = 3 ∧ shape(v_1, 2) * shape(v_1, 2) - 4 * shape(v_1, 2) + 3 = 0
+Token usage: input=22756, output=196, total=26550
+** SUCCESS **
+

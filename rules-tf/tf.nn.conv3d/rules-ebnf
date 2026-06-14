@@ -190,3 +190,48 @@ Rule 108 (If the data format is specified then the corresponding in_channels dim
 >>
 Rule 109 (Check the number of channels is greater than 0)
 {v_1: tensor} |= shape(v_1, 4) > 0
+>>
+Rule 111 (first and last elements of strides must be 1)
+{v_1 : list(int)} |= v_1.len ≥ 5 ∧ v_1[0] = 1 ∧ v_1[4] = 1
+>>
+Rule 113 (in_channels must match between input and filters)
+{v_1 : tensor, v_2 : tensor, v_3 : str} |= ndim(v_1) = 5 ∧ ndim(v_2) = 5 ∧ (if v_3 = "channels_first" then shape(v_1, 1) = shape(v_2, 3) else shape(v_1, 4) = shape(v_2, 3))
+>>
+Rule 117 (filters must have the same data type as input)
+{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) = dtype_(v_2)
+>>
+Rule 118 (strides must have length at least 5 and have batch/channel strides of 1 depending on data format)
+{v_1 : list(int), v_2 : str} |= v_1.len ≥ 5 ∧ (if v_2 = "channels_first" then v_1[0] = 1 ∧ v_1[1] = 1 else v_1[0] = 1 ∧ v_1[4] = 1)
+>>
+Rule 119 (dilations must have length at least 5 and have batch/depth dilations of 1 depending on data format)
+{v_1 : list(int), v_2 : str} |= v_1.len ≥ 5 ∧ (if v_2 = "channels_first" then v_1[0] = 1 ∧ v_1[2] = 1 else v_1[0] = 1 ∧ v_1[1] = 1)
+>>
+Rule 121 (all strides elements must be positive)
+{v_1 : list(int)} |= v_1.len > 0 ∧ ∀i ∈ [0, v_1.len - 1] : v_1[i] > 0
+>>
+Rule 123 (valid values for padding and data format)
+{v_1 : str, v_2 : str} |= (v_1 = "same" ∨ v_1 = "valid") ∧ (v_2 = "channels_last" ∨ v_2 = "channels_first")
+>>
+Rule 124 (input spatial dimensions must be at least filter dimensions for valid padding)
+{v_1 : tensor, v_2 : tensor, v_3 : str, v_4 : str} |= ndim(v_1) = 5 ∧ ndim(v_2) = 5 ∧ (if v_4 = "valid" then (if v_3 = "channels_first" then shape(v_1, 2) ≥ shape(v_2, 0) ∧ shape(v_1, 3) ≥ shape(v_2, 1) ∧ shape(v_1, 4) ≥ shape(v_2, 2) else shape(v_1, 1) ≥ shape(v_2, 0) ∧ shape(v_1, 2) ≥ shape(v_2, 1) ∧ shape(v_1, 3) ≥ shape(v_2, 2)))
+>>
+Rule 125 (strides and dilations lengths must match input tensor rank)
+{v_1 : list(int), v_2 : list(int), v_3 : tensor} |= ndim(v_3) = 5 ∧ v_1.len = ndim(v_3) ∧ v_2.len = ndim(v_3)
+>>
+Rule 126 (first and last elements of strides must be 1 depending on data format)
+{v_1 : list(int), v_2 : str, v_3 : tensor} |= ndim(v_3) = 5 ∧ v_1.len = 5 ∧ (if v_2 = "channels_first" then v_1[0] = 1 ∧ v_1[1] = 1 else v_1[0] = 1 ∧ v_1[4] = 1)
+>>
+Rule 127 (dilation factor in batch and depth dimensions must be 1)
+{v_1 : list(int), v_2 : str, v_3 : tensor} |= ndim(v_3) = 5 ∧ v_1.len = 5 ∧ (if v_2 = "channels_first" then v_1[0] = 1 ∧ v_1[2] = 1 else v_1[0] = 1 ∧ v_1[1] = 1)
+>>
+Rule 128 (channel dimension of input must match channel dimension of filters)
+{v_1 : tensor, v_2 : tensor, v_3 : str, v_4 : list(int)} |= ndim(v_1) = 5 ∧ ndim(v_2) = 5 ∧ v_4.len = 5 ∧ (if v_3 = "channels_first" then shape(v_1, 1) = shape(v_2, 3) else shape(v_1, 4) = shape(v_2, 3))
+>>
+Rule 129 (input and filters must have same floating-point data type and data format must be valid)
+{v_1 : tensor, v_2 : tensor, v_3 : str} |= dtype_(v_1) = dtype_(v_2) ∧ (dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8) ∧ (v_3 = "channels_first" ∨ v_3 = "channels_last")
+>>
+Rule 130 (padding, data format, and strides length constraints)
+{v_1 : str, v_2 : str, v_3 : list(int)} |= (v_1 = "same" ∨ v_1 = "valid") ∧ (v_2 = "channels_last" ∨ v_2 = "channels_first") ∧ v_3.len = 5
+>>
+Rule 131 (spatial dimensions compatibility of input and filters under valid padding)
+{v_1 : tensor, v_2 : tensor, v_3 : str, v_4 : str, v_5 : list(int)} |= ndim(v_1) = 5 ∧ ndim(v_2) = 5 ∧ v_5.len = 5 ∧ (if v_4 = "valid" then (if v_3 = "channels_first" then shape(v_1, 2) ≥ shape(v_2, 0) ∧ shape(v_1, 3) ≥ shape(v_2, 1) ∧ shape(v_1, 4) ≥ shape(v_2, 2) else shape(v_1, 1) ≥ shape(v_2, 0) ∧ shape(v_1, 2) ≥ shape(v_2, 1) ∧ shape(v_1, 3) ≥ shape(v_2, 2)))
