@@ -42,7 +42,16 @@ list_of_string_values_tf = [
     "none", "sum", "max", "min", "prod",
     "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear",
     "valid", "same", "causal",
-    "channels_last", "channels_first"
+    "channels_last", "channels_first",
+    "VALID", "SAME",       # padding (conv ops) — TF kernel requires uppercase
+    "EXPLICIT",
+    "NWC", "NCW",          # data_format (conv1d)
+    "NHWC", "NCHW",        # data_format (conv2d/conv3d)
+    "NDHWC", "NCDHW",      # data_format (conv3d volumetric)
+    "NCHW_VECT_C",
+    "REFLECT", "SYMMETRIC",
+    "UTF-8", "UTF-16-BE", "UTF-32-BE",
+    "replace", "ignore", "strict"
 ]
 
 domain_limits_torch = {
@@ -91,9 +100,9 @@ domain_limits_tf = {
     'tuple': [-MAX_SZ_DIM, MAX_SZ_DIM-1, 1, MAX_N_DIM],
     'tuple_dtype': [1, 5, 1, 1], # only integer dtypes
     'tuple_value_range': [-MAX_SZ_DIM, MAX_SZ_DIM-1, 2, 2],
-    'list': [-MAX_SZ_NUM, MAX_SZ_NUM, 1, MAX_SZ_LST],
+    'list': [-np.iinfo(np.int32).max, np.iinfo(np.int32).max, 1, MAX_SZ_LST],
     'list_dtype': [1, 5, 1, 1], # only integer dtypes
-    'list_value_range': [-MAX_SZ_NUM, MAX_SZ_NUM, 2, 2],
+    'list_value_range': [-np.iinfo(np.int32).max, np.iinfo(np.int32).max, 2, 2],
     'dtype': [0, len(list_of_available_dtypes)-2, 1, 1],
     'dtype_dtype': [len(list_of_available_dtypes)-1, len(list_of_available_dtypes)-1, 1, 1],   # only dtype
     'dtype_value_range': [0, len(list_of_available_dtypes)-2, 2, 2],
