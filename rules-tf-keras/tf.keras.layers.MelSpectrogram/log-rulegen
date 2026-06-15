@@ -1,0 +1,3856 @@
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.keras.layers.MelSpectrogram API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+A preprocessing layer to convert raw audio signals to Mel spectrograms.
+
+    This layer takes `float32`/`float64` single or batched audio signal as
+    inputs and computes the Mel spectrogram using Short-Time Fourier Transform
+    and Mel scaling. The input should be a 1D (unbatched) or 2D (batched) tensor
+    representing audio signals. The output will be a 2D or 3D tensor
+    representing Mel spectrograms.
+
+    A spectrogram is an image-like representation that shows the frequency
+    spectrum of a signal over time. It uses x-axis to represent time, y-axis to
+    represent frequency, and each pixel to represent intensity.
+    Mel spectrograms are a special type of spectrogram that use the mel scale,
+    which approximates how humans perceive sound. They are commonly used in
+    speech and music processing tasks like speech recognition, speaker
+    identification, and music genre classification.
+
+    **Note:** This layer is safe to use inside a `tf.data` or `grain` pipeline
+    (independently of which backend you're using).
+
+    References:
+    - [Spectrogram](https://en.wikipedia.org/wiki/Spectrogram),
+    - [Mel scale](https://en.wikipedia.org/wiki/Mel_scale).
+
+    Args:
+        fft_length: Integer, size of the FFT window.
+        sequence_stride: Integer, number of samples between successive STFT
+            columns.
+        sequence_length: Integer, size of the window used for applying
+            `window` to each audio frame. If `None`, defaults to `fft_length`.
+        window: String, name of the window function to use. Available values
+            are `"hann"` and `"hamming"`. If `window` is a tensor, it will be
+            used directly as the window and its length must be
+            `sequence_length`. If `window` is `None`, no windowing is
+            used. Defaults to `"hann"`.
+        sampling_rate: Integer, sample rate of the input signal.
+        num_mel_bins: Integer, number of mel bins to generate.
+        min_freq: Float, minimum frequency of the mel bins.
+        max_freq: Float, maximum frequency of the mel bins.
+            If `None`, defaults to `sampling_rate / 2`.
+        power_to_db: If True, convert the power spectrogram to decibels.
+        top_db: Float, minimum negative cut-off `max(10 * log10(S)) - top_db`.
+        mag_exp: Float, exponent for the magnitude spectrogram.
+            1 for magnitude, 2 for power, etc. Default is 2.
+        ref_power: Float, the power is scaled relative to it
+            `10 * log10(S / ref_power)`.
+        min_power: Float, minimum value for power and `ref_power`.
+
+    Examples:
+
+    **Unbatched audio signal**
+
+    >>> layer = keras.layers.MelSpectrogram(num_mel_bins=64,
+    ...                                     sampling_rate=8000,
+    ...                                     sequence_stride=256,
+    ...                                     fft_length=2048)
+    >>> layer(keras.random.uniform(shape=(16000,))).shape
+    (64, 63)
+
+    **Batched audio signal**
+
+    >>> layer = keras.layers.MelSpectrogram(num_mel_bins=80,
+    ...                                     sampling_rate=8000,
+    ...                                     sequence_stride=128,
+    ...                                     fft_length=2048)
+    >>> layer(keras.random.uniform(shape=(2, 16000))).shape
+    (2, 80, 125)
+
+    Input shape:
+        1D (unbatched) or 2D (batched) tensor with shape:`(..., samples)`.
+
+    Output shape:
+        2D (unbatched) or 3D (batched) tensor with
+        shape:`(..., num_mel_bins, time)`.
+
+[API Signature] fft_length: integer, sequence_stride: integer, sequence_length: integer, window: string, sampling_rate: integer, num_mel_bins: integer, min_freq: float, max_freq: float, power_to_db: boolean, top_db: float, mag_exp: float, min_power: float, ref_power: float, inputs: tensor
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 23 (3-dimensional tensor with all positive shape dimensions)
+{v_1 : tensor} |= ndim(v_1) = 3 ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+
+Rule 26 (tuple of ints used as kernel size must have length 2)
+{v_1 : tuple(int)} |= v_1.len = 2 ∧ ∀i ∈ [0, 1] : v_1[i] > 0
+
+Rule 13 (tensor must have a floating-point dtype: 6–8)
+{v1: tensor} |= 6 ≤ dtype(v1) ∧ dtype(v1) ≤ 8
+
+Rule 12 (a primitive type variable is smaller than the other)
+{v_1 : int ⊎ float, v_2 : int ⊎ float} |= v_1 ≤ v_2
+
+Rule 7 (first dimension of a tensor matches second dimension of the other)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) ≥ 1 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, 0) = shape(v_2, 1)
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 1 (inputs must be a 1D or 2D tensor)
+{v_1 : tensor} |= ndim(v_1) = 1 ∨ ndim(v_1) = 2
+Token usage: input=2414, output=299, total=5544
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.keras.layers.MelSpectrogram API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+A preprocessing layer to convert raw audio signals to Mel spectrograms.
+
+    This layer takes `float32`/`float64` single or batched audio signal as
+    inputs and computes the Mel spectrogram using Short-Time Fourier Transform
+    and Mel scaling. The input should be a 1D (unbatched) or 2D (batched) tensor
+    representing audio signals. The output will be a 2D or 3D tensor
+    representing Mel spectrograms.
+
+    A spectrogram is an image-like representation that shows the frequency
+    spectrum of a signal over time. It uses x-axis to represent time, y-axis to
+    represent frequency, and each pixel to represent intensity.
+    Mel spectrograms are a special type of spectrogram that use the mel scale,
+    which approximates how humans perceive sound. They are commonly used in
+    speech and music processing tasks like speech recognition, speaker
+    identification, and music genre classification.
+
+    **Note:** This layer is safe to use inside a `tf.data` or `grain` pipeline
+    (independently of which backend you're using).
+
+    References:
+    - [Spectrogram](https://en.wikipedia.org/wiki/Spectrogram),
+    - [Mel scale](https://en.wikipedia.org/wiki/Mel_scale).
+
+    Args:
+        fft_length: Integer, size of the FFT window.
+        sequence_stride: Integer, number of samples between successive STFT
+            columns.
+        sequence_length: Integer, size of the window used for applying
+            `window` to each audio frame. If `None`, defaults to `fft_length`.
+        window: String, name of the window function to use. Available values
+            are `"hann"` and `"hamming"`. If `window` is a tensor, it will be
+            used directly as the window and its length must be
+            `sequence_length`. If `window` is `None`, no windowing is
+            used. Defaults to `"hann"`.
+        sampling_rate: Integer, sample rate of the input signal.
+        num_mel_bins: Integer, number of mel bins to generate.
+        min_freq: Float, minimum frequency of the mel bins.
+        max_freq: Float, maximum frequency of the mel bins.
+            If `None`, defaults to `sampling_rate / 2`.
+        power_to_db: If True, convert the power spectrogram to decibels.
+        top_db: Float, minimum negative cut-off `max(10 * log10(S)) - top_db`.
+        mag_exp: Float, exponent for the magnitude spectrogram.
+            1 for magnitude, 2 for power, etc. Default is 2.
+        ref_power: Float, the power is scaled relative to it
+            `10 * log10(S / ref_power)`.
+        min_power: Float, minimum value for power and `ref_power`.
+
+    Examples:
+
+    **Unbatched audio signal**
+
+    >>> layer = keras.layers.MelSpectrogram(num_mel_bins=64,
+    ...                                     sampling_rate=8000,
+    ...                                     sequence_stride=256,
+    ...                                     fft_length=2048)
+    >>> layer(keras.random.uniform(shape=(16000,))).shape
+    (64, 63)
+
+    **Batched audio signal**
+
+    >>> layer = keras.layers.MelSpectrogram(num_mel_bins=80,
+    ...                                     sampling_rate=8000,
+    ...                                     sequence_stride=128,
+    ...                                     fft_length=2048)
+    >>> layer(keras.random.uniform(shape=(2, 16000))).shape
+    (2, 80, 125)
+
+    Input shape:
+        1D (unbatched) or 2D (batched) tensor with shape:`(..., samples)`.
+
+    Output shape:
+        2D (unbatched) or 3D (batched) tensor with
+        shape:`(..., num_mel_bins, time)`.
+
+[API Signature] fft_length: integer, sequence_stride: integer, sequence_length: integer, window: string, sampling_rate: integer, num_mel_bins: integer, min_freq: float, max_freq: float, power_to_db: boolean, top_db: float, mag_exp: float, min_power: float, ref_power: float, inputs: tensor
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 23 (3-dimensional tensor with all positive shape dimensions)
+{v_1 : tensor} |= ndim(v_1) = 3 ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+
+Rule 26 (tuple of ints used as kernel size must have length 2)
+{v_1 : tuple(int)} |= v_1.len = 2 ∧ ∀i ∈ [0, 1] : v_1[i] > 0
+
+Rule 13 (tensor must have a floating-point dtype: 6–8)
+{v1: tensor} |= 6 ≤ dtype(v1) ∧ dtype(v1) ≤ 8
+
+Rule 12 (a primitive type variable is smaller than the other)
+{v_1 : int ⊎ float, v_2 : int ⊎ float} |= v_1 ≤ v_2
+
+Rule 7 (first dimension of a tensor matches second dimension of the other)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) ≥ 1 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, 0) = shape(v_2, 1)
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 2 (inputs must have a float32 or float64 dtype)
+{v_1 : tensor} |= 7 ≤ dtype_(v_1) ∧ dtype_(v_1) ≤ 8
+Token usage: input=2414, output=299, total=5544
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.keras.layers.MelSpectrogram API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+A preprocessing layer to convert raw audio signals to Mel spectrograms.
+
+    This layer takes `float32`/`float64` single or batched audio signal as
+    inputs and computes the Mel spectrogram using Short-Time Fourier Transform
+    and Mel scaling. The input should be a 1D (unbatched) or 2D (batched) tensor
+    representing audio signals. The output will be a 2D or 3D tensor
+    representing Mel spectrograms.
+
+    A spectrogram is an image-like representation that shows the frequency
+    spectrum of a signal over time. It uses x-axis to represent time, y-axis to
+    represent frequency, and each pixel to represent intensity.
+    Mel spectrograms are a special type of spectrogram that use the mel scale,
+    which approximates how humans perceive sound. They are commonly used in
+    speech and music processing tasks like speech recognition, speaker
+    identification, and music genre classification.
+
+    **Note:** This layer is safe to use inside a `tf.data` or `grain` pipeline
+    (independently of which backend you're using).
+
+    References:
+    - [Spectrogram](https://en.wikipedia.org/wiki/Spectrogram),
+    - [Mel scale](https://en.wikipedia.org/wiki/Mel_scale).
+
+    Args:
+        fft_length: Integer, size of the FFT window.
+        sequence_stride: Integer, number of samples between successive STFT
+            columns.
+        sequence_length: Integer, size of the window used for applying
+            `window` to each audio frame. If `None`, defaults to `fft_length`.
+        window: String, name of the window function to use. Available values
+            are `"hann"` and `"hamming"`. If `window` is a tensor, it will be
+            used directly as the window and its length must be
+            `sequence_length`. If `window` is `None`, no windowing is
+            used. Defaults to `"hann"`.
+        sampling_rate: Integer, sample rate of the input signal.
+        num_mel_bins: Integer, number of mel bins to generate.
+        min_freq: Float, minimum frequency of the mel bins.
+        max_freq: Float, maximum frequency of the mel bins.
+            If `None`, defaults to `sampling_rate / 2`.
+        power_to_db: If True, convert the power spectrogram to decibels.
+        top_db: Float, minimum negative cut-off `max(10 * log10(S)) - top_db`.
+        mag_exp: Float, exponent for the magnitude spectrogram.
+            1 for magnitude, 2 for power, etc. Default is 2.
+        ref_power: Float, the power is scaled relative to it
+            `10 * log10(S / ref_power)`.
+        min_power: Float, minimum value for power and `ref_power`.
+
+    Examples:
+
+    **Unbatched audio signal**
+
+    >>> layer = keras.layers.MelSpectrogram(num_mel_bins=64,
+    ...                                     sampling_rate=8000,
+    ...                                     sequence_stride=256,
+    ...                                     fft_length=2048)
+    >>> layer(keras.random.uniform(shape=(16000,))).shape
+    (64, 63)
+
+    **Batched audio signal**
+
+    >>> layer = keras.layers.MelSpectrogram(num_mel_bins=80,
+    ...                                     sampling_rate=8000,
+    ...                                     sequence_stride=128,
+    ...                                     fft_length=2048)
+    >>> layer(keras.random.uniform(shape=(2, 16000))).shape
+    (2, 80, 125)
+
+    Input shape:
+        1D (unbatched) or 2D (batched) tensor with shape:`(..., samples)`.
+
+    Output shape:
+        2D (unbatched) or 3D (batched) tensor with
+        shape:`(..., num_mel_bins, time)`.
+
+[API Signature] fft_length: integer, sequence_stride: integer, sequence_length: integer, window: string, sampling_rate: integer, num_mel_bins: integer, min_freq: float, max_freq: float, power_to_db: boolean, top_db: float, mag_exp: float, min_power: float, ref_power: float, inputs: tensor
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 23 (3-dimensional tensor with all positive shape dimensions)
+{v_1 : tensor} |= ndim(v_1) = 3 ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+
+Rule 26 (tuple of ints used as kernel size must have length 2)
+{v_1 : tuple(int)} |= v_1.len = 2 ∧ ∀i ∈ [0, 1] : v_1[i] > 0
+
+Rule 13 (tensor must have a floating-point dtype: 6–8)
+{v1: tensor} |= 6 ≤ dtype(v1) ∧ dtype(v1) ≤ 8
+
+Rule 12 (a primitive type variable is smaller than the other)
+{v_1 : int ⊎ float, v_2 : int ⊎ float} |= v_1 ≤ v_2
+
+Rule 7 (first dimension of a tensor matches second dimension of the other)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) ≥ 1 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, 0) = shape(v_2, 1)
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 3 (fft_length, sequence_stride, and sequence_length must be positive integers)
+{v_1 : int, v_2 : int, v_3 : int} |= v_1 > 0 ∧ v_2 > 0 ∧ v_3 > 0
+Token usage: input=2414, output=299, total=5544
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.keras.layers.MelSpectrogram API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+A preprocessing layer to convert raw audio signals to Mel spectrograms.
+
+    This layer takes `float32`/`float64` single or batched audio signal as
+    inputs and computes the Mel spectrogram using Short-Time Fourier Transform
+    and Mel scaling. The input should be a 1D (unbatched) or 2D (batched) tensor
+    representing audio signals. The output will be a 2D or 3D tensor
+    representing Mel spectrograms.
+
+    A spectrogram is an image-like representation that shows the frequency
+    spectrum of a signal over time. It uses x-axis to represent time, y-axis to
+    represent frequency, and each pixel to represent intensity.
+    Mel spectrograms are a special type of spectrogram that use the mel scale,
+    which approximates how humans perceive sound. They are commonly used in
+    speech and music processing tasks like speech recognition, speaker
+    identification, and music genre classification.
+
+    **Note:** This layer is safe to use inside a `tf.data` or `grain` pipeline
+    (independently of which backend you're using).
+
+    References:
+    - [Spectrogram](https://en.wikipedia.org/wiki/Spectrogram),
+    - [Mel scale](https://en.wikipedia.org/wiki/Mel_scale).
+
+    Args:
+        fft_length: Integer, size of the FFT window.
+        sequence_stride: Integer, number of samples between successive STFT
+            columns.
+        sequence_length: Integer, size of the window used for applying
+            `window` to each audio frame. If `None`, defaults to `fft_length`.
+        window: String, name of the window function to use. Available values
+            are `"hann"` and `"hamming"`. If `window` is a tensor, it will be
+            used directly as the window and its length must be
+            `sequence_length`. If `window` is `None`, no windowing is
+            used. Defaults to `"hann"`.
+        sampling_rate: Integer, sample rate of the input signal.
+        num_mel_bins: Integer, number of mel bins to generate.
+        min_freq: Float, minimum frequency of the mel bins.
+        max_freq: Float, maximum frequency of the mel bins.
+            If `None`, defaults to `sampling_rate / 2`.
+        power_to_db: If True, convert the power spectrogram to decibels.
+        top_db: Float, minimum negative cut-off `max(10 * log10(S)) - top_db`.
+        mag_exp: Float, exponent for the magnitude spectrogram.
+            1 for magnitude, 2 for power, etc. Default is 2.
+        ref_power: Float, the power is scaled relative to it
+            `10 * log10(S / ref_power)`.
+        min_power: Float, minimum value for power and `ref_power`.
+
+    Examples:
+
+    **Unbatched audio signal**
+
+    >>> layer = keras.layers.MelSpectrogram(num_mel_bins=64,
+    ...                                     sampling_rate=8000,
+    ...                                     sequence_stride=256,
+    ...                                     fft_length=2048)
+    >>> layer(keras.random.uniform(shape=(16000,))).shape
+    (64, 63)
+
+    **Batched audio signal**
+
+    >>> layer = keras.layers.MelSpectrogram(num_mel_bins=80,
+    ...                                     sampling_rate=8000,
+    ...                                     sequence_stride=128,
+    ...                                     fft_length=2048)
+    >>> layer(keras.random.uniform(shape=(2, 16000))).shape
+    (2, 80, 125)
+
+    Input shape:
+        1D (unbatched) or 2D (batched) tensor with shape:`(..., samples)`.
+
+    Output shape:
+        2D (unbatched) or 3D (batched) tensor with
+        shape:`(..., num_mel_bins, time)`.
+
+[API Signature] fft_length: integer, sequence_stride: integer, sequence_length: integer, window: string, sampling_rate: integer, num_mel_bins: integer, min_freq: float, max_freq: float, power_to_db: boolean, top_db: float, mag_exp: float, min_power: float, ref_power: float, inputs: tensor
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 23 (3-dimensional tensor with all positive shape dimensions)
+{v_1 : tensor} |= ndim(v_1) = 3 ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+
+Rule 26 (tuple of ints used as kernel size must have length 2)
+{v_1 : tuple(int)} |= v_1.len = 2 ∧ ∀i ∈ [0, 1] : v_1[i] > 0
+
+Rule 13 (tensor must have a floating-point dtype: 6–8)
+{v1: tensor} |= 6 ≤ dtype(v1) ∧ dtype(v1) ≤ 8
+
+Rule 12 (a primitive type variable is smaller than the other)
+{v_1 : int ⊎ float, v_2 : int ⊎ float} |= v_1 ≤ v_2
+
+Rule 7 (first dimension of a tensor matches second dimension of the other)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) ≥ 1 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, 0) = shape(v_2, 1)
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 4 (sampling_rate and num_mel_bins must be positive integers)
+{v_1 : int, v_2 : int} |= v_1 > 0 ∧ v_2 > 0
+Token usage: input=2414, output=299, total=5544
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.keras.layers.MelSpectrogram API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+A preprocessing layer to convert raw audio signals to Mel spectrograms.
+
+    This layer takes `float32`/`float64` single or batched audio signal as
+    inputs and computes the Mel spectrogram using Short-Time Fourier Transform
+    and Mel scaling. The input should be a 1D (unbatched) or 2D (batched) tensor
+    representing audio signals. The output will be a 2D or 3D tensor
+    representing Mel spectrograms.
+
+    A spectrogram is an image-like representation that shows the frequency
+    spectrum of a signal over time. It uses x-axis to represent time, y-axis to
+    represent frequency, and each pixel to represent intensity.
+    Mel spectrograms are a special type of spectrogram that use the mel scale,
+    which approximates how humans perceive sound. They are commonly used in
+    speech and music processing tasks like speech recognition, speaker
+    identification, and music genre classification.
+
+    **Note:** This layer is safe to use inside a `tf.data` or `grain` pipeline
+    (independently of which backend you're using).
+
+    References:
+    - [Spectrogram](https://en.wikipedia.org/wiki/Spectrogram),
+    - [Mel scale](https://en.wikipedia.org/wiki/Mel_scale).
+
+    Args:
+        fft_length: Integer, size of the FFT window.
+        sequence_stride: Integer, number of samples between successive STFT
+            columns.
+        sequence_length: Integer, size of the window used for applying
+            `window` to each audio frame. If `None`, defaults to `fft_length`.
+        window: String, name of the window function to use. Available values
+            are `"hann"` and `"hamming"`. If `window` is a tensor, it will be
+            used directly as the window and its length must be
+            `sequence_length`. If `window` is `None`, no windowing is
+            used. Defaults to `"hann"`.
+        sampling_rate: Integer, sample rate of the input signal.
+        num_mel_bins: Integer, number of mel bins to generate.
+        min_freq: Float, minimum frequency of the mel bins.
+        max_freq: Float, maximum frequency of the mel bins.
+            If `None`, defaults to `sampling_rate / 2`.
+        power_to_db: If True, convert the power spectrogram to decibels.
+        top_db: Float, minimum negative cut-off `max(10 * log10(S)) - top_db`.
+        mag_exp: Float, exponent for the magnitude spectrogram.
+            1 for magnitude, 2 for power, etc. Default is 2.
+        ref_power: Float, the power is scaled relative to it
+            `10 * log10(S / ref_power)`.
+        min_power: Float, minimum value for power and `ref_power`.
+
+    Examples:
+
+    **Unbatched audio signal**
+
+    >>> layer = keras.layers.MelSpectrogram(num_mel_bins=64,
+    ...                                     sampling_rate=8000,
+    ...                                     sequence_stride=256,
+    ...                                     fft_length=2048)
+    >>> layer(keras.random.uniform(shape=(16000,))).shape
+    (64, 63)
+
+    **Batched audio signal**
+
+    >>> layer = keras.layers.MelSpectrogram(num_mel_bins=80,
+    ...                                     sampling_rate=8000,
+    ...                                     sequence_stride=128,
+    ...                                     fft_length=2048)
+    >>> layer(keras.random.uniform(shape=(2, 16000))).shape
+    (2, 80, 125)
+
+    Input shape:
+        1D (unbatched) or 2D (batched) tensor with shape:`(..., samples)`.
+
+    Output shape:
+        2D (unbatched) or 3D (batched) tensor with
+        shape:`(..., num_mel_bins, time)`.
+
+[API Signature] fft_length: integer, sequence_stride: integer, sequence_length: integer, window: string, sampling_rate: integer, num_mel_bins: integer, min_freq: float, max_freq: float, power_to_db: boolean, top_db: float, mag_exp: float, min_power: float, ref_power: float, inputs: tensor
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 23 (3-dimensional tensor with all positive shape dimensions)
+{v_1 : tensor} |= ndim(v_1) = 3 ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+
+Rule 26 (tuple of ints used as kernel size must have length 2)
+{v_1 : tuple(int)} |= v_1.len = 2 ∧ ∀i ∈ [0, 1] : v_1[i] > 0
+
+Rule 13 (tensor must have a floating-point dtype: 6–8)
+{v1: tensor} |= 6 ≤ dtype(v1) ∧ dtype(v1) ≤ 8
+
+Rule 12 (a primitive type variable is smaller than the other)
+{v_1 : int ⊎ float, v_2 : int ⊎ float} |= v_1 ≤ v_2
+
+Rule 7 (first dimension of a tensor matches second dimension of the other)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) ≥ 1 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, 0) = shape(v_2, 1)
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 5 (min_freq must be non-negative and less than max_freq)
+{v_1 : float, v_2 : float} |= v_1 ≥ 0 ∧ v_1 < v_2
+Token usage: input=2414, output=299, total=5544
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.keras.layers.MelSpectrogram API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+A preprocessing layer to convert raw audio signals to Mel spectrograms.
+
+    This layer takes `float32`/`float64` single or batched audio signal as
+    inputs and computes the Mel spectrogram using Short-Time Fourier Transform
+    and Mel scaling. The input should be a 1D (unbatched) or 2D (batched) tensor
+    representing audio signals. The output will be a 2D or 3D tensor
+    representing Mel spectrograms.
+
+    A spectrogram is an image-like representation that shows the frequency
+    spectrum of a signal over time. It uses x-axis to represent time, y-axis to
+    represent frequency, and each pixel to represent intensity.
+    Mel spectrograms are a special type of spectrogram that use the mel scale,
+    which approximates how humans perceive sound. They are commonly used in
+    speech and music processing tasks like speech recognition, speaker
+    identification, and music genre classification.
+
+    **Note:** This layer is safe to use inside a `tf.data` or `grain` pipeline
+    (independently of which backend you're using).
+
+    References:
+    - [Spectrogram](https://en.wikipedia.org/wiki/Spectrogram),
+    - [Mel scale](https://en.wikipedia.org/wiki/Mel_scale).
+
+    Args:
+        fft_length: Integer, size of the FFT window.
+        sequence_stride: Integer, number of samples between successive STFT
+            columns.
+        sequence_length: Integer, size of the window used for applying
+            `window` to each audio frame. If `None`, defaults to `fft_length`.
+        window: String, name of the window function to use. Available values
+            are `"hann"` and `"hamming"`. If `window` is a tensor, it will be
+            used directly as the window and its length must be
+            `sequence_length`. If `window` is `None`, no windowing is
+            used. Defaults to `"hann"`.
+        sampling_rate: Integer, sample rate of the input signal.
+        num_mel_bins: Integer, number of mel bins to generate.
+        min_freq: Float, minimum frequency of the mel bins.
+        max_freq: Float, maximum frequency of the mel bins.
+            If `None`, defaults to `sampling_rate / 2`.
+        power_to_db: If True, convert the power spectrogram to decibels.
+        top_db: Float, minimum negative cut-off `max(10 * log10(S)) - top_db`.
+        mag_exp: Float, exponent for the magnitude spectrogram.
+            1 for magnitude, 2 for power, etc. Default is 2.
+        ref_power: Float, the power is scaled relative to it
+            `10 * log10(S / ref_power)`.
+        min_power: Float, minimum value for power and `ref_power`.
+
+    Examples:
+
+    **Unbatched audio signal**
+
+    >>> layer = keras.layers.MelSpectrogram(num_mel_bins=64,
+    ...                                     sampling_rate=8000,
+    ...                                     sequence_stride=256,
+    ...                                     fft_length=2048)
+    >>> layer(keras.random.uniform(shape=(16000,))).shape
+    (64, 63)
+
+    **Batched audio signal**
+
+    >>> layer = keras.layers.MelSpectrogram(num_mel_bins=80,
+    ...                                     sampling_rate=8000,
+    ...                                     sequence_stride=128,
+    ...                                     fft_length=2048)
+    >>> layer(keras.random.uniform(shape=(2, 16000))).shape
+    (2, 80, 125)
+
+    Input shape:
+        1D (unbatched) or 2D (batched) tensor with shape:`(..., samples)`.
+
+    Output shape:
+        2D (unbatched) or 3D (batched) tensor with
+        shape:`(..., num_mel_bins, time)`.
+
+[API Signature] fft_length: integer, sequence_stride: integer, sequence_length: integer, window: string, sampling_rate: integer, num_mel_bins: integer, min_freq: float, max_freq: float, power_to_db: boolean, top_db: float, mag_exp: float, min_power: float, ref_power: float, inputs: tensor
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 23 (3-dimensional tensor with all positive shape dimensions)
+{v_1 : tensor} |= ndim(v_1) = 3 ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+
+Rule 26 (tuple of ints used as kernel size must have length 2)
+{v_1 : tuple(int)} |= v_1.len = 2 ∧ ∀i ∈ [0, 1] : v_1[i] > 0
+
+Rule 13 (tensor must have a floating-point dtype: 6–8)
+{v1: tensor} |= 6 ≤ dtype(v1) ∧ dtype(v1) ≤ 8
+
+Rule 12 (a primitive type variable is smaller than the other)
+{v_1 : int ⊎ float, v_2 : int ⊎ float} |= v_1 ≤ v_2
+
+Rule 7 (first dimension of a tensor matches second dimension of the other)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) ≥ 1 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, 0) = shape(v_2, 1)
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 6 (sequence_length must be less than or equal to fft_length)
+{v_1 : int, v_2 : int} |= v_1 ≤ v_2
+Token usage: input=2414, output=299, total=5544
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.keras.layers.MelSpectrogram API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+A preprocessing layer to convert raw audio signals to Mel spectrograms.
+
+    This layer takes `float32`/`float64` single or batched audio signal as
+    inputs and computes the Mel spectrogram using Short-Time Fourier Transform
+    and Mel scaling. The input should be a 1D (unbatched) or 2D (batched) tensor
+    representing audio signals. The output will be a 2D or 3D tensor
+    representing Mel spectrograms.
+
+    A spectrogram is an image-like representation that shows the frequency
+    spectrum of a signal over time. It uses x-axis to represent time, y-axis to
+    represent frequency, and each pixel to represent intensity.
+    Mel spectrograms are a special type of spectrogram that use the mel scale,
+    which approximates how humans perceive sound. They are commonly used in
+    speech and music processing tasks like speech recognition, speaker
+    identification, and music genre classification.
+
+    **Note:** This layer is safe to use inside a `tf.data` or `grain` pipeline
+    (independently of which backend you're using).
+
+    References:
+    - [Spectrogram](https://en.wikipedia.org/wiki/Spectrogram),
+    - [Mel scale](https://en.wikipedia.org/wiki/Mel_scale).
+
+    Args:
+        fft_length: Integer, size of the FFT window.
+        sequence_stride: Integer, number of samples between successive STFT
+            columns.
+        sequence_length: Integer, size of the window used for applying
+            `window` to each audio frame. If `None`, defaults to `fft_length`.
+        window: String, name of the window function to use. Available values
+            are `"hann"` and `"hamming"`. If `window` is a tensor, it will be
+            used directly as the window and its length must be
+            `sequence_length`. If `window` is `None`, no windowing is
+            used. Defaults to `"hann"`.
+        sampling_rate: Integer, sample rate of the input signal.
+        num_mel_bins: Integer, number of mel bins to generate.
+        min_freq: Float, minimum frequency of the mel bins.
+        max_freq: Float, maximum frequency of the mel bins.
+            If `None`, defaults to `sampling_rate / 2`.
+        power_to_db: If True, convert the power spectrogram to decibels.
+        top_db: Float, minimum negative cut-off `max(10 * log10(S)) - top_db`.
+        mag_exp: Float, exponent for the magnitude spectrogram.
+            1 for magnitude, 2 for power, etc. Default is 2.
+        ref_power: Float, the power is scaled relative to it
+            `10 * log10(S / ref_power)`.
+        min_power: Float, minimum value for power and `ref_power`.
+
+    Examples:
+
+    **Unbatched audio signal**
+
+    >>> layer = keras.layers.MelSpectrogram(num_mel_bins=64,
+    ...                                     sampling_rate=8000,
+    ...                                     sequence_stride=256,
+    ...                                     fft_length=2048)
+    >>> layer(keras.random.uniform(shape=(16000,))).shape
+    (64, 63)
+
+    **Batched audio signal**
+
+    >>> layer = keras.layers.MelSpectrogram(num_mel_bins=80,
+    ...                                     sampling_rate=8000,
+    ...                                     sequence_stride=128,
+    ...                                     fft_length=2048)
+    >>> layer(keras.random.uniform(shape=(2, 16000))).shape
+    (2, 80, 125)
+
+    Input shape:
+        1D (unbatched) or 2D (batched) tensor with shape:`(..., samples)`.
+
+    Output shape:
+        2D (unbatched) or 3D (batched) tensor with
+        shape:`(..., num_mel_bins, time)`.
+
+[API Signature] fft_length: integer, sequence_stride: integer, sequence_length: integer, window: string, sampling_rate: integer, num_mel_bins: integer, min_freq: float, max_freq: float, power_to_db: boolean, top_db: float, mag_exp: float, min_power: float, ref_power: float, inputs: tensor
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 10 (valid 2D transposed convolution)
+{v_1 : tensor, v_2 : tensor, v_3 : int, v_4 : int} |= ndim(v_1) = 4 ∧ ndim(v_2) = 4 ∧ v_3 ≥ 1 ∧ v_4 ≥ 0 ∧ v_3 × (shape(v_1, 2) − 1) + shape(v_2, 2) − 2 × v_4 > 0 ∧ v_3 × (shape(v_1, 3) − 1) + shape(v_2, 3) − 2 × v_4 > 0
+
+Rule 11 (index tensor (v_3) is within the input tensor along the specified dimension)
+{v_1 : tensor, v_2 : int, v_3 : tensor} |= min(v_3) ≥ 0 ∧ max(v_3) ≤ shape(v_1, v_2) − 1
+
+Rule 5 (index tensor (v_2) should be within the range of input tensor)
+{v_1 : tensor, v_2 : tensor} |= min(v_2) ≥ 0 ∧ ∀i ∈ [0, ndim(v_1) − 1] : max(v_2) ≤ shape(v_1, i) − 1
+
+Rule 22 (valid step size for a range)
+{v_1 : int ⊎ float, v_2 : int ⊎ float, v_3 : int ⊎ float} |= if v_1 > 0 then v_2 ≤ v_3 else if v_1 < 0 then v_2 ≥ v_3 else true
+
+Rule 25 (tensor shape matches given tuple shape)
+{v_1 : tensor, v_2 : tuple(int)} |= ndim(v_1) = v_2.len ∧ ∀i ∈ [0, v_2.len - 1] : shape(v_1, i) = v_2[i]
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 7 (The length of the input audio signal must be at least as large as the fft_length)
+{v_1 : tensor, v_2 : int} |= shape(v_1, ndim(v_1) - 1) ≥ v_2
+Token usage: input=8139, output=287, total=10823
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.keras.layers.MelSpectrogram API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+A preprocessing layer to convert raw audio signals to Mel spectrograms.
+
+    This layer takes `float32`/`float64` single or batched audio signal as
+    inputs and computes the Mel spectrogram using Short-Time Fourier Transform
+    and Mel scaling. The input should be a 1D (unbatched) or 2D (batched) tensor
+    representing audio signals. The output will be a 2D or 3D tensor
+    representing Mel spectrograms.
+
+    A spectrogram is an image-like representation that shows the frequency
+    spectrum of a signal over time. It uses x-axis to represent time, y-axis to
+    represent frequency, and each pixel to represent intensity.
+    Mel spectrograms are a special type of spectrogram that use the mel scale,
+    which approximates how humans perceive sound. They are commonly used in
+    speech and music processing tasks like speech recognition, speaker
+    identification, and music genre classification.
+
+    **Note:** This layer is safe to use inside a `tf.data` or `grain` pipeline
+    (independently of which backend you're using).
+
+    References:
+    - [Spectrogram](https://en.wikipedia.org/wiki/Spectrogram),
+    - [Mel scale](https://en.wikipedia.org/wiki/Mel_scale).
+
+    Args:
+        fft_length: Integer, size of the FFT window.
+        sequence_stride: Integer, number of samples between successive STFT
+            columns.
+        sequence_length: Integer, size of the window used for applying
+            `window` to each audio frame. If `None`, defaults to `fft_length`.
+        window: String, name of the window function to use. Available values
+            are `"hann"` and `"hamming"`. If `window` is a tensor, it will be
+            used directly as the window and its length must be
+            `sequence_length`. If `window` is `None`, no windowing is
+            used. Defaults to `"hann"`.
+        sampling_rate: Integer, sample rate of the input signal.
+        num_mel_bins: Integer, number of mel bins to generate.
+        min_freq: Float, minimum frequency of the mel bins.
+        max_freq: Float, maximum frequency of the mel bins.
+            If `None`, defaults to `sampling_rate / 2`.
+        power_to_db: If True, convert the power spectrogram to decibels.
+        top_db: Float, minimum negative cut-off `max(10 * log10(S)) - top_db`.
+        mag_exp: Float, exponent for the magnitude spectrogram.
+            1 for magnitude, 2 for power, etc. Default is 2.
+        ref_power: Float, the power is scaled relative to it
+            `10 * log10(S / ref_power)`.
+        min_power: Float, minimum value for power and `ref_power`.
+
+    Examples:
+
+    **Unbatched audio signal**
+
+    >>> layer = keras.layers.MelSpectrogram(num_mel_bins=64,
+    ...                                     sampling_rate=8000,
+    ...                                     sequence_stride=256,
+    ...                                     fft_length=2048)
+    >>> layer(keras.random.uniform(shape=(16000,))).shape
+    (64, 63)
+
+    **Batched audio signal**
+
+    >>> layer = keras.layers.MelSpectrogram(num_mel_bins=80,
+    ...                                     sampling_rate=8000,
+    ...                                     sequence_stride=128,
+    ...                                     fft_length=2048)
+    >>> layer(keras.random.uniform(shape=(2, 16000))).shape
+    (2, 80, 125)
+
+    Input shape:
+        1D (unbatched) or 2D (batched) tensor with shape:`(..., samples)`.
+
+    Output shape:
+        2D (unbatched) or 3D (batched) tensor with
+        shape:`(..., num_mel_bins, time)`.
+
+[API Signature] fft_length: integer, sequence_stride: integer, sequence_length: integer, window: string, sampling_rate: integer, num_mel_bins: integer, min_freq: float, max_freq: float, power_to_db: boolean, top_db: float, mag_exp: float, min_power: float, ref_power: float, inputs: tensor
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 10 (valid 2D transposed convolution)
+{v_1 : tensor, v_2 : tensor, v_3 : int, v_4 : int} |= ndim(v_1) = 4 ∧ ndim(v_2) = 4 ∧ v_3 ≥ 1 ∧ v_4 ≥ 0 ∧ v_3 × (shape(v_1, 2) − 1) + shape(v_2, 2) − 2 × v_4 > 0 ∧ v_3 × (shape(v_1, 3) − 1) + shape(v_2, 3) − 2 × v_4 > 0
+
+Rule 11 (index tensor (v_3) is within the input tensor along the specified dimension)
+{v_1 : tensor, v_2 : int, v_3 : tensor} |= min(v_3) ≥ 0 ∧ max(v_3) ≤ shape(v_1, v_2) − 1
+
+Rule 5 (index tensor (v_2) should be within the range of input tensor)
+{v_1 : tensor, v_2 : tensor} |= min(v_2) ≥ 0 ∧ ∀i ∈ [0, ndim(v_1) − 1] : max(v_2) ≤ shape(v_1, i) − 1
+
+Rule 22 (valid step size for a range)
+{v_1 : int ⊎ float, v_2 : int ⊎ float, v_3 : int ⊎ float} |= if v_1 > 0 then v_2 ≤ v_3 else if v_1 < 0 then v_2 ≥ v_3 else true
+
+Rule 25 (tensor shape matches given tuple shape)
+{v_1 : tensor, v_2 : tuple(int)} |= ndim(v_1) = v_2.len ∧ ∀i ∈ [0, v_2.len - 1] : shape(v_1, i) = v_2[i]
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 8 (The window size sequence_length must not exceed the fft_length)
+{v_1 : int, v_2 : int} |= v_1 ≤ v_2
+Token usage: input=8139, output=287, total=10823
+** DUPLICATED RULE ** (num_failures: 1)
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.keras.layers.MelSpectrogram API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+A preprocessing layer to convert raw audio signals to Mel spectrograms.
+
+    This layer takes `float32`/`float64` single or batched audio signal as
+    inputs and computes the Mel spectrogram using Short-Time Fourier Transform
+    and Mel scaling. The input should be a 1D (unbatched) or 2D (batched) tensor
+    representing audio signals. The output will be a 2D or 3D tensor
+    representing Mel spectrograms.
+
+    A spectrogram is an image-like representation that shows the frequency
+    spectrum of a signal over time. It uses x-axis to represent time, y-axis to
+    represent frequency, and each pixel to represent intensity.
+    Mel spectrograms are a special type of spectrogram that use the mel scale,
+    which approximates how humans perceive sound. They are commonly used in
+    speech and music processing tasks like speech recognition, speaker
+    identification, and music genre classification.
+
+    **Note:** This layer is safe to use inside a `tf.data` or `grain` pipeline
+    (independently of which backend you're using).
+
+    References:
+    - [Spectrogram](https://en.wikipedia.org/wiki/Spectrogram),
+    - [Mel scale](https://en.wikipedia.org/wiki/Mel_scale).
+
+    Args:
+        fft_length: Integer, size of the FFT window.
+        sequence_stride: Integer, number of samples between successive STFT
+            columns.
+        sequence_length: Integer, size of the window used for applying
+            `window` to each audio frame. If `None`, defaults to `fft_length`.
+        window: String, name of the window function to use. Available values
+            are `"hann"` and `"hamming"`. If `window` is a tensor, it will be
+            used directly as the window and its length must be
+            `sequence_length`. If `window` is `None`, no windowing is
+            used. Defaults to `"hann"`.
+        sampling_rate: Integer, sample rate of the input signal.
+        num_mel_bins: Integer, number of mel bins to generate.
+        min_freq: Float, minimum frequency of the mel bins.
+        max_freq: Float, maximum frequency of the mel bins.
+            If `None`, defaults to `sampling_rate / 2`.
+        power_to_db: If True, convert the power spectrogram to decibels.
+        top_db: Float, minimum negative cut-off `max(10 * log10(S)) - top_db`.
+        mag_exp: Float, exponent for the magnitude spectrogram.
+            1 for magnitude, 2 for power, etc. Default is 2.
+        ref_power: Float, the power is scaled relative to it
+            `10 * log10(S / ref_power)`.
+        min_power: Float, minimum value for power and `ref_power`.
+
+    Examples:
+
+    **Unbatched audio signal**
+
+    >>> layer = keras.layers.MelSpectrogram(num_mel_bins=64,
+    ...                                     sampling_rate=8000,
+    ...                                     sequence_stride=256,
+    ...                                     fft_length=2048)
+    >>> layer(keras.random.uniform(shape=(16000,))).shape
+    (64, 63)
+
+    **Batched audio signal**
+
+    >>> layer = keras.layers.MelSpectrogram(num_mel_bins=80,
+    ...                                     sampling_rate=8000,
+    ...                                     sequence_stride=128,
+    ...                                     fft_length=2048)
+    >>> layer(keras.random.uniform(shape=(2, 16000))).shape
+    (2, 80, 125)
+
+    Input shape:
+        1D (unbatched) or 2D (batched) tensor with shape:`(..., samples)`.
+
+    Output shape:
+        2D (unbatched) or 3D (batched) tensor with
+        shape:`(..., num_mel_bins, time)`.
+
+[API Signature] fft_length: integer, sequence_stride: integer, sequence_length: integer, window: string, sampling_rate: integer, num_mel_bins: integer, min_freq: float, max_freq: float, power_to_db: boolean, top_db: float, mag_exp: float, min_power: float, ref_power: float, inputs: tensor
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 10 (valid 2D transposed convolution)
+{v_1 : tensor, v_2 : tensor, v_3 : int, v_4 : int} |= ndim(v_1) = 4 ∧ ndim(v_2) = 4 ∧ v_3 ≥ 1 ∧ v_4 ≥ 0 ∧ v_3 × (shape(v_1, 2) − 1) + shape(v_2, 2) − 2 × v_4 > 0 ∧ v_3 × (shape(v_1, 3) − 1) + shape(v_2, 3) − 2 × v_4 > 0
+
+Rule 11 (index tensor (v_3) is within the input tensor along the specified dimension)
+{v_1 : tensor, v_2 : int, v_3 : tensor} |= min(v_3) ≥ 0 ∧ max(v_3) ≤ shape(v_1, v_2) − 1
+
+Rule 5 (index tensor (v_2) should be within the range of input tensor)
+{v_1 : tensor, v_2 : tensor} |= min(v_2) ≥ 0 ∧ ∀i ∈ [0, ndim(v_1) − 1] : max(v_2) ≤ shape(v_1, i) − 1
+
+Rule 22 (valid step size for a range)
+{v_1 : int ⊎ float, v_2 : int ⊎ float, v_3 : int ⊎ float} |= if v_1 > 0 then v_2 ≤ v_3 else if v_1 < 0 then v_2 ≥ v_3 else true
+
+Rule 25 (tensor shape matches given tuple shape)
+{v_1 : tensor, v_2 : tuple(int)} |= ndim(v_1) = v_2.len ∧ ∀i ∈ [0, v_2.len - 1] : shape(v_1, i) = v_2[i]
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 9 (The maximum mel frequency cannot exceed half of the sampling rate)
+{v_1 : float, v_2 : int} |= v_1 ≤ v_2 / 2
+Token usage: input=8139, output=287, total=10823
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.keras.layers.MelSpectrogram API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+A preprocessing layer to convert raw audio signals to Mel spectrograms.
+
+    This layer takes `float32`/`float64` single or batched audio signal as
+    inputs and computes the Mel spectrogram using Short-Time Fourier Transform
+    and Mel scaling. The input should be a 1D (unbatched) or 2D (batched) tensor
+    representing audio signals. The output will be a 2D or 3D tensor
+    representing Mel spectrograms.
+
+    A spectrogram is an image-like representation that shows the frequency
+    spectrum of a signal over time. It uses x-axis to represent time, y-axis to
+    represent frequency, and each pixel to represent intensity.
+    Mel spectrograms are a special type of spectrogram that use the mel scale,
+    which approximates how humans perceive sound. They are commonly used in
+    speech and music processing tasks like speech recognition, speaker
+    identification, and music genre classification.
+
+    **Note:** This layer is safe to use inside a `tf.data` or `grain` pipeline
+    (independently of which backend you're using).
+
+    References:
+    - [Spectrogram](https://en.wikipedia.org/wiki/Spectrogram),
+    - [Mel scale](https://en.wikipedia.org/wiki/Mel_scale).
+
+    Args:
+        fft_length: Integer, size of the FFT window.
+        sequence_stride: Integer, number of samples between successive STFT
+            columns.
+        sequence_length: Integer, size of the window used for applying
+            `window` to each audio frame. If `None`, defaults to `fft_length`.
+        window: String, name of the window function to use. Available values
+            are `"hann"` and `"hamming"`. If `window` is a tensor, it will be
+            used directly as the window and its length must be
+            `sequence_length`. If `window` is `None`, no windowing is
+            used. Defaults to `"hann"`.
+        sampling_rate: Integer, sample rate of the input signal.
+        num_mel_bins: Integer, number of mel bins to generate.
+        min_freq: Float, minimum frequency of the mel bins.
+        max_freq: Float, maximum frequency of the mel bins.
+            If `None`, defaults to `sampling_rate / 2`.
+        power_to_db: If True, convert the power spectrogram to decibels.
+        top_db: Float, minimum negative cut-off `max(10 * log10(S)) - top_db`.
+        mag_exp: Float, exponent for the magnitude spectrogram.
+            1 for magnitude, 2 for power, etc. Default is 2.
+        ref_power: Float, the power is scaled relative to it
+            `10 * log10(S / ref_power)`.
+        min_power: Float, minimum value for power and `ref_power`.
+
+    Examples:
+
+    **Unbatched audio signal**
+
+    >>> layer = keras.layers.MelSpectrogram(num_mel_bins=64,
+    ...                                     sampling_rate=8000,
+    ...                                     sequence_stride=256,
+    ...                                     fft_length=2048)
+    >>> layer(keras.random.uniform(shape=(16000,))).shape
+    (64, 63)
+
+    **Batched audio signal**
+
+    >>> layer = keras.layers.MelSpectrogram(num_mel_bins=80,
+    ...                                     sampling_rate=8000,
+    ...                                     sequence_stride=128,
+    ...                                     fft_length=2048)
+    >>> layer(keras.random.uniform(shape=(2, 16000))).shape
+    (2, 80, 125)
+
+    Input shape:
+        1D (unbatched) or 2D (batched) tensor with shape:`(..., samples)`.
+
+    Output shape:
+        2D (unbatched) or 3D (batched) tensor with
+        shape:`(..., num_mel_bins, time)`.
+
+[API Signature] fft_length: integer, sequence_stride: integer, sequence_length: integer, window: string, sampling_rate: integer, num_mel_bins: integer, min_freq: float, max_freq: float, power_to_db: boolean, top_db: float, mag_exp: float, min_power: float, ref_power: float, inputs: tensor
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 10 (valid 2D transposed convolution)
+{v_1 : tensor, v_2 : tensor, v_3 : int, v_4 : int} |= ndim(v_1) = 4 ∧ ndim(v_2) = 4 ∧ v_3 ≥ 1 ∧ v_4 ≥ 0 ∧ v_3 × (shape(v_1, 2) − 1) + shape(v_2, 2) − 2 × v_4 > 0 ∧ v_3 × (shape(v_1, 3) − 1) + shape(v_2, 3) − 2 × v_4 > 0
+
+Rule 11 (index tensor (v_3) is within the input tensor along the specified dimension)
+{v_1 : tensor, v_2 : int, v_3 : tensor} |= min(v_3) ≥ 0 ∧ max(v_3) ≤ shape(v_1, v_2) − 1
+
+Rule 5 (index tensor (v_2) should be within the range of input tensor)
+{v_1 : tensor, v_2 : tensor} |= min(v_2) ≥ 0 ∧ ∀i ∈ [0, ndim(v_1) − 1] : max(v_2) ≤ shape(v_1, i) − 1
+
+Rule 22 (valid step size for a range)
+{v_1 : int ⊎ float, v_2 : int ⊎ float, v_3 : int ⊎ float} |= if v_1 > 0 then v_2 ≤ v_3 else if v_1 < 0 then v_2 ≥ v_3 else true
+
+Rule 25 (tensor shape matches given tuple shape)
+{v_1 : tensor, v_2 : tuple(int)} |= ndim(v_1) = v_2.len ∧ ∀i ∈ [0, v_2.len - 1] : shape(v_1, i) = v_2[i]
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 10 (The minimum negative cut-off top_db must be positive if power_to_db is enabled)
+{v_1 : bool, v_2 : float} |= if v_1 = true then v_2 > 0
+Token usage: input=8139, output=287, total=10823
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.keras.layers.MelSpectrogram API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+A preprocessing layer to convert raw audio signals to Mel spectrograms.
+
+    This layer takes `float32`/`float64` single or batched audio signal as
+    inputs and computes the Mel spectrogram using Short-Time Fourier Transform
+    and Mel scaling. The input should be a 1D (unbatched) or 2D (batched) tensor
+    representing audio signals. The output will be a 2D or 3D tensor
+    representing Mel spectrograms.
+
+    A spectrogram is an image-like representation that shows the frequency
+    spectrum of a signal over time. It uses x-axis to represent time, y-axis to
+    represent frequency, and each pixel to represent intensity.
+    Mel spectrograms are a special type of spectrogram that use the mel scale,
+    which approximates how humans perceive sound. They are commonly used in
+    speech and music processing tasks like speech recognition, speaker
+    identification, and music genre classification.
+
+    **Note:** This layer is safe to use inside a `tf.data` or `grain` pipeline
+    (independently of which backend you're using).
+
+    References:
+    - [Spectrogram](https://en.wikipedia.org/wiki/Spectrogram),
+    - [Mel scale](https://en.wikipedia.org/wiki/Mel_scale).
+
+    Args:
+        fft_length: Integer, size of the FFT window.
+        sequence_stride: Integer, number of samples between successive STFT
+            columns.
+        sequence_length: Integer, size of the window used for applying
+            `window` to each audio frame. If `None`, defaults to `fft_length`.
+        window: String, name of the window function to use. Available values
+            are `"hann"` and `"hamming"`. If `window` is a tensor, it will be
+            used directly as the window and its length must be
+            `sequence_length`. If `window` is `None`, no windowing is
+            used. Defaults to `"hann"`.
+        sampling_rate: Integer, sample rate of the input signal.
+        num_mel_bins: Integer, number of mel bins to generate.
+        min_freq: Float, minimum frequency of the mel bins.
+        max_freq: Float, maximum frequency of the mel bins.
+            If `None`, defaults to `sampling_rate / 2`.
+        power_to_db: If True, convert the power spectrogram to decibels.
+        top_db: Float, minimum negative cut-off `max(10 * log10(S)) - top_db`.
+        mag_exp: Float, exponent for the magnitude spectrogram.
+            1 for magnitude, 2 for power, etc. Default is 2.
+        ref_power: Float, the power is scaled relative to it
+            `10 * log10(S / ref_power)`.
+        min_power: Float, minimum value for power and `ref_power`.
+
+    Examples:
+
+    **Unbatched audio signal**
+
+    >>> layer = keras.layers.MelSpectrogram(num_mel_bins=64,
+    ...                                     sampling_rate=8000,
+    ...                                     sequence_stride=256,
+    ...                                     fft_length=2048)
+    >>> layer(keras.random.uniform(shape=(16000,))).shape
+    (64, 63)
+
+    **Batched audio signal**
+
+    >>> layer = keras.layers.MelSpectrogram(num_mel_bins=80,
+    ...                                     sampling_rate=8000,
+    ...                                     sequence_stride=128,
+    ...                                     fft_length=2048)
+    >>> layer(keras.random.uniform(shape=(2, 16000))).shape
+    (2, 80, 125)
+
+    Input shape:
+        1D (unbatched) or 2D (batched) tensor with shape:`(..., samples)`.
+
+    Output shape:
+        2D (unbatched) or 3D (batched) tensor with
+        shape:`(..., num_mel_bins, time)`.
+
+[API Signature] fft_length: integer, sequence_stride: integer, sequence_length: integer, window: string, sampling_rate: integer, num_mel_bins: integer, min_freq: float, max_freq: float, power_to_db: boolean, top_db: float, mag_exp: float, min_power: float, ref_power: float, inputs: tensor
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 10 (valid 2D transposed convolution)
+{v_1 : tensor, v_2 : tensor, v_3 : int, v_4 : int} |= ndim(v_1) = 4 ∧ ndim(v_2) = 4 ∧ v_3 ≥ 1 ∧ v_4 ≥ 0 ∧ v_3 × (shape(v_1, 2) − 1) + shape(v_2, 2) − 2 × v_4 > 0 ∧ v_3 × (shape(v_1, 3) − 1) + shape(v_2, 3) − 2 × v_4 > 0
+
+Rule 11 (index tensor (v_3) is within the input tensor along the specified dimension)
+{v_1 : tensor, v_2 : int, v_3 : tensor} |= min(v_3) ≥ 0 ∧ max(v_3) ≤ shape(v_1, v_2) − 1
+
+Rule 5 (index tensor (v_2) should be within the range of input tensor)
+{v_1 : tensor, v_2 : tensor} |= min(v_2) ≥ 0 ∧ ∀i ∈ [0, ndim(v_1) − 1] : max(v_2) ≤ shape(v_1, i) − 1
+
+Rule 22 (valid step size for a range)
+{v_1 : int ⊎ float, v_2 : int ⊎ float, v_3 : int ⊎ float} |= if v_1 > 0 then v_2 ≤ v_3 else if v_1 < 0 then v_2 ≥ v_3 else true
+
+Rule 25 (tensor shape matches given tuple shape)
+{v_1 : tensor, v_2 : tuple(int)} |= ndim(v_1) = v_2.len ∧ ∀i ∈ [0, v_2.len - 1] : shape(v_1, i) = v_2[i]
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 11 (The magnitude exponent and minimum power limit must be strictly positive)
+{v_1 : float, v_2 : float} |= v_1 > 0 ∧ v_2 > 0
+Token usage: input=8139, output=287, total=10823
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.keras.layers.MelSpectrogram API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+A preprocessing layer to convert raw audio signals to Mel spectrograms.
+
+    This layer takes `float32`/`float64` single or batched audio signal as
+    inputs and computes the Mel spectrogram using Short-Time Fourier Transform
+    and Mel scaling. The input should be a 1D (unbatched) or 2D (batched) tensor
+    representing audio signals. The output will be a 2D or 3D tensor
+    representing Mel spectrograms.
+
+    A spectrogram is an image-like representation that shows the frequency
+    spectrum of a signal over time. It uses x-axis to represent time, y-axis to
+    represent frequency, and each pixel to represent intensity.
+    Mel spectrograms are a special type of spectrogram that use the mel scale,
+    which approximates how humans perceive sound. They are commonly used in
+    speech and music processing tasks like speech recognition, speaker
+    identification, and music genre classification.
+
+    **Note:** This layer is safe to use inside a `tf.data` or `grain` pipeline
+    (independently of which backend you're using).
+
+    References:
+    - [Spectrogram](https://en.wikipedia.org/wiki/Spectrogram),
+    - [Mel scale](https://en.wikipedia.org/wiki/Mel_scale).
+
+    Args:
+        fft_length: Integer, size of the FFT window.
+        sequence_stride: Integer, number of samples between successive STFT
+            columns.
+        sequence_length: Integer, size of the window used for applying
+            `window` to each audio frame. If `None`, defaults to `fft_length`.
+        window: String, name of the window function to use. Available values
+            are `"hann"` and `"hamming"`. If `window` is a tensor, it will be
+            used directly as the window and its length must be
+            `sequence_length`. If `window` is `None`, no windowing is
+            used. Defaults to `"hann"`.
+        sampling_rate: Integer, sample rate of the input signal.
+        num_mel_bins: Integer, number of mel bins to generate.
+        min_freq: Float, minimum frequency of the mel bins.
+        max_freq: Float, maximum frequency of the mel bins.
+            If `None`, defaults to `sampling_rate / 2`.
+        power_to_db: If True, convert the power spectrogram to decibels.
+        top_db: Float, minimum negative cut-off `max(10 * log10(S)) - top_db`.
+        mag_exp: Float, exponent for the magnitude spectrogram.
+            1 for magnitude, 2 for power, etc. Default is 2.
+        ref_power: Float, the power is scaled relative to it
+            `10 * log10(S / ref_power)`.
+        min_power: Float, minimum value for power and `ref_power`.
+
+    Examples:
+
+    **Unbatched audio signal**
+
+    >>> layer = keras.layers.MelSpectrogram(num_mel_bins=64,
+    ...                                     sampling_rate=8000,
+    ...                                     sequence_stride=256,
+    ...                                     fft_length=2048)
+    >>> layer(keras.random.uniform(shape=(16000,))).shape
+    (64, 63)
+
+    **Batched audio signal**
+
+    >>> layer = keras.layers.MelSpectrogram(num_mel_bins=80,
+    ...                                     sampling_rate=8000,
+    ...                                     sequence_stride=128,
+    ...                                     fft_length=2048)
+    >>> layer(keras.random.uniform(shape=(2, 16000))).shape
+    (2, 80, 125)
+
+    Input shape:
+        1D (unbatched) or 2D (batched) tensor with shape:`(..., samples)`.
+
+    Output shape:
+        2D (unbatched) or 3D (batched) tensor with
+        shape:`(..., num_mel_bins, time)`.
+
+[API Signature] fft_length: integer, sequence_stride: integer, sequence_length: integer, window: string, sampling_rate: integer, num_mel_bins: integer, min_freq: float, max_freq: float, power_to_db: boolean, top_db: float, mag_exp: float, min_power: float, ref_power: float, inputs: tensor
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 10 (valid 2D transposed convolution)
+{v_1 : tensor, v_2 : tensor, v_3 : int, v_4 : int} |= ndim(v_1) = 4 ∧ ndim(v_2) = 4 ∧ v_3 ≥ 1 ∧ v_4 ≥ 0 ∧ v_3 × (shape(v_1, 2) − 1) + shape(v_2, 2) − 2 × v_4 > 0 ∧ v_3 × (shape(v_1, 3) − 1) + shape(v_2, 3) − 2 × v_4 > 0
+
+Rule 11 (index tensor (v_3) is within the input tensor along the specified dimension)
+{v_1 : tensor, v_2 : int, v_3 : tensor} |= min(v_3) ≥ 0 ∧ max(v_3) ≤ shape(v_1, v_2) − 1
+
+Rule 5 (index tensor (v_2) should be within the range of input tensor)
+{v_1 : tensor, v_2 : tensor} |= min(v_2) ≥ 0 ∧ ∀i ∈ [0, ndim(v_1) − 1] : max(v_2) ≤ shape(v_1, i) − 1
+
+Rule 22 (valid step size for a range)
+{v_1 : int ⊎ float, v_2 : int ⊎ float, v_3 : int ⊎ float} |= if v_1 > 0 then v_2 ≤ v_3 else if v_1 < 0 then v_2 ≥ v_3 else true
+
+Rule 25 (tensor shape matches given tuple shape)
+{v_1 : tensor, v_2 : tuple(int)} |= ndim(v_1) = v_2.len ∧ ∀i ∈ [0, v_2.len - 1] : shape(v_1, i) = v_2[i]
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 12 (Minimum mel frequency must be strictly less than the maximum mel frequency)
+{v_1 : float, v_2 : float} |= v_1 < v_2
+Token usage: input=8139, output=287, total=10823
+** SUCCESS **
+
+>>> PROMPT
+[Feedback Message from Prior Run]
+Duplicated rule: {v_1 : int, v_2 : int} |= v_1 ≤ v_2
+
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.keras.layers.MelSpectrogram API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+A preprocessing layer to convert raw audio signals to Mel spectrograms.
+
+    This layer takes `float32`/`float64` single or batched audio signal as
+    inputs and computes the Mel spectrogram using Short-Time Fourier Transform
+    and Mel scaling. The input should be a 1D (unbatched) or 2D (batched) tensor
+    representing audio signals. The output will be a 2D or 3D tensor
+    representing Mel spectrograms.
+
+    A spectrogram is an image-like representation that shows the frequency
+    spectrum of a signal over time. It uses x-axis to represent time, y-axis to
+    represent frequency, and each pixel to represent intensity.
+    Mel spectrograms are a special type of spectrogram that use the mel scale,
+    which approximates how humans perceive sound. They are commonly used in
+    speech and music processing tasks like speech recognition, speaker
+    identification, and music genre classification.
+
+    **Note:** This layer is safe to use inside a `tf.data` or `grain` pipeline
+    (independently of which backend you're using).
+
+    References:
+    - [Spectrogram](https://en.wikipedia.org/wiki/Spectrogram),
+    - [Mel scale](https://en.wikipedia.org/wiki/Mel_scale).
+
+    Args:
+        fft_length: Integer, size of the FFT window.
+        sequence_stride: Integer, number of samples between successive STFT
+            columns.
+        sequence_length: Integer, size of the window used for applying
+            `window` to each audio frame. If `None`, defaults to `fft_length`.
+        window: String, name of the window function to use. Available values
+            are `"hann"` and `"hamming"`. If `window` is a tensor, it will be
+            used directly as the window and its length must be
+            `sequence_length`. If `window` is `None`, no windowing is
+            used. Defaults to `"hann"`.
+        sampling_rate: Integer, sample rate of the input signal.
+        num_mel_bins: Integer, number of mel bins to generate.
+        min_freq: Float, minimum frequency of the mel bins.
+        max_freq: Float, maximum frequency of the mel bins.
+            If `None`, defaults to `sampling_rate / 2`.
+        power_to_db: If True, convert the power spectrogram to decibels.
+        top_db: Float, minimum negative cut-off `max(10 * log10(S)) - top_db`.
+        mag_exp: Float, exponent for the magnitude spectrogram.
+            1 for magnitude, 2 for power, etc. Default is 2.
+        ref_power: Float, the power is scaled relative to it
+            `10 * log10(S / ref_power)`.
+        min_power: Float, minimum value for power and `ref_power`.
+
+    Examples:
+
+    **Unbatched audio signal**
+
+    >>> layer = keras.layers.MelSpectrogram(num_mel_bins=64,
+    ...                                     sampling_rate=8000,
+    ...                                     sequence_stride=256,
+    ...                                     fft_length=2048)
+    >>> layer(keras.random.uniform(shape=(16000,))).shape
+    (64, 63)
+
+    **Batched audio signal**
+
+    >>> layer = keras.layers.MelSpectrogram(num_mel_bins=80,
+    ...                                     sampling_rate=8000,
+    ...                                     sequence_stride=128,
+    ...                                     fft_length=2048)
+    >>> layer(keras.random.uniform(shape=(2, 16000))).shape
+    (2, 80, 125)
+
+    Input shape:
+        1D (unbatched) or 2D (batched) tensor with shape:`(..., samples)`.
+
+    Output shape:
+        2D (unbatched) or 3D (batched) tensor with
+        shape:`(..., num_mel_bins, time)`.
+
+[API Signature] fft_length: integer, sequence_stride: integer, sequence_length: integer, window: string, sampling_rate: integer, num_mel_bins: integer, min_freq: float, max_freq: float, power_to_db: boolean, top_db: float, mag_exp: float, min_power: float, ref_power: float, inputs: tensor
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 20 (input tensor must be 1-dimensional)
+{v_1 : tensor} |= ndim(v_1) = 1
+
+Rule 1 (tensor shapes should be the same)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = shape(v_2, i)
+
+Rule 28 (list of ints used as dimensions/axes, all non-negative and valid for tensor shape)
+{v_1 : tensor, v_2 : list(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 24 (tuple of ints represents valid shape dimensions)
+{v_1 : tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] > 0
+
+Rule 21 (primitive type variable should not be zero)
+{v_1 : int ⊎ float} |= v_1 ≠ 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 13 (inputs must be a 1D or 2D tensor representing the audio signal)
+{v_1 : tensor} |= ndim(v_1) ≥ 1 ∧ ndim(v_1) ≤ 2
+Token usage: input=13258, output=347, total=17200
+** SUCCESS **
+
+>>> PROMPT
+[Feedback Message from Prior Run]
+Duplicated rule: {v_1 : int, v_2 : int} |= v_1 ≤ v_2
+
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.keras.layers.MelSpectrogram API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+A preprocessing layer to convert raw audio signals to Mel spectrograms.
+
+    This layer takes `float32`/`float64` single or batched audio signal as
+    inputs and computes the Mel spectrogram using Short-Time Fourier Transform
+    and Mel scaling. The input should be a 1D (unbatched) or 2D (batched) tensor
+    representing audio signals. The output will be a 2D or 3D tensor
+    representing Mel spectrograms.
+
+    A spectrogram is an image-like representation that shows the frequency
+    spectrum of a signal over time. It uses x-axis to represent time, y-axis to
+    represent frequency, and each pixel to represent intensity.
+    Mel spectrograms are a special type of spectrogram that use the mel scale,
+    which approximates how humans perceive sound. They are commonly used in
+    speech and music processing tasks like speech recognition, speaker
+    identification, and music genre classification.
+
+    **Note:** This layer is safe to use inside a `tf.data` or `grain` pipeline
+    (independently of which backend you're using).
+
+    References:
+    - [Spectrogram](https://en.wikipedia.org/wiki/Spectrogram),
+    - [Mel scale](https://en.wikipedia.org/wiki/Mel_scale).
+
+    Args:
+        fft_length: Integer, size of the FFT window.
+        sequence_stride: Integer, number of samples between successive STFT
+            columns.
+        sequence_length: Integer, size of the window used for applying
+            `window` to each audio frame. If `None`, defaults to `fft_length`.
+        window: String, name of the window function to use. Available values
+            are `"hann"` and `"hamming"`. If `window` is a tensor, it will be
+            used directly as the window and its length must be
+            `sequence_length`. If `window` is `None`, no windowing is
+            used. Defaults to `"hann"`.
+        sampling_rate: Integer, sample rate of the input signal.
+        num_mel_bins: Integer, number of mel bins to generate.
+        min_freq: Float, minimum frequency of the mel bins.
+        max_freq: Float, maximum frequency of the mel bins.
+            If `None`, defaults to `sampling_rate / 2`.
+        power_to_db: If True, convert the power spectrogram to decibels.
+        top_db: Float, minimum negative cut-off `max(10 * log10(S)) - top_db`.
+        mag_exp: Float, exponent for the magnitude spectrogram.
+            1 for magnitude, 2 for power, etc. Default is 2.
+        ref_power: Float, the power is scaled relative to it
+            `10 * log10(S / ref_power)`.
+        min_power: Float, minimum value for power and `ref_power`.
+
+    Examples:
+
+    **Unbatched audio signal**
+
+    >>> layer = keras.layers.MelSpectrogram(num_mel_bins=64,
+    ...                                     sampling_rate=8000,
+    ...                                     sequence_stride=256,
+    ...                                     fft_length=2048)
+    >>> layer(keras.random.uniform(shape=(16000,))).shape
+    (64, 63)
+
+    **Batched audio signal**
+
+    >>> layer = keras.layers.MelSpectrogram(num_mel_bins=80,
+    ...                                     sampling_rate=8000,
+    ...                                     sequence_stride=128,
+    ...                                     fft_length=2048)
+    >>> layer(keras.random.uniform(shape=(2, 16000))).shape
+    (2, 80, 125)
+
+    Input shape:
+        1D (unbatched) or 2D (batched) tensor with shape:`(..., samples)`.
+
+    Output shape:
+        2D (unbatched) or 3D (batched) tensor with
+        shape:`(..., num_mel_bins, time)`.
+
+[API Signature] fft_length: integer, sequence_stride: integer, sequence_length: integer, window: string, sampling_rate: integer, num_mel_bins: integer, min_freq: float, max_freq: float, power_to_db: boolean, top_db: float, mag_exp: float, min_power: float, ref_power: float, inputs: tensor
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 20 (input tensor must be 1-dimensional)
+{v_1 : tensor} |= ndim(v_1) = 1
+
+Rule 1 (tensor shapes should be the same)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = shape(v_2, i)
+
+Rule 28 (list of ints used as dimensions/axes, all non-negative and valid for tensor shape)
+{v_1 : tensor, v_2 : list(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 24 (tuple of ints represents valid shape dimensions)
+{v_1 : tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] > 0
+
+Rule 21 (primitive type variable should not be zero)
+{v_1 : int ⊎ float} |= v_1 ≠ 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 14 (inputs must have a float32 or float64 dtype)
+{v_1 : tensor} |= dtype_(v_1) = 7 ∨ dtype_(v_1) = 8
+Token usage: input=13258, output=347, total=17200
+** SUCCESS **
+
+>>> PROMPT
+[Feedback Message from Prior Run]
+Duplicated rule: {v_1 : int, v_2 : int} |= v_1 ≤ v_2
+
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.keras.layers.MelSpectrogram API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+A preprocessing layer to convert raw audio signals to Mel spectrograms.
+
+    This layer takes `float32`/`float64` single or batched audio signal as
+    inputs and computes the Mel spectrogram using Short-Time Fourier Transform
+    and Mel scaling. The input should be a 1D (unbatched) or 2D (batched) tensor
+    representing audio signals. The output will be a 2D or 3D tensor
+    representing Mel spectrograms.
+
+    A spectrogram is an image-like representation that shows the frequency
+    spectrum of a signal over time. It uses x-axis to represent time, y-axis to
+    represent frequency, and each pixel to represent intensity.
+    Mel spectrograms are a special type of spectrogram that use the mel scale,
+    which approximates how humans perceive sound. They are commonly used in
+    speech and music processing tasks like speech recognition, speaker
+    identification, and music genre classification.
+
+    **Note:** This layer is safe to use inside a `tf.data` or `grain` pipeline
+    (independently of which backend you're using).
+
+    References:
+    - [Spectrogram](https://en.wikipedia.org/wiki/Spectrogram),
+    - [Mel scale](https://en.wikipedia.org/wiki/Mel_scale).
+
+    Args:
+        fft_length: Integer, size of the FFT window.
+        sequence_stride: Integer, number of samples between successive STFT
+            columns.
+        sequence_length: Integer, size of the window used for applying
+            `window` to each audio frame. If `None`, defaults to `fft_length`.
+        window: String, name of the window function to use. Available values
+            are `"hann"` and `"hamming"`. If `window` is a tensor, it will be
+            used directly as the window and its length must be
+            `sequence_length`. If `window` is `None`, no windowing is
+            used. Defaults to `"hann"`.
+        sampling_rate: Integer, sample rate of the input signal.
+        num_mel_bins: Integer, number of mel bins to generate.
+        min_freq: Float, minimum frequency of the mel bins.
+        max_freq: Float, maximum frequency of the mel bins.
+            If `None`, defaults to `sampling_rate / 2`.
+        power_to_db: If True, convert the power spectrogram to decibels.
+        top_db: Float, minimum negative cut-off `max(10 * log10(S)) - top_db`.
+        mag_exp: Float, exponent for the magnitude spectrogram.
+            1 for magnitude, 2 for power, etc. Default is 2.
+        ref_power: Float, the power is scaled relative to it
+            `10 * log10(S / ref_power)`.
+        min_power: Float, minimum value for power and `ref_power`.
+
+    Examples:
+
+    **Unbatched audio signal**
+
+    >>> layer = keras.layers.MelSpectrogram(num_mel_bins=64,
+    ...                                     sampling_rate=8000,
+    ...                                     sequence_stride=256,
+    ...                                     fft_length=2048)
+    >>> layer(keras.random.uniform(shape=(16000,))).shape
+    (64, 63)
+
+    **Batched audio signal**
+
+    >>> layer = keras.layers.MelSpectrogram(num_mel_bins=80,
+    ...                                     sampling_rate=8000,
+    ...                                     sequence_stride=128,
+    ...                                     fft_length=2048)
+    >>> layer(keras.random.uniform(shape=(2, 16000))).shape
+    (2, 80, 125)
+
+    Input shape:
+        1D (unbatched) or 2D (batched) tensor with shape:`(..., samples)`.
+
+    Output shape:
+        2D (unbatched) or 3D (batched) tensor with
+        shape:`(..., num_mel_bins, time)`.
+
+[API Signature] fft_length: integer, sequence_stride: integer, sequence_length: integer, window: string, sampling_rate: integer, num_mel_bins: integer, min_freq: float, max_freq: float, power_to_db: boolean, top_db: float, mag_exp: float, min_power: float, ref_power: float, inputs: tensor
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 20 (input tensor must be 1-dimensional)
+{v_1 : tensor} |= ndim(v_1) = 1
+
+Rule 1 (tensor shapes should be the same)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = shape(v_2, i)
+
+Rule 28 (list of ints used as dimensions/axes, all non-negative and valid for tensor shape)
+{v_1 : tensor, v_2 : list(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 24 (tuple of ints represents valid shape dimensions)
+{v_1 : tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] > 0
+
+Rule 21 (primitive type variable should not be zero)
+{v_1 : int ⊎ float} |= v_1 ≠ 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 15 (The length of the audio signal on the last axis must be at least the fft_length)
+{v_1 : tensor, v_2 : int} |= shape(v_1, ndim(v_1) - 1) ≥ v_2
+Token usage: input=13258, output=347, total=17200
+** DUPLICATED RULE ** (num_failures: 2)
+
+>>> PROMPT
+[Feedback Message from Prior Run]
+Duplicated rule: {v_1 : int, v_2 : int} |= v_1 ≤ v_2
+
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.keras.layers.MelSpectrogram API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+A preprocessing layer to convert raw audio signals to Mel spectrograms.
+
+    This layer takes `float32`/`float64` single or batched audio signal as
+    inputs and computes the Mel spectrogram using Short-Time Fourier Transform
+    and Mel scaling. The input should be a 1D (unbatched) or 2D (batched) tensor
+    representing audio signals. The output will be a 2D or 3D tensor
+    representing Mel spectrograms.
+
+    A spectrogram is an image-like representation that shows the frequency
+    spectrum of a signal over time. It uses x-axis to represent time, y-axis to
+    represent frequency, and each pixel to represent intensity.
+    Mel spectrograms are a special type of spectrogram that use the mel scale,
+    which approximates how humans perceive sound. They are commonly used in
+    speech and music processing tasks like speech recognition, speaker
+    identification, and music genre classification.
+
+    **Note:** This layer is safe to use inside a `tf.data` or `grain` pipeline
+    (independently of which backend you're using).
+
+    References:
+    - [Spectrogram](https://en.wikipedia.org/wiki/Spectrogram),
+    - [Mel scale](https://en.wikipedia.org/wiki/Mel_scale).
+
+    Args:
+        fft_length: Integer, size of the FFT window.
+        sequence_stride: Integer, number of samples between successive STFT
+            columns.
+        sequence_length: Integer, size of the window used for applying
+            `window` to each audio frame. If `None`, defaults to `fft_length`.
+        window: String, name of the window function to use. Available values
+            are `"hann"` and `"hamming"`. If `window` is a tensor, it will be
+            used directly as the window and its length must be
+            `sequence_length`. If `window` is `None`, no windowing is
+            used. Defaults to `"hann"`.
+        sampling_rate: Integer, sample rate of the input signal.
+        num_mel_bins: Integer, number of mel bins to generate.
+        min_freq: Float, minimum frequency of the mel bins.
+        max_freq: Float, maximum frequency of the mel bins.
+            If `None`, defaults to `sampling_rate / 2`.
+        power_to_db: If True, convert the power spectrogram to decibels.
+        top_db: Float, minimum negative cut-off `max(10 * log10(S)) - top_db`.
+        mag_exp: Float, exponent for the magnitude spectrogram.
+            1 for magnitude, 2 for power, etc. Default is 2.
+        ref_power: Float, the power is scaled relative to it
+            `10 * log10(S / ref_power)`.
+        min_power: Float, minimum value for power and `ref_power`.
+
+    Examples:
+
+    **Unbatched audio signal**
+
+    >>> layer = keras.layers.MelSpectrogram(num_mel_bins=64,
+    ...                                     sampling_rate=8000,
+    ...                                     sequence_stride=256,
+    ...                                     fft_length=2048)
+    >>> layer(keras.random.uniform(shape=(16000,))).shape
+    (64, 63)
+
+    **Batched audio signal**
+
+    >>> layer = keras.layers.MelSpectrogram(num_mel_bins=80,
+    ...                                     sampling_rate=8000,
+    ...                                     sequence_stride=128,
+    ...                                     fft_length=2048)
+    >>> layer(keras.random.uniform(shape=(2, 16000))).shape
+    (2, 80, 125)
+
+    Input shape:
+        1D (unbatched) or 2D (batched) tensor with shape:`(..., samples)`.
+
+    Output shape:
+        2D (unbatched) or 3D (batched) tensor with
+        shape:`(..., num_mel_bins, time)`.
+
+[API Signature] fft_length: integer, sequence_stride: integer, sequence_length: integer, window: string, sampling_rate: integer, num_mel_bins: integer, min_freq: float, max_freq: float, power_to_db: boolean, top_db: float, mag_exp: float, min_power: float, ref_power: float, inputs: tensor
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 20 (input tensor must be 1-dimensional)
+{v_1 : tensor} |= ndim(v_1) = 1
+
+Rule 1 (tensor shapes should be the same)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = shape(v_2, i)
+
+Rule 28 (list of ints used as dimensions/axes, all non-negative and valid for tensor shape)
+{v_1 : tensor, v_2 : list(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 24 (tuple of ints represents valid shape dimensions)
+{v_1 : tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] > 0
+
+Rule 21 (primitive type variable should not be zero)
+{v_1 : int ⊎ float} |= v_1 ≠ 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 16 (Mel frequency bounds must be non-negative, min_freq must be less than max_freq, and max_freq must not exceed half of the sampling rate)
+{v_1 : float, v_2 : float, v_3 : int} |= v_1 ≥ 0 ∧ v_1 < v_2 ∧ v_2 ≤ v_3 / 2
+Token usage: input=13258, output=347, total=17200
+** SUCCESS **
+
+>>> PROMPT
+[Feedback Message from Prior Run]
+Duplicated rule: {v_1 : int, v_2 : int} |= v_1 ≤ v_2
+
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.keras.layers.MelSpectrogram API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+A preprocessing layer to convert raw audio signals to Mel spectrograms.
+
+    This layer takes `float32`/`float64` single or batched audio signal as
+    inputs and computes the Mel spectrogram using Short-Time Fourier Transform
+    and Mel scaling. The input should be a 1D (unbatched) or 2D (batched) tensor
+    representing audio signals. The output will be a 2D or 3D tensor
+    representing Mel spectrograms.
+
+    A spectrogram is an image-like representation that shows the frequency
+    spectrum of a signal over time. It uses x-axis to represent time, y-axis to
+    represent frequency, and each pixel to represent intensity.
+    Mel spectrograms are a special type of spectrogram that use the mel scale,
+    which approximates how humans perceive sound. They are commonly used in
+    speech and music processing tasks like speech recognition, speaker
+    identification, and music genre classification.
+
+    **Note:** This layer is safe to use inside a `tf.data` or `grain` pipeline
+    (independently of which backend you're using).
+
+    References:
+    - [Spectrogram](https://en.wikipedia.org/wiki/Spectrogram),
+    - [Mel scale](https://en.wikipedia.org/wiki/Mel_scale).
+
+    Args:
+        fft_length: Integer, size of the FFT window.
+        sequence_stride: Integer, number of samples between successive STFT
+            columns.
+        sequence_length: Integer, size of the window used for applying
+            `window` to each audio frame. If `None`, defaults to `fft_length`.
+        window: String, name of the window function to use. Available values
+            are `"hann"` and `"hamming"`. If `window` is a tensor, it will be
+            used directly as the window and its length must be
+            `sequence_length`. If `window` is `None`, no windowing is
+            used. Defaults to `"hann"`.
+        sampling_rate: Integer, sample rate of the input signal.
+        num_mel_bins: Integer, number of mel bins to generate.
+        min_freq: Float, minimum frequency of the mel bins.
+        max_freq: Float, maximum frequency of the mel bins.
+            If `None`, defaults to `sampling_rate / 2`.
+        power_to_db: If True, convert the power spectrogram to decibels.
+        top_db: Float, minimum negative cut-off `max(10 * log10(S)) - top_db`.
+        mag_exp: Float, exponent for the magnitude spectrogram.
+            1 for magnitude, 2 for power, etc. Default is 2.
+        ref_power: Float, the power is scaled relative to it
+            `10 * log10(S / ref_power)`.
+        min_power: Float, minimum value for power and `ref_power`.
+
+    Examples:
+
+    **Unbatched audio signal**
+
+    >>> layer = keras.layers.MelSpectrogram(num_mel_bins=64,
+    ...                                     sampling_rate=8000,
+    ...                                     sequence_stride=256,
+    ...                                     fft_length=2048)
+    >>> layer(keras.random.uniform(shape=(16000,))).shape
+    (64, 63)
+
+    **Batched audio signal**
+
+    >>> layer = keras.layers.MelSpectrogram(num_mel_bins=80,
+    ...                                     sampling_rate=8000,
+    ...                                     sequence_stride=128,
+    ...                                     fft_length=2048)
+    >>> layer(keras.random.uniform(shape=(2, 16000))).shape
+    (2, 80, 125)
+
+    Input shape:
+        1D (unbatched) or 2D (batched) tensor with shape:`(..., samples)`.
+
+    Output shape:
+        2D (unbatched) or 3D (batched) tensor with
+        shape:`(..., num_mel_bins, time)`.
+
+[API Signature] fft_length: integer, sequence_stride: integer, sequence_length: integer, window: string, sampling_rate: integer, num_mel_bins: integer, min_freq: float, max_freq: float, power_to_db: boolean, top_db: float, mag_exp: float, min_power: float, ref_power: float, inputs: tensor
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 20 (input tensor must be 1-dimensional)
+{v_1 : tensor} |= ndim(v_1) = 1
+
+Rule 1 (tensor shapes should be the same)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = shape(v_2, i)
+
+Rule 28 (list of ints used as dimensions/axes, all non-negative and valid for tensor shape)
+{v_1 : tensor, v_2 : list(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 24 (tuple of ints represents valid shape dimensions)
+{v_1 : tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] > 0
+
+Rule 21 (primitive type variable should not be zero)
+{v_1 : int ⊎ float} |= v_1 ≠ 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 17 (If converting power to decibels is enabled, top_db must be strictly positive)
+{v_1 : bool, v_2 : float} |= if v_1 = true then v_2 > 0
+Token usage: input=13258, output=347, total=17200
+** DUPLICATED RULE ** (num_failures: 3)
+
+>>> PROMPT
+[Feedback Message from Prior Run]
+Duplicated rule: {v_1 : int, v_2 : int} |= v_1 ≤ v_2
+
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.keras.layers.MelSpectrogram API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+A preprocessing layer to convert raw audio signals to Mel spectrograms.
+
+    This layer takes `float32`/`float64` single or batched audio signal as
+    inputs and computes the Mel spectrogram using Short-Time Fourier Transform
+    and Mel scaling. The input should be a 1D (unbatched) or 2D (batched) tensor
+    representing audio signals. The output will be a 2D or 3D tensor
+    representing Mel spectrograms.
+
+    A spectrogram is an image-like representation that shows the frequency
+    spectrum of a signal over time. It uses x-axis to represent time, y-axis to
+    represent frequency, and each pixel to represent intensity.
+    Mel spectrograms are a special type of spectrogram that use the mel scale,
+    which approximates how humans perceive sound. They are commonly used in
+    speech and music processing tasks like speech recognition, speaker
+    identification, and music genre classification.
+
+    **Note:** This layer is safe to use inside a `tf.data` or `grain` pipeline
+    (independently of which backend you're using).
+
+    References:
+    - [Spectrogram](https://en.wikipedia.org/wiki/Spectrogram),
+    - [Mel scale](https://en.wikipedia.org/wiki/Mel_scale).
+
+    Args:
+        fft_length: Integer, size of the FFT window.
+        sequence_stride: Integer, number of samples between successive STFT
+            columns.
+        sequence_length: Integer, size of the window used for applying
+            `window` to each audio frame. If `None`, defaults to `fft_length`.
+        window: String, name of the window function to use. Available values
+            are `"hann"` and `"hamming"`. If `window` is a tensor, it will be
+            used directly as the window and its length must be
+            `sequence_length`. If `window` is `None`, no windowing is
+            used. Defaults to `"hann"`.
+        sampling_rate: Integer, sample rate of the input signal.
+        num_mel_bins: Integer, number of mel bins to generate.
+        min_freq: Float, minimum frequency of the mel bins.
+        max_freq: Float, maximum frequency of the mel bins.
+            If `None`, defaults to `sampling_rate / 2`.
+        power_to_db: If True, convert the power spectrogram to decibels.
+        top_db: Float, minimum negative cut-off `max(10 * log10(S)) - top_db`.
+        mag_exp: Float, exponent for the magnitude spectrogram.
+            1 for magnitude, 2 for power, etc. Default is 2.
+        ref_power: Float, the power is scaled relative to it
+            `10 * log10(S / ref_power)`.
+        min_power: Float, minimum value for power and `ref_power`.
+
+    Examples:
+
+    **Unbatched audio signal**
+
+    >>> layer = keras.layers.MelSpectrogram(num_mel_bins=64,
+    ...                                     sampling_rate=8000,
+    ...                                     sequence_stride=256,
+    ...                                     fft_length=2048)
+    >>> layer(keras.random.uniform(shape=(16000,))).shape
+    (64, 63)
+
+    **Batched audio signal**
+
+    >>> layer = keras.layers.MelSpectrogram(num_mel_bins=80,
+    ...                                     sampling_rate=8000,
+    ...                                     sequence_stride=128,
+    ...                                     fft_length=2048)
+    >>> layer(keras.random.uniform(shape=(2, 16000))).shape
+    (2, 80, 125)
+
+    Input shape:
+        1D (unbatched) or 2D (batched) tensor with shape:`(..., samples)`.
+
+    Output shape:
+        2D (unbatched) or 3D (batched) tensor with
+        shape:`(..., num_mel_bins, time)`.
+
+[API Signature] fft_length: integer, sequence_stride: integer, sequence_length: integer, window: string, sampling_rate: integer, num_mel_bins: integer, min_freq: float, max_freq: float, power_to_db: boolean, top_db: float, mag_exp: float, min_power: float, ref_power: float, inputs: tensor
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 20 (input tensor must be 1-dimensional)
+{v_1 : tensor} |= ndim(v_1) = 1
+
+Rule 1 (tensor shapes should be the same)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = shape(v_2, i)
+
+Rule 28 (list of ints used as dimensions/axes, all non-negative and valid for tensor shape)
+{v_1 : tensor, v_2 : list(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 24 (tuple of ints represents valid shape dimensions)
+{v_1 : tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] > 0
+
+Rule 21 (primitive type variable should not be zero)
+{v_1 : int ⊎ float} |= v_1 ≠ 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 18 (The minimum power limit must be positive and must not exceed the reference power)
+{v_1 : float, v_2 : float} |= v_1 > 0 ∧ v_1 ≤ v_2
+Token usage: input=13258, output=347, total=17200
+** SUCCESS **
+
+>>> PROMPT
+[Feedback Message from Prior Run]
+Duplicated rule: {v_1 : tensor, v_2 : int} |= shape(v_1, ndim(v_1) - 1) ≥ v_2
+Duplicated rule: {v_1 : bool, v_2 : float} |= if v_1 = true then v_2 > 0
+
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.keras.layers.MelSpectrogram API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+A preprocessing layer to convert raw audio signals to Mel spectrograms.
+
+    This layer takes `float32`/`float64` single or batched audio signal as
+    inputs and computes the Mel spectrogram using Short-Time Fourier Transform
+    and Mel scaling. The input should be a 1D (unbatched) or 2D (batched) tensor
+    representing audio signals. The output will be a 2D or 3D tensor
+    representing Mel spectrograms.
+
+    A spectrogram is an image-like representation that shows the frequency
+    spectrum of a signal over time. It uses x-axis to represent time, y-axis to
+    represent frequency, and each pixel to represent intensity.
+    Mel spectrograms are a special type of spectrogram that use the mel scale,
+    which approximates how humans perceive sound. They are commonly used in
+    speech and music processing tasks like speech recognition, speaker
+    identification, and music genre classification.
+
+    **Note:** This layer is safe to use inside a `tf.data` or `grain` pipeline
+    (independently of which backend you're using).
+
+    References:
+    - [Spectrogram](https://en.wikipedia.org/wiki/Spectrogram),
+    - [Mel scale](https://en.wikipedia.org/wiki/Mel_scale).
+
+    Args:
+        fft_length: Integer, size of the FFT window.
+        sequence_stride: Integer, number of samples between successive STFT
+            columns.
+        sequence_length: Integer, size of the window used for applying
+            `window` to each audio frame. If `None`, defaults to `fft_length`.
+        window: String, name of the window function to use. Available values
+            are `"hann"` and `"hamming"`. If `window` is a tensor, it will be
+            used directly as the window and its length must be
+            `sequence_length`. If `window` is `None`, no windowing is
+            used. Defaults to `"hann"`.
+        sampling_rate: Integer, sample rate of the input signal.
+        num_mel_bins: Integer, number of mel bins to generate.
+        min_freq: Float, minimum frequency of the mel bins.
+        max_freq: Float, maximum frequency of the mel bins.
+            If `None`, defaults to `sampling_rate / 2`.
+        power_to_db: If True, convert the power spectrogram to decibels.
+        top_db: Float, minimum negative cut-off `max(10 * log10(S)) - top_db`.
+        mag_exp: Float, exponent for the magnitude spectrogram.
+            1 for magnitude, 2 for power, etc. Default is 2.
+        ref_power: Float, the power is scaled relative to it
+            `10 * log10(S / ref_power)`.
+        min_power: Float, minimum value for power and `ref_power`.
+
+    Examples:
+
+    **Unbatched audio signal**
+
+    >>> layer = keras.layers.MelSpectrogram(num_mel_bins=64,
+    ...                                     sampling_rate=8000,
+    ...                                     sequence_stride=256,
+    ...                                     fft_length=2048)
+    >>> layer(keras.random.uniform(shape=(16000,))).shape
+    (64, 63)
+
+    **Batched audio signal**
+
+    >>> layer = keras.layers.MelSpectrogram(num_mel_bins=80,
+    ...                                     sampling_rate=8000,
+    ...                                     sequence_stride=128,
+    ...                                     fft_length=2048)
+    >>> layer(keras.random.uniform(shape=(2, 16000))).shape
+    (2, 80, 125)
+
+    Input shape:
+        1D (unbatched) or 2D (batched) tensor with shape:`(..., samples)`.
+
+    Output shape:
+        2D (unbatched) or 3D (batched) tensor with
+        shape:`(..., num_mel_bins, time)`.
+
+[API Signature] fft_length: integer, sequence_stride: integer, sequence_length: integer, window: string, sampling_rate: integer, num_mel_bins: integer, min_freq: float, max_freq: float, power_to_db: boolean, top_db: float, mag_exp: float, min_power: float, ref_power: float, inputs: tensor
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 21 (primitive type variable should not be zero)
+{v_1 : int ⊎ float} |= v_1 ≠ 0
+
+Rule 26 (tuple of ints used as kernel size must have length 2)
+{v_1 : tuple(int)} |= v_1.len = 2 ∧ ∀i ∈ [0, 1] : v_1[i] > 0
+
+Rule 20 (input tensor must be 1-dimensional)
+{v_1 : tensor} |= ndim(v_1) = 1
+
+Rule 28 (list of ints used as dimensions/axes, all non-negative and valid for tensor shape)
+{v_1 : tensor, v_2 : list(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 22 (valid step size for a range)
+{v_1 : int ⊎ float, v_2 : int ⊎ float, v_3 : int ⊎ float} |= if v_1 > 0 then v_2 ≤ v_3 else if v_1 < 0 then v_2 ≥ v_3 else true
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 19 (The input must be a 1D or 2D tensor of type float32 or float64)
+{v_1 : tensor} |= ndim(v_1) ≥ 1 ∧ ndim(v_1) ≤ 2 ∧ dtype_(v_1) ≥ 7 ∧ dtype_(v_1) ≤ 8
+Token usage: input=19693, output=374, total=24518
+** SUCCESS **
+
+>>> PROMPT
+[Feedback Message from Prior Run]
+Duplicated rule: {v_1 : tensor, v_2 : int} |= shape(v_1, ndim(v_1) - 1) ≥ v_2
+Duplicated rule: {v_1 : bool, v_2 : float} |= if v_1 = true then v_2 > 0
+
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.keras.layers.MelSpectrogram API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+A preprocessing layer to convert raw audio signals to Mel spectrograms.
+
+    This layer takes `float32`/`float64` single or batched audio signal as
+    inputs and computes the Mel spectrogram using Short-Time Fourier Transform
+    and Mel scaling. The input should be a 1D (unbatched) or 2D (batched) tensor
+    representing audio signals. The output will be a 2D or 3D tensor
+    representing Mel spectrograms.
+
+    A spectrogram is an image-like representation that shows the frequency
+    spectrum of a signal over time. It uses x-axis to represent time, y-axis to
+    represent frequency, and each pixel to represent intensity.
+    Mel spectrograms are a special type of spectrogram that use the mel scale,
+    which approximates how humans perceive sound. They are commonly used in
+    speech and music processing tasks like speech recognition, speaker
+    identification, and music genre classification.
+
+    **Note:** This layer is safe to use inside a `tf.data` or `grain` pipeline
+    (independently of which backend you're using).
+
+    References:
+    - [Spectrogram](https://en.wikipedia.org/wiki/Spectrogram),
+    - [Mel scale](https://en.wikipedia.org/wiki/Mel_scale).
+
+    Args:
+        fft_length: Integer, size of the FFT window.
+        sequence_stride: Integer, number of samples between successive STFT
+            columns.
+        sequence_length: Integer, size of the window used for applying
+            `window` to each audio frame. If `None`, defaults to `fft_length`.
+        window: String, name of the window function to use. Available values
+            are `"hann"` and `"hamming"`. If `window` is a tensor, it will be
+            used directly as the window and its length must be
+            `sequence_length`. If `window` is `None`, no windowing is
+            used. Defaults to `"hann"`.
+        sampling_rate: Integer, sample rate of the input signal.
+        num_mel_bins: Integer, number of mel bins to generate.
+        min_freq: Float, minimum frequency of the mel bins.
+        max_freq: Float, maximum frequency of the mel bins.
+            If `None`, defaults to `sampling_rate / 2`.
+        power_to_db: If True, convert the power spectrogram to decibels.
+        top_db: Float, minimum negative cut-off `max(10 * log10(S)) - top_db`.
+        mag_exp: Float, exponent for the magnitude spectrogram.
+            1 for magnitude, 2 for power, etc. Default is 2.
+        ref_power: Float, the power is scaled relative to it
+            `10 * log10(S / ref_power)`.
+        min_power: Float, minimum value for power and `ref_power`.
+
+    Examples:
+
+    **Unbatched audio signal**
+
+    >>> layer = keras.layers.MelSpectrogram(num_mel_bins=64,
+    ...                                     sampling_rate=8000,
+    ...                                     sequence_stride=256,
+    ...                                     fft_length=2048)
+    >>> layer(keras.random.uniform(shape=(16000,))).shape
+    (64, 63)
+
+    **Batched audio signal**
+
+    >>> layer = keras.layers.MelSpectrogram(num_mel_bins=80,
+    ...                                     sampling_rate=8000,
+    ...                                     sequence_stride=128,
+    ...                                     fft_length=2048)
+    >>> layer(keras.random.uniform(shape=(2, 16000))).shape
+    (2, 80, 125)
+
+    Input shape:
+        1D (unbatched) or 2D (batched) tensor with shape:`(..., samples)`.
+
+    Output shape:
+        2D (unbatched) or 3D (batched) tensor with
+        shape:`(..., num_mel_bins, time)`.
+
+[API Signature] fft_length: integer, sequence_stride: integer, sequence_length: integer, window: string, sampling_rate: integer, num_mel_bins: integer, min_freq: float, max_freq: float, power_to_db: boolean, top_db: float, mag_exp: float, min_power: float, ref_power: float, inputs: tensor
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 21 (primitive type variable should not be zero)
+{v_1 : int ⊎ float} |= v_1 ≠ 0
+
+Rule 26 (tuple of ints used as kernel size must have length 2)
+{v_1 : tuple(int)} |= v_1.len = 2 ∧ ∀i ∈ [0, 1] : v_1[i] > 0
+
+Rule 20 (input tensor must be 1-dimensional)
+{v_1 : tensor} |= ndim(v_1) = 1
+
+Rule 28 (list of ints used as dimensions/axes, all non-negative and valid for tensor shape)
+{v_1 : tensor, v_2 : list(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 22 (valid step size for a range)
+{v_1 : int ⊎ float, v_2 : int ⊎ float, v_3 : int ⊎ float} |= if v_1 > 0 then v_2 ≤ v_3 else if v_1 < 0 then v_2 ≥ v_3 else true
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 20 (The sequence_stride, sequence_length, and fft_length must be positive and follow their hierarchy)
+{v_1 : int, v_2 : int, v_3 : int} |= v_1 > 0 ∧ v_2 > 0 ∧ v_3 > 0 ∧ v_2 ≤ v_3 ∧ v_3 ≤ v_1
+Token usage: input=19693, output=374, total=24518
+** SUCCESS **
+
+>>> PROMPT
+[Feedback Message from Prior Run]
+Duplicated rule: {v_1 : tensor, v_2 : int} |= shape(v_1, ndim(v_1) - 1) ≥ v_2
+Duplicated rule: {v_1 : bool, v_2 : float} |= if v_1 = true then v_2 > 0
+
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.keras.layers.MelSpectrogram API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+A preprocessing layer to convert raw audio signals to Mel spectrograms.
+
+    This layer takes `float32`/`float64` single or batched audio signal as
+    inputs and computes the Mel spectrogram using Short-Time Fourier Transform
+    and Mel scaling. The input should be a 1D (unbatched) or 2D (batched) tensor
+    representing audio signals. The output will be a 2D or 3D tensor
+    representing Mel spectrograms.
+
+    A spectrogram is an image-like representation that shows the frequency
+    spectrum of a signal over time. It uses x-axis to represent time, y-axis to
+    represent frequency, and each pixel to represent intensity.
+    Mel spectrograms are a special type of spectrogram that use the mel scale,
+    which approximates how humans perceive sound. They are commonly used in
+    speech and music processing tasks like speech recognition, speaker
+    identification, and music genre classification.
+
+    **Note:** This layer is safe to use inside a `tf.data` or `grain` pipeline
+    (independently of which backend you're using).
+
+    References:
+    - [Spectrogram](https://en.wikipedia.org/wiki/Spectrogram),
+    - [Mel scale](https://en.wikipedia.org/wiki/Mel_scale).
+
+    Args:
+        fft_length: Integer, size of the FFT window.
+        sequence_stride: Integer, number of samples between successive STFT
+            columns.
+        sequence_length: Integer, size of the window used for applying
+            `window` to each audio frame. If `None`, defaults to `fft_length`.
+        window: String, name of the window function to use. Available values
+            are `"hann"` and `"hamming"`. If `window` is a tensor, it will be
+            used directly as the window and its length must be
+            `sequence_length`. If `window` is `None`, no windowing is
+            used. Defaults to `"hann"`.
+        sampling_rate: Integer, sample rate of the input signal.
+        num_mel_bins: Integer, number of mel bins to generate.
+        min_freq: Float, minimum frequency of the mel bins.
+        max_freq: Float, maximum frequency of the mel bins.
+            If `None`, defaults to `sampling_rate / 2`.
+        power_to_db: If True, convert the power spectrogram to decibels.
+        top_db: Float, minimum negative cut-off `max(10 * log10(S)) - top_db`.
+        mag_exp: Float, exponent for the magnitude spectrogram.
+            1 for magnitude, 2 for power, etc. Default is 2.
+        ref_power: Float, the power is scaled relative to it
+            `10 * log10(S / ref_power)`.
+        min_power: Float, minimum value for power and `ref_power`.
+
+    Examples:
+
+    **Unbatched audio signal**
+
+    >>> layer = keras.layers.MelSpectrogram(num_mel_bins=64,
+    ...                                     sampling_rate=8000,
+    ...                                     sequence_stride=256,
+    ...                                     fft_length=2048)
+    >>> layer(keras.random.uniform(shape=(16000,))).shape
+    (64, 63)
+
+    **Batched audio signal**
+
+    >>> layer = keras.layers.MelSpectrogram(num_mel_bins=80,
+    ...                                     sampling_rate=8000,
+    ...                                     sequence_stride=128,
+    ...                                     fft_length=2048)
+    >>> layer(keras.random.uniform(shape=(2, 16000))).shape
+    (2, 80, 125)
+
+    Input shape:
+        1D (unbatched) or 2D (batched) tensor with shape:`(..., samples)`.
+
+    Output shape:
+        2D (unbatched) or 3D (batched) tensor with
+        shape:`(..., num_mel_bins, time)`.
+
+[API Signature] fft_length: integer, sequence_stride: integer, sequence_length: integer, window: string, sampling_rate: integer, num_mel_bins: integer, min_freq: float, max_freq: float, power_to_db: boolean, top_db: float, mag_exp: float, min_power: float, ref_power: float, inputs: tensor
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 21 (primitive type variable should not be zero)
+{v_1 : int ⊎ float} |= v_1 ≠ 0
+
+Rule 26 (tuple of ints used as kernel size must have length 2)
+{v_1 : tuple(int)} |= v_1.len = 2 ∧ ∀i ∈ [0, 1] : v_1[i] > 0
+
+Rule 20 (input tensor must be 1-dimensional)
+{v_1 : tensor} |= ndim(v_1) = 1
+
+Rule 28 (list of ints used as dimensions/axes, all non-negative and valid for tensor shape)
+{v_1 : tensor, v_2 : list(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 22 (valid step size for a range)
+{v_1 : int ⊎ float, v_2 : int ⊎ float, v_3 : int ⊎ float} |= if v_1 > 0 then v_2 ≤ v_3 else if v_1 < 0 then v_2 ≥ v_3 else true
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 21 (The minimum frequency must be non-negative and less than the maximum frequency, which cannot exceed half of the sampling rate)
+{v_1 : float, v_2 : float, v_3 : int} |= v_1 ≥ 0 ∧ v_1 < v_2 ∧ v_2 * 2 ≤ v_3
+Token usage: input=19693, output=374, total=24518
+** SUCCESS **
+
+>>> PROMPT
+[Feedback Message from Prior Run]
+Duplicated rule: {v_1 : tensor, v_2 : int} |= shape(v_1, ndim(v_1) - 1) ≥ v_2
+Duplicated rule: {v_1 : bool, v_2 : float} |= if v_1 = true then v_2 > 0
+
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.keras.layers.MelSpectrogram API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+A preprocessing layer to convert raw audio signals to Mel spectrograms.
+
+    This layer takes `float32`/`float64` single or batched audio signal as
+    inputs and computes the Mel spectrogram using Short-Time Fourier Transform
+    and Mel scaling. The input should be a 1D (unbatched) or 2D (batched) tensor
+    representing audio signals. The output will be a 2D or 3D tensor
+    representing Mel spectrograms.
+
+    A spectrogram is an image-like representation that shows the frequency
+    spectrum of a signal over time. It uses x-axis to represent time, y-axis to
+    represent frequency, and each pixel to represent intensity.
+    Mel spectrograms are a special type of spectrogram that use the mel scale,
+    which approximates how humans perceive sound. They are commonly used in
+    speech and music processing tasks like speech recognition, speaker
+    identification, and music genre classification.
+
+    **Note:** This layer is safe to use inside a `tf.data` or `grain` pipeline
+    (independently of which backend you're using).
+
+    References:
+    - [Spectrogram](https://en.wikipedia.org/wiki/Spectrogram),
+    - [Mel scale](https://en.wikipedia.org/wiki/Mel_scale).
+
+    Args:
+        fft_length: Integer, size of the FFT window.
+        sequence_stride: Integer, number of samples between successive STFT
+            columns.
+        sequence_length: Integer, size of the window used for applying
+            `window` to each audio frame. If `None`, defaults to `fft_length`.
+        window: String, name of the window function to use. Available values
+            are `"hann"` and `"hamming"`. If `window` is a tensor, it will be
+            used directly as the window and its length must be
+            `sequence_length`. If `window` is `None`, no windowing is
+            used. Defaults to `"hann"`.
+        sampling_rate: Integer, sample rate of the input signal.
+        num_mel_bins: Integer, number of mel bins to generate.
+        min_freq: Float, minimum frequency of the mel bins.
+        max_freq: Float, maximum frequency of the mel bins.
+            If `None`, defaults to `sampling_rate / 2`.
+        power_to_db: If True, convert the power spectrogram to decibels.
+        top_db: Float, minimum negative cut-off `max(10 * log10(S)) - top_db`.
+        mag_exp: Float, exponent for the magnitude spectrogram.
+            1 for magnitude, 2 for power, etc. Default is 2.
+        ref_power: Float, the power is scaled relative to it
+            `10 * log10(S / ref_power)`.
+        min_power: Float, minimum value for power and `ref_power`.
+
+    Examples:
+
+    **Unbatched audio signal**
+
+    >>> layer = keras.layers.MelSpectrogram(num_mel_bins=64,
+    ...                                     sampling_rate=8000,
+    ...                                     sequence_stride=256,
+    ...                                     fft_length=2048)
+    >>> layer(keras.random.uniform(shape=(16000,))).shape
+    (64, 63)
+
+    **Batched audio signal**
+
+    >>> layer = keras.layers.MelSpectrogram(num_mel_bins=80,
+    ...                                     sampling_rate=8000,
+    ...                                     sequence_stride=128,
+    ...                                     fft_length=2048)
+    >>> layer(keras.random.uniform(shape=(2, 16000))).shape
+    (2, 80, 125)
+
+    Input shape:
+        1D (unbatched) or 2D (batched) tensor with shape:`(..., samples)`.
+
+    Output shape:
+        2D (unbatched) or 3D (batched) tensor with
+        shape:`(..., num_mel_bins, time)`.
+
+[API Signature] fft_length: integer, sequence_stride: integer, sequence_length: integer, window: string, sampling_rate: integer, num_mel_bins: integer, min_freq: float, max_freq: float, power_to_db: boolean, top_db: float, mag_exp: float, min_power: float, ref_power: float, inputs: tensor
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 21 (primitive type variable should not be zero)
+{v_1 : int ⊎ float} |= v_1 ≠ 0
+
+Rule 26 (tuple of ints used as kernel size must have length 2)
+{v_1 : tuple(int)} |= v_1.len = 2 ∧ ∀i ∈ [0, 1] : v_1[i] > 0
+
+Rule 20 (input tensor must be 1-dimensional)
+{v_1 : tensor} |= ndim(v_1) = 1
+
+Rule 28 (list of ints used as dimensions/axes, all non-negative and valid for tensor shape)
+{v_1 : tensor, v_2 : list(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 22 (valid step size for a range)
+{v_1 : int ⊎ float, v_2 : int ⊎ float, v_3 : int ⊎ float} |= if v_1 > 0 then v_2 ≤ v_3 else if v_1 < 0 then v_2 ≥ v_3 else true
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 22 (The number of mel bins must be positive and strictly less than half of the fft_length)
+{v_1 : int, v_2 : int} |= v_1 > 0 ∧ v_1 < v_2 / 2
+Token usage: input=19693, output=374, total=24518
+** SUCCESS **
+
+>>> PROMPT
+[Feedback Message from Prior Run]
+Duplicated rule: {v_1 : tensor, v_2 : int} |= shape(v_1, ndim(v_1) - 1) ≥ v_2
+Duplicated rule: {v_1 : bool, v_2 : float} |= if v_1 = true then v_2 > 0
+
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.keras.layers.MelSpectrogram API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+A preprocessing layer to convert raw audio signals to Mel spectrograms.
+
+    This layer takes `float32`/`float64` single or batched audio signal as
+    inputs and computes the Mel spectrogram using Short-Time Fourier Transform
+    and Mel scaling. The input should be a 1D (unbatched) or 2D (batched) tensor
+    representing audio signals. The output will be a 2D or 3D tensor
+    representing Mel spectrograms.
+
+    A spectrogram is an image-like representation that shows the frequency
+    spectrum of a signal over time. It uses x-axis to represent time, y-axis to
+    represent frequency, and each pixel to represent intensity.
+    Mel spectrograms are a special type of spectrogram that use the mel scale,
+    which approximates how humans perceive sound. They are commonly used in
+    speech and music processing tasks like speech recognition, speaker
+    identification, and music genre classification.
+
+    **Note:** This layer is safe to use inside a `tf.data` or `grain` pipeline
+    (independently of which backend you're using).
+
+    References:
+    - [Spectrogram](https://en.wikipedia.org/wiki/Spectrogram),
+    - [Mel scale](https://en.wikipedia.org/wiki/Mel_scale).
+
+    Args:
+        fft_length: Integer, size of the FFT window.
+        sequence_stride: Integer, number of samples between successive STFT
+            columns.
+        sequence_length: Integer, size of the window used for applying
+            `window` to each audio frame. If `None`, defaults to `fft_length`.
+        window: String, name of the window function to use. Available values
+            are `"hann"` and `"hamming"`. If `window` is a tensor, it will be
+            used directly as the window and its length must be
+            `sequence_length`. If `window` is `None`, no windowing is
+            used. Defaults to `"hann"`.
+        sampling_rate: Integer, sample rate of the input signal.
+        num_mel_bins: Integer, number of mel bins to generate.
+        min_freq: Float, minimum frequency of the mel bins.
+        max_freq: Float, maximum frequency of the mel bins.
+            If `None`, defaults to `sampling_rate / 2`.
+        power_to_db: If True, convert the power spectrogram to decibels.
+        top_db: Float, minimum negative cut-off `max(10 * log10(S)) - top_db`.
+        mag_exp: Float, exponent for the magnitude spectrogram.
+            1 for magnitude, 2 for power, etc. Default is 2.
+        ref_power: Float, the power is scaled relative to it
+            `10 * log10(S / ref_power)`.
+        min_power: Float, minimum value for power and `ref_power`.
+
+    Examples:
+
+    **Unbatched audio signal**
+
+    >>> layer = keras.layers.MelSpectrogram(num_mel_bins=64,
+    ...                                     sampling_rate=8000,
+    ...                                     sequence_stride=256,
+    ...                                     fft_length=2048)
+    >>> layer(keras.random.uniform(shape=(16000,))).shape
+    (64, 63)
+
+    **Batched audio signal**
+
+    >>> layer = keras.layers.MelSpectrogram(num_mel_bins=80,
+    ...                                     sampling_rate=8000,
+    ...                                     sequence_stride=128,
+    ...                                     fft_length=2048)
+    >>> layer(keras.random.uniform(shape=(2, 16000))).shape
+    (2, 80, 125)
+
+    Input shape:
+        1D (unbatched) or 2D (batched) tensor with shape:`(..., samples)`.
+
+    Output shape:
+        2D (unbatched) or 3D (batched) tensor with
+        shape:`(..., num_mel_bins, time)`.
+
+[API Signature] fft_length: integer, sequence_stride: integer, sequence_length: integer, window: string, sampling_rate: integer, num_mel_bins: integer, min_freq: float, max_freq: float, power_to_db: boolean, top_db: float, mag_exp: float, min_power: float, ref_power: float, inputs: tensor
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 21 (primitive type variable should not be zero)
+{v_1 : int ⊎ float} |= v_1 ≠ 0
+
+Rule 26 (tuple of ints used as kernel size must have length 2)
+{v_1 : tuple(int)} |= v_1.len = 2 ∧ ∀i ∈ [0, 1] : v_1[i] > 0
+
+Rule 20 (input tensor must be 1-dimensional)
+{v_1 : tensor} |= ndim(v_1) = 1
+
+Rule 28 (list of ints used as dimensions/axes, all non-negative and valid for tensor shape)
+{v_1 : tensor, v_2 : list(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 22 (valid step size for a range)
+{v_1 : int ⊎ float, v_2 : int ⊎ float, v_3 : int ⊎ float} |= if v_1 > 0 then v_2 ≤ v_3 else if v_1 < 0 then v_2 ≥ v_3 else true
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 23 (The exponent of magnitude, minimum power, and reference power must be positive, and minimum power must not exceed reference power)
+{v_1 : float, v_2 : float, v_3 : float} |= v_1 > 0 ∧ v_2 > 0 ∧ v_2 ≤ v_3
+Token usage: input=19693, output=374, total=24518
+** SUCCESS **
+

@@ -1,0 +1,3833 @@
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.keras.layers.Embedding API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Turns nonnegative integers (indexes) into dense vectors of fixed size.
+
+    e.g. `[[4], [20]] -> [[0.25, 0.1], [0.6, -0.2]]`
+
+    This layer can only be used on nonnegative integer inputs of a fixed range.
+
+    Example:
+
+    >>> model = keras.Sequential()
+    >>> model.add(keras.layers.Embedding(1000, 64))
+    >>> # The model will take as input an integer matrix of size (batch,
+    >>> # input_length), and the largest integer (i.e. word index) in the input
+    >>> # should be no larger than 999 (vocabulary size).
+    >>> # Now model.output_shape is (None, 10, 64), where `None` is the batch
+    >>> # dimension.
+    >>> input_array = np.random.randint(1000, size=(32, 10))
+    >>> model.compile('rmsprop', 'mse')
+    >>> output_array = model.predict(input_array)
+    >>> print(output_array.shape)
+    (32, 10, 64)
+
+    Args:
+        input_dim: Integer. Size of the vocabulary,
+            i.e. maximum integer index + 1.
+        output_dim: Integer. Dimension of the dense embedding.
+        embeddings_initializer: Initializer for the `embeddings`
+            matrix (see `keras.initializers`).
+        embeddings_regularizer: Regularizer function applied to
+            the `embeddings` matrix (see `keras.regularizers`).
+        embeddings_constraint: Constraint function applied to
+            the `embeddings` matrix (see `keras.constraints`).
+        mask_zero: Boolean, whether or not the input value 0 is a special
+            "padding" value that should be masked out.
+            This is useful when using recurrent layers which
+            may take variable length input. If this is `True`,
+            then all subsequent layers in the model need
+            to support masking or an exception will be raised.
+            If `mask_zero` is set to `True`, as a consequence,
+            index 0 cannot be used in the vocabulary (`input_dim` should
+            equal size of vocabulary + 1).
+        weights: Optional floating-point matrix of size
+            `(input_dim, output_dim)`. The initial embeddings values
+            to use.
+        lora_rank: Optional integer. If set, the layer's forward pass
+            will implement LoRA (Low-Rank Adaptation)
+            with the provided rank. LoRA sets the layer's embeddings
+            matrix to non-trainable and replaces it with a delta over the
+            original matrix, obtained via multiplying two lower-rank
+            trainable matrices. This can be useful to reduce the
+            computation cost of fine-tuning large embedding layers.
+            You can also enable LoRA on an existing
+            `Embedding` layer by calling `layer.enable_lora(rank)`.
+        lora_alpha: Optional integer. If set, this parameter scales the
+            low-rank adaptation delta (computed as the product of two lower-rank
+            trainable matrices) during the forward pass. The delta is scaled by
+            `lora_alpha / lora_rank`, allowing you to fine-tune the strength of
+            the LoRA adjustment independently of `lora_rank`.
+
+    Input shape:
+        2D tensor with shape: `(batch_size, input_length)`.
+
+    Output shape:
+        3D tensor with shape: `(batch_size, input_length, output_dim)`.
+
+[API Signature] input_dim: integer, output_dim: integer, embeddings_initializer: string, embeddings_regularizer: string, embeddings_constraint: string, mask_zero: boolean, weights: matrix, lora_rank: integer, inputs: tensor
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 23 (3-dimensional tensor with all positive shape dimensions)
+{v_1 : tensor} |= ndim(v_1) = 3 ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+
+Rule 16 (shape alignment for matrix multiplication)
+{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) ≥ 2 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, ndim(v_2) − 2)) ∨ (ndim(v_1) ≥ 2 ∧ ndim(v_2) = 1 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, 0))
+
+Rule 31 (dtype must be a floating-point type)
+{v_1 : dtype} |= v_1 = 6 ∨ v_1 = 7 ∨ v_1 = 8
+
+Rule 20 (input tensor must be 1-dimensional)
+{v_1 : tensor} |= ndim(v_1) = 1
+
+Rule 1 (tensor shapes should be the same)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = shape(v_2, i)
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 1 (input dimension must be positive)
+{v_1 : int} |= v_1 > 0
+Token usage: input=2335, output=404, total=7435
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.keras.layers.Embedding API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Turns nonnegative integers (indexes) into dense vectors of fixed size.
+
+    e.g. `[[4], [20]] -> [[0.25, 0.1], [0.6, -0.2]]`
+
+    This layer can only be used on nonnegative integer inputs of a fixed range.
+
+    Example:
+
+    >>> model = keras.Sequential()
+    >>> model.add(keras.layers.Embedding(1000, 64))
+    >>> # The model will take as input an integer matrix of size (batch,
+    >>> # input_length), and the largest integer (i.e. word index) in the input
+    >>> # should be no larger than 999 (vocabulary size).
+    >>> # Now model.output_shape is (None, 10, 64), where `None` is the batch
+    >>> # dimension.
+    >>> input_array = np.random.randint(1000, size=(32, 10))
+    >>> model.compile('rmsprop', 'mse')
+    >>> output_array = model.predict(input_array)
+    >>> print(output_array.shape)
+    (32, 10, 64)
+
+    Args:
+        input_dim: Integer. Size of the vocabulary,
+            i.e. maximum integer index + 1.
+        output_dim: Integer. Dimension of the dense embedding.
+        embeddings_initializer: Initializer for the `embeddings`
+            matrix (see `keras.initializers`).
+        embeddings_regularizer: Regularizer function applied to
+            the `embeddings` matrix (see `keras.regularizers`).
+        embeddings_constraint: Constraint function applied to
+            the `embeddings` matrix (see `keras.constraints`).
+        mask_zero: Boolean, whether or not the input value 0 is a special
+            "padding" value that should be masked out.
+            This is useful when using recurrent layers which
+            may take variable length input. If this is `True`,
+            then all subsequent layers in the model need
+            to support masking or an exception will be raised.
+            If `mask_zero` is set to `True`, as a consequence,
+            index 0 cannot be used in the vocabulary (`input_dim` should
+            equal size of vocabulary + 1).
+        weights: Optional floating-point matrix of size
+            `(input_dim, output_dim)`. The initial embeddings values
+            to use.
+        lora_rank: Optional integer. If set, the layer's forward pass
+            will implement LoRA (Low-Rank Adaptation)
+            with the provided rank. LoRA sets the layer's embeddings
+            matrix to non-trainable and replaces it with a delta over the
+            original matrix, obtained via multiplying two lower-rank
+            trainable matrices. This can be useful to reduce the
+            computation cost of fine-tuning large embedding layers.
+            You can also enable LoRA on an existing
+            `Embedding` layer by calling `layer.enable_lora(rank)`.
+        lora_alpha: Optional integer. If set, this parameter scales the
+            low-rank adaptation delta (computed as the product of two lower-rank
+            trainable matrices) during the forward pass. The delta is scaled by
+            `lora_alpha / lora_rank`, allowing you to fine-tune the strength of
+            the LoRA adjustment independently of `lora_rank`.
+
+    Input shape:
+        2D tensor with shape: `(batch_size, input_length)`.
+
+    Output shape:
+        3D tensor with shape: `(batch_size, input_length, output_dim)`.
+
+[API Signature] input_dim: integer, output_dim: integer, embeddings_initializer: string, embeddings_regularizer: string, embeddings_constraint: string, mask_zero: boolean, weights: matrix, lora_rank: integer, inputs: tensor
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 23 (3-dimensional tensor with all positive shape dimensions)
+{v_1 : tensor} |= ndim(v_1) = 3 ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+
+Rule 16 (shape alignment for matrix multiplication)
+{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) ≥ 2 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, ndim(v_2) − 2)) ∨ (ndim(v_1) ≥ 2 ∧ ndim(v_2) = 1 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, 0))
+
+Rule 31 (dtype must be a floating-point type)
+{v_1 : dtype} |= v_1 = 6 ∨ v_1 = 7 ∨ v_1 = 8
+
+Rule 20 (input tensor must be 1-dimensional)
+{v_1 : tensor} |= ndim(v_1) = 1
+
+Rule 1 (tensor shapes should be the same)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = shape(v_2, i)
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 2 (output dimension must be positive)
+{v_1 : int} |= v_1 > 0
+Token usage: input=2335, output=404, total=7435
+** DUPLICATED RULE ** (num_failures: 1)
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.keras.layers.Embedding API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Turns nonnegative integers (indexes) into dense vectors of fixed size.
+
+    e.g. `[[4], [20]] -> [[0.25, 0.1], [0.6, -0.2]]`
+
+    This layer can only be used on nonnegative integer inputs of a fixed range.
+
+    Example:
+
+    >>> model = keras.Sequential()
+    >>> model.add(keras.layers.Embedding(1000, 64))
+    >>> # The model will take as input an integer matrix of size (batch,
+    >>> # input_length), and the largest integer (i.e. word index) in the input
+    >>> # should be no larger than 999 (vocabulary size).
+    >>> # Now model.output_shape is (None, 10, 64), where `None` is the batch
+    >>> # dimension.
+    >>> input_array = np.random.randint(1000, size=(32, 10))
+    >>> model.compile('rmsprop', 'mse')
+    >>> output_array = model.predict(input_array)
+    >>> print(output_array.shape)
+    (32, 10, 64)
+
+    Args:
+        input_dim: Integer. Size of the vocabulary,
+            i.e. maximum integer index + 1.
+        output_dim: Integer. Dimension of the dense embedding.
+        embeddings_initializer: Initializer for the `embeddings`
+            matrix (see `keras.initializers`).
+        embeddings_regularizer: Regularizer function applied to
+            the `embeddings` matrix (see `keras.regularizers`).
+        embeddings_constraint: Constraint function applied to
+            the `embeddings` matrix (see `keras.constraints`).
+        mask_zero: Boolean, whether or not the input value 0 is a special
+            "padding" value that should be masked out.
+            This is useful when using recurrent layers which
+            may take variable length input. If this is `True`,
+            then all subsequent layers in the model need
+            to support masking or an exception will be raised.
+            If `mask_zero` is set to `True`, as a consequence,
+            index 0 cannot be used in the vocabulary (`input_dim` should
+            equal size of vocabulary + 1).
+        weights: Optional floating-point matrix of size
+            `(input_dim, output_dim)`. The initial embeddings values
+            to use.
+        lora_rank: Optional integer. If set, the layer's forward pass
+            will implement LoRA (Low-Rank Adaptation)
+            with the provided rank. LoRA sets the layer's embeddings
+            matrix to non-trainable and replaces it with a delta over the
+            original matrix, obtained via multiplying two lower-rank
+            trainable matrices. This can be useful to reduce the
+            computation cost of fine-tuning large embedding layers.
+            You can also enable LoRA on an existing
+            `Embedding` layer by calling `layer.enable_lora(rank)`.
+        lora_alpha: Optional integer. If set, this parameter scales the
+            low-rank adaptation delta (computed as the product of two lower-rank
+            trainable matrices) during the forward pass. The delta is scaled by
+            `lora_alpha / lora_rank`, allowing you to fine-tune the strength of
+            the LoRA adjustment independently of `lora_rank`.
+
+    Input shape:
+        2D tensor with shape: `(batch_size, input_length)`.
+
+    Output shape:
+        3D tensor with shape: `(batch_size, input_length, output_dim)`.
+
+[API Signature] input_dim: integer, output_dim: integer, embeddings_initializer: string, embeddings_regularizer: string, embeddings_constraint: string, mask_zero: boolean, weights: matrix, lora_rank: integer, inputs: tensor
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 23 (3-dimensional tensor with all positive shape dimensions)
+{v_1 : tensor} |= ndim(v_1) = 3 ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+
+Rule 16 (shape alignment for matrix multiplication)
+{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) ≥ 2 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, ndim(v_2) − 2)) ∨ (ndim(v_1) ≥ 2 ∧ ndim(v_2) = 1 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, 0))
+
+Rule 31 (dtype must be a floating-point type)
+{v_1 : dtype} |= v_1 = 6 ∨ v_1 = 7 ∨ v_1 = 8
+
+Rule 20 (input tensor must be 1-dimensional)
+{v_1 : tensor} |= ndim(v_1) = 1
+
+Rule 1 (tensor shapes should be the same)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = shape(v_2, i)
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 3 (inputs tensor must be 2-dimensional)
+{v_1 : tensor} |= ndim(v_1) = 2
+Token usage: input=2335, output=404, total=7435
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.keras.layers.Embedding API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Turns nonnegative integers (indexes) into dense vectors of fixed size.
+
+    e.g. `[[4], [20]] -> [[0.25, 0.1], [0.6, -0.2]]`
+
+    This layer can only be used on nonnegative integer inputs of a fixed range.
+
+    Example:
+
+    >>> model = keras.Sequential()
+    >>> model.add(keras.layers.Embedding(1000, 64))
+    >>> # The model will take as input an integer matrix of size (batch,
+    >>> # input_length), and the largest integer (i.e. word index) in the input
+    >>> # should be no larger than 999 (vocabulary size).
+    >>> # Now model.output_shape is (None, 10, 64), where `None` is the batch
+    >>> # dimension.
+    >>> input_array = np.random.randint(1000, size=(32, 10))
+    >>> model.compile('rmsprop', 'mse')
+    >>> output_array = model.predict(input_array)
+    >>> print(output_array.shape)
+    (32, 10, 64)
+
+    Args:
+        input_dim: Integer. Size of the vocabulary,
+            i.e. maximum integer index + 1.
+        output_dim: Integer. Dimension of the dense embedding.
+        embeddings_initializer: Initializer for the `embeddings`
+            matrix (see `keras.initializers`).
+        embeddings_regularizer: Regularizer function applied to
+            the `embeddings` matrix (see `keras.regularizers`).
+        embeddings_constraint: Constraint function applied to
+            the `embeddings` matrix (see `keras.constraints`).
+        mask_zero: Boolean, whether or not the input value 0 is a special
+            "padding" value that should be masked out.
+            This is useful when using recurrent layers which
+            may take variable length input. If this is `True`,
+            then all subsequent layers in the model need
+            to support masking or an exception will be raised.
+            If `mask_zero` is set to `True`, as a consequence,
+            index 0 cannot be used in the vocabulary (`input_dim` should
+            equal size of vocabulary + 1).
+        weights: Optional floating-point matrix of size
+            `(input_dim, output_dim)`. The initial embeddings values
+            to use.
+        lora_rank: Optional integer. If set, the layer's forward pass
+            will implement LoRA (Low-Rank Adaptation)
+            with the provided rank. LoRA sets the layer's embeddings
+            matrix to non-trainable and replaces it with a delta over the
+            original matrix, obtained via multiplying two lower-rank
+            trainable matrices. This can be useful to reduce the
+            computation cost of fine-tuning large embedding layers.
+            You can also enable LoRA on an existing
+            `Embedding` layer by calling `layer.enable_lora(rank)`.
+        lora_alpha: Optional integer. If set, this parameter scales the
+            low-rank adaptation delta (computed as the product of two lower-rank
+            trainable matrices) during the forward pass. The delta is scaled by
+            `lora_alpha / lora_rank`, allowing you to fine-tune the strength of
+            the LoRA adjustment independently of `lora_rank`.
+
+    Input shape:
+        2D tensor with shape: `(batch_size, input_length)`.
+
+    Output shape:
+        3D tensor with shape: `(batch_size, input_length, output_dim)`.
+
+[API Signature] input_dim: integer, output_dim: integer, embeddings_initializer: string, embeddings_regularizer: string, embeddings_constraint: string, mask_zero: boolean, weights: matrix, lora_rank: integer, inputs: tensor
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 23 (3-dimensional tensor with all positive shape dimensions)
+{v_1 : tensor} |= ndim(v_1) = 3 ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+
+Rule 16 (shape alignment for matrix multiplication)
+{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) ≥ 2 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, ndim(v_2) − 2)) ∨ (ndim(v_1) ≥ 2 ∧ ndim(v_2) = 1 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, 0))
+
+Rule 31 (dtype must be a floating-point type)
+{v_1 : dtype} |= v_1 = 6 ∨ v_1 = 7 ∨ v_1 = 8
+
+Rule 20 (input tensor must be 1-dimensional)
+{v_1 : tensor} |= ndim(v_1) = 1
+
+Rule 1 (tensor shapes should be the same)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = shape(v_2, i)
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 4 (inputs tensor must have an integer data type)
+{v_1 : tensor} |= dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5
+Token usage: input=2335, output=404, total=7435
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.keras.layers.Embedding API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Turns nonnegative integers (indexes) into dense vectors of fixed size.
+
+    e.g. `[[4], [20]] -> [[0.25, 0.1], [0.6, -0.2]]`
+
+    This layer can only be used on nonnegative integer inputs of a fixed range.
+
+    Example:
+
+    >>> model = keras.Sequential()
+    >>> model.add(keras.layers.Embedding(1000, 64))
+    >>> # The model will take as input an integer matrix of size (batch,
+    >>> # input_length), and the largest integer (i.e. word index) in the input
+    >>> # should be no larger than 999 (vocabulary size).
+    >>> # Now model.output_shape is (None, 10, 64), where `None` is the batch
+    >>> # dimension.
+    >>> input_array = np.random.randint(1000, size=(32, 10))
+    >>> model.compile('rmsprop', 'mse')
+    >>> output_array = model.predict(input_array)
+    >>> print(output_array.shape)
+    (32, 10, 64)
+
+    Args:
+        input_dim: Integer. Size of the vocabulary,
+            i.e. maximum integer index + 1.
+        output_dim: Integer. Dimension of the dense embedding.
+        embeddings_initializer: Initializer for the `embeddings`
+            matrix (see `keras.initializers`).
+        embeddings_regularizer: Regularizer function applied to
+            the `embeddings` matrix (see `keras.regularizers`).
+        embeddings_constraint: Constraint function applied to
+            the `embeddings` matrix (see `keras.constraints`).
+        mask_zero: Boolean, whether or not the input value 0 is a special
+            "padding" value that should be masked out.
+            This is useful when using recurrent layers which
+            may take variable length input. If this is `True`,
+            then all subsequent layers in the model need
+            to support masking or an exception will be raised.
+            If `mask_zero` is set to `True`, as a consequence,
+            index 0 cannot be used in the vocabulary (`input_dim` should
+            equal size of vocabulary + 1).
+        weights: Optional floating-point matrix of size
+            `(input_dim, output_dim)`. The initial embeddings values
+            to use.
+        lora_rank: Optional integer. If set, the layer's forward pass
+            will implement LoRA (Low-Rank Adaptation)
+            with the provided rank. LoRA sets the layer's embeddings
+            matrix to non-trainable and replaces it with a delta over the
+            original matrix, obtained via multiplying two lower-rank
+            trainable matrices. This can be useful to reduce the
+            computation cost of fine-tuning large embedding layers.
+            You can also enable LoRA on an existing
+            `Embedding` layer by calling `layer.enable_lora(rank)`.
+        lora_alpha: Optional integer. If set, this parameter scales the
+            low-rank adaptation delta (computed as the product of two lower-rank
+            trainable matrices) during the forward pass. The delta is scaled by
+            `lora_alpha / lora_rank`, allowing you to fine-tune the strength of
+            the LoRA adjustment independently of `lora_rank`.
+
+    Input shape:
+        2D tensor with shape: `(batch_size, input_length)`.
+
+    Output shape:
+        3D tensor with shape: `(batch_size, input_length, output_dim)`.
+
+[API Signature] input_dim: integer, output_dim: integer, embeddings_initializer: string, embeddings_regularizer: string, embeddings_constraint: string, mask_zero: boolean, weights: matrix, lora_rank: integer, inputs: tensor
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 23 (3-dimensional tensor with all positive shape dimensions)
+{v_1 : tensor} |= ndim(v_1) = 3 ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+
+Rule 16 (shape alignment for matrix multiplication)
+{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) ≥ 2 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, ndim(v_2) − 2)) ∨ (ndim(v_1) ≥ 2 ∧ ndim(v_2) = 1 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, 0))
+
+Rule 31 (dtype must be a floating-point type)
+{v_1 : dtype} |= v_1 = 6 ∨ v_1 = 7 ∨ v_1 = 8
+
+Rule 20 (input tensor must be 1-dimensional)
+{v_1 : tensor} |= ndim(v_1) = 1
+
+Rule 1 (tensor shapes should be the same)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = shape(v_2, i)
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 5 (inputs tensor elements must be within nonnegative vocabulary range)
+{v_1 : int, v_2 : tensor} |= min(v_2) ≥ 0 ∧ max(v_2) < v_1
+Token usage: input=2335, output=404, total=7435
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.keras.layers.Embedding API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Turns nonnegative integers (indexes) into dense vectors of fixed size.
+
+    e.g. `[[4], [20]] -> [[0.25, 0.1], [0.6, -0.2]]`
+
+    This layer can only be used on nonnegative integer inputs of a fixed range.
+
+    Example:
+
+    >>> model = keras.Sequential()
+    >>> model.add(keras.layers.Embedding(1000, 64))
+    >>> # The model will take as input an integer matrix of size (batch,
+    >>> # input_length), and the largest integer (i.e. word index) in the input
+    >>> # should be no larger than 999 (vocabulary size).
+    >>> # Now model.output_shape is (None, 10, 64), where `None` is the batch
+    >>> # dimension.
+    >>> input_array = np.random.randint(1000, size=(32, 10))
+    >>> model.compile('rmsprop', 'mse')
+    >>> output_array = model.predict(input_array)
+    >>> print(output_array.shape)
+    (32, 10, 64)
+
+    Args:
+        input_dim: Integer. Size of the vocabulary,
+            i.e. maximum integer index + 1.
+        output_dim: Integer. Dimension of the dense embedding.
+        embeddings_initializer: Initializer for the `embeddings`
+            matrix (see `keras.initializers`).
+        embeddings_regularizer: Regularizer function applied to
+            the `embeddings` matrix (see `keras.regularizers`).
+        embeddings_constraint: Constraint function applied to
+            the `embeddings` matrix (see `keras.constraints`).
+        mask_zero: Boolean, whether or not the input value 0 is a special
+            "padding" value that should be masked out.
+            This is useful when using recurrent layers which
+            may take variable length input. If this is `True`,
+            then all subsequent layers in the model need
+            to support masking or an exception will be raised.
+            If `mask_zero` is set to `True`, as a consequence,
+            index 0 cannot be used in the vocabulary (`input_dim` should
+            equal size of vocabulary + 1).
+        weights: Optional floating-point matrix of size
+            `(input_dim, output_dim)`. The initial embeddings values
+            to use.
+        lora_rank: Optional integer. If set, the layer's forward pass
+            will implement LoRA (Low-Rank Adaptation)
+            with the provided rank. LoRA sets the layer's embeddings
+            matrix to non-trainable and replaces it with a delta over the
+            original matrix, obtained via multiplying two lower-rank
+            trainable matrices. This can be useful to reduce the
+            computation cost of fine-tuning large embedding layers.
+            You can also enable LoRA on an existing
+            `Embedding` layer by calling `layer.enable_lora(rank)`.
+        lora_alpha: Optional integer. If set, this parameter scales the
+            low-rank adaptation delta (computed as the product of two lower-rank
+            trainable matrices) during the forward pass. The delta is scaled by
+            `lora_alpha / lora_rank`, allowing you to fine-tune the strength of
+            the LoRA adjustment independently of `lora_rank`.
+
+    Input shape:
+        2D tensor with shape: `(batch_size, input_length)`.
+
+    Output shape:
+        3D tensor with shape: `(batch_size, input_length, output_dim)`.
+
+[API Signature] input_dim: integer, output_dim: integer, embeddings_initializer: string, embeddings_regularizer: string, embeddings_constraint: string, mask_zero: boolean, weights: matrix, lora_rank: integer, inputs: tensor
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 23 (3-dimensional tensor with all positive shape dimensions)
+{v_1 : tensor} |= ndim(v_1) = 3 ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+
+Rule 16 (shape alignment for matrix multiplication)
+{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) ≥ 2 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, ndim(v_2) − 2)) ∨ (ndim(v_1) ≥ 2 ∧ ndim(v_2) = 1 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, 0))
+
+Rule 31 (dtype must be a floating-point type)
+{v_1 : dtype} |= v_1 = 6 ∨ v_1 = 7 ∨ v_1 = 8
+
+Rule 20 (input tensor must be 1-dimensional)
+{v_1 : tensor} |= ndim(v_1) = 1
+
+Rule 1 (tensor shapes should be the same)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = shape(v_2, i)
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 6 (weights tensor must be a 2D matrix matching vocabulary and embedding dimensions)
+{v_1 : int, v_2 : int, v_3 : tensor} |= ndim(v_3) = 2 ∧ shape(v_3, 0) = v_1 ∧ shape(v_3, 1) = v_2
+Token usage: input=2335, output=404, total=7435
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.keras.layers.Embedding API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Turns nonnegative integers (indexes) into dense vectors of fixed size.
+
+    e.g. `[[4], [20]] -> [[0.25, 0.1], [0.6, -0.2]]`
+
+    This layer can only be used on nonnegative integer inputs of a fixed range.
+
+    Example:
+
+    >>> model = keras.Sequential()
+    >>> model.add(keras.layers.Embedding(1000, 64))
+    >>> # The model will take as input an integer matrix of size (batch,
+    >>> # input_length), and the largest integer (i.e. word index) in the input
+    >>> # should be no larger than 999 (vocabulary size).
+    >>> # Now model.output_shape is (None, 10, 64), where `None` is the batch
+    >>> # dimension.
+    >>> input_array = np.random.randint(1000, size=(32, 10))
+    >>> model.compile('rmsprop', 'mse')
+    >>> output_array = model.predict(input_array)
+    >>> print(output_array.shape)
+    (32, 10, 64)
+
+    Args:
+        input_dim: Integer. Size of the vocabulary,
+            i.e. maximum integer index + 1.
+        output_dim: Integer. Dimension of the dense embedding.
+        embeddings_initializer: Initializer for the `embeddings`
+            matrix (see `keras.initializers`).
+        embeddings_regularizer: Regularizer function applied to
+            the `embeddings` matrix (see `keras.regularizers`).
+        embeddings_constraint: Constraint function applied to
+            the `embeddings` matrix (see `keras.constraints`).
+        mask_zero: Boolean, whether or not the input value 0 is a special
+            "padding" value that should be masked out.
+            This is useful when using recurrent layers which
+            may take variable length input. If this is `True`,
+            then all subsequent layers in the model need
+            to support masking or an exception will be raised.
+            If `mask_zero` is set to `True`, as a consequence,
+            index 0 cannot be used in the vocabulary (`input_dim` should
+            equal size of vocabulary + 1).
+        weights: Optional floating-point matrix of size
+            `(input_dim, output_dim)`. The initial embeddings values
+            to use.
+        lora_rank: Optional integer. If set, the layer's forward pass
+            will implement LoRA (Low-Rank Adaptation)
+            with the provided rank. LoRA sets the layer's embeddings
+            matrix to non-trainable and replaces it with a delta over the
+            original matrix, obtained via multiplying two lower-rank
+            trainable matrices. This can be useful to reduce the
+            computation cost of fine-tuning large embedding layers.
+            You can also enable LoRA on an existing
+            `Embedding` layer by calling `layer.enable_lora(rank)`.
+        lora_alpha: Optional integer. If set, this parameter scales the
+            low-rank adaptation delta (computed as the product of two lower-rank
+            trainable matrices) during the forward pass. The delta is scaled by
+            `lora_alpha / lora_rank`, allowing you to fine-tune the strength of
+            the LoRA adjustment independently of `lora_rank`.
+
+    Input shape:
+        2D tensor with shape: `(batch_size, input_length)`.
+
+    Output shape:
+        3D tensor with shape: `(batch_size, input_length, output_dim)`.
+
+[API Signature] input_dim: integer, output_dim: integer, embeddings_initializer: string, embeddings_regularizer: string, embeddings_constraint: string, mask_zero: boolean, weights: matrix, lora_rank: integer, inputs: tensor
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 23 (3-dimensional tensor with all positive shape dimensions)
+{v_1 : tensor} |= ndim(v_1) = 3 ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+
+Rule 16 (shape alignment for matrix multiplication)
+{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) ≥ 2 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, ndim(v_2) − 2)) ∨ (ndim(v_1) ≥ 2 ∧ ndim(v_2) = 1 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, 0))
+
+Rule 31 (dtype must be a floating-point type)
+{v_1 : dtype} |= v_1 = 6 ∨ v_1 = 7 ∨ v_1 = 8
+
+Rule 20 (input tensor must be 1-dimensional)
+{v_1 : tensor} |= ndim(v_1) = 1
+
+Rule 1 (tensor shapes should be the same)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = shape(v_2, i)
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 7 (weights must be of a floating-point data type)
+{v_1 : tensor} |= dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8
+Token usage: input=2335, output=404, total=7435
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.keras.layers.Embedding API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Turns nonnegative integers (indexes) into dense vectors of fixed size.
+
+    e.g. `[[4], [20]] -> [[0.25, 0.1], [0.6, -0.2]]`
+
+    This layer can only be used on nonnegative integer inputs of a fixed range.
+
+    Example:
+
+    >>> model = keras.Sequential()
+    >>> model.add(keras.layers.Embedding(1000, 64))
+    >>> # The model will take as input an integer matrix of size (batch,
+    >>> # input_length), and the largest integer (i.e. word index) in the input
+    >>> # should be no larger than 999 (vocabulary size).
+    >>> # Now model.output_shape is (None, 10, 64), where `None` is the batch
+    >>> # dimension.
+    >>> input_array = np.random.randint(1000, size=(32, 10))
+    >>> model.compile('rmsprop', 'mse')
+    >>> output_array = model.predict(input_array)
+    >>> print(output_array.shape)
+    (32, 10, 64)
+
+    Args:
+        input_dim: Integer. Size of the vocabulary,
+            i.e. maximum integer index + 1.
+        output_dim: Integer. Dimension of the dense embedding.
+        embeddings_initializer: Initializer for the `embeddings`
+            matrix (see `keras.initializers`).
+        embeddings_regularizer: Regularizer function applied to
+            the `embeddings` matrix (see `keras.regularizers`).
+        embeddings_constraint: Constraint function applied to
+            the `embeddings` matrix (see `keras.constraints`).
+        mask_zero: Boolean, whether or not the input value 0 is a special
+            "padding" value that should be masked out.
+            This is useful when using recurrent layers which
+            may take variable length input. If this is `True`,
+            then all subsequent layers in the model need
+            to support masking or an exception will be raised.
+            If `mask_zero` is set to `True`, as a consequence,
+            index 0 cannot be used in the vocabulary (`input_dim` should
+            equal size of vocabulary + 1).
+        weights: Optional floating-point matrix of size
+            `(input_dim, output_dim)`. The initial embeddings values
+            to use.
+        lora_rank: Optional integer. If set, the layer's forward pass
+            will implement LoRA (Low-Rank Adaptation)
+            with the provided rank. LoRA sets the layer's embeddings
+            matrix to non-trainable and replaces it with a delta over the
+            original matrix, obtained via multiplying two lower-rank
+            trainable matrices. This can be useful to reduce the
+            computation cost of fine-tuning large embedding layers.
+            You can also enable LoRA on an existing
+            `Embedding` layer by calling `layer.enable_lora(rank)`.
+        lora_alpha: Optional integer. If set, this parameter scales the
+            low-rank adaptation delta (computed as the product of two lower-rank
+            trainable matrices) during the forward pass. The delta is scaled by
+            `lora_alpha / lora_rank`, allowing you to fine-tune the strength of
+            the LoRA adjustment independently of `lora_rank`.
+
+    Input shape:
+        2D tensor with shape: `(batch_size, input_length)`.
+
+    Output shape:
+        3D tensor with shape: `(batch_size, input_length, output_dim)`.
+
+[API Signature] input_dim: integer, output_dim: integer, embeddings_initializer: string, embeddings_regularizer: string, embeddings_constraint: string, mask_zero: boolean, weights: matrix, lora_rank: integer, inputs: tensor
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 23 (3-dimensional tensor with all positive shape dimensions)
+{v_1 : tensor} |= ndim(v_1) = 3 ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+
+Rule 16 (shape alignment for matrix multiplication)
+{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) ≥ 2 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, ndim(v_2) − 2)) ∨ (ndim(v_1) ≥ 2 ∧ ndim(v_2) = 1 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, 0))
+
+Rule 31 (dtype must be a floating-point type)
+{v_1 : dtype} |= v_1 = 6 ∨ v_1 = 7 ∨ v_1 = 8
+
+Rule 20 (input tensor must be 1-dimensional)
+{v_1 : tensor} |= ndim(v_1) = 1
+
+Rule 1 (tensor shapes should be the same)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = shape(v_2, i)
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 8 (lora_rank must be positive)
+{v_1 : int} |= v_1 > 0
+Token usage: input=2335, output=404, total=7435
+** DUPLICATED RULE ** (num_failures: 2)
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.keras.layers.Embedding API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Turns nonnegative integers (indexes) into dense vectors of fixed size.
+
+    e.g. `[[4], [20]] -> [[0.25, 0.1], [0.6, -0.2]]`
+
+    This layer can only be used on nonnegative integer inputs of a fixed range.
+
+    Example:
+
+    >>> model = keras.Sequential()
+    >>> model.add(keras.layers.Embedding(1000, 64))
+    >>> # The model will take as input an integer matrix of size (batch,
+    >>> # input_length), and the largest integer (i.e. word index) in the input
+    >>> # should be no larger than 999 (vocabulary size).
+    >>> # Now model.output_shape is (None, 10, 64), where `None` is the batch
+    >>> # dimension.
+    >>> input_array = np.random.randint(1000, size=(32, 10))
+    >>> model.compile('rmsprop', 'mse')
+    >>> output_array = model.predict(input_array)
+    >>> print(output_array.shape)
+    (32, 10, 64)
+
+    Args:
+        input_dim: Integer. Size of the vocabulary,
+            i.e. maximum integer index + 1.
+        output_dim: Integer. Dimension of the dense embedding.
+        embeddings_initializer: Initializer for the `embeddings`
+            matrix (see `keras.initializers`).
+        embeddings_regularizer: Regularizer function applied to
+            the `embeddings` matrix (see `keras.regularizers`).
+        embeddings_constraint: Constraint function applied to
+            the `embeddings` matrix (see `keras.constraints`).
+        mask_zero: Boolean, whether or not the input value 0 is a special
+            "padding" value that should be masked out.
+            This is useful when using recurrent layers which
+            may take variable length input. If this is `True`,
+            then all subsequent layers in the model need
+            to support masking or an exception will be raised.
+            If `mask_zero` is set to `True`, as a consequence,
+            index 0 cannot be used in the vocabulary (`input_dim` should
+            equal size of vocabulary + 1).
+        weights: Optional floating-point matrix of size
+            `(input_dim, output_dim)`. The initial embeddings values
+            to use.
+        lora_rank: Optional integer. If set, the layer's forward pass
+            will implement LoRA (Low-Rank Adaptation)
+            with the provided rank. LoRA sets the layer's embeddings
+            matrix to non-trainable and replaces it with a delta over the
+            original matrix, obtained via multiplying two lower-rank
+            trainable matrices. This can be useful to reduce the
+            computation cost of fine-tuning large embedding layers.
+            You can also enable LoRA on an existing
+            `Embedding` layer by calling `layer.enable_lora(rank)`.
+        lora_alpha: Optional integer. If set, this parameter scales the
+            low-rank adaptation delta (computed as the product of two lower-rank
+            trainable matrices) during the forward pass. The delta is scaled by
+            `lora_alpha / lora_rank`, allowing you to fine-tune the strength of
+            the LoRA adjustment independently of `lora_rank`.
+
+    Input shape:
+        2D tensor with shape: `(batch_size, input_length)`.
+
+    Output shape:
+        3D tensor with shape: `(batch_size, input_length, output_dim)`.
+
+[API Signature] input_dim: integer, output_dim: integer, embeddings_initializer: string, embeddings_regularizer: string, embeddings_constraint: string, mask_zero: boolean, weights: matrix, lora_rank: integer, inputs: tensor
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 23 (3-dimensional tensor with all positive shape dimensions)
+{v_1 : tensor} |= ndim(v_1) = 3 ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+
+Rule 16 (shape alignment for matrix multiplication)
+{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) ≥ 2 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, ndim(v_2) − 2)) ∨ (ndim(v_1) ≥ 2 ∧ ndim(v_2) = 1 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, 0))
+
+Rule 31 (dtype must be a floating-point type)
+{v_1 : dtype} |= v_1 = 6 ∨ v_1 = 7 ∨ v_1 = 8
+
+Rule 20 (input tensor must be 1-dimensional)
+{v_1 : tensor} |= ndim(v_1) = 1
+
+Rule 1 (tensor shapes should be the same)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = shape(v_2, i)
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 9 (lora_alpha must be positive)
+{v_1 : int} |= v_1 > 0
+Token usage: input=2335, output=404, total=7435
+** DUPLICATED RULE ** (num_failures: 3)
+
+>>> PROMPT
+[Feedback Message from Prior Run]
+Duplicated rule: {v_1 : int} |= v_1 > 0
+Duplicated rule: {v_1 : int} |= v_1 > 0
+Duplicated rule: {v_1 : int} |= v_1 > 0
+
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.keras.layers.Embedding API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Turns nonnegative integers (indexes) into dense vectors of fixed size.
+
+    e.g. `[[4], [20]] -> [[0.25, 0.1], [0.6, -0.2]]`
+
+    This layer can only be used on nonnegative integer inputs of a fixed range.
+
+    Example:
+
+    >>> model = keras.Sequential()
+    >>> model.add(keras.layers.Embedding(1000, 64))
+    >>> # The model will take as input an integer matrix of size (batch,
+    >>> # input_length), and the largest integer (i.e. word index) in the input
+    >>> # should be no larger than 999 (vocabulary size).
+    >>> # Now model.output_shape is (None, 10, 64), where `None` is the batch
+    >>> # dimension.
+    >>> input_array = np.random.randint(1000, size=(32, 10))
+    >>> model.compile('rmsprop', 'mse')
+    >>> output_array = model.predict(input_array)
+    >>> print(output_array.shape)
+    (32, 10, 64)
+
+    Args:
+        input_dim: Integer. Size of the vocabulary,
+            i.e. maximum integer index + 1.
+        output_dim: Integer. Dimension of the dense embedding.
+        embeddings_initializer: Initializer for the `embeddings`
+            matrix (see `keras.initializers`).
+        embeddings_regularizer: Regularizer function applied to
+            the `embeddings` matrix (see `keras.regularizers`).
+        embeddings_constraint: Constraint function applied to
+            the `embeddings` matrix (see `keras.constraints`).
+        mask_zero: Boolean, whether or not the input value 0 is a special
+            "padding" value that should be masked out.
+            This is useful when using recurrent layers which
+            may take variable length input. If this is `True`,
+            then all subsequent layers in the model need
+            to support masking or an exception will be raised.
+            If `mask_zero` is set to `True`, as a consequence,
+            index 0 cannot be used in the vocabulary (`input_dim` should
+            equal size of vocabulary + 1).
+        weights: Optional floating-point matrix of size
+            `(input_dim, output_dim)`. The initial embeddings values
+            to use.
+        lora_rank: Optional integer. If set, the layer's forward pass
+            will implement LoRA (Low-Rank Adaptation)
+            with the provided rank. LoRA sets the layer's embeddings
+            matrix to non-trainable and replaces it with a delta over the
+            original matrix, obtained via multiplying two lower-rank
+            trainable matrices. This can be useful to reduce the
+            computation cost of fine-tuning large embedding layers.
+            You can also enable LoRA on an existing
+            `Embedding` layer by calling `layer.enable_lora(rank)`.
+        lora_alpha: Optional integer. If set, this parameter scales the
+            low-rank adaptation delta (computed as the product of two lower-rank
+            trainable matrices) during the forward pass. The delta is scaled by
+            `lora_alpha / lora_rank`, allowing you to fine-tune the strength of
+            the LoRA adjustment independently of `lora_rank`.
+
+    Input shape:
+        2D tensor with shape: `(batch_size, input_length)`.
+
+    Output shape:
+        3D tensor with shape: `(batch_size, input_length, output_dim)`.
+
+[API Signature] input_dim: integer, output_dim: integer, embeddings_initializer: string, embeddings_regularizer: string, embeddings_constraint: string, mask_zero: boolean, weights: matrix, lora_rank: integer, inputs: tensor
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 32 (Integer indices only valid with int-compatible dtype)
+{v_1 : tuple(int), v_2 : dtype} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] ≥ 0 ∧ v_2 = 1 ∨ v_2 = 2 ∨ v_2 = 3 ∨ v_2 = 4 ∨ v_2 = 5
+
+Rule 28 (list of ints used as dimensions/axes, all non-negative and valid for tensor shape)
+{v_1 : tensor, v_2 : list(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 29 (list of floats for weights must match length of a tensor dimension)
+{v_1 : tensor, v_2 : list(float)} |= v_2.len = shape(v_1, 0) ∧ ∀i ∈ [0, v_2.len - 1] : v_2[i] ≥ 0
+
+Rule 7 (first dimension of a tensor matches second dimension of the other)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) ≥ 1 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, 0) = shape(v_2, 1)
+
+Rule 5 (index tensor (v_2) should be within the range of input tensor)
+{v_1 : tensor, v_2 : tensor} |= min(v_2) ≥ 0 ∧ ∀i ∈ [0, ndim(v_1) − 1] : max(v_2) ≤ shape(v_1, i) − 1
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 10 (input_dim and output_dim must be positive integers)
+{v_1 : int, v_2 : int} |= v_1 > 0 ∧ v_2 > 0
+Token usage: input=9889, output=427, total=15110
+** SUCCESS **
+
+>>> PROMPT
+[Feedback Message from Prior Run]
+Duplicated rule: {v_1 : int} |= v_1 > 0
+Duplicated rule: {v_1 : int} |= v_1 > 0
+Duplicated rule: {v_1 : int} |= v_1 > 0
+
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.keras.layers.Embedding API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Turns nonnegative integers (indexes) into dense vectors of fixed size.
+
+    e.g. `[[4], [20]] -> [[0.25, 0.1], [0.6, -0.2]]`
+
+    This layer can only be used on nonnegative integer inputs of a fixed range.
+
+    Example:
+
+    >>> model = keras.Sequential()
+    >>> model.add(keras.layers.Embedding(1000, 64))
+    >>> # The model will take as input an integer matrix of size (batch,
+    >>> # input_length), and the largest integer (i.e. word index) in the input
+    >>> # should be no larger than 999 (vocabulary size).
+    >>> # Now model.output_shape is (None, 10, 64), where `None` is the batch
+    >>> # dimension.
+    >>> input_array = np.random.randint(1000, size=(32, 10))
+    >>> model.compile('rmsprop', 'mse')
+    >>> output_array = model.predict(input_array)
+    >>> print(output_array.shape)
+    (32, 10, 64)
+
+    Args:
+        input_dim: Integer. Size of the vocabulary,
+            i.e. maximum integer index + 1.
+        output_dim: Integer. Dimension of the dense embedding.
+        embeddings_initializer: Initializer for the `embeddings`
+            matrix (see `keras.initializers`).
+        embeddings_regularizer: Regularizer function applied to
+            the `embeddings` matrix (see `keras.regularizers`).
+        embeddings_constraint: Constraint function applied to
+            the `embeddings` matrix (see `keras.constraints`).
+        mask_zero: Boolean, whether or not the input value 0 is a special
+            "padding" value that should be masked out.
+            This is useful when using recurrent layers which
+            may take variable length input. If this is `True`,
+            then all subsequent layers in the model need
+            to support masking or an exception will be raised.
+            If `mask_zero` is set to `True`, as a consequence,
+            index 0 cannot be used in the vocabulary (`input_dim` should
+            equal size of vocabulary + 1).
+        weights: Optional floating-point matrix of size
+            `(input_dim, output_dim)`. The initial embeddings values
+            to use.
+        lora_rank: Optional integer. If set, the layer's forward pass
+            will implement LoRA (Low-Rank Adaptation)
+            with the provided rank. LoRA sets the layer's embeddings
+            matrix to non-trainable and replaces it with a delta over the
+            original matrix, obtained via multiplying two lower-rank
+            trainable matrices. This can be useful to reduce the
+            computation cost of fine-tuning large embedding layers.
+            You can also enable LoRA on an existing
+            `Embedding` layer by calling `layer.enable_lora(rank)`.
+        lora_alpha: Optional integer. If set, this parameter scales the
+            low-rank adaptation delta (computed as the product of two lower-rank
+            trainable matrices) during the forward pass. The delta is scaled by
+            `lora_alpha / lora_rank`, allowing you to fine-tune the strength of
+            the LoRA adjustment independently of `lora_rank`.
+
+    Input shape:
+        2D tensor with shape: `(batch_size, input_length)`.
+
+    Output shape:
+        3D tensor with shape: `(batch_size, input_length, output_dim)`.
+
+[API Signature] input_dim: integer, output_dim: integer, embeddings_initializer: string, embeddings_regularizer: string, embeddings_constraint: string, mask_zero: boolean, weights: matrix, lora_rank: integer, inputs: tensor
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 32 (Integer indices only valid with int-compatible dtype)
+{v_1 : tuple(int), v_2 : dtype} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] ≥ 0 ∧ v_2 = 1 ∨ v_2 = 2 ∨ v_2 = 3 ∨ v_2 = 4 ∨ v_2 = 5
+
+Rule 28 (list of ints used as dimensions/axes, all non-negative and valid for tensor shape)
+{v_1 : tensor, v_2 : list(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 29 (list of floats for weights must match length of a tensor dimension)
+{v_1 : tensor, v_2 : list(float)} |= v_2.len = shape(v_1, 0) ∧ ∀i ∈ [0, v_2.len - 1] : v_2[i] ≥ 0
+
+Rule 7 (first dimension of a tensor matches second dimension of the other)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) ≥ 1 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, 0) = shape(v_2, 1)
+
+Rule 5 (index tensor (v_2) should be within the range of input tensor)
+{v_1 : tensor, v_2 : tensor} |= min(v_2) ≥ 0 ∧ ∀i ∈ [0, ndim(v_1) − 1] : max(v_2) ≤ shape(v_1, i) − 1
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 11 (if mask_zero is True, input_dim must be at least 2)
+{v_1 : int, v_2 : bool} |= if v_2 then v_1 > 1 else v_1 > 0
+Token usage: input=9889, output=427, total=15110
+** SUCCESS **
+
+>>> PROMPT
+[Feedback Message from Prior Run]
+Duplicated rule: {v_1 : int} |= v_1 > 0
+Duplicated rule: {v_1 : int} |= v_1 > 0
+Duplicated rule: {v_1 : int} |= v_1 > 0
+
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.keras.layers.Embedding API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Turns nonnegative integers (indexes) into dense vectors of fixed size.
+
+    e.g. `[[4], [20]] -> [[0.25, 0.1], [0.6, -0.2]]`
+
+    This layer can only be used on nonnegative integer inputs of a fixed range.
+
+    Example:
+
+    >>> model = keras.Sequential()
+    >>> model.add(keras.layers.Embedding(1000, 64))
+    >>> # The model will take as input an integer matrix of size (batch,
+    >>> # input_length), and the largest integer (i.e. word index) in the input
+    >>> # should be no larger than 999 (vocabulary size).
+    >>> # Now model.output_shape is (None, 10, 64), where `None` is the batch
+    >>> # dimension.
+    >>> input_array = np.random.randint(1000, size=(32, 10))
+    >>> model.compile('rmsprop', 'mse')
+    >>> output_array = model.predict(input_array)
+    >>> print(output_array.shape)
+    (32, 10, 64)
+
+    Args:
+        input_dim: Integer. Size of the vocabulary,
+            i.e. maximum integer index + 1.
+        output_dim: Integer. Dimension of the dense embedding.
+        embeddings_initializer: Initializer for the `embeddings`
+            matrix (see `keras.initializers`).
+        embeddings_regularizer: Regularizer function applied to
+            the `embeddings` matrix (see `keras.regularizers`).
+        embeddings_constraint: Constraint function applied to
+            the `embeddings` matrix (see `keras.constraints`).
+        mask_zero: Boolean, whether or not the input value 0 is a special
+            "padding" value that should be masked out.
+            This is useful when using recurrent layers which
+            may take variable length input. If this is `True`,
+            then all subsequent layers in the model need
+            to support masking or an exception will be raised.
+            If `mask_zero` is set to `True`, as a consequence,
+            index 0 cannot be used in the vocabulary (`input_dim` should
+            equal size of vocabulary + 1).
+        weights: Optional floating-point matrix of size
+            `(input_dim, output_dim)`. The initial embeddings values
+            to use.
+        lora_rank: Optional integer. If set, the layer's forward pass
+            will implement LoRA (Low-Rank Adaptation)
+            with the provided rank. LoRA sets the layer's embeddings
+            matrix to non-trainable and replaces it with a delta over the
+            original matrix, obtained via multiplying two lower-rank
+            trainable matrices. This can be useful to reduce the
+            computation cost of fine-tuning large embedding layers.
+            You can also enable LoRA on an existing
+            `Embedding` layer by calling `layer.enable_lora(rank)`.
+        lora_alpha: Optional integer. If set, this parameter scales the
+            low-rank adaptation delta (computed as the product of two lower-rank
+            trainable matrices) during the forward pass. The delta is scaled by
+            `lora_alpha / lora_rank`, allowing you to fine-tune the strength of
+            the LoRA adjustment independently of `lora_rank`.
+
+    Input shape:
+        2D tensor with shape: `(batch_size, input_length)`.
+
+    Output shape:
+        3D tensor with shape: `(batch_size, input_length, output_dim)`.
+
+[API Signature] input_dim: integer, output_dim: integer, embeddings_initializer: string, embeddings_regularizer: string, embeddings_constraint: string, mask_zero: boolean, weights: matrix, lora_rank: integer, inputs: tensor
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 32 (Integer indices only valid with int-compatible dtype)
+{v_1 : tuple(int), v_2 : dtype} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] ≥ 0 ∧ v_2 = 1 ∨ v_2 = 2 ∨ v_2 = 3 ∨ v_2 = 4 ∨ v_2 = 5
+
+Rule 28 (list of ints used as dimensions/axes, all non-negative and valid for tensor shape)
+{v_1 : tensor, v_2 : list(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 29 (list of floats for weights must match length of a tensor dimension)
+{v_1 : tensor, v_2 : list(float)} |= v_2.len = shape(v_1, 0) ∧ ∀i ∈ [0, v_2.len - 1] : v_2[i] ≥ 0
+
+Rule 7 (first dimension of a tensor matches second dimension of the other)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) ≥ 1 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, 0) = shape(v_2, 1)
+
+Rule 5 (index tensor (v_2) should be within the range of input tensor)
+{v_1 : tensor, v_2 : tensor} |= min(v_2) ≥ 0 ∧ ∀i ∈ [0, ndim(v_1) − 1] : max(v_2) ≤ shape(v_1, i) − 1
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 12 (lora_rank must be a positive integer)
+{v_1 : int} |= v_1 ≥ 1
+Token usage: input=9889, output=427, total=15110
+** SUCCESS **
+
+>>> PROMPT
+[Feedback Message from Prior Run]
+Duplicated rule: {v_1 : int} |= v_1 > 0
+Duplicated rule: {v_1 : int} |= v_1 > 0
+Duplicated rule: {v_1 : int} |= v_1 > 0
+
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.keras.layers.Embedding API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Turns nonnegative integers (indexes) into dense vectors of fixed size.
+
+    e.g. `[[4], [20]] -> [[0.25, 0.1], [0.6, -0.2]]`
+
+    This layer can only be used on nonnegative integer inputs of a fixed range.
+
+    Example:
+
+    >>> model = keras.Sequential()
+    >>> model.add(keras.layers.Embedding(1000, 64))
+    >>> # The model will take as input an integer matrix of size (batch,
+    >>> # input_length), and the largest integer (i.e. word index) in the input
+    >>> # should be no larger than 999 (vocabulary size).
+    >>> # Now model.output_shape is (None, 10, 64), where `None` is the batch
+    >>> # dimension.
+    >>> input_array = np.random.randint(1000, size=(32, 10))
+    >>> model.compile('rmsprop', 'mse')
+    >>> output_array = model.predict(input_array)
+    >>> print(output_array.shape)
+    (32, 10, 64)
+
+    Args:
+        input_dim: Integer. Size of the vocabulary,
+            i.e. maximum integer index + 1.
+        output_dim: Integer. Dimension of the dense embedding.
+        embeddings_initializer: Initializer for the `embeddings`
+            matrix (see `keras.initializers`).
+        embeddings_regularizer: Regularizer function applied to
+            the `embeddings` matrix (see `keras.regularizers`).
+        embeddings_constraint: Constraint function applied to
+            the `embeddings` matrix (see `keras.constraints`).
+        mask_zero: Boolean, whether or not the input value 0 is a special
+            "padding" value that should be masked out.
+            This is useful when using recurrent layers which
+            may take variable length input. If this is `True`,
+            then all subsequent layers in the model need
+            to support masking or an exception will be raised.
+            If `mask_zero` is set to `True`, as a consequence,
+            index 0 cannot be used in the vocabulary (`input_dim` should
+            equal size of vocabulary + 1).
+        weights: Optional floating-point matrix of size
+            `(input_dim, output_dim)`. The initial embeddings values
+            to use.
+        lora_rank: Optional integer. If set, the layer's forward pass
+            will implement LoRA (Low-Rank Adaptation)
+            with the provided rank. LoRA sets the layer's embeddings
+            matrix to non-trainable and replaces it with a delta over the
+            original matrix, obtained via multiplying two lower-rank
+            trainable matrices. This can be useful to reduce the
+            computation cost of fine-tuning large embedding layers.
+            You can also enable LoRA on an existing
+            `Embedding` layer by calling `layer.enable_lora(rank)`.
+        lora_alpha: Optional integer. If set, this parameter scales the
+            low-rank adaptation delta (computed as the product of two lower-rank
+            trainable matrices) during the forward pass. The delta is scaled by
+            `lora_alpha / lora_rank`, allowing you to fine-tune the strength of
+            the LoRA adjustment independently of `lora_rank`.
+
+    Input shape:
+        2D tensor with shape: `(batch_size, input_length)`.
+
+    Output shape:
+        3D tensor with shape: `(batch_size, input_length, output_dim)`.
+
+[API Signature] input_dim: integer, output_dim: integer, embeddings_initializer: string, embeddings_regularizer: string, embeddings_constraint: string, mask_zero: boolean, weights: matrix, lora_rank: integer, inputs: tensor
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 32 (Integer indices only valid with int-compatible dtype)
+{v_1 : tuple(int), v_2 : dtype} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] ≥ 0 ∧ v_2 = 1 ∨ v_2 = 2 ∨ v_2 = 3 ∨ v_2 = 4 ∨ v_2 = 5
+
+Rule 28 (list of ints used as dimensions/axes, all non-negative and valid for tensor shape)
+{v_1 : tensor, v_2 : list(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 29 (list of floats for weights must match length of a tensor dimension)
+{v_1 : tensor, v_2 : list(float)} |= v_2.len = shape(v_1, 0) ∧ ∀i ∈ [0, v_2.len - 1] : v_2[i] ≥ 0
+
+Rule 7 (first dimension of a tensor matches second dimension of the other)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) ≥ 1 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, 0) = shape(v_2, 1)
+
+Rule 5 (index tensor (v_2) should be within the range of input tensor)
+{v_1 : tensor, v_2 : tensor} |= min(v_2) ≥ 0 ∧ ∀i ∈ [0, ndim(v_1) − 1] : max(v_2) ≤ shape(v_1, i) − 1
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 13 (inputs tensor must be 2-dimensional)
+{v_1 : tensor} |= ndim(v_1) = 2
+Token usage: input=9889, output=427, total=15110
+** DUPLICATED RULE ** (num_failures: 4)
+
+>>> PROMPT
+[Feedback Message from Prior Run]
+Duplicated rule: {v_1 : int} |= v_1 > 0
+Duplicated rule: {v_1 : int} |= v_1 > 0
+Duplicated rule: {v_1 : int} |= v_1 > 0
+
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.keras.layers.Embedding API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Turns nonnegative integers (indexes) into dense vectors of fixed size.
+
+    e.g. `[[4], [20]] -> [[0.25, 0.1], [0.6, -0.2]]`
+
+    This layer can only be used on nonnegative integer inputs of a fixed range.
+
+    Example:
+
+    >>> model = keras.Sequential()
+    >>> model.add(keras.layers.Embedding(1000, 64))
+    >>> # The model will take as input an integer matrix of size (batch,
+    >>> # input_length), and the largest integer (i.e. word index) in the input
+    >>> # should be no larger than 999 (vocabulary size).
+    >>> # Now model.output_shape is (None, 10, 64), where `None` is the batch
+    >>> # dimension.
+    >>> input_array = np.random.randint(1000, size=(32, 10))
+    >>> model.compile('rmsprop', 'mse')
+    >>> output_array = model.predict(input_array)
+    >>> print(output_array.shape)
+    (32, 10, 64)
+
+    Args:
+        input_dim: Integer. Size of the vocabulary,
+            i.e. maximum integer index + 1.
+        output_dim: Integer. Dimension of the dense embedding.
+        embeddings_initializer: Initializer for the `embeddings`
+            matrix (see `keras.initializers`).
+        embeddings_regularizer: Regularizer function applied to
+            the `embeddings` matrix (see `keras.regularizers`).
+        embeddings_constraint: Constraint function applied to
+            the `embeddings` matrix (see `keras.constraints`).
+        mask_zero: Boolean, whether or not the input value 0 is a special
+            "padding" value that should be masked out.
+            This is useful when using recurrent layers which
+            may take variable length input. If this is `True`,
+            then all subsequent layers in the model need
+            to support masking or an exception will be raised.
+            If `mask_zero` is set to `True`, as a consequence,
+            index 0 cannot be used in the vocabulary (`input_dim` should
+            equal size of vocabulary + 1).
+        weights: Optional floating-point matrix of size
+            `(input_dim, output_dim)`. The initial embeddings values
+            to use.
+        lora_rank: Optional integer. If set, the layer's forward pass
+            will implement LoRA (Low-Rank Adaptation)
+            with the provided rank. LoRA sets the layer's embeddings
+            matrix to non-trainable and replaces it with a delta over the
+            original matrix, obtained via multiplying two lower-rank
+            trainable matrices. This can be useful to reduce the
+            computation cost of fine-tuning large embedding layers.
+            You can also enable LoRA on an existing
+            `Embedding` layer by calling `layer.enable_lora(rank)`.
+        lora_alpha: Optional integer. If set, this parameter scales the
+            low-rank adaptation delta (computed as the product of two lower-rank
+            trainable matrices) during the forward pass. The delta is scaled by
+            `lora_alpha / lora_rank`, allowing you to fine-tune the strength of
+            the LoRA adjustment independently of `lora_rank`.
+
+    Input shape:
+        2D tensor with shape: `(batch_size, input_length)`.
+
+    Output shape:
+        3D tensor with shape: `(batch_size, input_length, output_dim)`.
+
+[API Signature] input_dim: integer, output_dim: integer, embeddings_initializer: string, embeddings_regularizer: string, embeddings_constraint: string, mask_zero: boolean, weights: matrix, lora_rank: integer, inputs: tensor
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 32 (Integer indices only valid with int-compatible dtype)
+{v_1 : tuple(int), v_2 : dtype} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] ≥ 0 ∧ v_2 = 1 ∨ v_2 = 2 ∨ v_2 = 3 ∨ v_2 = 4 ∨ v_2 = 5
+
+Rule 28 (list of ints used as dimensions/axes, all non-negative and valid for tensor shape)
+{v_1 : tensor, v_2 : list(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 29 (list of floats for weights must match length of a tensor dimension)
+{v_1 : tensor, v_2 : list(float)} |= v_2.len = shape(v_1, 0) ∧ ∀i ∈ [0, v_2.len - 1] : v_2[i] ≥ 0
+
+Rule 7 (first dimension of a tensor matches second dimension of the other)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) ≥ 1 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, 0) = shape(v_2, 1)
+
+Rule 5 (index tensor (v_2) should be within the range of input tensor)
+{v_1 : tensor, v_2 : tensor} |= min(v_2) ≥ 0 ∧ ∀i ∈ [0, ndim(v_1) − 1] : max(v_2) ≤ shape(v_1, i) − 1
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 14 (inputs tensor must have an integer data type)
+{v_1 : tensor} |= dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5
+Token usage: input=9889, output=427, total=15110
+** DUPLICATED RULE ** (num_failures: 5)
+
+>>> PROMPT
+[Feedback Message from Prior Run]
+Duplicated rule: {v_1 : int} |= v_1 > 0
+Duplicated rule: {v_1 : int} |= v_1 > 0
+Duplicated rule: {v_1 : int} |= v_1 > 0
+
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.keras.layers.Embedding API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Turns nonnegative integers (indexes) into dense vectors of fixed size.
+
+    e.g. `[[4], [20]] -> [[0.25, 0.1], [0.6, -0.2]]`
+
+    This layer can only be used on nonnegative integer inputs of a fixed range.
+
+    Example:
+
+    >>> model = keras.Sequential()
+    >>> model.add(keras.layers.Embedding(1000, 64))
+    >>> # The model will take as input an integer matrix of size (batch,
+    >>> # input_length), and the largest integer (i.e. word index) in the input
+    >>> # should be no larger than 999 (vocabulary size).
+    >>> # Now model.output_shape is (None, 10, 64), where `None` is the batch
+    >>> # dimension.
+    >>> input_array = np.random.randint(1000, size=(32, 10))
+    >>> model.compile('rmsprop', 'mse')
+    >>> output_array = model.predict(input_array)
+    >>> print(output_array.shape)
+    (32, 10, 64)
+
+    Args:
+        input_dim: Integer. Size of the vocabulary,
+            i.e. maximum integer index + 1.
+        output_dim: Integer. Dimension of the dense embedding.
+        embeddings_initializer: Initializer for the `embeddings`
+            matrix (see `keras.initializers`).
+        embeddings_regularizer: Regularizer function applied to
+            the `embeddings` matrix (see `keras.regularizers`).
+        embeddings_constraint: Constraint function applied to
+            the `embeddings` matrix (see `keras.constraints`).
+        mask_zero: Boolean, whether or not the input value 0 is a special
+            "padding" value that should be masked out.
+            This is useful when using recurrent layers which
+            may take variable length input. If this is `True`,
+            then all subsequent layers in the model need
+            to support masking or an exception will be raised.
+            If `mask_zero` is set to `True`, as a consequence,
+            index 0 cannot be used in the vocabulary (`input_dim` should
+            equal size of vocabulary + 1).
+        weights: Optional floating-point matrix of size
+            `(input_dim, output_dim)`. The initial embeddings values
+            to use.
+        lora_rank: Optional integer. If set, the layer's forward pass
+            will implement LoRA (Low-Rank Adaptation)
+            with the provided rank. LoRA sets the layer's embeddings
+            matrix to non-trainable and replaces it with a delta over the
+            original matrix, obtained via multiplying two lower-rank
+            trainable matrices. This can be useful to reduce the
+            computation cost of fine-tuning large embedding layers.
+            You can also enable LoRA on an existing
+            `Embedding` layer by calling `layer.enable_lora(rank)`.
+        lora_alpha: Optional integer. If set, this parameter scales the
+            low-rank adaptation delta (computed as the product of two lower-rank
+            trainable matrices) during the forward pass. The delta is scaled by
+            `lora_alpha / lora_rank`, allowing you to fine-tune the strength of
+            the LoRA adjustment independently of `lora_rank`.
+
+    Input shape:
+        2D tensor with shape: `(batch_size, input_length)`.
+
+    Output shape:
+        3D tensor with shape: `(batch_size, input_length, output_dim)`.
+
+[API Signature] input_dim: integer, output_dim: integer, embeddings_initializer: string, embeddings_regularizer: string, embeddings_constraint: string, mask_zero: boolean, weights: matrix, lora_rank: integer, inputs: tensor
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 32 (Integer indices only valid with int-compatible dtype)
+{v_1 : tuple(int), v_2 : dtype} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] ≥ 0 ∧ v_2 = 1 ∨ v_2 = 2 ∨ v_2 = 3 ∨ v_2 = 4 ∨ v_2 = 5
+
+Rule 28 (list of ints used as dimensions/axes, all non-negative and valid for tensor shape)
+{v_1 : tensor, v_2 : list(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 29 (list of floats for weights must match length of a tensor dimension)
+{v_1 : tensor, v_2 : list(float)} |= v_2.len = shape(v_1, 0) ∧ ∀i ∈ [0, v_2.len - 1] : v_2[i] ≥ 0
+
+Rule 7 (first dimension of a tensor matches second dimension of the other)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) ≥ 1 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, 0) = shape(v_2, 1)
+
+Rule 5 (index tensor (v_2) should be within the range of input tensor)
+{v_1 : tensor, v_2 : tensor} |= min(v_2) ≥ 0 ∧ ∀i ∈ [0, ndim(v_1) − 1] : max(v_2) ≤ shape(v_1, i) − 1
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 15 (inputs tensor elements must be within nonnegative vocabulary range)
+{v_1 : int, v_2 : tensor} |= min(v_2) ≥ 0 ∧ max(v_2) < v_1
+Token usage: input=9889, output=427, total=15110
+** DUPLICATED RULE ** (num_failures: 6)
+
+>>> PROMPT
+[Feedback Message from Prior Run]
+Duplicated rule: {v_1 : int} |= v_1 > 0
+Duplicated rule: {v_1 : int} |= v_1 > 0
+Duplicated rule: {v_1 : int} |= v_1 > 0
+
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.keras.layers.Embedding API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Turns nonnegative integers (indexes) into dense vectors of fixed size.
+
+    e.g. `[[4], [20]] -> [[0.25, 0.1], [0.6, -0.2]]`
+
+    This layer can only be used on nonnegative integer inputs of a fixed range.
+
+    Example:
+
+    >>> model = keras.Sequential()
+    >>> model.add(keras.layers.Embedding(1000, 64))
+    >>> # The model will take as input an integer matrix of size (batch,
+    >>> # input_length), and the largest integer (i.e. word index) in the input
+    >>> # should be no larger than 999 (vocabulary size).
+    >>> # Now model.output_shape is (None, 10, 64), where `None` is the batch
+    >>> # dimension.
+    >>> input_array = np.random.randint(1000, size=(32, 10))
+    >>> model.compile('rmsprop', 'mse')
+    >>> output_array = model.predict(input_array)
+    >>> print(output_array.shape)
+    (32, 10, 64)
+
+    Args:
+        input_dim: Integer. Size of the vocabulary,
+            i.e. maximum integer index + 1.
+        output_dim: Integer. Dimension of the dense embedding.
+        embeddings_initializer: Initializer for the `embeddings`
+            matrix (see `keras.initializers`).
+        embeddings_regularizer: Regularizer function applied to
+            the `embeddings` matrix (see `keras.regularizers`).
+        embeddings_constraint: Constraint function applied to
+            the `embeddings` matrix (see `keras.constraints`).
+        mask_zero: Boolean, whether or not the input value 0 is a special
+            "padding" value that should be masked out.
+            This is useful when using recurrent layers which
+            may take variable length input. If this is `True`,
+            then all subsequent layers in the model need
+            to support masking or an exception will be raised.
+            If `mask_zero` is set to `True`, as a consequence,
+            index 0 cannot be used in the vocabulary (`input_dim` should
+            equal size of vocabulary + 1).
+        weights: Optional floating-point matrix of size
+            `(input_dim, output_dim)`. The initial embeddings values
+            to use.
+        lora_rank: Optional integer. If set, the layer's forward pass
+            will implement LoRA (Low-Rank Adaptation)
+            with the provided rank. LoRA sets the layer's embeddings
+            matrix to non-trainable and replaces it with a delta over the
+            original matrix, obtained via multiplying two lower-rank
+            trainable matrices. This can be useful to reduce the
+            computation cost of fine-tuning large embedding layers.
+            You can also enable LoRA on an existing
+            `Embedding` layer by calling `layer.enable_lora(rank)`.
+        lora_alpha: Optional integer. If set, this parameter scales the
+            low-rank adaptation delta (computed as the product of two lower-rank
+            trainable matrices) during the forward pass. The delta is scaled by
+            `lora_alpha / lora_rank`, allowing you to fine-tune the strength of
+            the LoRA adjustment independently of `lora_rank`.
+
+    Input shape:
+        2D tensor with shape: `(batch_size, input_length)`.
+
+    Output shape:
+        3D tensor with shape: `(batch_size, input_length, output_dim)`.
+
+[API Signature] input_dim: integer, output_dim: integer, embeddings_initializer: string, embeddings_regularizer: string, embeddings_constraint: string, mask_zero: boolean, weights: matrix, lora_rank: integer, inputs: tensor
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 32 (Integer indices only valid with int-compatible dtype)
+{v_1 : tuple(int), v_2 : dtype} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] ≥ 0 ∧ v_2 = 1 ∨ v_2 = 2 ∨ v_2 = 3 ∨ v_2 = 4 ∨ v_2 = 5
+
+Rule 28 (list of ints used as dimensions/axes, all non-negative and valid for tensor shape)
+{v_1 : tensor, v_2 : list(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 29 (list of floats for weights must match length of a tensor dimension)
+{v_1 : tensor, v_2 : list(float)} |= v_2.len = shape(v_1, 0) ∧ ∀i ∈ [0, v_2.len - 1] : v_2[i] ≥ 0
+
+Rule 7 (first dimension of a tensor matches second dimension of the other)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) ≥ 1 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, 0) = shape(v_2, 1)
+
+Rule 5 (index tensor (v_2) should be within the range of input tensor)
+{v_1 : tensor, v_2 : tensor} |= min(v_2) ≥ 0 ∧ ∀i ∈ [0, ndim(v_1) − 1] : max(v_2) ≤ shape(v_1, i) − 1
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 16 (weights tensor must be a 2D matrix matching vocabulary and embedding dimensions)
+{v_1 : int, v_2 : int, v_3 : tensor} |= ndim(v_3) = 2 ∧ shape(v_3, 0) = v_1 ∧ shape(v_3, 1) = v_2
+Token usage: input=9889, output=427, total=15110
+** DUPLICATED RULE ** (num_failures: 7)
+
+>>> PROMPT
+[Feedback Message from Prior Run]
+Duplicated rule: {v_1 : int} |= v_1 > 0
+Duplicated rule: {v_1 : int} |= v_1 > 0
+Duplicated rule: {v_1 : int} |= v_1 > 0
+
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.keras.layers.Embedding API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Turns nonnegative integers (indexes) into dense vectors of fixed size.
+
+    e.g. `[[4], [20]] -> [[0.25, 0.1], [0.6, -0.2]]`
+
+    This layer can only be used on nonnegative integer inputs of a fixed range.
+
+    Example:
+
+    >>> model = keras.Sequential()
+    >>> model.add(keras.layers.Embedding(1000, 64))
+    >>> # The model will take as input an integer matrix of size (batch,
+    >>> # input_length), and the largest integer (i.e. word index) in the input
+    >>> # should be no larger than 999 (vocabulary size).
+    >>> # Now model.output_shape is (None, 10, 64), where `None` is the batch
+    >>> # dimension.
+    >>> input_array = np.random.randint(1000, size=(32, 10))
+    >>> model.compile('rmsprop', 'mse')
+    >>> output_array = model.predict(input_array)
+    >>> print(output_array.shape)
+    (32, 10, 64)
+
+    Args:
+        input_dim: Integer. Size of the vocabulary,
+            i.e. maximum integer index + 1.
+        output_dim: Integer. Dimension of the dense embedding.
+        embeddings_initializer: Initializer for the `embeddings`
+            matrix (see `keras.initializers`).
+        embeddings_regularizer: Regularizer function applied to
+            the `embeddings` matrix (see `keras.regularizers`).
+        embeddings_constraint: Constraint function applied to
+            the `embeddings` matrix (see `keras.constraints`).
+        mask_zero: Boolean, whether or not the input value 0 is a special
+            "padding" value that should be masked out.
+            This is useful when using recurrent layers which
+            may take variable length input. If this is `True`,
+            then all subsequent layers in the model need
+            to support masking or an exception will be raised.
+            If `mask_zero` is set to `True`, as a consequence,
+            index 0 cannot be used in the vocabulary (`input_dim` should
+            equal size of vocabulary + 1).
+        weights: Optional floating-point matrix of size
+            `(input_dim, output_dim)`. The initial embeddings values
+            to use.
+        lora_rank: Optional integer. If set, the layer's forward pass
+            will implement LoRA (Low-Rank Adaptation)
+            with the provided rank. LoRA sets the layer's embeddings
+            matrix to non-trainable and replaces it with a delta over the
+            original matrix, obtained via multiplying two lower-rank
+            trainable matrices. This can be useful to reduce the
+            computation cost of fine-tuning large embedding layers.
+            You can also enable LoRA on an existing
+            `Embedding` layer by calling `layer.enable_lora(rank)`.
+        lora_alpha: Optional integer. If set, this parameter scales the
+            low-rank adaptation delta (computed as the product of two lower-rank
+            trainable matrices) during the forward pass. The delta is scaled by
+            `lora_alpha / lora_rank`, allowing you to fine-tune the strength of
+            the LoRA adjustment independently of `lora_rank`.
+
+    Input shape:
+        2D tensor with shape: `(batch_size, input_length)`.
+
+    Output shape:
+        3D tensor with shape: `(batch_size, input_length, output_dim)`.
+
+[API Signature] input_dim: integer, output_dim: integer, embeddings_initializer: string, embeddings_regularizer: string, embeddings_constraint: string, mask_zero: boolean, weights: matrix, lora_rank: integer, inputs: tensor
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 32 (Integer indices only valid with int-compatible dtype)
+{v_1 : tuple(int), v_2 : dtype} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] ≥ 0 ∧ v_2 = 1 ∨ v_2 = 2 ∨ v_2 = 3 ∨ v_2 = 4 ∨ v_2 = 5
+
+Rule 28 (list of ints used as dimensions/axes, all non-negative and valid for tensor shape)
+{v_1 : tensor, v_2 : list(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 29 (list of floats for weights must match length of a tensor dimension)
+{v_1 : tensor, v_2 : list(float)} |= v_2.len = shape(v_1, 0) ∧ ∀i ∈ [0, v_2.len - 1] : v_2[i] ≥ 0
+
+Rule 7 (first dimension of a tensor matches second dimension of the other)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) ≥ 1 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, 0) = shape(v_2, 1)
+
+Rule 5 (index tensor (v_2) should be within the range of input tensor)
+{v_1 : tensor, v_2 : tensor} |= min(v_2) ≥ 0 ∧ ∀i ∈ [0, ndim(v_1) − 1] : max(v_2) ≤ shape(v_1, i) − 1
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 17 (weights must be of a floating-point data type)
+{v_1 : tensor} |= dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8
+Token usage: input=9889, output=427, total=15110
+** DUPLICATED RULE ** (num_failures: 8)
+
+>>> PROMPT
+[Feedback Message from Prior Run]
+Duplicated rule: {v_1 : tensor} |= ndim(v_1) = 2
+Duplicated rule: {v_1 : tensor} |= dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5
+Duplicated rule: {v_1 : int, v_2 : tensor} |= min(v_2) ≥ 0 ∧ max(v_2) < v_1
+Duplicated rule: {v_1 : int, v_2 : int, v_3 : tensor} |= ndim(v_3) = 2 ∧ shape(v_3, 0) = v_1 ∧ shape(v_3, 1) = v_2
+Duplicated rule: {v_1 : tensor} |= dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8
+
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.keras.layers.Embedding API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Turns nonnegative integers (indexes) into dense vectors of fixed size.
+
+    e.g. `[[4], [20]] -> [[0.25, 0.1], [0.6, -0.2]]`
+
+    This layer can only be used on nonnegative integer inputs of a fixed range.
+
+    Example:
+
+    >>> model = keras.Sequential()
+    >>> model.add(keras.layers.Embedding(1000, 64))
+    >>> # The model will take as input an integer matrix of size (batch,
+    >>> # input_length), and the largest integer (i.e. word index) in the input
+    >>> # should be no larger than 999 (vocabulary size).
+    >>> # Now model.output_shape is (None, 10, 64), where `None` is the batch
+    >>> # dimension.
+    >>> input_array = np.random.randint(1000, size=(32, 10))
+    >>> model.compile('rmsprop', 'mse')
+    >>> output_array = model.predict(input_array)
+    >>> print(output_array.shape)
+    (32, 10, 64)
+
+    Args:
+        input_dim: Integer. Size of the vocabulary,
+            i.e. maximum integer index + 1.
+        output_dim: Integer. Dimension of the dense embedding.
+        embeddings_initializer: Initializer for the `embeddings`
+            matrix (see `keras.initializers`).
+        embeddings_regularizer: Regularizer function applied to
+            the `embeddings` matrix (see `keras.regularizers`).
+        embeddings_constraint: Constraint function applied to
+            the `embeddings` matrix (see `keras.constraints`).
+        mask_zero: Boolean, whether or not the input value 0 is a special
+            "padding" value that should be masked out.
+            This is useful when using recurrent layers which
+            may take variable length input. If this is `True`,
+            then all subsequent layers in the model need
+            to support masking or an exception will be raised.
+            If `mask_zero` is set to `True`, as a consequence,
+            index 0 cannot be used in the vocabulary (`input_dim` should
+            equal size of vocabulary + 1).
+        weights: Optional floating-point matrix of size
+            `(input_dim, output_dim)`. The initial embeddings values
+            to use.
+        lora_rank: Optional integer. If set, the layer's forward pass
+            will implement LoRA (Low-Rank Adaptation)
+            with the provided rank. LoRA sets the layer's embeddings
+            matrix to non-trainable and replaces it with a delta over the
+            original matrix, obtained via multiplying two lower-rank
+            trainable matrices. This can be useful to reduce the
+            computation cost of fine-tuning large embedding layers.
+            You can also enable LoRA on an existing
+            `Embedding` layer by calling `layer.enable_lora(rank)`.
+        lora_alpha: Optional integer. If set, this parameter scales the
+            low-rank adaptation delta (computed as the product of two lower-rank
+            trainable matrices) during the forward pass. The delta is scaled by
+            `lora_alpha / lora_rank`, allowing you to fine-tune the strength of
+            the LoRA adjustment independently of `lora_rank`.
+
+    Input shape:
+        2D tensor with shape: `(batch_size, input_length)`.
+
+    Output shape:
+        3D tensor with shape: `(batch_size, input_length, output_dim)`.
+
+[API Signature] input_dim: integer, output_dim: integer, embeddings_initializer: string, embeddings_regularizer: string, embeddings_constraint: string, mask_zero: boolean, weights: matrix, lora_rank: integer, inputs: tensor
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 31 (dtype must be a floating-point type)
+{v_1 : dtype} |= v_1 = 6 ∨ v_1 = 7 ∨ v_1 = 8
+
+Rule 19 (compatibility of integer or float (data) type tensor and variable)
+{v1 : tensor, v2 : int ⊎ float} |= if 1 ≤ dtype(v1) ∧ dtype(v1) ≤ 5 then 1 ≤ v2 ∧ v2 ≤ 5 else if 6 ≤ dtype(v1) ∧ dtype(v1) ≤ 8 then 1 ≤ v2 ∧ v2 ≤ 8 else false
+
+Rule 17 (primitive type variable must be non-negative)
+{v_1 : int ⊎ float} |= v_1 ≥ 0
+
+Rule 27 (reduction over valid dimensions)
+{v_1 : tensor, v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 18 (input tensor is empty or only contains non-negative values)
+{v_1 : tensor} |= (∃i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = 0) ∨ min(v_1) ≥ 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 18 (input_dim and output_dim must be positive integers)
+{v_1 : int, v_2 : int} |= v_1 > 0 ∧ v_2 > 0
+Token usage: input=17651, output=385, total=23389
+** DUPLICATED RULE ** (num_failures: 9)
+
+>>> PROMPT
+[Feedback Message from Prior Run]
+Duplicated rule: {v_1 : tensor} |= ndim(v_1) = 2
+Duplicated rule: {v_1 : tensor} |= dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5
+Duplicated rule: {v_1 : int, v_2 : tensor} |= min(v_2) ≥ 0 ∧ max(v_2) < v_1
+Duplicated rule: {v_1 : int, v_2 : int, v_3 : tensor} |= ndim(v_3) = 2 ∧ shape(v_3, 0) = v_1 ∧ shape(v_3, 1) = v_2
+Duplicated rule: {v_1 : tensor} |= dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8
+
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.keras.layers.Embedding API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Turns nonnegative integers (indexes) into dense vectors of fixed size.
+
+    e.g. `[[4], [20]] -> [[0.25, 0.1], [0.6, -0.2]]`
+
+    This layer can only be used on nonnegative integer inputs of a fixed range.
+
+    Example:
+
+    >>> model = keras.Sequential()
+    >>> model.add(keras.layers.Embedding(1000, 64))
+    >>> # The model will take as input an integer matrix of size (batch,
+    >>> # input_length), and the largest integer (i.e. word index) in the input
+    >>> # should be no larger than 999 (vocabulary size).
+    >>> # Now model.output_shape is (None, 10, 64), where `None` is the batch
+    >>> # dimension.
+    >>> input_array = np.random.randint(1000, size=(32, 10))
+    >>> model.compile('rmsprop', 'mse')
+    >>> output_array = model.predict(input_array)
+    >>> print(output_array.shape)
+    (32, 10, 64)
+
+    Args:
+        input_dim: Integer. Size of the vocabulary,
+            i.e. maximum integer index + 1.
+        output_dim: Integer. Dimension of the dense embedding.
+        embeddings_initializer: Initializer for the `embeddings`
+            matrix (see `keras.initializers`).
+        embeddings_regularizer: Regularizer function applied to
+            the `embeddings` matrix (see `keras.regularizers`).
+        embeddings_constraint: Constraint function applied to
+            the `embeddings` matrix (see `keras.constraints`).
+        mask_zero: Boolean, whether or not the input value 0 is a special
+            "padding" value that should be masked out.
+            This is useful when using recurrent layers which
+            may take variable length input. If this is `True`,
+            then all subsequent layers in the model need
+            to support masking or an exception will be raised.
+            If `mask_zero` is set to `True`, as a consequence,
+            index 0 cannot be used in the vocabulary (`input_dim` should
+            equal size of vocabulary + 1).
+        weights: Optional floating-point matrix of size
+            `(input_dim, output_dim)`. The initial embeddings values
+            to use.
+        lora_rank: Optional integer. If set, the layer's forward pass
+            will implement LoRA (Low-Rank Adaptation)
+            with the provided rank. LoRA sets the layer's embeddings
+            matrix to non-trainable and replaces it with a delta over the
+            original matrix, obtained via multiplying two lower-rank
+            trainable matrices. This can be useful to reduce the
+            computation cost of fine-tuning large embedding layers.
+            You can also enable LoRA on an existing
+            `Embedding` layer by calling `layer.enable_lora(rank)`.
+        lora_alpha: Optional integer. If set, this parameter scales the
+            low-rank adaptation delta (computed as the product of two lower-rank
+            trainable matrices) during the forward pass. The delta is scaled by
+            `lora_alpha / lora_rank`, allowing you to fine-tune the strength of
+            the LoRA adjustment independently of `lora_rank`.
+
+    Input shape:
+        2D tensor with shape: `(batch_size, input_length)`.
+
+    Output shape:
+        3D tensor with shape: `(batch_size, input_length, output_dim)`.
+
+[API Signature] input_dim: integer, output_dim: integer, embeddings_initializer: string, embeddings_regularizer: string, embeddings_constraint: string, mask_zero: boolean, weights: matrix, lora_rank: integer, inputs: tensor
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 31 (dtype must be a floating-point type)
+{v_1 : dtype} |= v_1 = 6 ∨ v_1 = 7 ∨ v_1 = 8
+
+Rule 19 (compatibility of integer or float (data) type tensor and variable)
+{v1 : tensor, v2 : int ⊎ float} |= if 1 ≤ dtype(v1) ∧ dtype(v1) ≤ 5 then 1 ≤ v2 ∧ v2 ≤ 5 else if 6 ≤ dtype(v1) ∧ dtype(v1) ≤ 8 then 1 ≤ v2 ∧ v2 ≤ 8 else false
+
+Rule 17 (primitive type variable must be non-negative)
+{v_1 : int ⊎ float} |= v_1 ≥ 0
+
+Rule 27 (reduction over valid dimensions)
+{v_1 : tensor, v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 18 (input tensor is empty or only contains non-negative values)
+{v_1 : tensor} |= (∃i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = 0) ∨ min(v_1) ≥ 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 19 (if mask_zero is True, input_dim must be at least 2)
+{v_1 : int, v_2 : bool} |= if v_2 then v_1 > 1 else v_1 > 0
+Token usage: input=17651, output=385, total=23389
+** DUPLICATED RULE ** (num_failures: 10)
+
+>>> PROMPT
+[Feedback Message from Prior Run]
+Duplicated rule: {v_1 : tensor} |= ndim(v_1) = 2
+Duplicated rule: {v_1 : tensor} |= dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5
+Duplicated rule: {v_1 : int, v_2 : tensor} |= min(v_2) ≥ 0 ∧ max(v_2) < v_1
+Duplicated rule: {v_1 : int, v_2 : int, v_3 : tensor} |= ndim(v_3) = 2 ∧ shape(v_3, 0) = v_1 ∧ shape(v_3, 1) = v_2
+Duplicated rule: {v_1 : tensor} |= dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8
+
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.keras.layers.Embedding API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Turns nonnegative integers (indexes) into dense vectors of fixed size.
+
+    e.g. `[[4], [20]] -> [[0.25, 0.1], [0.6, -0.2]]`
+
+    This layer can only be used on nonnegative integer inputs of a fixed range.
+
+    Example:
+
+    >>> model = keras.Sequential()
+    >>> model.add(keras.layers.Embedding(1000, 64))
+    >>> # The model will take as input an integer matrix of size (batch,
+    >>> # input_length), and the largest integer (i.e. word index) in the input
+    >>> # should be no larger than 999 (vocabulary size).
+    >>> # Now model.output_shape is (None, 10, 64), where `None` is the batch
+    >>> # dimension.
+    >>> input_array = np.random.randint(1000, size=(32, 10))
+    >>> model.compile('rmsprop', 'mse')
+    >>> output_array = model.predict(input_array)
+    >>> print(output_array.shape)
+    (32, 10, 64)
+
+    Args:
+        input_dim: Integer. Size of the vocabulary,
+            i.e. maximum integer index + 1.
+        output_dim: Integer. Dimension of the dense embedding.
+        embeddings_initializer: Initializer for the `embeddings`
+            matrix (see `keras.initializers`).
+        embeddings_regularizer: Regularizer function applied to
+            the `embeddings` matrix (see `keras.regularizers`).
+        embeddings_constraint: Constraint function applied to
+            the `embeddings` matrix (see `keras.constraints`).
+        mask_zero: Boolean, whether or not the input value 0 is a special
+            "padding" value that should be masked out.
+            This is useful when using recurrent layers which
+            may take variable length input. If this is `True`,
+            then all subsequent layers in the model need
+            to support masking or an exception will be raised.
+            If `mask_zero` is set to `True`, as a consequence,
+            index 0 cannot be used in the vocabulary (`input_dim` should
+            equal size of vocabulary + 1).
+        weights: Optional floating-point matrix of size
+            `(input_dim, output_dim)`. The initial embeddings values
+            to use.
+        lora_rank: Optional integer. If set, the layer's forward pass
+            will implement LoRA (Low-Rank Adaptation)
+            with the provided rank. LoRA sets the layer's embeddings
+            matrix to non-trainable and replaces it with a delta over the
+            original matrix, obtained via multiplying two lower-rank
+            trainable matrices. This can be useful to reduce the
+            computation cost of fine-tuning large embedding layers.
+            You can also enable LoRA on an existing
+            `Embedding` layer by calling `layer.enable_lora(rank)`.
+        lora_alpha: Optional integer. If set, this parameter scales the
+            low-rank adaptation delta (computed as the product of two lower-rank
+            trainable matrices) during the forward pass. The delta is scaled by
+            `lora_alpha / lora_rank`, allowing you to fine-tune the strength of
+            the LoRA adjustment independently of `lora_rank`.
+
+    Input shape:
+        2D tensor with shape: `(batch_size, input_length)`.
+
+    Output shape:
+        3D tensor with shape: `(batch_size, input_length, output_dim)`.
+
+[API Signature] input_dim: integer, output_dim: integer, embeddings_initializer: string, embeddings_regularizer: string, embeddings_constraint: string, mask_zero: boolean, weights: matrix, lora_rank: integer, inputs: tensor
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 31 (dtype must be a floating-point type)
+{v_1 : dtype} |= v_1 = 6 ∨ v_1 = 7 ∨ v_1 = 8
+
+Rule 19 (compatibility of integer or float (data) type tensor and variable)
+{v1 : tensor, v2 : int ⊎ float} |= if 1 ≤ dtype(v1) ∧ dtype(v1) ≤ 5 then 1 ≤ v2 ∧ v2 ≤ 5 else if 6 ≤ dtype(v1) ∧ dtype(v1) ≤ 8 then 1 ≤ v2 ∧ v2 ≤ 8 else false
+
+Rule 17 (primitive type variable must be non-negative)
+{v_1 : int ⊎ float} |= v_1 ≥ 0
+
+Rule 27 (reduction over valid dimensions)
+{v_1 : tensor, v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 18 (input tensor is empty or only contains non-negative values)
+{v_1 : tensor} |= (∃i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = 0) ∨ min(v_1) ≥ 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 20 (lora_rank must be a positive integer)
+{v_1 : int} |= v_1 ≥ 1
+Token usage: input=17651, output=385, total=23389
+** DUPLICATED RULE ** (num_failures: 11)
+
+>>> PROMPT
+[Feedback Message from Prior Run]
+Duplicated rule: {v_1 : tensor} |= ndim(v_1) = 2
+Duplicated rule: {v_1 : tensor} |= dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5
+Duplicated rule: {v_1 : int, v_2 : tensor} |= min(v_2) ≥ 0 ∧ max(v_2) < v_1
+Duplicated rule: {v_1 : int, v_2 : int, v_3 : tensor} |= ndim(v_3) = 2 ∧ shape(v_3, 0) = v_1 ∧ shape(v_3, 1) = v_2
+Duplicated rule: {v_1 : tensor} |= dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8
+
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.keras.layers.Embedding API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Turns nonnegative integers (indexes) into dense vectors of fixed size.
+
+    e.g. `[[4], [20]] -> [[0.25, 0.1], [0.6, -0.2]]`
+
+    This layer can only be used on nonnegative integer inputs of a fixed range.
+
+    Example:
+
+    >>> model = keras.Sequential()
+    >>> model.add(keras.layers.Embedding(1000, 64))
+    >>> # The model will take as input an integer matrix of size (batch,
+    >>> # input_length), and the largest integer (i.e. word index) in the input
+    >>> # should be no larger than 999 (vocabulary size).
+    >>> # Now model.output_shape is (None, 10, 64), where `None` is the batch
+    >>> # dimension.
+    >>> input_array = np.random.randint(1000, size=(32, 10))
+    >>> model.compile('rmsprop', 'mse')
+    >>> output_array = model.predict(input_array)
+    >>> print(output_array.shape)
+    (32, 10, 64)
+
+    Args:
+        input_dim: Integer. Size of the vocabulary,
+            i.e. maximum integer index + 1.
+        output_dim: Integer. Dimension of the dense embedding.
+        embeddings_initializer: Initializer for the `embeddings`
+            matrix (see `keras.initializers`).
+        embeddings_regularizer: Regularizer function applied to
+            the `embeddings` matrix (see `keras.regularizers`).
+        embeddings_constraint: Constraint function applied to
+            the `embeddings` matrix (see `keras.constraints`).
+        mask_zero: Boolean, whether or not the input value 0 is a special
+            "padding" value that should be masked out.
+            This is useful when using recurrent layers which
+            may take variable length input. If this is `True`,
+            then all subsequent layers in the model need
+            to support masking or an exception will be raised.
+            If `mask_zero` is set to `True`, as a consequence,
+            index 0 cannot be used in the vocabulary (`input_dim` should
+            equal size of vocabulary + 1).
+        weights: Optional floating-point matrix of size
+            `(input_dim, output_dim)`. The initial embeddings values
+            to use.
+        lora_rank: Optional integer. If set, the layer's forward pass
+            will implement LoRA (Low-Rank Adaptation)
+            with the provided rank. LoRA sets the layer's embeddings
+            matrix to non-trainable and replaces it with a delta over the
+            original matrix, obtained via multiplying two lower-rank
+            trainable matrices. This can be useful to reduce the
+            computation cost of fine-tuning large embedding layers.
+            You can also enable LoRA on an existing
+            `Embedding` layer by calling `layer.enable_lora(rank)`.
+        lora_alpha: Optional integer. If set, this parameter scales the
+            low-rank adaptation delta (computed as the product of two lower-rank
+            trainable matrices) during the forward pass. The delta is scaled by
+            `lora_alpha / lora_rank`, allowing you to fine-tune the strength of
+            the LoRA adjustment independently of `lora_rank`.
+
+    Input shape:
+        2D tensor with shape: `(batch_size, input_length)`.
+
+    Output shape:
+        3D tensor with shape: `(batch_size, input_length, output_dim)`.
+
+[API Signature] input_dim: integer, output_dim: integer, embeddings_initializer: string, embeddings_regularizer: string, embeddings_constraint: string, mask_zero: boolean, weights: matrix, lora_rank: integer, inputs: tensor
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 31 (dtype must be a floating-point type)
+{v_1 : dtype} |= v_1 = 6 ∨ v_1 = 7 ∨ v_1 = 8
+
+Rule 19 (compatibility of integer or float (data) type tensor and variable)
+{v1 : tensor, v2 : int ⊎ float} |= if 1 ≤ dtype(v1) ∧ dtype(v1) ≤ 5 then 1 ≤ v2 ∧ v2 ≤ 5 else if 6 ≤ dtype(v1) ∧ dtype(v1) ≤ 8 then 1 ≤ v2 ∧ v2 ≤ 8 else false
+
+Rule 17 (primitive type variable must be non-negative)
+{v_1 : int ⊎ float} |= v_1 ≥ 0
+
+Rule 27 (reduction over valid dimensions)
+{v_1 : tensor, v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 18 (input tensor is empty or only contains non-negative values)
+{v_1 : tensor} |= (∃i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = 0) ∨ min(v_1) ≥ 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 21 (inputs tensor must be 2D and elements must be within nonnegative vocabulary range)
+{v_1 : int, v_2 : tensor} |= ndim(v_2) = 2 ∧ min(v_2) ≥ 0 ∧ max(v_2) ≤ v_1 - 1
+Token usage: input=17651, output=385, total=23389
+** SUCCESS **
+
+>>> PROMPT
+[Feedback Message from Prior Run]
+Duplicated rule: {v_1 : tensor} |= ndim(v_1) = 2
+Duplicated rule: {v_1 : tensor} |= dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5
+Duplicated rule: {v_1 : int, v_2 : tensor} |= min(v_2) ≥ 0 ∧ max(v_2) < v_1
+Duplicated rule: {v_1 : int, v_2 : int, v_3 : tensor} |= ndim(v_3) = 2 ∧ shape(v_3, 0) = v_1 ∧ shape(v_3, 1) = v_2
+Duplicated rule: {v_1 : tensor} |= dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8
+
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.keras.layers.Embedding API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Turns nonnegative integers (indexes) into dense vectors of fixed size.
+
+    e.g. `[[4], [20]] -> [[0.25, 0.1], [0.6, -0.2]]`
+
+    This layer can only be used on nonnegative integer inputs of a fixed range.
+
+    Example:
+
+    >>> model = keras.Sequential()
+    >>> model.add(keras.layers.Embedding(1000, 64))
+    >>> # The model will take as input an integer matrix of size (batch,
+    >>> # input_length), and the largest integer (i.e. word index) in the input
+    >>> # should be no larger than 999 (vocabulary size).
+    >>> # Now model.output_shape is (None, 10, 64), where `None` is the batch
+    >>> # dimension.
+    >>> input_array = np.random.randint(1000, size=(32, 10))
+    >>> model.compile('rmsprop', 'mse')
+    >>> output_array = model.predict(input_array)
+    >>> print(output_array.shape)
+    (32, 10, 64)
+
+    Args:
+        input_dim: Integer. Size of the vocabulary,
+            i.e. maximum integer index + 1.
+        output_dim: Integer. Dimension of the dense embedding.
+        embeddings_initializer: Initializer for the `embeddings`
+            matrix (see `keras.initializers`).
+        embeddings_regularizer: Regularizer function applied to
+            the `embeddings` matrix (see `keras.regularizers`).
+        embeddings_constraint: Constraint function applied to
+            the `embeddings` matrix (see `keras.constraints`).
+        mask_zero: Boolean, whether or not the input value 0 is a special
+            "padding" value that should be masked out.
+            This is useful when using recurrent layers which
+            may take variable length input. If this is `True`,
+            then all subsequent layers in the model need
+            to support masking or an exception will be raised.
+            If `mask_zero` is set to `True`, as a consequence,
+            index 0 cannot be used in the vocabulary (`input_dim` should
+            equal size of vocabulary + 1).
+        weights: Optional floating-point matrix of size
+            `(input_dim, output_dim)`. The initial embeddings values
+            to use.
+        lora_rank: Optional integer. If set, the layer's forward pass
+            will implement LoRA (Low-Rank Adaptation)
+            with the provided rank. LoRA sets the layer's embeddings
+            matrix to non-trainable and replaces it with a delta over the
+            original matrix, obtained via multiplying two lower-rank
+            trainable matrices. This can be useful to reduce the
+            computation cost of fine-tuning large embedding layers.
+            You can also enable LoRA on an existing
+            `Embedding` layer by calling `layer.enable_lora(rank)`.
+        lora_alpha: Optional integer. If set, this parameter scales the
+            low-rank adaptation delta (computed as the product of two lower-rank
+            trainable matrices) during the forward pass. The delta is scaled by
+            `lora_alpha / lora_rank`, allowing you to fine-tune the strength of
+            the LoRA adjustment independently of `lora_rank`.
+
+    Input shape:
+        2D tensor with shape: `(batch_size, input_length)`.
+
+    Output shape:
+        3D tensor with shape: `(batch_size, input_length, output_dim)`.
+
+[API Signature] input_dim: integer, output_dim: integer, embeddings_initializer: string, embeddings_regularizer: string, embeddings_constraint: string, mask_zero: boolean, weights: matrix, lora_rank: integer, inputs: tensor
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 31 (dtype must be a floating-point type)
+{v_1 : dtype} |= v_1 = 6 ∨ v_1 = 7 ∨ v_1 = 8
+
+Rule 19 (compatibility of integer or float (data) type tensor and variable)
+{v1 : tensor, v2 : int ⊎ float} |= if 1 ≤ dtype(v1) ∧ dtype(v1) ≤ 5 then 1 ≤ v2 ∧ v2 ≤ 5 else if 6 ≤ dtype(v1) ∧ dtype(v1) ≤ 8 then 1 ≤ v2 ∧ v2 ≤ 8 else false
+
+Rule 17 (primitive type variable must be non-negative)
+{v_1 : int ⊎ float} |= v_1 ≥ 0
+
+Rule 27 (reduction over valid dimensions)
+{v_1 : tensor, v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 18 (input tensor is empty or only contains non-negative values)
+{v_1 : tensor} |= (∃i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = 0) ∨ min(v_1) ≥ 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 22 (inputs tensor must have an integer data type)
+{v_1 : tensor} |= 1 ≤ dtype_(v_1) ∧ dtype_(v_1) ≤ 5
+Token usage: input=17651, output=385, total=23389
+** SUCCESS **
+
+>>> PROMPT
+[Feedback Message from Prior Run]
+Duplicated rule: {v_1 : tensor} |= ndim(v_1) = 2
+Duplicated rule: {v_1 : tensor} |= dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5
+Duplicated rule: {v_1 : int, v_2 : tensor} |= min(v_2) ≥ 0 ∧ max(v_2) < v_1
+Duplicated rule: {v_1 : int, v_2 : int, v_3 : tensor} |= ndim(v_3) = 2 ∧ shape(v_3, 0) = v_1 ∧ shape(v_3, 1) = v_2
+Duplicated rule: {v_1 : tensor} |= dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8
+
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.keras.layers.Embedding API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Turns nonnegative integers (indexes) into dense vectors of fixed size.
+
+    e.g. `[[4], [20]] -> [[0.25, 0.1], [0.6, -0.2]]`
+
+    This layer can only be used on nonnegative integer inputs of a fixed range.
+
+    Example:
+
+    >>> model = keras.Sequential()
+    >>> model.add(keras.layers.Embedding(1000, 64))
+    >>> # The model will take as input an integer matrix of size (batch,
+    >>> # input_length), and the largest integer (i.e. word index) in the input
+    >>> # should be no larger than 999 (vocabulary size).
+    >>> # Now model.output_shape is (None, 10, 64), where `None` is the batch
+    >>> # dimension.
+    >>> input_array = np.random.randint(1000, size=(32, 10))
+    >>> model.compile('rmsprop', 'mse')
+    >>> output_array = model.predict(input_array)
+    >>> print(output_array.shape)
+    (32, 10, 64)
+
+    Args:
+        input_dim: Integer. Size of the vocabulary,
+            i.e. maximum integer index + 1.
+        output_dim: Integer. Dimension of the dense embedding.
+        embeddings_initializer: Initializer for the `embeddings`
+            matrix (see `keras.initializers`).
+        embeddings_regularizer: Regularizer function applied to
+            the `embeddings` matrix (see `keras.regularizers`).
+        embeddings_constraint: Constraint function applied to
+            the `embeddings` matrix (see `keras.constraints`).
+        mask_zero: Boolean, whether or not the input value 0 is a special
+            "padding" value that should be masked out.
+            This is useful when using recurrent layers which
+            may take variable length input. If this is `True`,
+            then all subsequent layers in the model need
+            to support masking or an exception will be raised.
+            If `mask_zero` is set to `True`, as a consequence,
+            index 0 cannot be used in the vocabulary (`input_dim` should
+            equal size of vocabulary + 1).
+        weights: Optional floating-point matrix of size
+            `(input_dim, output_dim)`. The initial embeddings values
+            to use.
+        lora_rank: Optional integer. If set, the layer's forward pass
+            will implement LoRA (Low-Rank Adaptation)
+            with the provided rank. LoRA sets the layer's embeddings
+            matrix to non-trainable and replaces it with a delta over the
+            original matrix, obtained via multiplying two lower-rank
+            trainable matrices. This can be useful to reduce the
+            computation cost of fine-tuning large embedding layers.
+            You can also enable LoRA on an existing
+            `Embedding` layer by calling `layer.enable_lora(rank)`.
+        lora_alpha: Optional integer. If set, this parameter scales the
+            low-rank adaptation delta (computed as the product of two lower-rank
+            trainable matrices) during the forward pass. The delta is scaled by
+            `lora_alpha / lora_rank`, allowing you to fine-tune the strength of
+            the LoRA adjustment independently of `lora_rank`.
+
+    Input shape:
+        2D tensor with shape: `(batch_size, input_length)`.
+
+    Output shape:
+        3D tensor with shape: `(batch_size, input_length, output_dim)`.
+
+[API Signature] input_dim: integer, output_dim: integer, embeddings_initializer: string, embeddings_regularizer: string, embeddings_constraint: string, mask_zero: boolean, weights: matrix, lora_rank: integer, inputs: tensor
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 31 (dtype must be a floating-point type)
+{v_1 : dtype} |= v_1 = 6 ∨ v_1 = 7 ∨ v_1 = 8
+
+Rule 19 (compatibility of integer or float (data) type tensor and variable)
+{v1 : tensor, v2 : int ⊎ float} |= if 1 ≤ dtype(v1) ∧ dtype(v1) ≤ 5 then 1 ≤ v2 ∧ v2 ≤ 5 else if 6 ≤ dtype(v1) ∧ dtype(v1) ≤ 8 then 1 ≤ v2 ∧ v2 ≤ 8 else false
+
+Rule 17 (primitive type variable must be non-negative)
+{v_1 : int ⊎ float} |= v_1 ≥ 0
+
+Rule 27 (reduction over valid dimensions)
+{v_1 : tensor, v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 18 (input tensor is empty or only contains non-negative values)
+{v_1 : tensor} |= (∃i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = 0) ∨ min(v_1) ≥ 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 23 (weights tensor must be a 2D matrix matching vocabulary and embedding dimensions)
+{v_1 : int, v_2 : int, v_3 : tensor} |= ndim(v_3) = 2 ∧ shape(v_3, 0) = v_1 ∧ shape(v_3, 0) * shape(v_3, 1) = v_1 * v_2
+Token usage: input=17651, output=385, total=23389
+** SUCCESS **
+
+>>> PROMPT
+[Feedback Message from Prior Run]
+Duplicated rule: {v_1 : tensor} |= ndim(v_1) = 2
+Duplicated rule: {v_1 : tensor} |= dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5
+Duplicated rule: {v_1 : int, v_2 : tensor} |= min(v_2) ≥ 0 ∧ max(v_2) < v_1
+Duplicated rule: {v_1 : int, v_2 : int, v_3 : tensor} |= ndim(v_3) = 2 ∧ shape(v_3, 0) = v_1 ∧ shape(v_3, 1) = v_2
+Duplicated rule: {v_1 : tensor} |= dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8
+
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.keras.layers.Embedding API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Turns nonnegative integers (indexes) into dense vectors of fixed size.
+
+    e.g. `[[4], [20]] -> [[0.25, 0.1], [0.6, -0.2]]`
+
+    This layer can only be used on nonnegative integer inputs of a fixed range.
+
+    Example:
+
+    >>> model = keras.Sequential()
+    >>> model.add(keras.layers.Embedding(1000, 64))
+    >>> # The model will take as input an integer matrix of size (batch,
+    >>> # input_length), and the largest integer (i.e. word index) in the input
+    >>> # should be no larger than 999 (vocabulary size).
+    >>> # Now model.output_shape is (None, 10, 64), where `None` is the batch
+    >>> # dimension.
+    >>> input_array = np.random.randint(1000, size=(32, 10))
+    >>> model.compile('rmsprop', 'mse')
+    >>> output_array = model.predict(input_array)
+    >>> print(output_array.shape)
+    (32, 10, 64)
+
+    Args:
+        input_dim: Integer. Size of the vocabulary,
+            i.e. maximum integer index + 1.
+        output_dim: Integer. Dimension of the dense embedding.
+        embeddings_initializer: Initializer for the `embeddings`
+            matrix (see `keras.initializers`).
+        embeddings_regularizer: Regularizer function applied to
+            the `embeddings` matrix (see `keras.regularizers`).
+        embeddings_constraint: Constraint function applied to
+            the `embeddings` matrix (see `keras.constraints`).
+        mask_zero: Boolean, whether or not the input value 0 is a special
+            "padding" value that should be masked out.
+            This is useful when using recurrent layers which
+            may take variable length input. If this is `True`,
+            then all subsequent layers in the model need
+            to support masking or an exception will be raised.
+            If `mask_zero` is set to `True`, as a consequence,
+            index 0 cannot be used in the vocabulary (`input_dim` should
+            equal size of vocabulary + 1).
+        weights: Optional floating-point matrix of size
+            `(input_dim, output_dim)`. The initial embeddings values
+            to use.
+        lora_rank: Optional integer. If set, the layer's forward pass
+            will implement LoRA (Low-Rank Adaptation)
+            with the provided rank. LoRA sets the layer's embeddings
+            matrix to non-trainable and replaces it with a delta over the
+            original matrix, obtained via multiplying two lower-rank
+            trainable matrices. This can be useful to reduce the
+            computation cost of fine-tuning large embedding layers.
+            You can also enable LoRA on an existing
+            `Embedding` layer by calling `layer.enable_lora(rank)`.
+        lora_alpha: Optional integer. If set, this parameter scales the
+            low-rank adaptation delta (computed as the product of two lower-rank
+            trainable matrices) during the forward pass. The delta is scaled by
+            `lora_alpha / lora_rank`, allowing you to fine-tune the strength of
+            the LoRA adjustment independently of `lora_rank`.
+
+    Input shape:
+        2D tensor with shape: `(batch_size, input_length)`.
+
+    Output shape:
+        3D tensor with shape: `(batch_size, input_length, output_dim)`.
+
+[API Signature] input_dim: integer, output_dim: integer, embeddings_initializer: string, embeddings_regularizer: string, embeddings_constraint: string, mask_zero: boolean, weights: matrix, lora_rank: integer, inputs: tensor
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 31 (dtype must be a floating-point type)
+{v_1 : dtype} |= v_1 = 6 ∨ v_1 = 7 ∨ v_1 = 8
+
+Rule 19 (compatibility of integer or float (data) type tensor and variable)
+{v1 : tensor, v2 : int ⊎ float} |= if 1 ≤ dtype(v1) ∧ dtype(v1) ≤ 5 then 1 ≤ v2 ∧ v2 ≤ 5 else if 6 ≤ dtype(v1) ∧ dtype(v1) ≤ 8 then 1 ≤ v2 ∧ v2 ≤ 8 else false
+
+Rule 17 (primitive type variable must be non-negative)
+{v_1 : int ⊎ float} |= v_1 ≥ 0
+
+Rule 27 (reduction over valid dimensions)
+{v_1 : tensor, v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 18 (input tensor is empty or only contains non-negative values)
+{v_1 : tensor} |= (∃i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = 0) ∨ min(v_1) ≥ 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 24 (weights must be of a floating-point data type)
+{v_1 : tensor} |= 6 ≤ dtype_(v_1) ∧ dtype_(v_1) ≤ 8
+Token usage: input=17651, output=385, total=23389
+** SUCCESS **
+

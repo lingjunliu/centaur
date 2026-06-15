@@ -1,0 +1,2660 @@
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.keras.layers.Resizing API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+A preprocessing layer which resizes images.
+
+    This layer resizes an image input to a target height and width. The input
+    should be a 4D (batched) or 3D (unbatched) tensor in `"channels_last"`
+    format. Input pixel values can be of any range
+    (e.g. `[0., 1.)` or `[0, 255]`).
+
+    **Note:** This layer is safe to use inside a `tf.data` or `grain` pipeline
+    (independently of which backend you're using).
+
+    Input shape:
+        3D (unbatched) or 4D (batched) tensor with shape:
+        `(..., height, width, channels)`, in `"channels_last"` format,
+        or `(..., channels, height, width)`, in `"channels_first"` format.
+
+    Output shape:
+        3D (unbatched) or 4D (batched) tensor with shape:
+        `(..., target_height, target_width, channels)`,
+        or `(..., channels, target_height, target_width)`,
+        in `"channels_first"` format.
+
+    Args:
+        height: Integer, the height of the output shape.
+        width: Integer, the width of the output shape.
+        interpolation: String, the interpolation method.
+            Supports `"bilinear"`, `"nearest"`, `"bicubic"`,
+            `"lanczos3"`, `"lanczos5"`. Defaults to `"bilinear"`.
+        crop_to_aspect_ratio: If `True`, resize the images without aspect
+            ratio distortion. When the original aspect ratio differs
+            from the target aspect ratio, the output image will be
+            cropped so as to return the
+            largest possible window in the image (of size `(height, width)`)
+            that matches the target aspect ratio. By default
+            (`crop_to_aspect_ratio=False`), aspect ratio may not be preserved.
+        pad_to_aspect_ratio: If `True`, pad the images without aspect
+            ratio distortion. When the original aspect ratio differs
+            from the target aspect ratio, the output image will be
+            evenly padded on the short side.
+        fill_mode: When using `pad_to_aspect_ratio=True`, padded areas
+            are filled according to the given mode. Only `"constant"` is
+            supported at this time
+            (fill with constant value, equal to `fill_value`).
+        fill_value: Float. Padding value to use when `pad_to_aspect_ratio=True`.
+        data_format: string, either `"channels_last"` or `"channels_first"`.
+            The ordering of the dimensions in the inputs. `"channels_last"`
+            corresponds to inputs with shape `(batch, height, width, channels)`
+            while `"channels_first"` corresponds to inputs with shape
+            `(batch, channels, height, width)`. It defaults to the
+            `image_data_format` value found in your Keras config file at
+            `~/.keras/keras.json`. If you never set it, then it will be
+            `"channels_last"`.
+        **kwargs: Base layer keyword arguments, such as `name` and `dtype`.
+
+    Example:
+
+    ```python
+    (x_train, y_train), _ = keras.datasets.cifar10.load_data()
+    image = x_train[0]
+    resizer = keras.layers.Resizing(128, 128)
+    resized_image = resizer(image)
+    print("original:", image.shape, "resized:", resized_image.shape)
+    ```
+
+[API Signature] height: integer, width: integer, interpolation: string, crop_to_aspect_ratio: boolean, pad_to_aspect_ratio: boolean, fill_mode: string, fill_value: float, data_format: string, inputs: tensor
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 23 (3-dimensional tensor with all positive shape dimensions)
+{v_1 : tensor} |= ndim(v_1) = 3 ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+
+Rule 3 (input tensors must have the same number of dimensions)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2)
+
+Rule 10 (valid 2D transposed convolution)
+{v_1 : tensor, v_2 : tensor, v_3 : int, v_4 : int} |= ndim(v_1) = 4 ∧ ndim(v_2) = 4 ∧ v_3 ≥ 1 ∧ v_4 ≥ 0 ∧ v_3 × (shape(v_1, 2) − 1) + shape(v_2, 2) − 2 × v_4 > 0 ∧ v_3 × (shape(v_1, 3) − 1) + shape(v_2, 3) − 2 × v_4 > 0
+
+Rule 31 (dtype must be a floating-point type)
+{v_1 : dtype} |= v_1 = 6 ∨ v_1 = 7 ∨ v_1 = 8
+
+Rule 19 (compatibility of integer or float (data) type tensor and variable)
+{v1 : tensor, v2 : int ⊎ float} |= if 1 ≤ dtype(v1) ∧ dtype(v1) ≤ 5 then 1 ≤ v2 ∧ v2 ≤ 5 else if 6 ≤ dtype(v1) ∧ dtype(v1) ≤ 8 then 1 ≤ v2 ∧ v2 ≤ 8 else false
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 1 (height and width must be positive integers)
+{v_1 : int, v_2 : int} |= v_1 > 0 ∧ v_2 > 0
+Token usage: input=2397, output=338, total=7263
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.keras.layers.Resizing API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+A preprocessing layer which resizes images.
+
+    This layer resizes an image input to a target height and width. The input
+    should be a 4D (batched) or 3D (unbatched) tensor in `"channels_last"`
+    format. Input pixel values can be of any range
+    (e.g. `[0., 1.)` or `[0, 255]`).
+
+    **Note:** This layer is safe to use inside a `tf.data` or `grain` pipeline
+    (independently of which backend you're using).
+
+    Input shape:
+        3D (unbatched) or 4D (batched) tensor with shape:
+        `(..., height, width, channels)`, in `"channels_last"` format,
+        or `(..., channels, height, width)`, in `"channels_first"` format.
+
+    Output shape:
+        3D (unbatched) or 4D (batched) tensor with shape:
+        `(..., target_height, target_width, channels)`,
+        or `(..., channels, target_height, target_width)`,
+        in `"channels_first"` format.
+
+    Args:
+        height: Integer, the height of the output shape.
+        width: Integer, the width of the output shape.
+        interpolation: String, the interpolation method.
+            Supports `"bilinear"`, `"nearest"`, `"bicubic"`,
+            `"lanczos3"`, `"lanczos5"`. Defaults to `"bilinear"`.
+        crop_to_aspect_ratio: If `True`, resize the images without aspect
+            ratio distortion. When the original aspect ratio differs
+            from the target aspect ratio, the output image will be
+            cropped so as to return the
+            largest possible window in the image (of size `(height, width)`)
+            that matches the target aspect ratio. By default
+            (`crop_to_aspect_ratio=False`), aspect ratio may not be preserved.
+        pad_to_aspect_ratio: If `True`, pad the images without aspect
+            ratio distortion. When the original aspect ratio differs
+            from the target aspect ratio, the output image will be
+            evenly padded on the short side.
+        fill_mode: When using `pad_to_aspect_ratio=True`, padded areas
+            are filled according to the given mode. Only `"constant"` is
+            supported at this time
+            (fill with constant value, equal to `fill_value`).
+        fill_value: Float. Padding value to use when `pad_to_aspect_ratio=True`.
+        data_format: string, either `"channels_last"` or `"channels_first"`.
+            The ordering of the dimensions in the inputs. `"channels_last"`
+            corresponds to inputs with shape `(batch, height, width, channels)`
+            while `"channels_first"` corresponds to inputs with shape
+            `(batch, channels, height, width)`. It defaults to the
+            `image_data_format` value found in your Keras config file at
+            `~/.keras/keras.json`. If you never set it, then it will be
+            `"channels_last"`.
+        **kwargs: Base layer keyword arguments, such as `name` and `dtype`.
+
+    Example:
+
+    ```python
+    (x_train, y_train), _ = keras.datasets.cifar10.load_data()
+    image = x_train[0]
+    resizer = keras.layers.Resizing(128, 128)
+    resized_image = resizer(image)
+    print("original:", image.shape, "resized:", resized_image.shape)
+    ```
+
+[API Signature] height: integer, width: integer, interpolation: string, crop_to_aspect_ratio: boolean, pad_to_aspect_ratio: boolean, fill_mode: string, fill_value: float, data_format: string, inputs: tensor
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 23 (3-dimensional tensor with all positive shape dimensions)
+{v_1 : tensor} |= ndim(v_1) = 3 ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+
+Rule 3 (input tensors must have the same number of dimensions)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2)
+
+Rule 10 (valid 2D transposed convolution)
+{v_1 : tensor, v_2 : tensor, v_3 : int, v_4 : int} |= ndim(v_1) = 4 ∧ ndim(v_2) = 4 ∧ v_3 ≥ 1 ∧ v_4 ≥ 0 ∧ v_3 × (shape(v_1, 2) − 1) + shape(v_2, 2) − 2 × v_4 > 0 ∧ v_3 × (shape(v_1, 3) − 1) + shape(v_2, 3) − 2 × v_4 > 0
+
+Rule 31 (dtype must be a floating-point type)
+{v_1 : dtype} |= v_1 = 6 ∨ v_1 = 7 ∨ v_1 = 8
+
+Rule 19 (compatibility of integer or float (data) type tensor and variable)
+{v1 : tensor, v2 : int ⊎ float} |= if 1 ≤ dtype(v1) ∧ dtype(v1) ≤ 5 then 1 ≤ v2 ∧ v2 ≤ 5 else if 6 ≤ dtype(v1) ∧ dtype(v1) ≤ 8 then 1 ≤ v2 ∧ v2 ≤ 8 else false
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 2 (inputs must be a 3D or 4D tensor)
+{v_9 : tensor} |= ndim(v_9) = 3 ∨ ndim(v_9) = 4
+Token usage: input=2397, output=338, total=7263
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.keras.layers.Resizing API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+A preprocessing layer which resizes images.
+
+    This layer resizes an image input to a target height and width. The input
+    should be a 4D (batched) or 3D (unbatched) tensor in `"channels_last"`
+    format. Input pixel values can be of any range
+    (e.g. `[0., 1.)` or `[0, 255]`).
+
+    **Note:** This layer is safe to use inside a `tf.data` or `grain` pipeline
+    (independently of which backend you're using).
+
+    Input shape:
+        3D (unbatched) or 4D (batched) tensor with shape:
+        `(..., height, width, channels)`, in `"channels_last"` format,
+        or `(..., channels, height, width)`, in `"channels_first"` format.
+
+    Output shape:
+        3D (unbatched) or 4D (batched) tensor with shape:
+        `(..., target_height, target_width, channels)`,
+        or `(..., channels, target_height, target_width)`,
+        in `"channels_first"` format.
+
+    Args:
+        height: Integer, the height of the output shape.
+        width: Integer, the width of the output shape.
+        interpolation: String, the interpolation method.
+            Supports `"bilinear"`, `"nearest"`, `"bicubic"`,
+            `"lanczos3"`, `"lanczos5"`. Defaults to `"bilinear"`.
+        crop_to_aspect_ratio: If `True`, resize the images without aspect
+            ratio distortion. When the original aspect ratio differs
+            from the target aspect ratio, the output image will be
+            cropped so as to return the
+            largest possible window in the image (of size `(height, width)`)
+            that matches the target aspect ratio. By default
+            (`crop_to_aspect_ratio=False`), aspect ratio may not be preserved.
+        pad_to_aspect_ratio: If `True`, pad the images without aspect
+            ratio distortion. When the original aspect ratio differs
+            from the target aspect ratio, the output image will be
+            evenly padded on the short side.
+        fill_mode: When using `pad_to_aspect_ratio=True`, padded areas
+            are filled according to the given mode. Only `"constant"` is
+            supported at this time
+            (fill with constant value, equal to `fill_value`).
+        fill_value: Float. Padding value to use when `pad_to_aspect_ratio=True`.
+        data_format: string, either `"channels_last"` or `"channels_first"`.
+            The ordering of the dimensions in the inputs. `"channels_last"`
+            corresponds to inputs with shape `(batch, height, width, channels)`
+            while `"channels_first"` corresponds to inputs with shape
+            `(batch, channels, height, width)`. It defaults to the
+            `image_data_format` value found in your Keras config file at
+            `~/.keras/keras.json`. If you never set it, then it will be
+            `"channels_last"`.
+        **kwargs: Base layer keyword arguments, such as `name` and `dtype`.
+
+    Example:
+
+    ```python
+    (x_train, y_train), _ = keras.datasets.cifar10.load_data()
+    image = x_train[0]
+    resizer = keras.layers.Resizing(128, 128)
+    resized_image = resizer(image)
+    print("original:", image.shape, "resized:", resized_image.shape)
+    ```
+
+[API Signature] height: integer, width: integer, interpolation: string, crop_to_aspect_ratio: boolean, pad_to_aspect_ratio: boolean, fill_mode: string, fill_value: float, data_format: string, inputs: tensor
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 23 (3-dimensional tensor with all positive shape dimensions)
+{v_1 : tensor} |= ndim(v_1) = 3 ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+
+Rule 3 (input tensors must have the same number of dimensions)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2)
+
+Rule 10 (valid 2D transposed convolution)
+{v_1 : tensor, v_2 : tensor, v_3 : int, v_4 : int} |= ndim(v_1) = 4 ∧ ndim(v_2) = 4 ∧ v_3 ≥ 1 ∧ v_4 ≥ 0 ∧ v_3 × (shape(v_1, 2) − 1) + shape(v_2, 2) − 2 × v_4 > 0 ∧ v_3 × (shape(v_1, 3) − 1) + shape(v_2, 3) − 2 × v_4 > 0
+
+Rule 31 (dtype must be a floating-point type)
+{v_1 : dtype} |= v_1 = 6 ∨ v_1 = 7 ∨ v_1 = 8
+
+Rule 19 (compatibility of integer or float (data) type tensor and variable)
+{v1 : tensor, v2 : int ⊎ float} |= if 1 ≤ dtype(v1) ∧ dtype(v1) ≤ 5 then 1 ≤ v2 ∧ v2 ≤ 5 else if 6 ≤ dtype(v1) ∧ dtype(v1) ≤ 8 then 1 ≤ v2 ∧ v2 ≤ 8 else false
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 3 (data_format must be either channels_last or channels_first)
+{v_8 : str} |= v_8 = 24 ∨ v_8 = 25
+Token usage: input=2397, output=338, total=7263
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.keras.layers.Resizing API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+A preprocessing layer which resizes images.
+
+    This layer resizes an image input to a target height and width. The input
+    should be a 4D (batched) or 3D (unbatched) tensor in `"channels_last"`
+    format. Input pixel values can be of any range
+    (e.g. `[0., 1.)` or `[0, 255]`).
+
+    **Note:** This layer is safe to use inside a `tf.data` or `grain` pipeline
+    (independently of which backend you're using).
+
+    Input shape:
+        3D (unbatched) or 4D (batched) tensor with shape:
+        `(..., height, width, channels)`, in `"channels_last"` format,
+        or `(..., channels, height, width)`, in `"channels_first"` format.
+
+    Output shape:
+        3D (unbatched) or 4D (batched) tensor with shape:
+        `(..., target_height, target_width, channels)`,
+        or `(..., channels, target_height, target_width)`,
+        in `"channels_first"` format.
+
+    Args:
+        height: Integer, the height of the output shape.
+        width: Integer, the width of the output shape.
+        interpolation: String, the interpolation method.
+            Supports `"bilinear"`, `"nearest"`, `"bicubic"`,
+            `"lanczos3"`, `"lanczos5"`. Defaults to `"bilinear"`.
+        crop_to_aspect_ratio: If `True`, resize the images without aspect
+            ratio distortion. When the original aspect ratio differs
+            from the target aspect ratio, the output image will be
+            cropped so as to return the
+            largest possible window in the image (of size `(height, width)`)
+            that matches the target aspect ratio. By default
+            (`crop_to_aspect_ratio=False`), aspect ratio may not be preserved.
+        pad_to_aspect_ratio: If `True`, pad the images without aspect
+            ratio distortion. When the original aspect ratio differs
+            from the target aspect ratio, the output image will be
+            evenly padded on the short side.
+        fill_mode: When using `pad_to_aspect_ratio=True`, padded areas
+            are filled according to the given mode. Only `"constant"` is
+            supported at this time
+            (fill with constant value, equal to `fill_value`).
+        fill_value: Float. Padding value to use when `pad_to_aspect_ratio=True`.
+        data_format: string, either `"channels_last"` or `"channels_first"`.
+            The ordering of the dimensions in the inputs. `"channels_last"`
+            corresponds to inputs with shape `(batch, height, width, channels)`
+            while `"channels_first"` corresponds to inputs with shape
+            `(batch, channels, height, width)`. It defaults to the
+            `image_data_format` value found in your Keras config file at
+            `~/.keras/keras.json`. If you never set it, then it will be
+            `"channels_last"`.
+        **kwargs: Base layer keyword arguments, such as `name` and `dtype`.
+
+    Example:
+
+    ```python
+    (x_train, y_train), _ = keras.datasets.cifar10.load_data()
+    image = x_train[0]
+    resizer = keras.layers.Resizing(128, 128)
+    resized_image = resizer(image)
+    print("original:", image.shape, "resized:", resized_image.shape)
+    ```
+
+[API Signature] height: integer, width: integer, interpolation: string, crop_to_aspect_ratio: boolean, pad_to_aspect_ratio: boolean, fill_mode: string, fill_value: float, data_format: string, inputs: tensor
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 23 (3-dimensional tensor with all positive shape dimensions)
+{v_1 : tensor} |= ndim(v_1) = 3 ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+
+Rule 3 (input tensors must have the same number of dimensions)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2)
+
+Rule 10 (valid 2D transposed convolution)
+{v_1 : tensor, v_2 : tensor, v_3 : int, v_4 : int} |= ndim(v_1) = 4 ∧ ndim(v_2) = 4 ∧ v_3 ≥ 1 ∧ v_4 ≥ 0 ∧ v_3 × (shape(v_1, 2) − 1) + shape(v_2, 2) − 2 × v_4 > 0 ∧ v_3 × (shape(v_1, 3) − 1) + shape(v_2, 3) − 2 × v_4 > 0
+
+Rule 31 (dtype must be a floating-point type)
+{v_1 : dtype} |= v_1 = 6 ∨ v_1 = 7 ∨ v_1 = 8
+
+Rule 19 (compatibility of integer or float (data) type tensor and variable)
+{v1 : tensor, v2 : int ⊎ float} |= if 1 ≤ dtype(v1) ∧ dtype(v1) ≤ 5 then 1 ≤ v2 ∧ v2 ≤ 5 else if 6 ≤ dtype(v1) ∧ dtype(v1) ≤ 8 then 1 ≤ v2 ∧ v2 ≤ 8 else false
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 4 (crop_to_aspect_ratio and pad_to_aspect_ratio cannot be both true)
+{v_4 : bool, v_5 : bool} |= if v_4 = true then v_5 = false
+Token usage: input=2397, output=338, total=7263
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.keras.layers.Resizing API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+A preprocessing layer which resizes images.
+
+    This layer resizes an image input to a target height and width. The input
+    should be a 4D (batched) or 3D (unbatched) tensor in `"channels_last"`
+    format. Input pixel values can be of any range
+    (e.g. `[0., 1.)` or `[0, 255]`).
+
+    **Note:** This layer is safe to use inside a `tf.data` or `grain` pipeline
+    (independently of which backend you're using).
+
+    Input shape:
+        3D (unbatched) or 4D (batched) tensor with shape:
+        `(..., height, width, channels)`, in `"channels_last"` format,
+        or `(..., channels, height, width)`, in `"channels_first"` format.
+
+    Output shape:
+        3D (unbatched) or 4D (batched) tensor with shape:
+        `(..., target_height, target_width, channels)`,
+        or `(..., channels, target_height, target_width)`,
+        in `"channels_first"` format.
+
+    Args:
+        height: Integer, the height of the output shape.
+        width: Integer, the width of the output shape.
+        interpolation: String, the interpolation method.
+            Supports `"bilinear"`, `"nearest"`, `"bicubic"`,
+            `"lanczos3"`, `"lanczos5"`. Defaults to `"bilinear"`.
+        crop_to_aspect_ratio: If `True`, resize the images without aspect
+            ratio distortion. When the original aspect ratio differs
+            from the target aspect ratio, the output image will be
+            cropped so as to return the
+            largest possible window in the image (of size `(height, width)`)
+            that matches the target aspect ratio. By default
+            (`crop_to_aspect_ratio=False`), aspect ratio may not be preserved.
+        pad_to_aspect_ratio: If `True`, pad the images without aspect
+            ratio distortion. When the original aspect ratio differs
+            from the target aspect ratio, the output image will be
+            evenly padded on the short side.
+        fill_mode: When using `pad_to_aspect_ratio=True`, padded areas
+            are filled according to the given mode. Only `"constant"` is
+            supported at this time
+            (fill with constant value, equal to `fill_value`).
+        fill_value: Float. Padding value to use when `pad_to_aspect_ratio=True`.
+        data_format: string, either `"channels_last"` or `"channels_first"`.
+            The ordering of the dimensions in the inputs. `"channels_last"`
+            corresponds to inputs with shape `(batch, height, width, channels)`
+            while `"channels_first"` corresponds to inputs with shape
+            `(batch, channels, height, width)`. It defaults to the
+            `image_data_format` value found in your Keras config file at
+            `~/.keras/keras.json`. If you never set it, then it will be
+            `"channels_last"`.
+        **kwargs: Base layer keyword arguments, such as `name` and `dtype`.
+
+    Example:
+
+    ```python
+    (x_train, y_train), _ = keras.datasets.cifar10.load_data()
+    image = x_train[0]
+    resizer = keras.layers.Resizing(128, 128)
+    resized_image = resizer(image)
+    print("original:", image.shape, "resized:", resized_image.shape)
+    ```
+
+[API Signature] height: integer, width: integer, interpolation: string, crop_to_aspect_ratio: boolean, pad_to_aspect_ratio: boolean, fill_mode: string, fill_value: float, data_format: string, inputs: tensor
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 23 (3-dimensional tensor with all positive shape dimensions)
+{v_1 : tensor} |= ndim(v_1) = 3 ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+
+Rule 3 (input tensors must have the same number of dimensions)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2)
+
+Rule 10 (valid 2D transposed convolution)
+{v_1 : tensor, v_2 : tensor, v_3 : int, v_4 : int} |= ndim(v_1) = 4 ∧ ndim(v_2) = 4 ∧ v_3 ≥ 1 ∧ v_4 ≥ 0 ∧ v_3 × (shape(v_1, 2) − 1) + shape(v_2, 2) − 2 × v_4 > 0 ∧ v_3 × (shape(v_1, 3) − 1) + shape(v_2, 3) − 2 × v_4 > 0
+
+Rule 31 (dtype must be a floating-point type)
+{v_1 : dtype} |= v_1 = 6 ∨ v_1 = 7 ∨ v_1 = 8
+
+Rule 19 (compatibility of integer or float (data) type tensor and variable)
+{v1 : tensor, v2 : int ⊎ float} |= if 1 ≤ dtype(v1) ∧ dtype(v1) ≤ 5 then 1 ≤ v2 ∧ v2 ≤ 5 else if 6 ≤ dtype(v1) ∧ dtype(v1) ≤ 8 then 1 ≤ v2 ∧ v2 ≤ 8 else false
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 5 (image dimensions must be positive based on data_format)
+{v_8 : str, v_9 : tensor} |= ndim(v_9) ≥ 3 ∧ (if v_8 = 24 then shape(v_9, ndim(v_9) - 3) > 0 ∧ shape(v_9, ndim(v_9) - 2) > 0 else (if v_8 = 25 then shape(v_9, ndim(v_9) - 2) > 0 ∧ shape(v_9, ndim(v_9) - 1) > 0 else false))
+Token usage: input=2397, output=338, total=7263
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.keras.layers.Resizing API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+A preprocessing layer which resizes images.
+
+    This layer resizes an image input to a target height and width. The input
+    should be a 4D (batched) or 3D (unbatched) tensor in `"channels_last"`
+    format. Input pixel values can be of any range
+    (e.g. `[0., 1.)` or `[0, 255]`).
+
+    **Note:** This layer is safe to use inside a `tf.data` or `grain` pipeline
+    (independently of which backend you're using).
+
+    Input shape:
+        3D (unbatched) or 4D (batched) tensor with shape:
+        `(..., height, width, channels)`, in `"channels_last"` format,
+        or `(..., channels, height, width)`, in `"channels_first"` format.
+
+    Output shape:
+        3D (unbatched) or 4D (batched) tensor with shape:
+        `(..., target_height, target_width, channels)`,
+        or `(..., channels, target_height, target_width)`,
+        in `"channels_first"` format.
+
+    Args:
+        height: Integer, the height of the output shape.
+        width: Integer, the width of the output shape.
+        interpolation: String, the interpolation method.
+            Supports `"bilinear"`, `"nearest"`, `"bicubic"`,
+            `"lanczos3"`, `"lanczos5"`. Defaults to `"bilinear"`.
+        crop_to_aspect_ratio: If `True`, resize the images without aspect
+            ratio distortion. When the original aspect ratio differs
+            from the target aspect ratio, the output image will be
+            cropped so as to return the
+            largest possible window in the image (of size `(height, width)`)
+            that matches the target aspect ratio. By default
+            (`crop_to_aspect_ratio=False`), aspect ratio may not be preserved.
+        pad_to_aspect_ratio: If `True`, pad the images without aspect
+            ratio distortion. When the original aspect ratio differs
+            from the target aspect ratio, the output image will be
+            evenly padded on the short side.
+        fill_mode: When using `pad_to_aspect_ratio=True`, padded areas
+            are filled according to the given mode. Only `"constant"` is
+            supported at this time
+            (fill with constant value, equal to `fill_value`).
+        fill_value: Float. Padding value to use when `pad_to_aspect_ratio=True`.
+        data_format: string, either `"channels_last"` or `"channels_first"`.
+            The ordering of the dimensions in the inputs. `"channels_last"`
+            corresponds to inputs with shape `(batch, height, width, channels)`
+            while `"channels_first"` corresponds to inputs with shape
+            `(batch, channels, height, width)`. It defaults to the
+            `image_data_format` value found in your Keras config file at
+            `~/.keras/keras.json`. If you never set it, then it will be
+            `"channels_last"`.
+        **kwargs: Base layer keyword arguments, such as `name` and `dtype`.
+
+    Example:
+
+    ```python
+    (x_train, y_train), _ = keras.datasets.cifar10.load_data()
+    image = x_train[0]
+    resizer = keras.layers.Resizing(128, 128)
+    resized_image = resizer(image)
+    print("original:", image.shape, "resized:", resized_image.shape)
+    ```
+
+[API Signature] height: integer, width: integer, interpolation: string, crop_to_aspect_ratio: boolean, pad_to_aspect_ratio: boolean, fill_mode: string, fill_value: float, data_format: string, inputs: tensor
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 4 (tensor data types should match)
+{v_1 : tensor, v_2 : tensor} |= dtype(v_1) = dtype(v_2)
+
+Rule 10 (valid 2D transposed convolution)
+{v_1 : tensor, v_2 : tensor, v_3 : int, v_4 : int} |= ndim(v_1) = 4 ∧ ndim(v_2) = 4 ∧ v_3 ≥ 1 ∧ v_4 ≥ 0 ∧ v_3 × (shape(v_1, 2) − 1) + shape(v_2, 2) − 2 × v_4 > 0 ∧ v_3 × (shape(v_1, 3) − 1) + shape(v_2, 3) − 2 × v_4 > 0
+
+Rule 8 (tensor must have an integer dtype: 1–5)
+{v1: tensor} |= 1 ≤ dtype(v1) ∧ dtype(v1) ≤ 5
+
+Rule 21 (primitive type variable should not be zero)
+{v_1 : int ⊎ float} |= v_1 ≠ 0
+
+Rule 14 (tensor should not be empty)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 6 (height and width must be positive integers)
+{v_1 : int, v_2 : int} |= v_1 > 0 ∧ v_2 > 0
+Token usage: input=9567, output=424, total=13260
+** DUPLICATED RULE ** (num_failures: 1)
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.keras.layers.Resizing API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+A preprocessing layer which resizes images.
+
+    This layer resizes an image input to a target height and width. The input
+    should be a 4D (batched) or 3D (unbatched) tensor in `"channels_last"`
+    format. Input pixel values can be of any range
+    (e.g. `[0., 1.)` or `[0, 255]`).
+
+    **Note:** This layer is safe to use inside a `tf.data` or `grain` pipeline
+    (independently of which backend you're using).
+
+    Input shape:
+        3D (unbatched) or 4D (batched) tensor with shape:
+        `(..., height, width, channels)`, in `"channels_last"` format,
+        or `(..., channels, height, width)`, in `"channels_first"` format.
+
+    Output shape:
+        3D (unbatched) or 4D (batched) tensor with shape:
+        `(..., target_height, target_width, channels)`,
+        or `(..., channels, target_height, target_width)`,
+        in `"channels_first"` format.
+
+    Args:
+        height: Integer, the height of the output shape.
+        width: Integer, the width of the output shape.
+        interpolation: String, the interpolation method.
+            Supports `"bilinear"`, `"nearest"`, `"bicubic"`,
+            `"lanczos3"`, `"lanczos5"`. Defaults to `"bilinear"`.
+        crop_to_aspect_ratio: If `True`, resize the images without aspect
+            ratio distortion. When the original aspect ratio differs
+            from the target aspect ratio, the output image will be
+            cropped so as to return the
+            largest possible window in the image (of size `(height, width)`)
+            that matches the target aspect ratio. By default
+            (`crop_to_aspect_ratio=False`), aspect ratio may not be preserved.
+        pad_to_aspect_ratio: If `True`, pad the images without aspect
+            ratio distortion. When the original aspect ratio differs
+            from the target aspect ratio, the output image will be
+            evenly padded on the short side.
+        fill_mode: When using `pad_to_aspect_ratio=True`, padded areas
+            are filled according to the given mode. Only `"constant"` is
+            supported at this time
+            (fill with constant value, equal to `fill_value`).
+        fill_value: Float. Padding value to use when `pad_to_aspect_ratio=True`.
+        data_format: string, either `"channels_last"` or `"channels_first"`.
+            The ordering of the dimensions in the inputs. `"channels_last"`
+            corresponds to inputs with shape `(batch, height, width, channels)`
+            while `"channels_first"` corresponds to inputs with shape
+            `(batch, channels, height, width)`. It defaults to the
+            `image_data_format` value found in your Keras config file at
+            `~/.keras/keras.json`. If you never set it, then it will be
+            `"channels_last"`.
+        **kwargs: Base layer keyword arguments, such as `name` and `dtype`.
+
+    Example:
+
+    ```python
+    (x_train, y_train), _ = keras.datasets.cifar10.load_data()
+    image = x_train[0]
+    resizer = keras.layers.Resizing(128, 128)
+    resized_image = resizer(image)
+    print("original:", image.shape, "resized:", resized_image.shape)
+    ```
+
+[API Signature] height: integer, width: integer, interpolation: string, crop_to_aspect_ratio: boolean, pad_to_aspect_ratio: boolean, fill_mode: string, fill_value: float, data_format: string, inputs: tensor
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 4 (tensor data types should match)
+{v_1 : tensor, v_2 : tensor} |= dtype(v_1) = dtype(v_2)
+
+Rule 10 (valid 2D transposed convolution)
+{v_1 : tensor, v_2 : tensor, v_3 : int, v_4 : int} |= ndim(v_1) = 4 ∧ ndim(v_2) = 4 ∧ v_3 ≥ 1 ∧ v_4 ≥ 0 ∧ v_3 × (shape(v_1, 2) − 1) + shape(v_2, 2) − 2 × v_4 > 0 ∧ v_3 × (shape(v_1, 3) − 1) + shape(v_2, 3) − 2 × v_4 > 0
+
+Rule 8 (tensor must have an integer dtype: 1–5)
+{v1: tensor} |= 1 ≤ dtype(v1) ∧ dtype(v1) ≤ 5
+
+Rule 21 (primitive type variable should not be zero)
+{v_1 : int ⊎ float} |= v_1 ≠ 0
+
+Rule 14 (tensor should not be empty)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 7 (inputs must be a 3D or 4D tensor)
+{v_9 : tensor} |= ndim(v_9) = 3 ∨ ndim(v_9) = 4
+Token usage: input=9567, output=424, total=13260
+** DUPLICATED RULE ** (num_failures: 2)
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.keras.layers.Resizing API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+A preprocessing layer which resizes images.
+
+    This layer resizes an image input to a target height and width. The input
+    should be a 4D (batched) or 3D (unbatched) tensor in `"channels_last"`
+    format. Input pixel values can be of any range
+    (e.g. `[0., 1.)` or `[0, 255]`).
+
+    **Note:** This layer is safe to use inside a `tf.data` or `grain` pipeline
+    (independently of which backend you're using).
+
+    Input shape:
+        3D (unbatched) or 4D (batched) tensor with shape:
+        `(..., height, width, channels)`, in `"channels_last"` format,
+        or `(..., channels, height, width)`, in `"channels_first"` format.
+
+    Output shape:
+        3D (unbatched) or 4D (batched) tensor with shape:
+        `(..., target_height, target_width, channels)`,
+        or `(..., channels, target_height, target_width)`,
+        in `"channels_first"` format.
+
+    Args:
+        height: Integer, the height of the output shape.
+        width: Integer, the width of the output shape.
+        interpolation: String, the interpolation method.
+            Supports `"bilinear"`, `"nearest"`, `"bicubic"`,
+            `"lanczos3"`, `"lanczos5"`. Defaults to `"bilinear"`.
+        crop_to_aspect_ratio: If `True`, resize the images without aspect
+            ratio distortion. When the original aspect ratio differs
+            from the target aspect ratio, the output image will be
+            cropped so as to return the
+            largest possible window in the image (of size `(height, width)`)
+            that matches the target aspect ratio. By default
+            (`crop_to_aspect_ratio=False`), aspect ratio may not be preserved.
+        pad_to_aspect_ratio: If `True`, pad the images without aspect
+            ratio distortion. When the original aspect ratio differs
+            from the target aspect ratio, the output image will be
+            evenly padded on the short side.
+        fill_mode: When using `pad_to_aspect_ratio=True`, padded areas
+            are filled according to the given mode. Only `"constant"` is
+            supported at this time
+            (fill with constant value, equal to `fill_value`).
+        fill_value: Float. Padding value to use when `pad_to_aspect_ratio=True`.
+        data_format: string, either `"channels_last"` or `"channels_first"`.
+            The ordering of the dimensions in the inputs. `"channels_last"`
+            corresponds to inputs with shape `(batch, height, width, channels)`
+            while `"channels_first"` corresponds to inputs with shape
+            `(batch, channels, height, width)`. It defaults to the
+            `image_data_format` value found in your Keras config file at
+            `~/.keras/keras.json`. If you never set it, then it will be
+            `"channels_last"`.
+        **kwargs: Base layer keyword arguments, such as `name` and `dtype`.
+
+    Example:
+
+    ```python
+    (x_train, y_train), _ = keras.datasets.cifar10.load_data()
+    image = x_train[0]
+    resizer = keras.layers.Resizing(128, 128)
+    resized_image = resizer(image)
+    print("original:", image.shape, "resized:", resized_image.shape)
+    ```
+
+[API Signature] height: integer, width: integer, interpolation: string, crop_to_aspect_ratio: boolean, pad_to_aspect_ratio: boolean, fill_mode: string, fill_value: float, data_format: string, inputs: tensor
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 4 (tensor data types should match)
+{v_1 : tensor, v_2 : tensor} |= dtype(v_1) = dtype(v_2)
+
+Rule 10 (valid 2D transposed convolution)
+{v_1 : tensor, v_2 : tensor, v_3 : int, v_4 : int} |= ndim(v_1) = 4 ∧ ndim(v_2) = 4 ∧ v_3 ≥ 1 ∧ v_4 ≥ 0 ∧ v_3 × (shape(v_1, 2) − 1) + shape(v_2, 2) − 2 × v_4 > 0 ∧ v_3 × (shape(v_1, 3) − 1) + shape(v_2, 3) − 2 × v_4 > 0
+
+Rule 8 (tensor must have an integer dtype: 1–5)
+{v1: tensor} |= 1 ≤ dtype(v1) ∧ dtype(v1) ≤ 5
+
+Rule 21 (primitive type variable should not be zero)
+{v_1 : int ⊎ float} |= v_1 ≠ 0
+
+Rule 14 (tensor should not be empty)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 8 (data format must be either channels_last or channels_first)
+{v_8 : str} |= v_8 = "channels_last" ∨ v_8 = "channels_first"
+Token usage: input=9567, output=424, total=13260
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.keras.layers.Resizing API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+A preprocessing layer which resizes images.
+
+    This layer resizes an image input to a target height and width. The input
+    should be a 4D (batched) or 3D (unbatched) tensor in `"channels_last"`
+    format. Input pixel values can be of any range
+    (e.g. `[0., 1.)` or `[0, 255]`).
+
+    **Note:** This layer is safe to use inside a `tf.data` or `grain` pipeline
+    (independently of which backend you're using).
+
+    Input shape:
+        3D (unbatched) or 4D (batched) tensor with shape:
+        `(..., height, width, channels)`, in `"channels_last"` format,
+        or `(..., channels, height, width)`, in `"channels_first"` format.
+
+    Output shape:
+        3D (unbatched) or 4D (batched) tensor with shape:
+        `(..., target_height, target_width, channels)`,
+        or `(..., channels, target_height, target_width)`,
+        in `"channels_first"` format.
+
+    Args:
+        height: Integer, the height of the output shape.
+        width: Integer, the width of the output shape.
+        interpolation: String, the interpolation method.
+            Supports `"bilinear"`, `"nearest"`, `"bicubic"`,
+            `"lanczos3"`, `"lanczos5"`. Defaults to `"bilinear"`.
+        crop_to_aspect_ratio: If `True`, resize the images without aspect
+            ratio distortion. When the original aspect ratio differs
+            from the target aspect ratio, the output image will be
+            cropped so as to return the
+            largest possible window in the image (of size `(height, width)`)
+            that matches the target aspect ratio. By default
+            (`crop_to_aspect_ratio=False`), aspect ratio may not be preserved.
+        pad_to_aspect_ratio: If `True`, pad the images without aspect
+            ratio distortion. When the original aspect ratio differs
+            from the target aspect ratio, the output image will be
+            evenly padded on the short side.
+        fill_mode: When using `pad_to_aspect_ratio=True`, padded areas
+            are filled according to the given mode. Only `"constant"` is
+            supported at this time
+            (fill with constant value, equal to `fill_value`).
+        fill_value: Float. Padding value to use when `pad_to_aspect_ratio=True`.
+        data_format: string, either `"channels_last"` or `"channels_first"`.
+            The ordering of the dimensions in the inputs. `"channels_last"`
+            corresponds to inputs with shape `(batch, height, width, channels)`
+            while `"channels_first"` corresponds to inputs with shape
+            `(batch, channels, height, width)`. It defaults to the
+            `image_data_format` value found in your Keras config file at
+            `~/.keras/keras.json`. If you never set it, then it will be
+            `"channels_last"`.
+        **kwargs: Base layer keyword arguments, such as `name` and `dtype`.
+
+    Example:
+
+    ```python
+    (x_train, y_train), _ = keras.datasets.cifar10.load_data()
+    image = x_train[0]
+    resizer = keras.layers.Resizing(128, 128)
+    resized_image = resizer(image)
+    print("original:", image.shape, "resized:", resized_image.shape)
+    ```
+
+[API Signature] height: integer, width: integer, interpolation: string, crop_to_aspect_ratio: boolean, pad_to_aspect_ratio: boolean, fill_mode: string, fill_value: float, data_format: string, inputs: tensor
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 4 (tensor data types should match)
+{v_1 : tensor, v_2 : tensor} |= dtype(v_1) = dtype(v_2)
+
+Rule 10 (valid 2D transposed convolution)
+{v_1 : tensor, v_2 : tensor, v_3 : int, v_4 : int} |= ndim(v_1) = 4 ∧ ndim(v_2) = 4 ∧ v_3 ≥ 1 ∧ v_4 ≥ 0 ∧ v_3 × (shape(v_1, 2) − 1) + shape(v_2, 2) − 2 × v_4 > 0 ∧ v_3 × (shape(v_1, 3) − 1) + shape(v_2, 3) − 2 × v_4 > 0
+
+Rule 8 (tensor must have an integer dtype: 1–5)
+{v1: tensor} |= 1 ≤ dtype(v1) ∧ dtype(v1) ≤ 5
+
+Rule 21 (primitive type variable should not be zero)
+{v_1 : int ⊎ float} |= v_1 ≠ 0
+
+Rule 14 (tensor should not be empty)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 9 (crop_to_aspect_ratio and pad_to_aspect_ratio cannot be both true)
+{v_4 : bool, v_5 : bool} |= if v_4 = true then v_5 = false
+Token usage: input=9567, output=424, total=13260
+** DUPLICATED RULE ** (num_failures: 3)
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.keras.layers.Resizing API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+A preprocessing layer which resizes images.
+
+    This layer resizes an image input to a target height and width. The input
+    should be a 4D (batched) or 3D (unbatched) tensor in `"channels_last"`
+    format. Input pixel values can be of any range
+    (e.g. `[0., 1.)` or `[0, 255]`).
+
+    **Note:** This layer is safe to use inside a `tf.data` or `grain` pipeline
+    (independently of which backend you're using).
+
+    Input shape:
+        3D (unbatched) or 4D (batched) tensor with shape:
+        `(..., height, width, channels)`, in `"channels_last"` format,
+        or `(..., channels, height, width)`, in `"channels_first"` format.
+
+    Output shape:
+        3D (unbatched) or 4D (batched) tensor with shape:
+        `(..., target_height, target_width, channels)`,
+        or `(..., channels, target_height, target_width)`,
+        in `"channels_first"` format.
+
+    Args:
+        height: Integer, the height of the output shape.
+        width: Integer, the width of the output shape.
+        interpolation: String, the interpolation method.
+            Supports `"bilinear"`, `"nearest"`, `"bicubic"`,
+            `"lanczos3"`, `"lanczos5"`. Defaults to `"bilinear"`.
+        crop_to_aspect_ratio: If `True`, resize the images without aspect
+            ratio distortion. When the original aspect ratio differs
+            from the target aspect ratio, the output image will be
+            cropped so as to return the
+            largest possible window in the image (of size `(height, width)`)
+            that matches the target aspect ratio. By default
+            (`crop_to_aspect_ratio=False`), aspect ratio may not be preserved.
+        pad_to_aspect_ratio: If `True`, pad the images without aspect
+            ratio distortion. When the original aspect ratio differs
+            from the target aspect ratio, the output image will be
+            evenly padded on the short side.
+        fill_mode: When using `pad_to_aspect_ratio=True`, padded areas
+            are filled according to the given mode. Only `"constant"` is
+            supported at this time
+            (fill with constant value, equal to `fill_value`).
+        fill_value: Float. Padding value to use when `pad_to_aspect_ratio=True`.
+        data_format: string, either `"channels_last"` or `"channels_first"`.
+            The ordering of the dimensions in the inputs. `"channels_last"`
+            corresponds to inputs with shape `(batch, height, width, channels)`
+            while `"channels_first"` corresponds to inputs with shape
+            `(batch, channels, height, width)`. It defaults to the
+            `image_data_format` value found in your Keras config file at
+            `~/.keras/keras.json`. If you never set it, then it will be
+            `"channels_last"`.
+        **kwargs: Base layer keyword arguments, such as `name` and `dtype`.
+
+    Example:
+
+    ```python
+    (x_train, y_train), _ = keras.datasets.cifar10.load_data()
+    image = x_train[0]
+    resizer = keras.layers.Resizing(128, 128)
+    resized_image = resizer(image)
+    print("original:", image.shape, "resized:", resized_image.shape)
+    ```
+
+[API Signature] height: integer, width: integer, interpolation: string, crop_to_aspect_ratio: boolean, pad_to_aspect_ratio: boolean, fill_mode: string, fill_value: float, data_format: string, inputs: tensor
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 4 (tensor data types should match)
+{v_1 : tensor, v_2 : tensor} |= dtype(v_1) = dtype(v_2)
+
+Rule 10 (valid 2D transposed convolution)
+{v_1 : tensor, v_2 : tensor, v_3 : int, v_4 : int} |= ndim(v_1) = 4 ∧ ndim(v_2) = 4 ∧ v_3 ≥ 1 ∧ v_4 ≥ 0 ∧ v_3 × (shape(v_1, 2) − 1) + shape(v_2, 2) − 2 × v_4 > 0 ∧ v_3 × (shape(v_1, 3) − 1) + shape(v_2, 3) − 2 × v_4 > 0
+
+Rule 8 (tensor must have an integer dtype: 1–5)
+{v1: tensor} |= 1 ≤ dtype(v1) ∧ dtype(v1) ≤ 5
+
+Rule 21 (primitive type variable should not be zero)
+{v_1 : int ⊎ float} |= v_1 ≠ 0
+
+Rule 14 (tensor should not be empty)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 10 (inputs must not have empty dimensions)
+{v_9 : tensor} |= ∀i ∈ [0, ndim(v_9) - 1] : shape(v_9, i) > 0
+Token usage: input=9567, output=424, total=13260
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.keras.layers.Resizing API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+A preprocessing layer which resizes images.
+
+    This layer resizes an image input to a target height and width. The input
+    should be a 4D (batched) or 3D (unbatched) tensor in `"channels_last"`
+    format. Input pixel values can be of any range
+    (e.g. `[0., 1.)` or `[0, 255]`).
+
+    **Note:** This layer is safe to use inside a `tf.data` or `grain` pipeline
+    (independently of which backend you're using).
+
+    Input shape:
+        3D (unbatched) or 4D (batched) tensor with shape:
+        `(..., height, width, channels)`, in `"channels_last"` format,
+        or `(..., channels, height, width)`, in `"channels_first"` format.
+
+    Output shape:
+        3D (unbatched) or 4D (batched) tensor with shape:
+        `(..., target_height, target_width, channels)`,
+        or `(..., channels, target_height, target_width)`,
+        in `"channels_first"` format.
+
+    Args:
+        height: Integer, the height of the output shape.
+        width: Integer, the width of the output shape.
+        interpolation: String, the interpolation method.
+            Supports `"bilinear"`, `"nearest"`, `"bicubic"`,
+            `"lanczos3"`, `"lanczos5"`. Defaults to `"bilinear"`.
+        crop_to_aspect_ratio: If `True`, resize the images without aspect
+            ratio distortion. When the original aspect ratio differs
+            from the target aspect ratio, the output image will be
+            cropped so as to return the
+            largest possible window in the image (of size `(height, width)`)
+            that matches the target aspect ratio. By default
+            (`crop_to_aspect_ratio=False`), aspect ratio may not be preserved.
+        pad_to_aspect_ratio: If `True`, pad the images without aspect
+            ratio distortion. When the original aspect ratio differs
+            from the target aspect ratio, the output image will be
+            evenly padded on the short side.
+        fill_mode: When using `pad_to_aspect_ratio=True`, padded areas
+            are filled according to the given mode. Only `"constant"` is
+            supported at this time
+            (fill with constant value, equal to `fill_value`).
+        fill_value: Float. Padding value to use when `pad_to_aspect_ratio=True`.
+        data_format: string, either `"channels_last"` or `"channels_first"`.
+            The ordering of the dimensions in the inputs. `"channels_last"`
+            corresponds to inputs with shape `(batch, height, width, channels)`
+            while `"channels_first"` corresponds to inputs with shape
+            `(batch, channels, height, width)`. It defaults to the
+            `image_data_format` value found in your Keras config file at
+            `~/.keras/keras.json`. If you never set it, then it will be
+            `"channels_last"`.
+        **kwargs: Base layer keyword arguments, such as `name` and `dtype`.
+
+    Example:
+
+    ```python
+    (x_train, y_train), _ = keras.datasets.cifar10.load_data()
+    image = x_train[0]
+    resizer = keras.layers.Resizing(128, 128)
+    resized_image = resizer(image)
+    print("original:", image.shape, "resized:", resized_image.shape)
+    ```
+
+[API Signature] height: integer, width: integer, interpolation: string, crop_to_aspect_ratio: boolean, pad_to_aspect_ratio: boolean, fill_mode: string, fill_value: float, data_format: string, inputs: tensor
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 4 (tensor data types should match)
+{v_1 : tensor, v_2 : tensor} |= dtype(v_1) = dtype(v_2)
+
+Rule 10 (valid 2D transposed convolution)
+{v_1 : tensor, v_2 : tensor, v_3 : int, v_4 : int} |= ndim(v_1) = 4 ∧ ndim(v_2) = 4 ∧ v_3 ≥ 1 ∧ v_4 ≥ 0 ∧ v_3 × (shape(v_1, 2) − 1) + shape(v_2, 2) − 2 × v_4 > 0 ∧ v_3 × (shape(v_1, 3) − 1) + shape(v_2, 3) − 2 × v_4 > 0
+
+Rule 8 (tensor must have an integer dtype: 1–5)
+{v1: tensor} |= 1 ≤ dtype(v1) ∧ dtype(v1) ≤ 5
+
+Rule 21 (primitive type variable should not be zero)
+{v_1 : int ⊎ float} |= v_1 ≠ 0
+
+Rule 14 (tensor should not be empty)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 11 (dtype of inputs must be numeric)
+{v_9 : tensor} |= 1 ≤ dtype_(v_9) ∧ dtype_(v_9) ≤ 8
+Token usage: input=9567, output=424, total=13260
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.keras.layers.Resizing API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+A preprocessing layer which resizes images.
+
+    This layer resizes an image input to a target height and width. The input
+    should be a 4D (batched) or 3D (unbatched) tensor in `"channels_last"`
+    format. Input pixel values can be of any range
+    (e.g. `[0., 1.)` or `[0, 255]`).
+
+    **Note:** This layer is safe to use inside a `tf.data` or `grain` pipeline
+    (independently of which backend you're using).
+
+    Input shape:
+        3D (unbatched) or 4D (batched) tensor with shape:
+        `(..., height, width, channels)`, in `"channels_last"` format,
+        or `(..., channels, height, width)`, in `"channels_first"` format.
+
+    Output shape:
+        3D (unbatched) or 4D (batched) tensor with shape:
+        `(..., target_height, target_width, channels)`,
+        or `(..., channels, target_height, target_width)`,
+        in `"channels_first"` format.
+
+    Args:
+        height: Integer, the height of the output shape.
+        width: Integer, the width of the output shape.
+        interpolation: String, the interpolation method.
+            Supports `"bilinear"`, `"nearest"`, `"bicubic"`,
+            `"lanczos3"`, `"lanczos5"`. Defaults to `"bilinear"`.
+        crop_to_aspect_ratio: If `True`, resize the images without aspect
+            ratio distortion. When the original aspect ratio differs
+            from the target aspect ratio, the output image will be
+            cropped so as to return the
+            largest possible window in the image (of size `(height, width)`)
+            that matches the target aspect ratio. By default
+            (`crop_to_aspect_ratio=False`), aspect ratio may not be preserved.
+        pad_to_aspect_ratio: If `True`, pad the images without aspect
+            ratio distortion. When the original aspect ratio differs
+            from the target aspect ratio, the output image will be
+            evenly padded on the short side.
+        fill_mode: When using `pad_to_aspect_ratio=True`, padded areas
+            are filled according to the given mode. Only `"constant"` is
+            supported at this time
+            (fill with constant value, equal to `fill_value`).
+        fill_value: Float. Padding value to use when `pad_to_aspect_ratio=True`.
+        data_format: string, either `"channels_last"` or `"channels_first"`.
+            The ordering of the dimensions in the inputs. `"channels_last"`
+            corresponds to inputs with shape `(batch, height, width, channels)`
+            while `"channels_first"` corresponds to inputs with shape
+            `(batch, channels, height, width)`. It defaults to the
+            `image_data_format` value found in your Keras config file at
+            `~/.keras/keras.json`. If you never set it, then it will be
+            `"channels_last"`.
+        **kwargs: Base layer keyword arguments, such as `name` and `dtype`.
+
+    Example:
+
+    ```python
+    (x_train, y_train), _ = keras.datasets.cifar10.load_data()
+    image = x_train[0]
+    resizer = keras.layers.Resizing(128, 128)
+    resized_image = resizer(image)
+    print("original:", image.shape, "resized:", resized_image.shape)
+    ```
+
+[API Signature] height: integer, width: integer, interpolation: string, crop_to_aspect_ratio: boolean, pad_to_aspect_ratio: boolean, fill_mode: string, fill_value: float, data_format: string, inputs: tensor
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 4 (tensor data types should match)
+{v_1 : tensor, v_2 : tensor} |= dtype(v_1) = dtype(v_2)
+
+Rule 10 (valid 2D transposed convolution)
+{v_1 : tensor, v_2 : tensor, v_3 : int, v_4 : int} |= ndim(v_1) = 4 ∧ ndim(v_2) = 4 ∧ v_3 ≥ 1 ∧ v_4 ≥ 0 ∧ v_3 × (shape(v_1, 2) − 1) + shape(v_2, 2) − 2 × v_4 > 0 ∧ v_3 × (shape(v_1, 3) − 1) + shape(v_2, 3) − 2 × v_4 > 0
+
+Rule 8 (tensor must have an integer dtype: 1–5)
+{v1: tensor} |= 1 ≤ dtype(v1) ∧ dtype(v1) ≤ 5
+
+Rule 21 (primitive type variable should not be zero)
+{v_1 : int ⊎ float} |= v_1 ≠ 0
+
+Rule 14 (tensor should not be empty)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 12 (input spatial dimensions must be valid based on data format)
+{v_8 : str, v_9 : tensor} |= if v_8 = "channels_last" then shape(v_9, ndim(v_9) - 3) > 0 ∧ shape(v_9, ndim(v_9) - 2) > 0 else (if v_8 = "channels_first" then shape(v_9, ndim(v_9) - 2) > 0 ∧ shape(v_9, ndim(v_9) - 1) > 0 else false)
+Token usage: input=9567, output=424, total=13260
+** SUCCESS **
+
+>>> PROMPT
+[Feedback Message from Prior Run]
+Duplicated rule: {v_1 : int, v_2 : int} |= v_1 > 0 ∧ v_2 > 0
+Duplicated rule: {v_9 : tensor} |= ndim(v_9) = 3 ∨ ndim(v_9) = 4
+Duplicated rule: {v_4 : bool, v_5 : bool} |= if v_4 = true then v_5 = false
+
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.keras.layers.Resizing API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+A preprocessing layer which resizes images.
+
+    This layer resizes an image input to a target height and width. The input
+    should be a 4D (batched) or 3D (unbatched) tensor in `"channels_last"`
+    format. Input pixel values can be of any range
+    (e.g. `[0., 1.)` or `[0, 255]`).
+
+    **Note:** This layer is safe to use inside a `tf.data` or `grain` pipeline
+    (independently of which backend you're using).
+
+    Input shape:
+        3D (unbatched) or 4D (batched) tensor with shape:
+        `(..., height, width, channels)`, in `"channels_last"` format,
+        or `(..., channels, height, width)`, in `"channels_first"` format.
+
+    Output shape:
+        3D (unbatched) or 4D (batched) tensor with shape:
+        `(..., target_height, target_width, channels)`,
+        or `(..., channels, target_height, target_width)`,
+        in `"channels_first"` format.
+
+    Args:
+        height: Integer, the height of the output shape.
+        width: Integer, the width of the output shape.
+        interpolation: String, the interpolation method.
+            Supports `"bilinear"`, `"nearest"`, `"bicubic"`,
+            `"lanczos3"`, `"lanczos5"`. Defaults to `"bilinear"`.
+        crop_to_aspect_ratio: If `True`, resize the images without aspect
+            ratio distortion. When the original aspect ratio differs
+            from the target aspect ratio, the output image will be
+            cropped so as to return the
+            largest possible window in the image (of size `(height, width)`)
+            that matches the target aspect ratio. By default
+            (`crop_to_aspect_ratio=False`), aspect ratio may not be preserved.
+        pad_to_aspect_ratio: If `True`, pad the images without aspect
+            ratio distortion. When the original aspect ratio differs
+            from the target aspect ratio, the output image will be
+            evenly padded on the short side.
+        fill_mode: When using `pad_to_aspect_ratio=True`, padded areas
+            are filled according to the given mode. Only `"constant"` is
+            supported at this time
+            (fill with constant value, equal to `fill_value`).
+        fill_value: Float. Padding value to use when `pad_to_aspect_ratio=True`.
+        data_format: string, either `"channels_last"` or `"channels_first"`.
+            The ordering of the dimensions in the inputs. `"channels_last"`
+            corresponds to inputs with shape `(batch, height, width, channels)`
+            while `"channels_first"` corresponds to inputs with shape
+            `(batch, channels, height, width)`. It defaults to the
+            `image_data_format` value found in your Keras config file at
+            `~/.keras/keras.json`. If you never set it, then it will be
+            `"channels_last"`.
+        **kwargs: Base layer keyword arguments, such as `name` and `dtype`.
+
+    Example:
+
+    ```python
+    (x_train, y_train), _ = keras.datasets.cifar10.load_data()
+    image = x_train[0]
+    resizer = keras.layers.Resizing(128, 128)
+    resized_image = resizer(image)
+    print("original:", image.shape, "resized:", resized_image.shape)
+    ```
+
+[API Signature] height: integer, width: integer, interpolation: string, crop_to_aspect_ratio: boolean, pad_to_aspect_ratio: boolean, fill_mode: string, fill_value: float, data_format: string, inputs: tensor
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 29 (list of floats for weights must match length of a tensor dimension)
+{v_1 : tensor, v_2 : list(float)} |= v_2.len = shape(v_1, 0) ∧ ∀i ∈ [0, v_2.len - 1] : v_2[i] ≥ 0
+
+Rule 27 (reduction over valid dimensions)
+{v_1 : tensor, v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 10 (valid 2D transposed convolution)
+{v_1 : tensor, v_2 : tensor, v_3 : int, v_4 : int} |= ndim(v_1) = 4 ∧ ndim(v_2) = 4 ∧ v_3 ≥ 1 ∧ v_4 ≥ 0 ∧ v_3 × (shape(v_1, 2) − 1) + shape(v_2, 2) − 2 × v_4 > 0 ∧ v_3 × (shape(v_1, 3) − 1) + shape(v_2, 3) − 2 × v_4 > 0
+
+Rule 12 (a primitive type variable is smaller than the other)
+{v_1 : int ⊎ float, v_2 : int ⊎ float} |= v_1 ≤ v_2
+
+Rule 20 (input tensor must be 1-dimensional)
+{v_1 : tensor} |= ndim(v_1) = 1
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 13 (channels dimension must be at least 1 based on data_format)
+{v_8 : str, v_9 : tensor} |= if v_8 = "channels_last" then shape(v_9, ndim(v_9) - 1) ≥ 1 else if v_8 = "channels_first" then shape(v_9, ndim(v_9) - 3) ≥ 1 else false
+Token usage: input=15733, output=409, total=21518
+** SUCCESS **
+
+>>> PROMPT
+[Feedback Message from Prior Run]
+Duplicated rule: {v_1 : int, v_2 : int} |= v_1 > 0 ∧ v_2 > 0
+Duplicated rule: {v_9 : tensor} |= ndim(v_9) = 3 ∨ ndim(v_9) = 4
+Duplicated rule: {v_4 : bool, v_5 : bool} |= if v_4 = true then v_5 = false
+
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.keras.layers.Resizing API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+A preprocessing layer which resizes images.
+
+    This layer resizes an image input to a target height and width. The input
+    should be a 4D (batched) or 3D (unbatched) tensor in `"channels_last"`
+    format. Input pixel values can be of any range
+    (e.g. `[0., 1.)` or `[0, 255]`).
+
+    **Note:** This layer is safe to use inside a `tf.data` or `grain` pipeline
+    (independently of which backend you're using).
+
+    Input shape:
+        3D (unbatched) or 4D (batched) tensor with shape:
+        `(..., height, width, channels)`, in `"channels_last"` format,
+        or `(..., channels, height, width)`, in `"channels_first"` format.
+
+    Output shape:
+        3D (unbatched) or 4D (batched) tensor with shape:
+        `(..., target_height, target_width, channels)`,
+        or `(..., channels, target_height, target_width)`,
+        in `"channels_first"` format.
+
+    Args:
+        height: Integer, the height of the output shape.
+        width: Integer, the width of the output shape.
+        interpolation: String, the interpolation method.
+            Supports `"bilinear"`, `"nearest"`, `"bicubic"`,
+            `"lanczos3"`, `"lanczos5"`. Defaults to `"bilinear"`.
+        crop_to_aspect_ratio: If `True`, resize the images without aspect
+            ratio distortion. When the original aspect ratio differs
+            from the target aspect ratio, the output image will be
+            cropped so as to return the
+            largest possible window in the image (of size `(height, width)`)
+            that matches the target aspect ratio. By default
+            (`crop_to_aspect_ratio=False`), aspect ratio may not be preserved.
+        pad_to_aspect_ratio: If `True`, pad the images without aspect
+            ratio distortion. When the original aspect ratio differs
+            from the target aspect ratio, the output image will be
+            evenly padded on the short side.
+        fill_mode: When using `pad_to_aspect_ratio=True`, padded areas
+            are filled according to the given mode. Only `"constant"` is
+            supported at this time
+            (fill with constant value, equal to `fill_value`).
+        fill_value: Float. Padding value to use when `pad_to_aspect_ratio=True`.
+        data_format: string, either `"channels_last"` or `"channels_first"`.
+            The ordering of the dimensions in the inputs. `"channels_last"`
+            corresponds to inputs with shape `(batch, height, width, channels)`
+            while `"channels_first"` corresponds to inputs with shape
+            `(batch, channels, height, width)`. It defaults to the
+            `image_data_format` value found in your Keras config file at
+            `~/.keras/keras.json`. If you never set it, then it will be
+            `"channels_last"`.
+        **kwargs: Base layer keyword arguments, such as `name` and `dtype`.
+
+    Example:
+
+    ```python
+    (x_train, y_train), _ = keras.datasets.cifar10.load_data()
+    image = x_train[0]
+    resizer = keras.layers.Resizing(128, 128)
+    resized_image = resizer(image)
+    print("original:", image.shape, "resized:", resized_image.shape)
+    ```
+
+[API Signature] height: integer, width: integer, interpolation: string, crop_to_aspect_ratio: boolean, pad_to_aspect_ratio: boolean, fill_mode: string, fill_value: float, data_format: string, inputs: tensor
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 29 (list of floats for weights must match length of a tensor dimension)
+{v_1 : tensor, v_2 : list(float)} |= v_2.len = shape(v_1, 0) ∧ ∀i ∈ [0, v_2.len - 1] : v_2[i] ≥ 0
+
+Rule 27 (reduction over valid dimensions)
+{v_1 : tensor, v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 10 (valid 2D transposed convolution)
+{v_1 : tensor, v_2 : tensor, v_3 : int, v_4 : int} |= ndim(v_1) = 4 ∧ ndim(v_2) = 4 ∧ v_3 ≥ 1 ∧ v_4 ≥ 0 ∧ v_3 × (shape(v_1, 2) − 1) + shape(v_2, 2) − 2 × v_4 > 0 ∧ v_3 × (shape(v_1, 3) − 1) + shape(v_2, 3) − 2 × v_4 > 0
+
+Rule 12 (a primitive type variable is smaller than the other)
+{v_1 : int ⊎ float, v_2 : int ⊎ float} |= v_1 ≤ v_2
+
+Rule 20 (input tensor must be 1-dimensional)
+{v_1 : tensor} |= ndim(v_1) = 1
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 14 (target spatial size must be positive and the input must be 3D or 4D)
+{v_1 : int, v_2 : int, v_9 : tensor} |= (ndim(v_9) = 3 ∨ ndim(v_9) = 4) ∧ v_1 ≥ 1 ∧ v_2 ≥ 1
+Token usage: input=15733, output=409, total=21518
+** SUCCESS **
+
+>>> PROMPT
+[Feedback Message from Prior Run]
+Duplicated rule: {v_1 : int, v_2 : int} |= v_1 > 0 ∧ v_2 > 0
+Duplicated rule: {v_9 : tensor} |= ndim(v_9) = 3 ∨ ndim(v_9) = 4
+Duplicated rule: {v_4 : bool, v_5 : bool} |= if v_4 = true then v_5 = false
+
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.keras.layers.Resizing API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+A preprocessing layer which resizes images.
+
+    This layer resizes an image input to a target height and width. The input
+    should be a 4D (batched) or 3D (unbatched) tensor in `"channels_last"`
+    format. Input pixel values can be of any range
+    (e.g. `[0., 1.)` or `[0, 255]`).
+
+    **Note:** This layer is safe to use inside a `tf.data` or `grain` pipeline
+    (independently of which backend you're using).
+
+    Input shape:
+        3D (unbatched) or 4D (batched) tensor with shape:
+        `(..., height, width, channels)`, in `"channels_last"` format,
+        or `(..., channels, height, width)`, in `"channels_first"` format.
+
+    Output shape:
+        3D (unbatched) or 4D (batched) tensor with shape:
+        `(..., target_height, target_width, channels)`,
+        or `(..., channels, target_height, target_width)`,
+        in `"channels_first"` format.
+
+    Args:
+        height: Integer, the height of the output shape.
+        width: Integer, the width of the output shape.
+        interpolation: String, the interpolation method.
+            Supports `"bilinear"`, `"nearest"`, `"bicubic"`,
+            `"lanczos3"`, `"lanczos5"`. Defaults to `"bilinear"`.
+        crop_to_aspect_ratio: If `True`, resize the images without aspect
+            ratio distortion. When the original aspect ratio differs
+            from the target aspect ratio, the output image will be
+            cropped so as to return the
+            largest possible window in the image (of size `(height, width)`)
+            that matches the target aspect ratio. By default
+            (`crop_to_aspect_ratio=False`), aspect ratio may not be preserved.
+        pad_to_aspect_ratio: If `True`, pad the images without aspect
+            ratio distortion. When the original aspect ratio differs
+            from the target aspect ratio, the output image will be
+            evenly padded on the short side.
+        fill_mode: When using `pad_to_aspect_ratio=True`, padded areas
+            are filled according to the given mode. Only `"constant"` is
+            supported at this time
+            (fill with constant value, equal to `fill_value`).
+        fill_value: Float. Padding value to use when `pad_to_aspect_ratio=True`.
+        data_format: string, either `"channels_last"` or `"channels_first"`.
+            The ordering of the dimensions in the inputs. `"channels_last"`
+            corresponds to inputs with shape `(batch, height, width, channels)`
+            while `"channels_first"` corresponds to inputs with shape
+            `(batch, channels, height, width)`. It defaults to the
+            `image_data_format` value found in your Keras config file at
+            `~/.keras/keras.json`. If you never set it, then it will be
+            `"channels_last"`.
+        **kwargs: Base layer keyword arguments, such as `name` and `dtype`.
+
+    Example:
+
+    ```python
+    (x_train, y_train), _ = keras.datasets.cifar10.load_data()
+    image = x_train[0]
+    resizer = keras.layers.Resizing(128, 128)
+    resized_image = resizer(image)
+    print("original:", image.shape, "resized:", resized_image.shape)
+    ```
+
+[API Signature] height: integer, width: integer, interpolation: string, crop_to_aspect_ratio: boolean, pad_to_aspect_ratio: boolean, fill_mode: string, fill_value: float, data_format: string, inputs: tensor
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 29 (list of floats for weights must match length of a tensor dimension)
+{v_1 : tensor, v_2 : list(float)} |= v_2.len = shape(v_1, 0) ∧ ∀i ∈ [0, v_2.len - 1] : v_2[i] ≥ 0
+
+Rule 27 (reduction over valid dimensions)
+{v_1 : tensor, v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 10 (valid 2D transposed convolution)
+{v_1 : tensor, v_2 : tensor, v_3 : int, v_4 : int} |= ndim(v_1) = 4 ∧ ndim(v_2) = 4 ∧ v_3 ≥ 1 ∧ v_4 ≥ 0 ∧ v_3 × (shape(v_1, 2) − 1) + shape(v_2, 2) − 2 × v_4 > 0 ∧ v_3 × (shape(v_1, 3) − 1) + shape(v_2, 3) − 2 × v_4 > 0
+
+Rule 12 (a primitive type variable is smaller than the other)
+{v_1 : int ⊎ float, v_2 : int ⊎ float} |= v_1 ≤ v_2
+
+Rule 20 (input tensor must be 1-dimensional)
+{v_1 : tensor} |= ndim(v_1) = 1
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 15 (valid data format for image resizing)
+{v_8 : str} |= v_8 = "channels_last" ∨ v_8 = "channels_first"
+Token usage: input=15733, output=409, total=21518
+** DUPLICATED RULE ** (num_failures: 4)
+
+>>> PROMPT
+[Feedback Message from Prior Run]
+Duplicated rule: {v_1 : int, v_2 : int} |= v_1 > 0 ∧ v_2 > 0
+Duplicated rule: {v_9 : tensor} |= ndim(v_9) = 3 ∨ ndim(v_9) = 4
+Duplicated rule: {v_4 : bool, v_5 : bool} |= if v_4 = true then v_5 = false
+
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.keras.layers.Resizing API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+A preprocessing layer which resizes images.
+
+    This layer resizes an image input to a target height and width. The input
+    should be a 4D (batched) or 3D (unbatched) tensor in `"channels_last"`
+    format. Input pixel values can be of any range
+    (e.g. `[0., 1.)` or `[0, 255]`).
+
+    **Note:** This layer is safe to use inside a `tf.data` or `grain` pipeline
+    (independently of which backend you're using).
+
+    Input shape:
+        3D (unbatched) or 4D (batched) tensor with shape:
+        `(..., height, width, channels)`, in `"channels_last"` format,
+        or `(..., channels, height, width)`, in `"channels_first"` format.
+
+    Output shape:
+        3D (unbatched) or 4D (batched) tensor with shape:
+        `(..., target_height, target_width, channels)`,
+        or `(..., channels, target_height, target_width)`,
+        in `"channels_first"` format.
+
+    Args:
+        height: Integer, the height of the output shape.
+        width: Integer, the width of the output shape.
+        interpolation: String, the interpolation method.
+            Supports `"bilinear"`, `"nearest"`, `"bicubic"`,
+            `"lanczos3"`, `"lanczos5"`. Defaults to `"bilinear"`.
+        crop_to_aspect_ratio: If `True`, resize the images without aspect
+            ratio distortion. When the original aspect ratio differs
+            from the target aspect ratio, the output image will be
+            cropped so as to return the
+            largest possible window in the image (of size `(height, width)`)
+            that matches the target aspect ratio. By default
+            (`crop_to_aspect_ratio=False`), aspect ratio may not be preserved.
+        pad_to_aspect_ratio: If `True`, pad the images without aspect
+            ratio distortion. When the original aspect ratio differs
+            from the target aspect ratio, the output image will be
+            evenly padded on the short side.
+        fill_mode: When using `pad_to_aspect_ratio=True`, padded areas
+            are filled according to the given mode. Only `"constant"` is
+            supported at this time
+            (fill with constant value, equal to `fill_value`).
+        fill_value: Float. Padding value to use when `pad_to_aspect_ratio=True`.
+        data_format: string, either `"channels_last"` or `"channels_first"`.
+            The ordering of the dimensions in the inputs. `"channels_last"`
+            corresponds to inputs with shape `(batch, height, width, channels)`
+            while `"channels_first"` corresponds to inputs with shape
+            `(batch, channels, height, width)`. It defaults to the
+            `image_data_format` value found in your Keras config file at
+            `~/.keras/keras.json`. If you never set it, then it will be
+            `"channels_last"`.
+        **kwargs: Base layer keyword arguments, such as `name` and `dtype`.
+
+    Example:
+
+    ```python
+    (x_train, y_train), _ = keras.datasets.cifar10.load_data()
+    image = x_train[0]
+    resizer = keras.layers.Resizing(128, 128)
+    resized_image = resizer(image)
+    print("original:", image.shape, "resized:", resized_image.shape)
+    ```
+
+[API Signature] height: integer, width: integer, interpolation: string, crop_to_aspect_ratio: boolean, pad_to_aspect_ratio: boolean, fill_mode: string, fill_value: float, data_format: string, inputs: tensor
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 29 (list of floats for weights must match length of a tensor dimension)
+{v_1 : tensor, v_2 : list(float)} |= v_2.len = shape(v_1, 0) ∧ ∀i ∈ [0, v_2.len - 1] : v_2[i] ≥ 0
+
+Rule 27 (reduction over valid dimensions)
+{v_1 : tensor, v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 10 (valid 2D transposed convolution)
+{v_1 : tensor, v_2 : tensor, v_3 : int, v_4 : int} |= ndim(v_1) = 4 ∧ ndim(v_2) = 4 ∧ v_3 ≥ 1 ∧ v_4 ≥ 0 ∧ v_3 × (shape(v_1, 2) − 1) + shape(v_2, 2) − 2 × v_4 > 0 ∧ v_3 × (shape(v_1, 3) − 1) + shape(v_2, 3) − 2 × v_4 > 0
+
+Rule 12 (a primitive type variable is smaller than the other)
+{v_1 : int ⊎ float, v_2 : int ⊎ float} |= v_1 ≤ v_2
+
+Rule 20 (input tensor must be 1-dimensional)
+{v_1 : tensor} |= ndim(v_1) = 1
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 16 (dtype of the image tensor must be a real numerical type)
+{v_9 : tensor} |= dtype_(v_9) ≥ 1 ∧ dtype_(v_9) ≤ 8
+Token usage: input=15733, output=409, total=21518
+** SUCCESS **
+
+>>> PROMPT
+[Feedback Message from Prior Run]
+Duplicated rule: {v_1 : int, v_2 : int} |= v_1 > 0 ∧ v_2 > 0
+Duplicated rule: {v_9 : tensor} |= ndim(v_9) = 3 ∨ ndim(v_9) = 4
+Duplicated rule: {v_4 : bool, v_5 : bool} |= if v_4 = true then v_5 = false
+
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.keras.layers.Resizing API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+A preprocessing layer which resizes images.
+
+    This layer resizes an image input to a target height and width. The input
+    should be a 4D (batched) or 3D (unbatched) tensor in `"channels_last"`
+    format. Input pixel values can be of any range
+    (e.g. `[0., 1.)` or `[0, 255]`).
+
+    **Note:** This layer is safe to use inside a `tf.data` or `grain` pipeline
+    (independently of which backend you're using).
+
+    Input shape:
+        3D (unbatched) or 4D (batched) tensor with shape:
+        `(..., height, width, channels)`, in `"channels_last"` format,
+        or `(..., channels, height, width)`, in `"channels_first"` format.
+
+    Output shape:
+        3D (unbatched) or 4D (batched) tensor with shape:
+        `(..., target_height, target_width, channels)`,
+        or `(..., channels, target_height, target_width)`,
+        in `"channels_first"` format.
+
+    Args:
+        height: Integer, the height of the output shape.
+        width: Integer, the width of the output shape.
+        interpolation: String, the interpolation method.
+            Supports `"bilinear"`, `"nearest"`, `"bicubic"`,
+            `"lanczos3"`, `"lanczos5"`. Defaults to `"bilinear"`.
+        crop_to_aspect_ratio: If `True`, resize the images without aspect
+            ratio distortion. When the original aspect ratio differs
+            from the target aspect ratio, the output image will be
+            cropped so as to return the
+            largest possible window in the image (of size `(height, width)`)
+            that matches the target aspect ratio. By default
+            (`crop_to_aspect_ratio=False`), aspect ratio may not be preserved.
+        pad_to_aspect_ratio: If `True`, pad the images without aspect
+            ratio distortion. When the original aspect ratio differs
+            from the target aspect ratio, the output image will be
+            evenly padded on the short side.
+        fill_mode: When using `pad_to_aspect_ratio=True`, padded areas
+            are filled according to the given mode. Only `"constant"` is
+            supported at this time
+            (fill with constant value, equal to `fill_value`).
+        fill_value: Float. Padding value to use when `pad_to_aspect_ratio=True`.
+        data_format: string, either `"channels_last"` or `"channels_first"`.
+            The ordering of the dimensions in the inputs. `"channels_last"`
+            corresponds to inputs with shape `(batch, height, width, channels)`
+            while `"channels_first"` corresponds to inputs with shape
+            `(batch, channels, height, width)`. It defaults to the
+            `image_data_format` value found in your Keras config file at
+            `~/.keras/keras.json`. If you never set it, then it will be
+            `"channels_last"`.
+        **kwargs: Base layer keyword arguments, such as `name` and `dtype`.
+
+    Example:
+
+    ```python
+    (x_train, y_train), _ = keras.datasets.cifar10.load_data()
+    image = x_train[0]
+    resizer = keras.layers.Resizing(128, 128)
+    resized_image = resizer(image)
+    print("original:", image.shape, "resized:", resized_image.shape)
+    ```
+
+[API Signature] height: integer, width: integer, interpolation: string, crop_to_aspect_ratio: boolean, pad_to_aspect_ratio: boolean, fill_mode: string, fill_value: float, data_format: string, inputs: tensor
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 29 (list of floats for weights must match length of a tensor dimension)
+{v_1 : tensor, v_2 : list(float)} |= v_2.len = shape(v_1, 0) ∧ ∀i ∈ [0, v_2.len - 1] : v_2[i] ≥ 0
+
+Rule 27 (reduction over valid dimensions)
+{v_1 : tensor, v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 10 (valid 2D transposed convolution)
+{v_1 : tensor, v_2 : tensor, v_3 : int, v_4 : int} |= ndim(v_1) = 4 ∧ ndim(v_2) = 4 ∧ v_3 ≥ 1 ∧ v_4 ≥ 0 ∧ v_3 × (shape(v_1, 2) − 1) + shape(v_2, 2) − 2 × v_4 > 0 ∧ v_3 × (shape(v_1, 3) − 1) + shape(v_2, 3) − 2 × v_4 > 0
+
+Rule 12 (a primitive type variable is smaller than the other)
+{v_1 : int ⊎ float, v_2 : int ⊎ float} |= v_1 ≤ v_2
+
+Rule 20 (input tensor must be 1-dimensional)
+{v_1 : tensor} |= ndim(v_1) = 1
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 17 (input spatial dimensions must be positive based on data format)
+{v_8 : str, v_9 : tensor} |= if v_8 = "channels_last" then shape(v_9, ndim(v_9) - 3) > 0 ∧ shape(v_9, ndim(v_9) - 2) > 0 else if v_8 = "channels_first" then shape(v_9, ndim(v_9) - 2) > 0 ∧ shape(v_9, ndim(v_9) - 1) > 0 else false
+Token usage: input=15733, output=409, total=21518
+** SUCCESS **
+
