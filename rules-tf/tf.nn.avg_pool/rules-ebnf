@@ -265,3 +265,45 @@ Rule 196 (All elements in strides must be at least 1)
 >>
 Rule 197 (The data_format attribute must correspond to the rank of the input tensor)
 {v_1 : tensor, v_5 : str} |= if ndim(v_1) = 3 then (v_5 = "NWC" ∨ v_5 = "NCW") else (if ndim(v_1) = 4 then (v_5 = "NHWC" ∨ v_5 = "NCHW") else (v_5 = "NDHWC" ∨ v_5 = "NCDHW"))
+>>
+Rule 198 (input tensor must have float32 or float64 dtype)
+{v_1 : tensor} |= 7 ≤ dtype_(v_1) ∧ dtype_(v_1) ≤ 8
+>>
+Rule 199 (first element of ksize must be 1)
+{v_1 : list(int)} |= v_1[0] = 1
+>>
+Rule 200 (pooling is not supported on the channel dimension)
+{v_1 : list(int), v_2 : str} |= if v_2 = "NWC" then v_1[2] = 1 else v_1[1] = 1
+>>
+Rule 201 (pooling batch dimension must be 1)
+{v_1 : list(int), v_2 : list(int)} |= (if v_1.len = 5 then v_1[0] = 1) ∧ (if v_2.len = 5 then v_2[0] = 1)
+>>
+Rule 202 (pooling batch dimension must be 1)
+{v_1 : list(int), v_2 : list(int)} |= (if v_1.len ≥ 4 then v_1[0] = 1) ∧ (if v_2.len ≥ 4 then v_2[0] = 1)
+>>
+Rule 203 (input must have float32 dtype on CPU)
+{v_1 : tensor} |= dtype_(v_1) = 7
+>>
+Rule 204 (data_format must be NHWC on CPU)
+{v_1 : str} |= v_1 = "NHWC"
+>>
+Rule 205 (input spatial dimensions must be large enough for the filter size)
+{v_1 : tensor, v_2 : list(int), v_3 : str} |= if v_3 = "NHWC" then (if v_2.len = 4 then shape(v_1, 1) ≥ v_2[1] ∧ shape(v_1, 2) ≥ v_2[2] else shape(v_1, 1) ≥ v_2[0]  ∧ shape(v_1, 2) ≥ v_2[1]) else (if v_2.len = 4 then shape(v_1, 2) ≥ v_2[2] ∧ shape(v_1, 3) ≥ v_2[3] else shape(v_1, 2) ≥ v_2[0] ∧ shape(v_1, 3) ≥ v_2[1])
+>>
+Rule 206 (input must have float32 or float64 dtype on CPU)
+{v_1 : tensor} |= dtype_(v_1) = 7 ∨ dtype_(v_1) = 8
+>>
+Rule 207 (avg_pool channels/batch pooling is unsupported)
+{v_1 : list(int), v_2 : str} |= if v_1.len = 3 then (if v_2 = "NWC" then v_1[2] = 1 ∧ v_1[0] = 1 else if v_2 = "NCW" then v_1[1] = 1 ∧ v_1[0] = 1)
+>>
+Rule 208 (avg_pool strides and ksize on batch dimension must be 1)
+{v_1 : list(int), v_2 : list(int)} |= if v_1.len = 5 then v_1[0] = 1 ∧ v_2[0] = 1
+>>
+Rule 209 (data_format must be NHWC/NWC/NDHWC on CPU)
+{v_1 : tensor, v_2 : str} |= if ndim(v_1) = 3 then v_2 = "NWC" else if ndim(v_1) = 4 then v_2 = "NHWC" else if ndim(v_1) = 5 then v_2 = "NDHWC"
+>>
+Rule 210 (avg_pool depthwise pooling requires depth window to equal depth stride)
+{v_1 : list(int), v_2 : list(int), v_3 : str} |= if v_3 = "NWC" then (if v_1.len = 3 ∧ v_2.len = 3 then (if v_1[2] > 1 then v_1[2] = v_2[2])) else if v_3 = "NCW" then (if v_1.len = 3 ∧ v_2.len = 3 then (if v_1[1] > 1 then v_1[1] = v_2[1]))
+>>
+Rule 211 (avg_pool depthwise pooling requires depth window to evenly divide input depth)
+{v_1 : tensor, v_2 : list(int), v_3 : str} |= if v_3 = "NWC" then (if v_2.len = 3 then (if v_2[2] > 1 then shape(v_1, 2) % v_2[2] = 0)) else if v_3 = "NCW" then (if v_2.len = 3 then (if v_2[1] > 1 then shape(v_1, 1) % v_2[1] = 0))

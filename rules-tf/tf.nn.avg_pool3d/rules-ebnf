@@ -88,3 +88,21 @@ Rule 129 (window size and stride list length constraints)
 >>
 Rule 130 (input tensor data type and padding scheme constraints)
 {v_1 : tensor, v_2 : str} |= (dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8) ∧ (v_2 = "SAME" ∨ v_2 = "VALID" ∨ v_2 = "same" ∨ v_2 = "valid")
+>>
+Rule 131 (pooling is not supported on the batch dimension)
+{v_1 : list(int)} |= if v_1.len = 5 then v_1[0] = 1
+>>
+Rule 132 (input depth must be large enough for the filter depth)
+{v_1 : tensor, v_2 : list(int), v_3 : str} |= if v_3 = "NDHWC" then (if v_2.len = 5 then shape(v_1, 1) ≥ v_2[1] else shape(v_1, 1) ≥ v_2[0]) else (if v_2.len = 5 then shape(v_1, 2) ≥ v_2[2] else shape(v_1, 2) ≥ v_2[0])
+>>
+Rule 133 (input must be of type float32)
+{v_1 : tensor} |= dtype_(v_1) = 7
+>>
+Rule 134 (avg_pool3d input spatial size must support window size)
+{v_1 : tensor, v_2 : list(int), v_3 : str, v_4 : str} |= if v_3 = "VALID" then (if v_4 = "NDHWC" then (if v_2.len = 1 then shape(v_1, 1) ≥ v_2[0] ∧ shape(v_1, 2) ≥ v_2[0] ∧ shape(v_1, 3) ≥ v_2[0] else if v_2.len = 3 then shape(v_1, 1) ≥ v_2[0] ∧ shape(v_1, 2) ≥ v_2[1] ∧ shape(v_1, 3) ≥ v_2[2] else if v_2.len = 5 then shape(v_1, 1) ≥ v_2[1] ∧ shape(v_1, 2) ≥ v_2[2] ∧ shape(v_1, 3) ≥ v_2[3]) else if v_4 = "NCDHW" then (if v_2.len = 1 then shape(v_1, 2) ≥ v_2[0] ∧ shape(v_1, 3) ≥ v_2[0] ∧ shape(v_1, 4) ≥ v_2[0] else if v_2.len = 3 then shape(v_1, 2) ≥ v_2[0] ∧ shape(v_1, 3) ≥ v_2[1] ∧ shape(v_1, 4) ≥ v_2[2] else if v_2.len = 5 then shape(v_1, 2) ≥ v_2[2] ∧ shape(v_1, 3) ≥ v_2[3] ∧ shape(v_1, 4) ≥ v_2[4]))
+>>
+Rule 135 (pooling is only supported across spatial dimensions)
+{v_1 : str, v_2 : list(int)} |= if v_1 = "NCDHW" ∧ v_2.len = 5 then v_2[0] = 1 ∧ v_2[1] = 1
+>>
+Rule 136 (depthwise average pooling requires depth window to evenly divide input depth)
+{v_1 : tensor, v_2 : list(int), v_3 : str} |= if v_3 = "NDHWC" ∧ v_2.len = 5 then shape(v_1, 4) % v_2[4] = 0

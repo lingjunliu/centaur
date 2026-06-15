@@ -124,3 +124,18 @@ Rule 114 (Allowed string values for data_format and padding)
 >>
 Rule 116 (Input channel dimension must match filters in_channels)
 {v_1 : tensor, v_2 : tensor} |= shape(v_1, ndim(v_1) - 1) = shape(v_2, 2) ∨ shape(v_1, ndim(v_1) - 3) = shape(v_2, 2)
+>>
+Rule 117 (for VALID padding, input dimensions must be at least filter dimensions)
+{v_1 : tensor, v_2 : tensor, v_3 : str} |= if v_3 = "VALID" then shape(v_1, 1) ≥ shape(v_2, 0) ∧ shape(v_1, 2) ≥ shape(v_2, 1)
+>>
+Rule 118 (input must have an allowed dtype)
+{v_1 : tensor} |= dtype_(v_1) = 3 ∨ dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8
+>>
+Rule 119 (conv2d input spatial size must support dilated filter size)
+{v_1 : tensor, v_2 : tensor, v_3 : str, v_4 : str, v_5 : list(int)} |= if v_3 = "VALID" then (if v_4 = "NHWC" then (if v_5.len = 1 then shape(v_1, 1) ≥ 1 + (shape(v_2, 0) - 1) * v_5[0] ∧ shape(v_1, 2) ≥ 1 + (shape(v_2, 1) - 1) * v_5[0] else if v_5.len = 2 then shape(v_1, 1) ≥ 1 + (shape(v_2, 0) - 1) * v_5[0] ∧ shape(v_1, 2) ≥ 1 + (shape(v_2, 1) - 1) * v_5[1] else if v_5.len = 4 then shape(v_1, 1) ≥ 1 + (shape(v_2, 0) - 1) * v_5[1] ∧ shape(v_1, 2) ≥ 1 + (shape(v_2, 1) - 1) * v_5[2]) else if v_4 = "NCHW" then (if v_5.len = 1 then shape(v_1, 2) ≥ 1 + (shape(v_2, 0) - 1) * v_5[0] ∧ shape(v_1, 3) ≥ 1 + (shape(v_2, 1) - 1) * v_5[0] else if v_5.len = 2 then shape(v_1, 2) ≥ 1 + (shape(v_2, 0) - 1) * v_5[0] ∧ shape(v_1, 3) ≥ 1 + (shape(v_2, 1) - 1) * v_5[1] else if v_5.len = 4 then shape(v_1, 2) ≥ 1 + (shape(v_2, 0) - 1) * v_5[2] ∧ shape(v_1, 3) ≥ 1 + (shape(v_2, 1) - 1) * v_5[3]))
+>>
+Rule 120 (data_format must be NHWC on CPU)
+{v_1 : str} |= v_1 = "NHWC"
+>>
+Rule 121 (conv2d strides on batch and depth dimensions must be 1)
+{v_1 : list(int), v_2 : str} |= if v_2 = "NCHW" then (if v_1.len = 4 then v_1[0] = 1 ∧ v_1[1] = 1) else if v_2 = "NHWC" then (if v_1.len = 4 then v_1[0] = 1 ∧ v_1[3] = 1)

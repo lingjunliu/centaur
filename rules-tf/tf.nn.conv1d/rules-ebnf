@@ -85,3 +85,21 @@ Rule 129 (input and filters must have matching floating-point types: float16, fl
 >>
 Rule 132 (dilations list must contain elements greater than or equal to 1)
 {v_6 : list(int)} |= ∀i ∈ [0, v_6.len - 1] : v_6[i] ≥ 1
+>>
+Rule 133 (input must have a valid float or int32 dtype)
+{v_1 : tensor} |= dtype_(v_1) = 3 ∨ dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8
+>>
+Rule 134 (data_format must be NWC on CPU)
+{v_1 : str} |= v_1 = "NWC"
+>>
+Rule 135 (input width must be large enough for the effective filter width)
+{v_1 : tensor, v_2 : tensor, v_3 : list(int), v_4 : str} |= if v_4 = "NWC" then shape(v_1, 1) ≥ (shape(v_2, 0) - 1) * v_3[0] + 1 else shape(v_1, 2) ≥ (shape(v_2, 0) - 1) * v_3[0] + 1
+>>
+Rule 136 (filters must be 3-dimensional)
+{v_1 : tensor} |= ndim(v_1) = 3
+>>
+Rule 137 (all dimensions of filters must be non-zero)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
+>>
+Rule 138 (conv1d input width must support dilated filter width)
+{v_1 : tensor, v_2 : tensor, v_3 : str, v_4 : list(int), v_5 : str} |= if v_3 = "VALID" then (if v_5 = "NWC" then (if v_4.len = 1 then shape(v_1, 1) ≥ 1 + (shape(v_2, 0) - 1) * v_4[0] else if v_4.len = 3 then shape(v_1, 1) ≥ 1 + (shape(v_2, 0) - 1) * v_4[1]) else if v_5 = "NCW" then (if v_4.len = 1 then shape(v_1, 2) ≥ 1 + (shape(v_2, 0) - 1) * v_4[0] else if v_4.len = 3 then shape(v_1, 2) ≥ 1 + (shape(v_2, 0) - 1) * v_4[1]))
