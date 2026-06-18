@@ -11,79 +11,108 @@ import copy
 def tf_signal_rfft3d_inputs():
     list_of_inputs = []
 
-    # Input 1: Basic valid input
-    input_tensor = np.random.rand(8, 8, 8).astype(np.float32)
-    fft_length = np.array([8, 8, 8], dtype=np.int32)
-    name = "fft_1"
-    input_dict = {"input_tensor": input_tensor, "fft_length": fft_length, "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 2: Different dimensions
-    input_tensor = np.random.rand(16, 16, 16).astype(np.float32)
-    fft_length = np.array([16, 16, 16], dtype=np.int32)
-    name = "fft_2"
-    input_dict = {"input_tensor": input_tensor, "fft_length": fft_length, "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 3: Cropping
-    input_tensor = np.random.rand(16, 16, 16).astype(np.float32)
-    fft_length = np.array([8, 8, 8], dtype=np.int32)
-    name = "fft_3"
-    input_dict = {"input_tensor": input_tensor, "fft_length": fft_length, "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 4: Padding
-    input_tensor = np.random.rand(8, 8, 8).astype(np.float32)
-    fft_length = np.array([16, 16, 16], dtype=np.int32)
-    name = "fft_4"
-    input_dict = {"input_tensor": input_tensor, "fft_length": fft_length, "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 5: Different data type (float64)
-    input_tensor = np.random.rand(8, 8, 8).astype(np.float64)
-    fft_length = np.array([8, 8, 8], dtype=np.int32)
-    name = "fft_5"
-    input_dict = {"input_tensor": input_tensor, "fft_length": fft_length, "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 6: Non-cube input
-    input_tensor = np.random.rand(8, 16, 32).astype(np.float32)
-    fft_length = np.array([8, 16, 32], dtype=np.int32)
-    name = "fft_6"
-    input_dict = {"input_tensor": input_tensor, "fft_length": fft_length, "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-     # Input 7: Cropping with different lengths
-    input_tensor = np.random.rand(16, 16, 16).astype(np.float32)
-    fft_length = np.array([8, 12, 10], dtype=np.int32)
-    name = "fft_7"
-    input_dict = {"input_tensor": input_tensor, "fft_length": fft_length, "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 8: Padding with different lengths
-    input_tensor = np.random.rand(8, 8, 8).astype(np.float32)
-    fft_length = np.array([16, 20, 24], dtype=np.int32)
-    name = "fft_8"
-    input_dict = {"input_tensor": input_tensor, "fft_length": fft_length, "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 9: Smaller input size
-    input_tensor = np.random.rand(4, 4, 4).astype(np.float32)
+    # Input 1: Basic 3D float32 input, exact fft_length
+    input_tensor = np.random.randn(4, 4, 4).astype(np.float32)
     fft_length = np.array([4, 4, 4], dtype=np.int32)
-    name = "fft_9"
-    input_dict = {"input_tensor": input_tensor, "fft_length": fft_length, "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    name = "rfft3d_1"
+    list_of_inputs.append({
+        "input_tensor": input_tensor,
+        "fft_length": fft_length,
+        "name": name
+    })
 
-    # Input 10: different input size and fft_length
-    input_tensor = np.random.rand(5, 6, 7).astype(np.float32)
-    fft_length = np.array([5, 6, 7], dtype=np.int32)
-    name = "fft_10"
-    input_dict = {"input_tensor": input_tensor, "fft_length": fft_length, "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    # Input 2: 4D float32 input (batch dimension), exact fft_length
+    input_tensor = np.random.randn(2, 8, 8, 8).astype(np.float32)
+    fft_length = np.array([8, 8, 8], dtype=np.int32)
+    name = "rfft3d_2"
+    list_of_inputs.append({
+        "input_tensor": input_tensor,
+        "fft_length": fft_length,
+        "name": name
+    })
+
+    # Input 3: float64 input, exact fft_length
+    input_tensor = np.random.randn(3, 5, 7).astype(np.float64)
+    fft_length = np.array([3, 5, 7], dtype=np.int32)
+    name = "rfft3d_3"
+    list_of_inputs.append({
+        "input_tensor": input_tensor,
+        "fft_length": fft_length,
+        "name": name
+    })
+
+    # Input 4: High dimensional float32 input
+    input_tensor = np.random.randn(1, 2, 2, 4, 4, 4).astype(np.float32)
+    fft_length = np.array([4, 4, 4], dtype=np.int32)
+    name = "rfft3d_4"
+    list_of_inputs.append({
+        "input_tensor": input_tensor,
+        "fft_length": fft_length,
+        "name": name
+    })
+
+    # Input 5: Crop along all dimensions (fft_length smaller than input)
+    input_tensor = np.random.randn(8, 8, 8).astype(np.float32)
+    fft_length = np.array([4, 4, 4], dtype=np.int32)
+    name = "rfft3d_5"
+    list_of_inputs.append({
+        "input_tensor": input_tensor,
+        "fft_length": fft_length,
+        "name": name
+    })
+
+    # Input 6: Pad along all dimensions (fft_length larger than input)
+    input_tensor = np.random.randn(4, 4, 4).astype(np.float32)
+    fft_length = np.array([8, 8, 8], dtype=np.int32)
+    name = "rfft3d_6"
+    list_of_inputs.append({
+        "input_tensor": input_tensor,
+        "fft_length": fft_length,
+        "name": name
+    })
+
+    # Input 7: Mixed crop and pad, float64
+    input_tensor = np.random.randn(2, 4, 8, 16).astype(np.float64)
+    fft_length = np.array([6, 4, 20], dtype=np.int32)
+    name = "rfft3d_7"
+    list_of_inputs.append({
+        "input_tensor": input_tensor,
+        "fft_length": fft_length,
+        "name": name
+    })
+
+    # Input 8: Another valid size mix, float32
+    input_tensor = np.random.randn(10, 10, 10).astype(np.float32)
+    fft_length = np.array([5, 12, 8], dtype=np.int32)
+    name = "rfft3d_8"
+    list_of_inputs.append({
+        "input_tensor": input_tensor,
+        "fft_length": fft_length,
+        "name": name
+    })
+
+    # Input 9: Large powers of 2 (efficient for FFT)
+    input_tensor = np.random.randn(16, 16, 16).astype(np.float32)
+    fft_length = np.array([16, 16, 16], dtype=np.int32)
+    name = "rfft3d_9"
+    list_of_inputs.append({
+        "input_tensor": input_tensor,
+        "fft_length": fft_length,
+        "name": name
+    })
+
+    # Input 10: 4D float64 input, exact fft_length
+    input_tensor = np.random.randn(2, 2, 2, 2).astype(np.float64)
+    fft_length = np.array([2, 2, 2], dtype=np.int32)
+    name = "rfft3d_10"
+    list_of_inputs.append({
+        "input_tensor": input_tensor,
+        "fft_length": fft_length,
+        "name": name
+    })
 
     return list_of_inputs
 
-generated_inputs = {}
 generated_inputs["tf.signal.rfft3d"] = tf_signal_rfft3d_inputs()
 
 def check_valid(api, list_of_inputs, lib="tf", suffix=0):
@@ -91,9 +120,16 @@ def check_valid(api, list_of_inputs, lib="tf", suffix=0):
         _ = get_abstract_input(input_dict, get_signature(api, lib=lib, suffix=suffix))
         output = run_api(api, input_dict, cpu=True, lib=lib)
     
+    if len(list_of_inputs) == 0:
+        raise Exception("No inputs were generated for the API. Please check the input generation code.")
+
     print("Valid")
 
 if 'tf.signal.rfft3d' not in generated_inputs:
     raise Exception("Output of the input generating function was not assigned to the generated_inputs dictionary to the key 'tf.signal.rfft3d'.")
+
+
+tf.config.experimental.enable_op_determinism()
+tf.random.set_seed(42)
 
 check_valid('tf.signal.rfft3d', generated_inputs['tf.signal.rfft3d'], lib="tf", suffix=0)

@@ -10,80 +10,89 @@ import copy
 
 def tf_io_encode_png_inputs():
     list_of_inputs = []
-
-    # Input 1
-    image = np.array([[[1, 2, 3], [4, 5, 6]], [[7, 8, 9], [10, 11, 12]]], dtype=np.uint8)
-    compression = -1
-    name = "test_image_1"
-    input_dict = {"image": image, "compression": compression, "name": name}
+    
+    # Input 1: Grayscale (1 channel), uint8, default compression
+    input_dict = {
+        'image': np.zeros((10, 10, 1), dtype=np.uint8),
+        'compression': -1,
+        'name': "gray_img"
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 2
-    image = np.array([[[1, 2, 3, 4], [4, 5, 6, 7]], [[7, 8, 9, 10], [10, 11, 12, 13]]], dtype=np.uint8)
-    compression = 0
-    name = "test_image_2"
-    input_dict = {"image": image, "compression": compression, "name": name}
+    # Input 2: Grayscale + Alpha (2 channels), uint8, compression 0
+    input_dict = {
+        'image': np.ones((8, 8, 2), dtype=np.uint8) * 128,
+        'compression': 0,
+        'name': "gray_alpha_img"
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 3
-    image = np.array([[[1], [4]], [[7], [10]]], dtype=np.uint8)
-    compression = 5
-    name = "test_image_3"
-    input_dict = {"image": image, "compression": compression, "name": name}
+    # Input 3: RGB (3 channels), uint8, max compression
+    input_dict = {
+        'image': np.random.randint(0, 256, size=(12, 12, 3), dtype=np.uint8),
+        'compression': 9,
+        'name': "rgb_img"
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 4
-    image = np.array([[[1, 2], [4, 5]], [[7, 8], [10, 11]]], dtype=np.uint8)
-    compression = 9
-    name = "test_image_4"
-    input_dict = {"image": image, "compression": compression, "name": name}
+    # Input 4: RGBA (4 channels), uint8, compression 5
+    input_dict = {
+        'image': np.zeros((16, 16, 4), dtype=np.uint8),
+        'compression': 5,
+        'name': "rgba_img"
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 5
-    image = np.array([[[1, 2, 3], [4, 5, 6]], [[7, 8, 9], [10, 11, 12]]], dtype=np.uint8)
-    compression = -1
-    name = "test_image_5"
-    input_dict = {"image": image, "compression": compression, "name": name}
+    # Input 5: Batch of Grayscale, uint8, compression 1
+    input_dict = {
+        'image': np.ones((2, 10, 10, 1), dtype=np.uint8) * 200,
+        'compression': 1,
+        'name': "batch_gray"
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 6
-    image = np.array([[[1, 2, 3, 4], [4, 5, 6, 7]], [[7, 8, 9, 10], [10, 11, 12, 13]]], dtype=np.uint8)
-    compression = 0
-    name = "test_image_6"
-    input_dict = {"image": image, "compression": compression, "name": name}
+    # Input 6: Batch of RGB, uint8, default compression
+    input_dict = {
+        'image': np.zeros((1, 15, 15, 3), dtype=np.uint8),
+        'compression': -1,
+        'name': "batch_rgb"
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 7
-    image = np.array([[[1], [4]], [[7], [10]]], dtype=np.uint8)
-    compression = 5
-    name = "test_image_7"
-    input_dict = {"image": image, "compression": compression, "name": name}
+    # Input 7: RGB, uint8, compression 6
+    input_dict = {
+        'image': np.random.randint(0, 256, size=(20, 20, 3), dtype=np.uint8),
+        'compression': 6,
+        'name': "rgb_uint8_alternative"
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 8
-    image = np.array([[[1, 2], [4, 5]], [[7, 8], [10, 11]]], dtype=np.uint8)
-    compression = 9
-    name = "test_image_8"
-    input_dict = {"image": image, "compression": compression, "name": name}
+    # Input 8: Grayscale, uint8, compression 3
+    input_dict = {
+        'image': np.ones((5, 5, 1), dtype=np.uint8) * 128,
+        'compression': 3,
+        'name': "gray_uint8_alternative"
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 9 - Higher dimension
-    image = np.array([[[[[1, 2, 3], [4, 5, 6]], [[7, 8, 9], [10, 11, 12]]]]], dtype=np.uint8)
-    compression = 7
-    name = "test_image_9"
-    input_dict = {"image": image, "compression": compression, "name": name}
+    # Input 9: RGBA, uint8, compression 8
+    input_dict = {
+        'image': np.zeros((2, 2, 4), dtype=np.uint8),
+        'compression': 8,
+        'name': "rgba_uint8_alternative"
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 10 - 1 channel, uint8
-    image = np.array([[[1], [4]], [[7], [10]]], dtype=np.uint8)
-    compression = 2
-    name = "test_image_10"
-    input_dict = {"image": image, "compression": compression, "name": name}
+    # Input 10: Rank 5 Batch of RGB, uint8, compression 2
+    input_dict = {
+        'image': np.ones((1, 2, 4, 4, 3), dtype=np.uint8) * 100,
+        'compression': 2,
+        'name': "rank5_rgb"
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs
 
-generated_inputs = {}
 generated_inputs["tf.io.encode_png"] = tf_io_encode_png_inputs()
 
 def check_valid(api, list_of_inputs, lib="tf", suffix=0):
@@ -91,9 +100,16 @@ def check_valid(api, list_of_inputs, lib="tf", suffix=0):
         _ = get_abstract_input(input_dict, get_signature(api, lib=lib, suffix=suffix))
         output = run_api(api, input_dict, cpu=True, lib=lib)
     
+    if len(list_of_inputs) == 0:
+        raise Exception("No inputs were generated for the API. Please check the input generation code.")
+
     print("Valid")
 
 if 'tf.io.encode_png' not in generated_inputs:
     raise Exception("Output of the input generating function was not assigned to the generated_inputs dictionary to the key 'tf.io.encode_png'.")
+
+
+tf.config.experimental.enable_op_determinism()
+tf.random.set_seed(42)
 
 check_valid('tf.io.encode_png', generated_inputs['tf.io.encode_png'], lib="tf", suffix=0)

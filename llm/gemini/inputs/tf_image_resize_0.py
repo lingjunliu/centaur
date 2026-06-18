@@ -4,214 +4,185 @@ from generator.input_generators import get_abstract_input
 
 generated_inputs = dict()
 
-import tensorflow as tf
 import numpy as np
+import tensorflow as tf
 import copy
 
 def tf_image_resize_inputs():
     list_of_inputs = []
 
-    # Input 1
-    images = tf.constant(np.random.rand(1, 28, 28, 3)).numpy()
-    size = tf.constant([56, 56]).numpy()
-    method = 'bilinear'
+    # Input 1: Standard 4-D float32 batch, bilinear, no antialias, size larger (upsampling)
+    images = np.random.rand(2, 10, 10, 3).astype(np.float32)
+    size = np.array([20, 20], dtype=np.int32)
+    method = "bilinear"
     preserve_aspect_ratio = False
     antialias = False
-    name = None
-
-    input_dict = {
+    name = "resize_1"
+    
+    list_of_inputs.append({
         "images": images,
         "size": size,
         "method": method,
         "preserve_aspect_ratio": preserve_aspect_ratio,
         "antialias": antialias,
         "name": name
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    })
 
-    # Input 2
-    images = tf.constant(np.random.rand(32, 64, 64, 1)).numpy()
-    size = tf.constant([32, 32]).numpy()
-    method = 'nearest'
+    # Input 2: 3-D uint8 image, bicubic, preserve aspect ratio, size smaller
+    images = np.random.randint(0, 256, size=(15, 30, 3)).astype(np.uint8)
+    size = np.array([10, 10], dtype=np.int32)
+    method = "bicubic"
     preserve_aspect_ratio = True
     antialias = False
-    name = 'resize_image'
+    name = "resize_2"
 
-    input_dict = {
+    list_of_inputs.append({
         "images": images,
         "size": size,
         "method": method,
         "preserve_aspect_ratio": preserve_aspect_ratio,
         "antialias": antialias,
         "name": name
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    })
 
-    # Input 3
-    images = tf.constant(np.random.rand(1, 128, 128, 3)).numpy()
-    size = tf.constant([64, 64]).numpy()
-    method = 'lanczos3'
+    # Input 3: 4-D int32 batch, nearest neighbor, antialias has no effect
+    images = np.random.randint(-100, 100, size=(1, 5, 5, 1)).astype(np.int32)
+    size = np.array([8, 8], dtype=np.int32)
+    method = "nearest"
+    preserve_aspect_ratio = False
+    antialias = False
+    name = "resize_3"
+
+    list_of_inputs.append({
+        "images": images,
+        "size": size,
+        "method": method,
+        "preserve_aspect_ratio": preserve_aspect_ratio,
+        "antialias": antialias,
+        "name": name
+    })
+
+    # Input 4: 3-D float64 image, lanczos3, antialias=True for downsampling
+    images = np.random.rand(32, 32, 4).astype(np.float64)
+    size = np.array([16, 16], dtype=np.int32)
+    method = "lanczos3"
     preserve_aspect_ratio = False
     antialias = True
-    name = None
+    name = "resize_4"
 
-    input_dict = {
+    list_of_inputs.append({
         "images": images,
         "size": size,
         "method": method,
         "preserve_aspect_ratio": preserve_aspect_ratio,
         "antialias": antialias,
         "name": name
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    })
 
-    # Input 4
-    images = tf.constant(np.random.rand(16, 32, 32, 3)).numpy()
-    size = tf.constant([16, 64]).numpy()
-    method = 'lanczos5'
+    # Input 5: 4-D float16, area method, preserve aspect ratio
+    images = np.random.rand(4, 24, 16, 3).astype(np.float16)
+    size = np.array([12, 12], dtype=np.int32)
+    method = "area"
     preserve_aspect_ratio = True
     antialias = False
-    name = 'image_resize'
+    name = "resize_5"
 
-    input_dict = {
+    list_of_inputs.append({
         "images": images,
         "size": size,
         "method": method,
         "preserve_aspect_ratio": preserve_aspect_ratio,
         "antialias": antialias,
         "name": name
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    })
 
-    # Input 5
-    images = tf.constant(np.random.rand(1, 64, 64, 3)).numpy()
-    size = tf.constant([128, 32]).numpy()
-    method = 'bicubic'
-    preserve_aspect_ratio = False
-    antialias = True
-    name = None
-
-    input_dict = {
-        "images": images,
-        "size": size,
-        "method": method,
-        "preserve_aspect_ratio": preserve_aspect_ratio,
-        "antialias": antialias,
-        "name": name
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 6
-    images = tf.constant(np.random.rand(8, 16, 16, 1)).numpy()
-    size = tf.constant([8, 8]).numpy()
-    method = 'gaussian'
-    preserve_aspect_ratio = True
-    antialias = False
-    name = 'resize_gauss'
-
-    input_dict = {
-        "images": images,
-        "size": size,
-        "method": method,
-        "preserve_aspect_ratio": preserve_aspect_ratio,
-        "antialias": antialias,
-        "name": name
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 7
-    images = tf.constant(np.random.rand(1, 32, 32, 3)).numpy()
-    size = tf.constant([64, 128]).numpy()
-    method = 'area'
-    preserve_aspect_ratio = False
-    antialias = False
-    name = None
-
-    input_dict = {
-        "images": images,
-        "size": size,
-        "method": method,
-        "preserve_aspect_ratio": preserve_aspect_ratio,
-        "antialias": antialias,
-        "name": name
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 8
-    images = tf.constant(np.random.rand(4, 64, 64, 1)).numpy()
-    size = tf.constant([32, 32]).numpy()
-    method = 'mitchellcubic'
+    # Input 6: 3-D float32 single channel, gaussian, preserve aspect ratio
+    images = np.random.rand(100, 50, 1).astype(np.float32)
+    size = np.array([40, 40], dtype=np.int32)
+    method = "gaussian"
     preserve_aspect_ratio = True
     antialias = True
-    name = 'resize_mitchell'
+    name = "resize_6"
 
-    input_dict = {
+    list_of_inputs.append({
         "images": images,
         "size": size,
         "method": method,
         "preserve_aspect_ratio": preserve_aspect_ratio,
         "antialias": antialias,
         "name": name
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-    
-    # Input 9: 3D images
-    images = tf.constant(np.random.rand(64, 64, 3)).numpy()
-    size = tf.constant([128, 128]).numpy()
-    method = 'bilinear'
+    })
+
+    # Input 7: 4-D float32, mitchellcubic, downsampling
+    images = np.random.rand(2, 64, 64, 3).astype(np.float32)
+    size = np.array([32, 32], dtype=np.int32)
+    method = "mitchellcubic"
+    preserve_aspect_ratio = False
+    antialias = True
+    name = "resize_7"
+
+    list_of_inputs.append({
+        "images": images,
+        "size": size,
+        "method": method,
+        "preserve_aspect_ratio": preserve_aspect_ratio,
+        "antialias": antialias,
+        "name": name
+    })
+
+    # Input 8: 3-D uint8, lanczos5, no aspect ratio preservation
+    images = np.random.randint(0, 256, size=(40, 40, 3)).astype(np.uint8)
+    size = np.array([80, 80], dtype=np.int32)
+    method = "lanczos5"
     preserve_aspect_ratio = False
     antialias = False
-    name = None
-    
-    input_dict = {
+    name = "resize_8"
+
+    list_of_inputs.append({
         "images": images,
         "size": size,
         "method": method,
         "preserve_aspect_ratio": preserve_aspect_ratio,
         "antialias": antialias,
         "name": name
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    })
 
-    # Input 10: different size, 3D image
-    images = tf.constant(np.random.rand(32, 32, 1)).numpy()
-    size = tf.constant([64, 16]).numpy()
-    method = 'nearest'
+    # Input 9: 4-D float32, bilinear with antialias and aspect ratio preserved
+    images = np.random.rand(1, 128, 64, 3).astype(np.float32)
+    size = np.array([32, 32], dtype=np.int32)
+    method = "bilinear"
     preserve_aspect_ratio = True
-    antialias = False
-    name = 'resize_nearest'
+    antialias = True
+    name = "resize_9"
 
-    input_dict = {
+    list_of_inputs.append({
         "images": images,
         "size": size,
         "method": method,
         "preserve_aspect_ratio": preserve_aspect_ratio,
         "antialias": antialias,
         "name": name
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    })
 
-    # Input 11: tiny image
-    images = tf.constant(np.random.rand(1, 2, 2, 3)).numpy()
-    size = tf.constant([4, 4]).numpy()
-    method = 'bilinear'
+    # Input 10: 3-D int32, nearest neighbor, upsampling
+    images = np.random.randint(-10, 10, size=(4, 4, 2)).astype(np.int32)
+    size = np.array([12, 12], dtype=np.int32)
+    method = "nearest"
     preserve_aspect_ratio = False
     antialias = False
-    name = None
+    name = "resize_10"
 
-    input_dict = {
+    list_of_inputs.append({
         "images": images,
         "size": size,
         "method": method,
         "preserve_aspect_ratio": preserve_aspect_ratio,
         "antialias": antialias,
         "name": name
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-    
+    })
+
     return list_of_inputs
 
-generated_inputs = {}
 generated_inputs["tf.image.resize"] = tf_image_resize_inputs()
 
 def check_valid(api, list_of_inputs, lib="tf", suffix=0):
@@ -219,9 +190,16 @@ def check_valid(api, list_of_inputs, lib="tf", suffix=0):
         _ = get_abstract_input(input_dict, get_signature(api, lib=lib, suffix=suffix))
         output = run_api(api, input_dict, cpu=True, lib=lib)
     
+    if len(list_of_inputs) == 0:
+        raise Exception("No inputs were generated for the API. Please check the input generation code.")
+
     print("Valid")
 
 if 'tf.image.resize' not in generated_inputs:
     raise Exception("Output of the input generating function was not assigned to the generated_inputs dictionary to the key 'tf.image.resize'.")
+
+
+tf.config.experimental.enable_op_determinism()
+tf.random.set_seed(42)
 
 check_valid('tf.image.resize', generated_inputs['tf.image.resize'], lib="tf", suffix=0)

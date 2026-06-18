@@ -10,80 +10,111 @@ import copy
 
 def tf_signal_irfft3d_inputs():
     list_of_inputs = []
-
+    
     # Input 1
-    input_tensor = np.complex64(np.random.rand(8, 8, 8, 5))
-    fft_length = np.array([8, 8, 8], dtype=np.int32)
+    input_tensor = np.ones((4, 4, 3), dtype=np.complex64)
+    fft_length = np.array([4, 4, 4], dtype=np.int32)
     name = "irfft3d_1"
-    input_dict = {"input_tensor": input_tensor, "fft_length": fft_length, "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    list_of_inputs.append({
+        "input_tensor": input_tensor,
+        "fft_length": fft_length,
+        "name": name
+    })
 
     # Input 2
-    input_tensor = np.complex128(np.random.rand(4, 4, 4, 3))
-    fft_length = np.array([4, 4, 4], dtype=np.int32)
+    input_tensor = np.ones((3, 3, 2), dtype=np.complex128)
+    fft_length = np.array([3, 3, 3], dtype=np.int32)
     name = "irfft3d_2"
-    input_dict = {"input_tensor": input_tensor, "fft_length": fft_length, "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    list_of_inputs.append({
+        "input_tensor": input_tensor,
+        "fft_length": fft_length,
+        "name": name
+    })
 
-    # Input 3 - different fft_length
-    input_tensor = np.complex64(np.random.rand(8, 8, 8, 5))
-    fft_length = np.array([16, 16, 16], dtype=np.int32)
+    # Input 3
+    input_tensor = (np.random.randn(2, 5, 5).astype(np.complex64) + 
+                    1j * np.random.randn(2, 5, 5).astype(np.complex64))
+    fft_length = np.array([2, 5, 8], dtype=np.int32)
     name = "irfft3d_3"
-    input_dict = {"input_tensor": input_tensor, "fft_length": fft_length, "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    list_of_inputs.append({
+        "input_tensor": input_tensor,
+        "fft_length": fft_length,
+        "name": name
+    })
 
-    # Input 4 - smaller fft_length
-    input_tensor = np.complex128(np.random.rand(16, 16, 16, 9))
+    # Input 4
+    input_tensor = (np.random.randn(2, 8, 8, 5).astype(np.complex128) + 
+                    1j * np.random.randn(2, 8, 8, 5).astype(np.complex128))
     fft_length = np.array([8, 8, 8], dtype=np.int32)
     name = "irfft3d_4"
-    input_dict = {"input_tensor": input_tensor, "fft_length": fft_length, "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    list_of_inputs.append({
+        "input_tensor": input_tensor,
+        "fft_length": fft_length,
+        "name": name
+    })
 
-     # Input 5 - rectangular input shape
-    input_tensor = np.complex64(np.random.rand(4, 8, 16, 9))
-    fft_length = np.array([4, 8, 16], dtype=np.int32)
+    # Input 5
+    input_tensor = np.ones((1, 1, 6, 6, 4), dtype=np.complex64)
+    fft_length = np.array([6, 6, 6], dtype=np.int32)
     name = "irfft3d_5"
-    input_dict = {"input_tensor": input_tensor, "fft_length": fft_length, "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    list_of_inputs.append({
+        "input_tensor": input_tensor,
+        "fft_length": fft_length,
+        "name": name
+    })
 
-    # Input 6 -  complex128
-    input_tensor = np.complex128(np.random.rand(2, 2, 2, 2))
+    # Input 6
+    input_tensor = np.zeros((2, 2, 2), dtype=np.complex64)
     fft_length = np.array([2, 2, 2], dtype=np.int32)
     name = "irfft3d_6"
-    input_dict = {"input_tensor": input_tensor, "fft_length": fft_length, "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    list_of_inputs.append({
+        "input_tensor": input_tensor,
+        "fft_length": fft_length,
+        "name": name
+    })
 
-    # Input 7 -  complex64
-    input_tensor = np.complex64(np.random.rand(3, 3, 3, 2))
-    fft_length = np.array([3, 3, 3], dtype=np.int32)
+    # Input 7
+    input_tensor = np.ones((5, 5, 10), dtype=np.complex128)
+    fft_length = np.array([5, 5, 18], dtype=np.int32)
     name = "irfft3d_7"
-    input_dict = {"input_tensor": input_tensor, "fft_length": fft_length, "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    list_of_inputs.append({
+        "input_tensor": input_tensor,
+        "fft_length": fft_length,
+        "name": name
+    })
 
-    # Input 8 - different dimensions
-    input_tensor = np.complex64(np.random.rand(5, 6, 7, 4))
-    fft_length = np.array([5, 6, 7], dtype=np.int32)
+    # Input 8
+    input_tensor = np.ones((4, 4, 4, 3), dtype=np.complex64)
+    fft_length = np.array([4, 4, 5], dtype=np.int32)
     name = "irfft3d_8"
-    input_dict = {"input_tensor": input_tensor, "fft_length": fft_length, "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    list_of_inputs.append({
+        "input_tensor": input_tensor,
+        "fft_length": fft_length,
+        "name": name
+    })
 
-    # Input 9 - complex128, different dimensions
-    input_tensor = np.complex128(np.random.rand(3, 5, 7, 5))
-    fft_length = np.array([3, 5, 7], dtype=np.int32)
+    # Input 9
+    input_tensor = np.ones((10, 10, 6), dtype=np.complex128)
+    fft_length = np.array([10, 10, 10], dtype=np.int32)
     name = "irfft3d_9"
-    input_dict = {"input_tensor": input_tensor, "fft_length": fft_length, "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    list_of_inputs.append({
+        "input_tensor": input_tensor,
+        "fft_length": fft_length,
+        "name": name
+    })
 
-    # Input 10 - varying fft lengths
-    input_tensor = np.complex64(np.random.rand(4, 5, 6, 4))
-    fft_length = np.array([8, 10, 12], dtype=np.int32)
+    # Input 10
+    input_tensor = np.ones((8, 12, 7), dtype=np.complex64)
+    fft_length = np.array([8, 12, 12], dtype=np.int32)
     name = "irfft3d_10"
-    input_dict = {"input_tensor": input_tensor, "fft_length": fft_length, "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    list_of_inputs.append({
+        "input_tensor": input_tensor,
+        "fft_length": fft_length,
+        "name": name
+    })
 
     return list_of_inputs
 
-generated_inputs = {}
 generated_inputs["tf.signal.irfft3d"] = tf_signal_irfft3d_inputs()
 
 def check_valid(api, list_of_inputs, lib="tf", suffix=0):
@@ -91,9 +122,16 @@ def check_valid(api, list_of_inputs, lib="tf", suffix=0):
         _ = get_abstract_input(input_dict, get_signature(api, lib=lib, suffix=suffix))
         output = run_api(api, input_dict, cpu=True, lib=lib)
     
+    if len(list_of_inputs) == 0:
+        raise Exception("No inputs were generated for the API. Please check the input generation code.")
+
     print("Valid")
 
 if 'tf.signal.irfft3d' not in generated_inputs:
     raise Exception("Output of the input generating function was not assigned to the generated_inputs dictionary to the key 'tf.signal.irfft3d'.")
+
+
+tf.config.experimental.enable_op_determinism()
+tf.random.set_seed(42)
 
 check_valid('tf.signal.irfft3d', generated_inputs['tf.signal.irfft3d'], lib="tf", suffix=0)

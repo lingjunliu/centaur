@@ -10,150 +10,129 @@ import copy
 
 def tf_nn_conv1d_inputs():
     list_of_inputs = []
-
-    # Input 1: Basic valid case
-    input_tensor = np.random.rand(1, 10, 3).astype(np.float32)
-    filters_tensor = np.random.rand(3, 3, 5).astype(np.float32)
+    
+    # Input 1
     input_dict = {
-        "input": input_tensor,
-        "filters": filters_tensor,
-        "stride": 1,
-        "padding": "VALID",
-        "data_format": "NWC",
-        "dilations": [1],
-        "name": "conv1d_basic"
+        'input': np.random.randn(2, 10, 3).astype(np.float32),
+        'filters': np.random.randn(3, 3, 4).astype(np.float32),
+        'stride': 1,
+        'padding': 'SAME',
+        'data_format': 'NWC',
+        'dilations': [1],
+        'name': 'conv1d_1'
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 2: Different stride
-    input_tensor = np.random.rand(1, 10, 3).astype(np.float32)
-    filters_tensor = np.random.rand(3, 3, 5).astype(np.float32)
+    # Input 2
     input_dict = {
-        "input": input_tensor,
-        "filters": filters_tensor,
-        "stride": 2,
-        "padding": "SAME",
-        "data_format": "NWC",
-        "dilations": [1],
-        "name": "conv1d_stride"
+        'input': np.random.randn(1, 15, 2).astype(np.float32),
+        'filters': np.random.randn(2, 2, 2).astype(np.float32),
+        'stride': 2,
+        'padding': 'VALID',
+        'data_format': 'NWC',
+        'dilations': [1],
+        'name': 'conv1d_2'
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 3: Different data format
-    input_tensor = np.random.rand(1, 3, 10).astype(np.float32)
-    filters_tensor = np.random.rand(3, 3, 5).astype(np.float32)
+    # Input 3
     input_dict = {
-        "input": input_tensor,
-        "filters": filters_tensor,
-        "stride": 1,
-        "padding": "VALID",
-        "data_format": "NCW",
-        "dilations": [1],
-        "name": "conv1d_dataformat"
+        'input': np.random.randn(3, 4, 8).astype(np.float32),
+        'filters': np.random.randn(3, 4, 5).astype(np.float32),
+        'stride': 1,
+        'padding': 'SAME',
+        'data_format': 'NCW',
+        'dilations': [1],
+        'name': 'conv1d_3'
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 4: Different dilation
-    input_tensor = np.random.rand(1, 10, 3).astype(np.float32)
-    filters_tensor = np.random.rand(3, 3, 5).astype(np.float32)
+    # Input 4
     input_dict = {
-        "input": input_tensor,
-        "filters": filters_tensor,
-        "stride": 1,
-        "padding": "VALID",
-        "data_format": "NWC",
-        "dilations": [2],
-        "name": "conv1d_dilation"
+        'input': np.random.randn(2, 20, 4).astype(np.float64),
+        'filters': np.random.randn(5, 4, 2).astype(np.float64),
+        'stride': 3,
+        'padding': 'VALID',
+        'data_format': 'NWC',
+        'dilations': [1],
+        'name': 'conv1d_4'
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-     # Input 5: Batch size > 1
-    input_tensor = np.random.rand(2, 10, 3).astype(np.float32)
-    filters_tensor = np.random.rand(3, 3, 5).astype(np.float32)
+    # Input 5
     input_dict = {
-        "input": input_tensor,
-        "filters": filters_tensor,
-        "stride": 1,
-        "padding": "SAME",
-        "data_format": "NWC",
-        "dilations": [1],
-        "name": "conv1d_batch"
+        'input': np.random.randn(4, 12, 3).astype(np.float16),
+        'filters': np.random.randn(2, 3, 6).astype(np.float16),
+        'stride': 1,
+        'padding': 'SAME',
+        'data_format': 'NWC',
+        'dilations': [2],
+        'name': 'conv1d_5'
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 6: Float16
-    input_tensor = np.random.rand(1, 10, 3).astype(np.float16)
-    filters_tensor = np.random.rand(3, 3, 5).astype(np.float16)
+    # Input 6
     input_dict = {
-        "input": input_tensor,
-        "filters": filters_tensor,
-        "stride": 1,
-        "padding": "VALID",
-        "data_format": "NWC",
-        "dilations": [1],
-        "name": "conv1d_float16"
+        'input': np.random.randn(1, 16, 4).astype(np.float32),
+        'filters': np.random.randn(3, 4, 8).astype(np.float32),
+        'stride': 1,
+        'padding': 'SAME',
+        'data_format': 'NWC',
+        'dilations': [1],
+        'name': 'conv1d_6'
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 7: Float64
-    input_tensor = np.random.rand(1, 10, 3).astype(np.float64)
-    filters_tensor = np.random.rand(3, 3, 5).astype(np.float64)
+    # Input 7
     input_dict = {
-        "input": input_tensor,
-        "filters": filters_tensor,
-        "stride": 1,
-        "padding": "SAME",
-        "data_format": "NWC",
-        "dilations": [1],
-        "name": "conv1d_float64"
+        'input': np.random.randn(2, 3, 5).astype(np.float32),
+        'filters': np.random.randn(1, 3, 2).astype(np.float32),
+        'stride': 1,
+        'padding': 'VALID',
+        'data_format': 'NCW',
+        'dilations': [2],
+        'name': 'conv1d_7'
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 8: stride as list
-    input_tensor = np.random.rand(1, 10, 3).astype(np.float32)
-    filters_tensor = np.random.rand(3, 3, 5).astype(np.float32)
+    # Input 8
     input_dict = {
-        "input": input_tensor,
-        "filters": filters_tensor,
-        "stride": 1,
-        "padding": "VALID",
-        "data_format": "NWC",
-        "dilations": [1],
-        "name": "conv1d_stride_list"
+        'input': -np.random.rand(2, 10, 3).astype(np.float32),
+        'filters': np.random.randn(3, 3, 3).astype(np.float32),
+        'stride': 2,
+        'padding': 'SAME',
+        'data_format': 'NWC',
+        'dilations': [1],
+        'name': 'conv1d_8'
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 9: dilations as list length 3
-    input_tensor = np.random.rand(1, 10, 3).astype(np.float32)
-    filters_tensor = np.random.rand(3, 3, 5).astype(np.float32)
+    # Input 9
     input_dict = {
-        "input": input_tensor,
-        "filters": filters_tensor,
-        "stride": 1,
-        "padding": "VALID",
-        "data_format": "NWC",
-        "dilations": [1, 1, 1],
-        "name": "conv1d_dilations_list"
+        'input': np.random.randn(5, 5, 5).astype(np.float64),
+        'filters': -np.random.rand(2, 5, 2).astype(np.float64),
+        'stride': 1,
+        'padding': 'VALID',
+        'data_format': 'NWC',
+        'dilations': [1],
+        'name': 'conv1d_9'
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 10: Input shape (1, 5, 1)
-    input_tensor = np.random.rand(1, 5, 1).astype(np.float32)
-    filters_tensor = np.random.rand(3, 1, 2).astype(np.float32)
+    # Input 10
     input_dict = {
-        "input": input_tensor,
-        "filters": filters_tensor,
-        "stride": 1,
-        "padding": "VALID",
-        "data_format": "NWC",
-        "dilations": [1],
-        "name": "conv1d_shape"
+        'input': np.zeros((2, 8, 3), dtype=np.float32),
+        'filters': np.ones((3, 3, 4), dtype=np.float32),
+        'stride': 1,
+        'padding': 'SAME',
+        'data_format': 'NWC',
+        'dilations': [1],
+        'name': 'conv1d_10'
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs
 
-generated_inputs = {}
 generated_inputs["tf.nn.conv1d"] = tf_nn_conv1d_inputs()
 
 def check_valid(api, list_of_inputs, lib="tf", suffix=0):
@@ -161,9 +140,16 @@ def check_valid(api, list_of_inputs, lib="tf", suffix=0):
         _ = get_abstract_input(input_dict, get_signature(api, lib=lib, suffix=suffix))
         output = run_api(api, input_dict, cpu=True, lib=lib)
     
+    if len(list_of_inputs) == 0:
+        raise Exception("No inputs were generated for the API. Please check the input generation code.")
+
     print("Valid")
 
 if 'tf.nn.conv1d' not in generated_inputs:
     raise Exception("Output of the input generating function was not assigned to the generated_inputs dictionary to the key 'tf.nn.conv1d'.")
+
+
+tf.config.experimental.enable_op_determinism()
+tf.random.set_seed(42)
 
 check_valid('tf.nn.conv1d', generated_inputs['tf.nn.conv1d'], lib="tf", suffix=0)

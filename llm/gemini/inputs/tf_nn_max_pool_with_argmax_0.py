@@ -10,230 +10,139 @@ import copy
 
 def tf_nn_max_pool_with_argmax_inputs():
     list_of_inputs = []
-
-    # Input 1
-    input_tensor = tf.constant(np.random.rand(1, 5, 5, 1).astype(np.float32))
-    ksize = [1, 2, 2, 1]
-    strides = [1, 2, 2, 1]
-    padding = "VALID"
-    data_format = "NHWC"
-    output_dtype = tf.int64
-    include_batch_in_index = False
-    name = None
-
+    
+    # Case 1
     input_dict = {
-        "input": input_tensor.numpy(),
-        "ksize": ksize,
-        "strides": strides,
-        "padding": padding,
-        "data_format": data_format,
-        "output_dtype": output_dtype,
-        "include_batch_in_index": include_batch_in_index,
-        "name": name
+        'input': np.random.randn(1, 4, 4, 1).astype(np.float32),
+        'ksize': [1, 2, 2, 1],
+        'strides': [1, 2, 2, 1],
+        'padding': 'VALID',
+        'data_format': 'NHWC',
+        'output_dtype': np.int64,
+        'include_batch_in_index': False,
+        'name': 'max_pool_1'
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 2
-    input_tensor = tf.constant(np.random.rand(1, 10, 10, 3).astype(np.float32))
-    ksize = [1, 3, 3, 1]
-    strides = [1, 1, 1, 1]
-    padding = "SAME"
-    data_format = "NHWC"
-    output_dtype = tf.int32
-    include_batch_in_index = True
-    name = "max_pool"
-
+    # Case 2
     input_dict = {
-        "input": input_tensor.numpy(),
-        "ksize": ksize,
-        "strides": strides,
-        "padding": padding,
-        "data_format": data_format,
-        "output_dtype": output_dtype,
-        "include_batch_in_index": include_batch_in_index,
-        "name": name
+        'input': np.random.randint(-10, 10, size=(2, 3, 3, 2)).astype(np.int32),
+        'ksize': [1, 2, 2, 1],
+        'strides': [1, 1, 1, 1],
+        'padding': 'SAME',
+        'data_format': 'NHWC',
+        'output_dtype': np.int32,
+        'include_batch_in_index': True,
+        'name': 'max_pool_2'
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 3
-    input_tensor = tf.constant(np.random.rand(2, 7, 7, 2).astype(np.float32))
-    ksize = [1, 2, 2, 1]
-    strides = [1, 1, 1, 1]
-    padding = "VALID"
-    data_format = "NHWC"
-    output_dtype = tf.int64
-    include_batch_in_index = False
-    name = None
-
+    # Case 3
     input_dict = {
-        "input": input_tensor.numpy(),
-        "ksize": ksize,
-        "strides": strides,
-        "padding": padding,
-        "data_format": data_format,
-        "output_dtype": output_dtype,
-        "include_batch_in_index": include_batch_in_index,
-        "name": name
+        'input': np.random.randn(1, 8, 8, 3).astype(np.float64),
+        'ksize': [1, 3, 3, 1],
+        'strides': [1, 2, 2, 1],
+        'padding': 'VALID',
+        'data_format': 'NHWC',
+        'output_dtype': np.int64,
+        'include_batch_in_index': True,
+        'name': 'max_pool_3'
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 4
-    input_tensor = tf.constant(np.random.rand(4, 12, 12, 1).astype(np.float32))
-    ksize = [1, 4, 4, 1]
-    strides = [1, 4, 4, 1]
-    padding = "SAME"
-    data_format = "NHWC"
-    output_dtype = tf.int32
-    include_batch_in_index = True
-    name = "pool"
-
+    # Case 4
     input_dict = {
-        "input": input_tensor.numpy(),
-        "ksize": ksize,
-        "strides": strides,
-        "padding": padding,
-        "data_format": data_format,
-        "output_dtype": output_dtype,
-        "include_batch_in_index": include_batch_in_index,
-        "name": name
+        'input': np.random.randn(3, 5, 5, 4).astype(np.float16),
+        'ksize': [1, 2, 2, 1],
+        'strides': [1, 2, 2, 1],
+        'padding': 'SAME',
+        'data_format': 'NHWC',
+        'output_dtype': np.int32,
+        'include_batch_in_index': False,
+        'name': 'max_pool_4'
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-   # Input 5
-    input_tensor = tf.constant(np.random.rand(1, 8, 8, 1).astype(np.float64))
-    ksize = [1, 2, 2, 1]
-    strides = [1, 2, 2, 1]
-    padding = "VALID"
-    data_format = "NHWC"
-    output_dtype = tf.int64
-    include_batch_in_index = False
-    name = None
-
+    # Case 5
     input_dict = {
-        "input": input_tensor.numpy(),
-        "ksize": ksize,
-        "strides": strides,
-        "padding": padding,
-        "data_format": data_format,
-        "output_dtype": output_dtype,
-        "include_batch_in_index": include_batch_in_index,
-        "name": name
+        'input': np.random.randint(-5, 5, size=(1, 2, 2, 1)).astype(np.int16),
+        'ksize': [1, 2, 2, 1],
+        'strides': [1, 1, 1, 1],
+        'padding': 'VALID',
+        'data_format': 'NHWC',
+        'output_dtype': np.int64,
+        'include_batch_in_index': False,
+        'name': 'max_pool_5'
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 6
-    input_tensor = tf.constant(np.random.rand(1, 11, 11, 3).astype(np.float64))
-    ksize = [1, 3, 3, 1]
-    strides = [1, 1, 1, 1]
-    padding = "SAME"
-    data_format = "NHWC"
-    output_dtype = tf.int32
-    include_batch_in_index = True
-    name = "max_pool"
-
+    # Case 6
     input_dict = {
-        "input": input_tensor.numpy(),
-        "ksize": ksize,
-        "strides": strides,
-        "padding": padding,
-        "data_format": data_format,
-        "output_dtype": output_dtype,
-        "include_batch_in_index": include_batch_in_index,
-        "name": name
+        'input': np.random.randn(4, 10, 10, 3).astype(np.float32),
+        'ksize': [1, 4, 4, 1],
+        'strides': [1, 3, 3, 1],
+        'padding': 'SAME',
+        'data_format': 'NHWC',
+        'output_dtype': np.int32,
+        'include_batch_in_index': True,
+        'name': 'max_pool_6'
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 7
-    input_tensor = tf.constant(np.random.rand(2, 9, 9, 2).astype(np.float64))
-    ksize = [1, 2, 2, 1]
-    strides = [1, 1, 1, 1]
-    padding = "VALID"
-    data_format = "NHWC"
-    output_dtype = tf.int64
-    include_batch_in_index = False
-    name = None
-
+    # Case 7
     input_dict = {
-        "input": input_tensor.numpy(),
-        "ksize": ksize,
-        "strides": strides,
-        "padding": padding,
-        "data_format": data_format,
-        "output_dtype": output_dtype,
-        "include_batch_in_index": include_batch_in_index,
-        "name": name
+        'input': np.random.randint(-128, 127, size=(2, 6, 6, 2)).astype(np.int8),
+        'ksize': [1, 2, 2, 1],
+        'strides': [1, 2, 2, 1],
+        'padding': 'VALID',
+        'data_format': 'NHWC',
+        'output_dtype': np.int64,
+        'include_batch_in_index': False,
+        'name': 'max_pool_7'
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 8
-    input_tensor = tf.constant(np.random.rand(4, 13, 13, 1).astype(np.float64))
-    ksize = [1, 4, 4, 1]
-    strides = [1, 4, 4, 1]
-    padding = "SAME"
-    data_format = "NHWC"
-    output_dtype = tf.int32
-    include_batch_in_index = True
-    name = "pool"
-
+    # Case 8
     input_dict = {
-        "input": input_tensor.numpy(),
-        "ksize": ksize,
-        "strides": strides,
-        "padding": padding,
-        "data_format": data_format,
-        "output_dtype": output_dtype,
-        "include_batch_in_index": include_batch_in_index,
-        "name": name
+        'input': np.random.randint(0, 255, size=(1, 7, 7, 1)).astype(np.uint8),
+        'ksize': [1, 3, 3, 1],
+        'strides': [1, 1, 1, 1],
+        'padding': 'SAME',
+        'data_format': 'NHWC',
+        'output_dtype': np.int32,
+        'include_batch_in_index': True,
+        'name': 'max_pool_8'
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 9
-    input_tensor = tf.constant(np.random.rand(1, 6, 6, 1).astype(np.int32))
-    ksize = [1, 2, 2, 1]
-    strides = [1, 2, 2, 1]
-    padding = "VALID"
-    data_format = "NHWC"
-    output_dtype = tf.int64
-    include_batch_in_index = False
-    name = None
-
+    # Case 9
     input_dict = {
-        "input": input_tensor.numpy(),
-        "ksize": ksize,
-        "strides": strides,
-        "padding": padding,
-        "data_format": data_format,
-        "output_dtype": output_dtype,
-        "include_batch_in_index": include_batch_in_index,
-        "name": name
+        'input': np.zeros((5, 4, 4, 8)).astype(np.float32),
+        'ksize': [1, 2, 2, 1],
+        'strides': [1, 2, 2, 1],
+        'padding': 'VALID',
+        'data_format': 'NHWC',
+        'output_dtype': np.int64,
+        'include_batch_in_index': True,
+        'name': 'max_pool_9'
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 10
-    input_tensor = tf.constant(np.random.rand(1, 12, 12, 3).astype(np.int32))
-    ksize = [1, 3, 3, 1]
-    strides = [1, 1, 1, 1]
-    padding = "SAME"
-    data_format = "NHWC"
-    output_dtype = tf.int32
-    include_batch_in_index = True
-    name = "max_pool"
-
+    # Case 10
     input_dict = {
-        "input": input_tensor.numpy(),
-        "ksize": ksize,
-        "strides": strides,
-        "padding": padding,
-        "data_format": data_format,
-        "output_dtype": output_dtype,
-        "include_batch_in_index": include_batch_in_index,
-        "name": name
+        'input': np.random.randint(-1000, 1000, size=(2, 2, 2, 2)).astype(np.int64),
+        'ksize': [1, 1, 1, 1],
+        'strides': [1, 1, 1, 1],
+        'padding': 'VALID',
+        'data_format': 'NHWC',
+        'output_dtype': np.int32,
+        'include_batch_in_index': False,
+        'name': 'max_pool_10'
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs
 
-generated_inputs = {}
 generated_inputs["tf.nn.max_pool_with_argmax"] = tf_nn_max_pool_with_argmax_inputs()
 
 def check_valid(api, list_of_inputs, lib="tf", suffix=0):
@@ -241,9 +150,16 @@ def check_valid(api, list_of_inputs, lib="tf", suffix=0):
         _ = get_abstract_input(input_dict, get_signature(api, lib=lib, suffix=suffix))
         output = run_api(api, input_dict, cpu=True, lib=lib)
     
+    if len(list_of_inputs) == 0:
+        raise Exception("No inputs were generated for the API. Please check the input generation code.")
+
     print("Valid")
 
 if 'tf.nn.max_pool_with_argmax' not in generated_inputs:
     raise Exception("Output of the input generating function was not assigned to the generated_inputs dictionary to the key 'tf.nn.max_pool_with_argmax'.")
+
+
+tf.config.experimental.enable_op_determinism()
+tf.random.set_seed(42)
 
 check_valid('tf.nn.max_pool_with_argmax', generated_inputs['tf.nn.max_pool_with_argmax'], lib="tf", suffix=0)

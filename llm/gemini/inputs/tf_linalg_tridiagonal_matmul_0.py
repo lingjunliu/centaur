@@ -4,148 +4,150 @@ from generator.input_generators import get_abstract_input
 
 generated_inputs = dict()
 
+import tensorflow as tf
 import numpy as np
 import copy
 
-def get_tf_linalg_tridiagonal_matmul_inputs():
-    """
-    Generates a list of valid inputs for the tf.linalg.tridiagonal_matmul function.
-    """
+def tf_linalg_tridiagonal_matmul_inputs():
     list_of_inputs = []
 
-    # All inputs will use 'compact' format to ensure 'diagonals' is a single tensor.
-
-    # Input 1: Basic 'compact' format, float32
-    diagonals_1 = np.array([
-        [1, 2, 3, 0],   # super
-        [4, 5, 6, 7],   # main
-        [0, 8, 9, 10]   # sub
+    # Input 1: Basic float32, no batch
+    diagonals = np.array([
+        [1.0, 2.0, 0.0],  # superdiag
+        [3.0, 4.0, 5.0],  # maindiag
+        [0.0, 6.0, 7.0]   # subdiag
     ], dtype=np.float32)
-    rhs_1 = np.random.rand(4, 2).astype(np.float32)
-    list_of_inputs.append(copy.deepcopy({
-        'diagonals': diagonals_1,
-        'rhs': rhs_1,
+    rhs = np.array([
+        [1.0, 1.0],
+        [2.0, 2.0],
+        [3.0, 3.0]
+    ], dtype=np.float32)
+    input_dict = {
+        'diagonals': diagonals,
+        'rhs': rhs,
         'diagonals_format': 'compact',
-        'name': 'compact_float32'
-    }))
+        'name': 'matmul_1'
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 2: Basic 'compact' format, float64 with negative values
-    diagonals_2 = np.array([
-        [-1, -2, -3, -4, 0],  # superdiagonal (last element ignored)
-        [10, 20, 30, 40, 50], # main diagonal
-        [0, -5, -6, -7, -8]   # subdiagonal (first element ignored)
+    # Input 2: float64, with negative values
+    diagonals = np.array([
+        [-1.0, -2.0, 0.0, 0.0],
+        [2.0, 2.0, -2.0, 2.0],
+        [0.0, -1.0, -1.0, -3.0]
     ], dtype=np.float64)
-    rhs_2 = np.random.rand(5, 3).astype(np.float64)
-    list_of_inputs.append(copy.deepcopy({
-        'diagonals': diagonals_2,
-        'rhs': rhs_2,
+    rhs = np.array([
+        [1.0],
+        [-1.0],
+        [2.0],
+        [-2.0]
+    ], dtype=np.float64)
+    input_dict = {
+        'diagonals': diagonals,
+        'rhs': rhs,
         'diagonals_format': 'compact',
-        'name': 'compact_float64_neg'
-    }))
+        'name': 'matmul_2'
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 3: 'compact' format with one batch dimension, float32
-    diagonals_3 = np.random.rand(2, 3, 4).astype(np.float32)
-    rhs_3 = np.random.rand(2, 4, 3).astype(np.float32)
-    list_of_inputs.append(copy.deepcopy({
-        'diagonals': diagonals_3,
-        'rhs': rhs_3,
+    # Input 3: Batch dimension 1, float32
+    diagonals = np.random.randn(2, 3, 5).astype(np.float32)
+    rhs = np.random.randn(2, 5, 3).astype(np.float32)
+    input_dict = {
+        'diagonals': diagonals,
+        'rhs': rhs,
         'diagonals_format': 'compact',
-        'name': 'compact_batch_float32'
-    }))
+        'name': 'matmul_3'
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 4: 'compact' format with two batch dimensions, float64
-    diagonals_4 = np.random.rand(2, 2, 3, 5).astype(np.float64)
-    rhs_4 = np.random.rand(2, 2, 5, 1).astype(np.float64)
-    list_of_inputs.append(copy.deepcopy({
-        'diagonals': diagonals_4,
-        'rhs': rhs_4,
+    # Input 4: Complex64
+    diagonals = (np.random.randn(3, 4) + 1j * np.random.randn(3, 4)).astype(np.complex64)
+    rhs = (np.random.randn(4, 2) + 1j * np.random.randn(4, 2)).astype(np.complex64)
+    input_dict = {
+        'diagonals': diagonals,
+        'rhs': rhs,
         'diagonals_format': 'compact',
-        'name': 'compact_batch2d_float64'
-    }))
+        'name': 'matmul_4'
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 5: 'compact' format, complex64
-    diagonals_5 = (np.random.rand(3, 3) + 1j * np.random.rand(3, 3)).astype(np.complex64)
-    rhs_5 = (np.random.rand(3, 3) + 1j * np.random.rand(3, 3)).astype(np.complex64)
-    list_of_inputs.append(copy.deepcopy({
-        'diagonals': diagonals_5,
-        'rhs': rhs_5,
+    # Input 5: Complex128, batched
+    diagonals = (np.random.randn(2, 3, 3) + 1j * np.random.randn(2, 3, 3)).astype(np.complex128)
+    rhs = (np.random.randn(2, 3, 4) + 1j * np.random.randn(2, 3, 4)).astype(np.complex128)
+    input_dict = {
+        'diagonals': diagonals,
+        'rhs': rhs,
         'diagonals_format': 'compact',
-        'name': 'compact_complex64'
-    }))
+        'name': 'matmul_5'
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 6: 'compact' format, complex128
-    diagonals_6 = (np.random.rand(3, 6) + 1j * np.random.rand(3, 6)).astype(np.complex128)
-    rhs_6 = (np.random.rand(6, 2) + 1j * np.random.rand(6, 2)).astype(np.complex128)
-    list_of_inputs.append(copy.deepcopy({
-        'diagonals': diagonals_6,
-        'rhs': rhs_6,
+    # Input 6: Large M and N, float64
+    diagonals = np.random.randn(3, 100).astype(np.float64)
+    rhs = np.random.randn(100, 50).astype(np.float64)
+    input_dict = {
+        'diagonals': diagonals,
+        'rhs': rhs,
         'diagonals_format': 'compact',
-        'name': 'compact_complex128'
-    }))
+        'name': 'matmul_6'
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 7: 'compact' with batch and complex numbers, complex64
-    diagonals_7 = (np.random.rand(3, 3, 5) + 1j * np.random.rand(3, 3, 5)).astype(np.complex64)
-    rhs_7 = (np.random.rand(3, 5, 5) + 1j * np.random.rand(3, 5, 5)).astype(np.complex64)
-    list_of_inputs.append(copy.deepcopy({
-        'diagonals': diagonals_7,
-        'rhs': rhs_7,
+    # Input 7: Batch dimensions 2, float32
+    diagonals = np.random.randn(3, 2, 3, 6).astype(np.float32)
+    rhs = np.random.randn(3, 2, 6, 2).astype(np.float32)
+    input_dict = {
+        'diagonals': diagonals,
+        'rhs': rhs,
         'diagonals_format': 'compact',
-        'name': 'compact_batch_complex64'
-    }))
+        'name': 'matmul_7'
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 8: 'compact' with batch and complex numbers, complex128
-    diagonals_8 = (np.random.rand(2, 3, 4) + 1j * np.random.rand(2, 3, 4)).astype(np.complex128)
-    rhs_8 = (np.random.rand(2, 4, 3) + 1j * np.random.rand(2, 4, 3)).astype(np.complex128)
-    list_of_inputs.append(copy.deepcopy({
-        'diagonals': diagonals_8,
-        'rhs': rhs_8,
+    # Input 8: Small size M=2, N=1
+    diagonals = np.array([
+        [0.5, 0.0],
+        [1.5, 2.5],
+        [0.0, 3.5]
+    ], dtype=np.float32)
+    rhs = np.array([
+        [1.0],
+        [2.0]
+    ], dtype=np.float32)
+    input_dict = {
+        'diagonals': diagonals,
+        'rhs': rhs,
         'diagonals_format': 'compact',
-        'name': 'compact_batch_complex128'
-    }))
+        'name': 'matmul_8'
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 9: 'compact' format, larger M
-    diagonals_9 = np.random.randn(3, 10).astype(np.float32)
-    rhs_9 = np.random.randn(10, 5).astype(np.float32)
-    list_of_inputs.append(copy.deepcopy({
-        'diagonals': diagonals_9,
-        'rhs': rhs_9,
+    # Input 9: Zero arrays
+    diagonals = np.zeros((3, 10), dtype=np.float32)
+    rhs = np.zeros((10, 10), dtype=np.float32)
+    input_dict = {
+        'diagonals': diagonals,
+        'rhs': rhs,
         'diagonals_format': 'compact',
-        'name': 'large_M_compact'
-    }))
+        'name': 'matmul_9'
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 10: Minimal case, M=2, 'compact'
-    diagonals_10 = np.array([[-1, 0], [2, 2], [0, -1]], dtype=np.float32)
-    rhs_10 = np.eye(2, dtype=np.float32)
-    list_of_inputs.append(copy.deepcopy({
-        'diagonals': diagonals_10,
-        'rhs': rhs_10,
+    # Input 10: Single batch large size, float32
+    diagonals = np.random.randn(5, 3, 20).astype(np.float32)
+    rhs = np.random.randn(5, 20, 10).astype(np.float32)
+    input_dict = {
+        'diagonals': diagonals,
+        'rhs': rhs,
         'diagonals_format': 'compact',
-        'name': 'minimal_M_compact'
-    }))
+        'name': 'matmul_10'
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 11: Minimal case, M=1, 'compact'
-    diagonals_11 = np.array([[0], [5], [0]], dtype=np.float64)
-    rhs_11 = np.array([[10]], dtype=np.float64)
-    list_of_inputs.append(copy.deepcopy({
-        'diagonals': diagonals_11,
-        'rhs': rhs_11,
-        'diagonals_format': 'compact',
-        'name': 'M1_compact'
-    }))
-
-    # Input 12: 'compact' with N=1 (rhs is a vector)
-    diagonals_12 = np.random.rand(3, 5).astype(np.float32)
-    rhs_12 = np.random.rand(5, 1).astype(np.float32)
-    list_of_inputs.append(copy.deepcopy({
-        'diagonals': diagonals_12,
-        'rhs': rhs_12,
-        'diagonals_format': 'compact',
-        'name': 'N1_compact'
-    }))
-    
     return list_of_inputs
 
-generated_inputs["tf.linalg.tridiagonal_matmul"] = get_tf_linalg_tridiagonal_matmul_inputs()
+generated_inputs["tf.linalg.tridiagonal_matmul"] = tf_linalg_tridiagonal_matmul_inputs()
 
 def check_valid(api, list_of_inputs, lib="tf", suffix=0):
     for idx, input_dict in enumerate(list_of_inputs):
@@ -159,5 +161,9 @@ def check_valid(api, list_of_inputs, lib="tf", suffix=0):
 
 if 'tf.linalg.tridiagonal_matmul' not in generated_inputs:
     raise Exception("Output of the input generating function was not assigned to the generated_inputs dictionary to the key 'tf.linalg.tridiagonal_matmul'.")
+
+
+tf.config.experimental.enable_op_determinism()
+tf.random.set_seed(42)
 
 check_valid('tf.linalg.tridiagonal_matmul', generated_inputs['tf.linalg.tridiagonal_matmul'], lib="tf", suffix=0)

@@ -11,79 +11,88 @@ import copy
 def tf_raw_ops_bincount_inputs():
     list_of_inputs = []
 
-    # Input 1: Basic case with weights = None
-    arr = np.array([1, 2, 3, 0, 1, 2]).astype(np.int32)
-    size = np.array(5).astype(np.int32)
-    weights = np.array([]).astype(np.float32)
-    input_dict = {"name": "bincount_1", "arr": arr, "size": size, "weights": weights}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    # Input 1: Basic case, 1D arr, size 5, empty float32 weights
+    list_of_inputs.append({
+        "name": "bincount_1",
+        "arr": np.array([1, 2, 2, 3], dtype=np.int32),
+        "size": np.array(5, dtype=np.int32),
+        "weights": np.array([], dtype=np.float32)
+    })
 
-    # Input 2: With integer weights
-    arr = np.array([1, 2, 3, 0, 1, 2]).astype(np.int32)
-    size = np.array(5).astype(np.int32)
-    weights = np.array([1, 2, 3, 4, 5, 6]).astype(np.int32)
-    input_dict = {"name": "bincount_2", "arr": arr, "size": size, "weights": weights}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    # Input 2: 1D arr, size 4, with matching float32 weights
+    list_of_inputs.append({
+        "name": "bincount_2",
+        "arr": np.array([0, 1, 2, 1], dtype=np.int32),
+        "size": np.array(4, dtype=np.int32),
+        "weights": np.array([0.1, 0.2, 0.3, 0.4], dtype=np.float32)
+    })
 
-    # Input 3: With float weights
-    arr = np.array([1, 2, 3, 0, 1, 2]).astype(np.int32)
-    size = np.array(5).astype(np.int32)
-    weights = np.array([1.1, 2.2, 3.3, 4.4, 5.5, 6.6]).astype(np.float32)
-    input_dict = {"name": "bincount_3", "arr": arr, "size": size, "weights": weights}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    # Input 3: Values outside range [0, size) to be ignored
+    list_of_inputs.append({
+        "name": "bincount_3",
+        "arr": np.array([0, 5, 2, 10], dtype=np.int32),
+        "size": np.array(4, dtype=np.int32),
+        "weights": np.array([], dtype=np.int32)
+    })
 
-    # Input 4: arr with zero size
-    arr = np.array([]).astype(np.int32)
-    size = np.array(5).astype(np.int32)
-    weights = np.array([]).astype(np.float32)
-    input_dict = {"name": "bincount_4", "arr": arr, "size": size, "weights": weights}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    # Input 4: Using int64 weights
+    list_of_inputs.append({
+        "name": "bincount_4",
+        "arr": np.array([0, 1, 2], dtype=np.int32),
+        "size": np.array(3, dtype=np.int32),
+        "weights": np.array([10, 20, 30], dtype=np.int64)
+    })
 
-    # Input 5: weights with int64
-    arr = np.array([1, 2, 3, 0, 1, 2]).astype(np.int32)
-    size = np.array(5).astype(np.int32)
-    weights = np.array([1, 2, 3, 4, 5, 6]).astype(np.int64)
-    input_dict = {"name": "bincount_5", "arr": arr, "size": size, "weights": weights}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    # Input 5: Using float64 weights
+    list_of_inputs.append({
+        "name": "bincount_5",
+        "arr": np.array([1, 1, 1], dtype=np.int32),
+        "size": np.array(2, dtype=np.int32),
+        "weights": np.array([1.5, 2.5, 3.5], dtype=np.float64)
+    })
 
-    # Input 6: weights with float64
-    arr = np.array([1, 2, 3, 0, 1, 2]).astype(np.int32)
-    size = np.array(5).astype(np.int32)
-    weights = np.array([1.1, 2.2, 3.3, 4.4, 5.5, 6.6]).astype(np.float64)
-    input_dict = {"name": "bincount_6", "arr": arr, "size": size, "weights": weights}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    # Input 6: Empty arr and float32 empty weights
+    list_of_inputs.append({
+        "name": "bincount_6",
+        "arr": np.array([], dtype=np.int32),
+        "size": np.array(3, dtype=np.int32),
+        "weights": np.array([], dtype=np.float32)
+    })
 
-    # Input 7: size = 0, arr is not empty
-    arr = np.array([1, 2, 3, 0, 1, 2]).astype(np.int32)
-    size = np.array(0).astype(np.int32)
-    weights = np.array([]).astype(np.float64)  #weights needs to be empty
-    input_dict = {"name": "bincount_7", "arr": arr, "size": size, "weights": weights}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    # Input 7: Values in arr outside [0, size) (must be non-negative)
+    list_of_inputs.append({
+        "name": "bincount_7",
+        "arr": np.array([5, 10, 15], dtype=np.int32),
+        "size": np.array(2, dtype=np.int32),
+        "weights": np.array([], dtype=np.float32)
+    })
 
-    # Input 8: Different size and arr values
-    arr = np.array([0, 0, 1, 1, 2, 2, 2]).astype(np.int32)
-    size = np.array(3).astype(np.int32)
-    weights = np.array([0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7]).astype(np.float32)
-    input_dict = {"name": "bincount_8", "arr": arr, "size": size, "weights": weights}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    # Input 8: Size is 0 (all values ignored)
+    list_of_inputs.append({
+        "name": "bincount_8",
+        "arr": np.array([1, 2, 3], dtype=np.int32),
+        "size": np.array(0, dtype=np.int32),
+        "weights": np.array([], dtype=np.float32)
+    })
 
-    # Input 9: Int weights with different values.
-    arr = np.array([0, 0, 1, 1, 2, 2, 2]).astype(np.int32)
-    size = np.array(4).astype(np.int32)
-    weights = np.array([1, 0, 1, 0, 1, 0, 1]).astype(np.int32)
-    input_dict = {"name": "bincount_9", "arr": arr, "size": size, "weights": weights}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    # Input 9: Large size, empty int32 weights
+    list_of_inputs.append({
+        "name": "bincount_9",
+        "arr": np.array([10, 20], dtype=np.int32),
+        "size": np.array(30, dtype=np.int32),
+        "weights": np.array([], dtype=np.int32)
+    })
 
-    # Input 10: larger size and arr values.
-    arr = np.array([1, 5, 2, 3, 4, 1, 0, 5]).astype(np.int32)
-    size = np.array(7).astype(np.int32)
-    weights = np.array([0.1, 0.5, 0.2, 0.3, 0.4, 0.1, 0.0, 0.5]).astype(np.float32)
-    input_dict = {"name": "bincount_10", "arr": arr, "size": size, "weights": weights}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    # Input 10: int32 weights matching arr
+    list_of_inputs.append({
+        "name": "bincount_10",
+        "arr": np.array([0, 2, 2, 1], dtype=np.int32),
+        "size": np.array(3, dtype=np.int32),
+        "weights": np.array([5, 10, 15, 20], dtype=np.int32)
+    })
 
     return list_of_inputs
 
-generated_inputs = {}
 generated_inputs["tf.raw_ops.Bincount"] = tf_raw_ops_bincount_inputs()
 
 def check_valid(api, list_of_inputs, lib="tf", suffix=0):
@@ -91,9 +100,16 @@ def check_valid(api, list_of_inputs, lib="tf", suffix=0):
         _ = get_abstract_input(input_dict, get_signature(api, lib=lib, suffix=suffix))
         output = run_api(api, input_dict, cpu=True, lib=lib)
     
+    if len(list_of_inputs) == 0:
+        raise Exception("No inputs were generated for the API. Please check the input generation code.")
+
     print("Valid")
 
 if 'tf.raw_ops.Bincount' not in generated_inputs:
     raise Exception("Output of the input generating function was not assigned to the generated_inputs dictionary to the key 'tf.raw_ops.Bincount'.")
+
+
+tf.config.experimental.enable_op_determinism()
+tf.random.set_seed(42)
 
 check_valid('tf.raw_ops.Bincount', generated_inputs['tf.raw_ops.Bincount'], lib="tf", suffix=0)

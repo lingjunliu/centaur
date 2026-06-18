@@ -8,92 +8,93 @@ import tensorflow as tf
 import numpy as np
 import copy
 
+tf.config.experimental.enable_op_determinism()
+
 def tf_math_unsorted_segment_max_inputs():
     list_of_inputs = []
 
-    # Input 1
-    data = np.array([1, 2, 3, 4]).astype(np.int32)
-    segment_ids = np.array([0, 0, 1, 1]).astype(np.int32)
-    num_segments = 2
-    name = "example1"
-    input_dict = {"data": data, "segment_ids": segment_ids, "num_segments": num_segments, "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    # Case 1: Simple 1D float32
+    list_of_inputs.append({
+        "data": np.array([1.0, 2.0, 3.0, 4.0], dtype=np.float32),
+        "segment_ids": np.array([0, 0, 1, 1], dtype=np.int32),
+        "num_segments": 2,
+        "name": "segment_max_1d_float"
+    })
 
-    # Input 2
-    data = np.array([[1,2,3,4], [5,6,7,8], [4,3,2,1]]).astype(np.int32)
-    segment_ids = np.array([0, 1, 0]).astype(np.int32)
-    num_segments = 2
-    name = "example2"
-    input_dict = {"data": data, "segment_ids": segment_ids, "num_segments": num_segments, "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    # Case 2: 2D data (3x4), 1D segment_ids (3)
+    list_of_inputs.append({
+        "data": np.array([[1, 2, 3, 4], [5, 6, 7, 8], [4, 3, 2, 1]], dtype=np.int32),
+        "segment_ids": np.array([0, 1, 0], dtype=np.int32),
+        "num_segments": 2,
+        "name": "segment_max_2d_int"
+    })
 
-    # Input 3
-    data = np.array([1.0, 2.0, 3.0, 4.0]).astype(np.float32)
-    segment_ids = np.array([0, 0, 1, 1]).astype(np.int32)
-    num_segments = 2
-    name = "example3"
-    input_dict = {"data": data, "segment_ids": segment_ids, "num_segments": num_segments, "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    # Case 3: 3D data (2x2x3), 1D segment_ids (2)
+    list_of_inputs.append({
+        "data": np.array([[[1.5, 2.5, 3.5], [4.5, 5.5, 6.5]], [[7.5, 8.5, 9.5], [10.5, 11.5, 12.5]]], dtype=np.float64),
+        "segment_ids": np.array([1, 0], dtype=np.int32),
+        "num_segments": 2,
+        "name": "segment_max_3d_float"
+    })
 
-    # Input 4
-    data = np.array([1, 2, 3, 4, 5]).astype(np.int32)
-    segment_ids = np.array([0, 0, 1, 1, 2]).astype(np.int32)
-    num_segments = 3
-    name = "example4"
-    input_dict = {"data": data, "segment_ids": segment_ids, "num_segments": num_segments, "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    # Case 4: 3D data (2x2x2), 2D segment_ids (2x2)
+    list_of_inputs.append({
+        "data": np.array([[[1, 2], [3, 4]], [[5, 6], [7, 8]]], dtype=np.int32),
+        "segment_ids": np.array([[0, 1], [0, 1]], dtype=np.int32),
+        "num_segments": 2,
+        "name": "segment_max_3d_2d_ids"
+    })
 
-    # Input 5
-    data = np.array([[1, 2], [3, 4], [5, 6]]).astype(np.int32)
-    segment_ids = np.array([0, 1, 0]).astype(np.int32)
-    num_segments = 2
-    name = "example5"
-    input_dict = {"data": data, "segment_ids": segment_ids, "num_segments": num_segments, "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    # Case 5: 2D data with negative values and some segment_ids negative (should be ignored)
+    list_of_inputs.append({
+        "data": np.array([[-1.0, -2.0], [3.0, 4.0], [-5.0, -6.0]], dtype=np.float32),
+        "segment_ids": np.array([-1, 0, -1], dtype=np.int32),
+        "num_segments": 1,
+        "name": "segment_max_neg_ids"
+    })
 
-    # Input 6
-    data = np.array([1, 2, 3, 4]).astype(np.int64)
-    segment_ids = np.array([0, 0, 1, 1]).astype(np.int64)
-    num_segments = 2
-    name = "example6"
-    input_dict = {"data": data, "segment_ids": segment_ids, "num_segments": num_segments, "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    # Case 6: 1D data with int64 and int64 segment_ids
+    list_of_inputs.append({
+        "data": np.array([10, 20, 30, 40, 50], dtype=np.int64),
+        "segment_ids": np.array([0, 1, 2, 1, 0], dtype=np.int64),
+        "num_segments": 3,
+        "name": "segment_max_int64"
+    })
 
-    # Input 7
-    data = np.array([1, 2, 3, 4]).astype(np.float64)
-    segment_ids = np.array([0, 0, 1, 1]).astype(np.int32)
-    num_segments = 2
-    name = "example7"
-    input_dict = {"data": data, "segment_ids": segment_ids, "num_segments": num_segments, "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    # Case 7: 2D data with uint8
+    list_of_inputs.append({
+        "data": np.array([[10, 20], [30, 40], [50, 60]], dtype=np.uint8),
+        "segment_ids": np.array([0, 0, 1], dtype=np.int32),
+        "num_segments": 2,
+        "name": "segment_max_uint8"
+    })
 
-   # Input 8
-    data = np.array([[-1, -2], [-3, -4], [-5, -6]]).astype(np.int32)
-    segment_ids = np.array([0, 1, 0]).astype(np.int32)
-    num_segments = 2
-    name = "example8"
-    input_dict = {"data": data, "segment_ids": segment_ids, "num_segments": num_segments, "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    # Case 8: 4D data (2x2x2x2), 2D segment_ids (2x2)
+    list_of_inputs.append({
+        "data": np.ones((2, 2, 2, 2), dtype=np.float32),
+        "segment_ids": np.array([[0, 1], [1, 0]], dtype=np.int32),
+        "num_segments": 3,
+        "name": "segment_max_4d"
+    })
 
-   # Input 9
-    data = np.array([1, 2, 3, 4]).astype(np.int32)
-    segment_ids = np.array([0, 0, 1, 0]).astype(np.int32)
-    num_segments = 2
-    name = "example9"
-    input_dict = {"data": data, "segment_ids": segment_ids, "num_segments": num_segments, "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    # Case 9: 1D data with empty segment (num_segments larger than max segment_id)
+    list_of_inputs.append({
+        "data": np.array([1.5, 2.5], dtype=np.float32),
+        "segment_ids": np.array([0, 0], dtype=np.int32),
+        "num_segments": 3,
+        "name": "segment_max_empty_seg"
+    })
 
-    # Input 10
-    data = np.array([1, 2, 3, 4]).astype(np.uint8)
-    segment_ids = np.array([0, 0, 1, 1]).astype(np.int32)
-    num_segments = 2
-    name = "example10"
-    input_dict = {"data": data, "segment_ids": segment_ids, "num_segments": num_segments, "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    # Case 10: 3D data, 3D segment_ids (fully specified segments)
+    list_of_inputs.append({
+        "data": np.array([[[1], [2]], [[3], [4]]], dtype=np.float32),
+        "segment_ids": np.array([[[1], [0]], [[0], [1]]], dtype=np.int32),
+        "num_segments": 2,
+        "name": "segment_max_full_ids"
+    })
 
     return list_of_inputs
 
-generated_inputs = {}
 generated_inputs["tf.math.unsorted_segment_max"] = tf_math_unsorted_segment_max_inputs()
 
 def check_valid(api, list_of_inputs, lib="tf", suffix=0):
@@ -101,9 +102,16 @@ def check_valid(api, list_of_inputs, lib="tf", suffix=0):
         _ = get_abstract_input(input_dict, get_signature(api, lib=lib, suffix=suffix))
         output = run_api(api, input_dict, cpu=True, lib=lib)
     
+    if len(list_of_inputs) == 0:
+        raise Exception("No inputs were generated for the API. Please check the input generation code.")
+
     print("Valid")
 
 if 'tf.math.unsorted_segment_max' not in generated_inputs:
     raise Exception("Output of the input generating function was not assigned to the generated_inputs dictionary to the key 'tf.math.unsorted_segment_max'.")
+
+
+tf.config.experimental.enable_op_determinism()
+tf.random.set_seed(42)
 
 check_valid('tf.math.unsorted_segment_max', generated_inputs['tf.math.unsorted_segment_max'], lib="tf", suffix=0)

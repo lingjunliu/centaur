@@ -10,190 +10,119 @@ import copy
 
 def tf_nn_max_pool2d_inputs():
     list_of_inputs = []
-
+    
     # Input 1
-    input_tensor = tf.constant(np.array([[[[1, 2], [3, 4]], [[5, 6], [7, 8]]]]), dtype=tf.float32).numpy()
-    ksize = 2
-    strides = 2
-    padding = [[0, 0], [0, 0], [0, 0], [0, 0]]
-    data_format = 'NHWC'
-    name = 'max_pool_1'
-
     input_dict = {
-        'input': input_tensor,
-        'ksize': ksize,
-        'strides': strides,
-        'padding': padding,
-        'data_format': data_format,
-        'name': name
+        'input': np.random.randn(1, 4, 4, 1).astype(np.float32),
+        'ksize': 2,
+        'strides': 1,
+        'padding': [[0, 0], [1, 1], [1, 1], [0, 0]],
+        'data_format': 'NHWC',
+        'name': 'pool1'
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
-
+    
     # Input 2
-    input_tensor = tf.constant(np.array([[[[1, 2, 3], [4, 5, 6], [7, 8, 9]]]]), dtype=tf.float32).numpy()
-    ksize = 2
-    strides = 1
-    padding = [[0, 0], [0, 0], [0, 0], [0, 0]]
-    data_format = 'NHWC'
-    name = 'max_pool_2'
-
     input_dict = {
-        'input': input_tensor,
-        'ksize': ksize,
-        'strides': strides,
-        'padding': padding,
-        'data_format': data_format,
-        'name': name
+        'input': np.random.randn(2, 8, 8, 3).astype(np.float32),
+        'ksize': 3,
+        'strides': 2,
+        'padding': [[0, 0], [2, 2], [2, 2], [0, 0]],
+        'data_format': 'NHWC',
+        'name': 'pool2'
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
-
+    
     # Input 3
-    input_tensor = tf.constant(np.array([[[[1, 2], [3, 4]], [[5, 6], [7, 8]]]]), dtype=tf.float32).numpy()
-    ksize = 2
-    strides = 1
-    padding = [[0, 0], [0, 0], [0, 0], [0, 0]]
-    data_format = 'NHWC'
-    name = 'max_pool_3'
-
     input_dict = {
-        'input': input_tensor,
-        'ksize': ksize,
-        'strides': strides,
-        'padding': padding,
-        'data_format': data_format,
-        'name': name
+        'input': np.array([[[[-1.0], [-2.0]], [[-3.0], [-4.0]]]], dtype=np.float32),
+        'ksize': 2,
+        'strides': 1,
+        'padding': [[0, 0], [0, 0], [0, 0], [0, 0]],
+        'data_format': 'NHWC',
+        'name': 'pool3'
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
-
+    
     # Input 4
-    input_tensor = tf.constant(np.array([[[[1, 2, 3, 4], [5, 6, 7, 8], [9, 10, 11, 12]]]]), dtype=tf.float32).numpy()
-    ksize = 2
-    strides = 2
-    padding = [[0, 0], [0, 0], [0, 0], [0, 0]]
-    data_format = 'NHWC'
-    name = 'max_pool_4'
-
     input_dict = {
-        'input': input_tensor,
-        'ksize': ksize,
-        'strides': strides,
-        'padding': padding,
-        'data_format': data_format,
-        'name': name
+        'input': np.random.randn(1, 6, 6, 2).astype(np.float32),
+        'ksize': 2,
+        'strides': 2,
+        'padding': [[0, 0], [1, 1], [1, 1], [0, 0]],
+        'data_format': 'NHWC',
+        'name': 'pool4'
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
-
+    
     # Input 5
-    input_tensor = tf.constant(np.array([[[[1, 2], [3, 4]], [[5, 6], [7, 8]]]]), dtype=tf.float32).numpy()
-    ksize = 2
-    strides = 2
-    padding = [[0, 0], [0, 0], [0, 0], [0, 0]]
-    data_format = 'NHWC'
-    name = 'max_pool_5'
-
     input_dict = {
-        'input': input_tensor,
-        'ksize': ksize,
-        'strides': strides,
-        'padding': padding,
-        'data_format': data_format,
-        'name': name
+        'input': np.ones((4, 10, 10, 3), dtype=np.float32),
+        'ksize': 4,
+        'strides': 2,
+        'padding': [[0, 0], [3, 3], [3, 3], [0, 0]],
+        'data_format': 'NHWC',
+        'name': 'pool5'
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
-
+    
     # Input 6
-    input_tensor = tf.constant(np.array([[[[1, 2], [3, 4]], [[5, 6], [7, 8]]]]), dtype=tf.float32).numpy()
-    ksize = 1
-    strides = 1
-    padding = [[0, 0], [0, 0], [0, 0], [0, 0]]
-    data_format = 'NHWC'
-    name = 'max_pool_6'
-
     input_dict = {
-        'input': input_tensor,
-        'ksize': ksize,
-        'strides': strides,
-        'padding': padding,
-        'data_format': data_format,
-        'name': name
+        'input': np.random.randn(1, 12, 12, 1).astype(np.float32),
+        'ksize': 3,
+        'strides': 3,
+        'padding': [[0, 0], [1, 1], [1, 1], [0, 0]],
+        'data_format': 'NHWC',
+        'name': 'pool6'
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
-
+    
     # Input 7
-    input_tensor = tf.constant(np.array([[[[1, 2, 3, 4, 5], [6, 7, 8, 9, 10], [11, 12, 13, 14, 15]]]]), dtype=tf.float32).numpy()
-    ksize = 1
-    strides = 1
-    padding = [[0, 0], [0, 0], [0, 0], [0, 0]]
-    data_format = 'NHWC'
-    name = 'max_pool_7'
-
     input_dict = {
-        'input': input_tensor,
-        'ksize': ksize,
-        'strides': strides,
-        'padding': padding,
-        'data_format': data_format,
-        'name': name
+        'input': np.random.randn(2, 5, 5, 4).astype(np.float32),
+        'ksize': 1,
+        'strides': 1,
+        'padding': [[0, 0], [0, 0], [0, 0], [0, 0]],
+        'data_format': 'NHWC',
+        'name': 'pool7'
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
-
-   # Input 8
-    input_tensor = tf.constant(np.array([[[[1, 2], [3, 4]], [[5, 6], [7, 8]]]]), dtype=tf.float32).numpy()
-    ksize = 2
-    strides = 2
-    padding = [[0, 0], [0, 0], [0, 0], [0, 0]]
-    data_format = 'NHWC'
-    name = 'max_pool_8'
-
+    
+    # Input 8
     input_dict = {
-        'input': input_tensor,
-        'ksize': ksize,
-        'strides': strides,
-        'padding': padding,
-        'data_format': data_format,
-        'name': name
+        'input': np.random.randn(1, 3, 3, 1).astype(np.float64),
+        'ksize': 2,
+        'strides': 1,
+        'padding': [[0, 0], [0, 0], [0, 0], [0, 0]],
+        'data_format': 'NHWC',
+        'name': 'pool8'
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
-
+    
     # Input 9
-    input_tensor = tf.constant(np.array([[[[1, 2, 3], [4, 5, 6], [7, 8, 9], [10, 11, 12]]]]), dtype=tf.float32).numpy()
-    ksize = 2
-    strides = 2
-    padding = [[0, 0], [0, 0], [0, 0], [0, 0]]
-    data_format = 'NHWC'
-    name = 'max_pool_9'
-
     input_dict = {
-        'input': input_tensor,
-        'ksize': ksize,
-        'strides': strides,
-        'padding': padding,
-        'data_format': data_format,
-        'name': name
+        'input': np.random.randn(1, 16, 16, 2).astype(np.float32),
+        'ksize': 4,
+        'strides': 4,
+        'padding': [[0, 0], [2, 2], [2, 2], [0, 0]],
+        'data_format': 'NHWC',
+        'name': 'pool9'
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
-
+    
     # Input 10
-    input_tensor = tf.constant(np.array([[[[1, 2], [3, 4]], [[5, 6], [7, 8]]]]), dtype=tf.float32).numpy()
-    ksize = 2
-    strides = 1
-    padding = [[0, 0], [0, 0], [0, 0], [0, 0]]
-    data_format = 'NHWC'
-    name = 'max_pool_10'
-
     input_dict = {
-        'input': input_tensor,
-        'ksize': ksize,
-        'strides': strides,
-        'padding': padding,
-        'data_format': data_format,
-        'name': name
+        'input': np.zeros((1, 5, 5, 1), dtype=np.float32),
+        'ksize': 3,
+        'strides': 2,
+        'padding': [[0, 0], [1, 1], [1, 1], [0, 0]],
+        'data_format': 'NHWC',
+        'name': 'pool10'
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
-
+    
     return list_of_inputs
 
-generated_inputs = {}
 generated_inputs["tf.nn.max_pool2d_5"] = tf_nn_max_pool2d_inputs()
 
 def check_valid(api, list_of_inputs, lib="tf", suffix=0):
@@ -201,9 +130,16 @@ def check_valid(api, list_of_inputs, lib="tf", suffix=0):
         _ = get_abstract_input(input_dict, get_signature(api, lib=lib, suffix=suffix))
         output = run_api(api, input_dict, cpu=True, lib=lib)
     
+    if len(list_of_inputs) == 0:
+        raise Exception("No inputs were generated for the API. Please check the input generation code.")
+
     print("Valid")
 
 if 'tf.nn.max_pool2d_5' not in generated_inputs:
     raise Exception("Output of the input generating function was not assigned to the generated_inputs dictionary to the key 'tf.nn.max_pool2d_5'.")
+
+
+tf.config.experimental.enable_op_determinism()
+tf.random.set_seed(42)
 
 check_valid('tf.nn.max_pool2d', generated_inputs['tf.nn.max_pool2d_5'], lib="tf", suffix=5)

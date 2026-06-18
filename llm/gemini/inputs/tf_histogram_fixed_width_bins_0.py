@@ -11,90 +11,108 @@ import copy
 def tf_histogram_fixed_width_bins_inputs():
     list_of_inputs = []
 
-    # Input 1: Basic test case
-    values = np.array([0.5, 1.5, 2.5, 3.5, 4.5], dtype=np.float32)
-    value_range = np.array([0.0, 5.0], dtype=np.float32)
-    nbins = 5
-    dtype = tf.int32
-    name = "basic_histogram"
-    input_dict = {"values": values, "value_range": value_range, "nbins": nbins, "dtype": dtype, "name": name}
+    # Input 1: Basic float32 input with 5 bins
+    input_dict = {
+        'values': np.array([-1.0, 0.0, 1.5, 2.0, 5.0, 15.0], dtype=np.float32),
+        'value_range': np.array([0.0, 5.0], dtype=np.float32),
+        'nbins': 5,
+        'dtype': np.int32,
+        'name': 'bins_1'
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 2: Negative values
-    values = np.array([-1.0, 0.0, 1.0, 2.0, 3.0], dtype=np.float32)
-    value_range = np.array([-2.0, 4.0], dtype=np.float32)
-    nbins = 6
-    dtype = tf.int32
-    name = "negative_values"
-    input_dict = {"values": values, "value_range": value_range, "nbins": nbins, "dtype": dtype, "name": name}
+    # Input 2: 2D float64 input, 10 bins, int64 output dtype
+    input_dict = {
+        'values': np.array([[-10.0, -5.0], [0.0, 5.0]], dtype=np.float64),
+        'value_range': np.array([-10.0, 10.0], dtype=np.float64),
+        'nbins': 10,
+        'dtype': np.int64,
+        'name': 'bins_2'
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 3: Different nbins
-    values = np.array([1, 2, 3, 4, 5], dtype=np.float32)
-    value_range = np.array([0, 6], dtype=np.float32)
-    nbins = 3
-    dtype = tf.int32
-    name = "different_nbins"
-    input_dict = {"values": values, "value_range": value_range, "nbins": nbins, "dtype": dtype, "name": name}
+    # Input 3: 3D float32 values, 5 bins, negative and positive
+    input_dict = {
+        'values': np.array([[[1.0, 2.0], [3.0, -4.0]], [[5.0, 6.0], [7.0, 8.0]]], dtype=np.float32),
+        'value_range': np.array([-5.0, 10.0], dtype=np.float32),
+        'nbins': 5,
+        'dtype': np.int32,
+        'name': 'bins_3'
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 4: Values outside range
-    values = np.array([-2, -1, 0, 1, 2, 3, 4, 5, 6], dtype=np.float32)
-    value_range = np.array([0, 4], dtype=np.float32)
-    nbins = 4
-    dtype = tf.int32
-    name = "values_outside_range"
-    input_dict = {"values": values, "value_range": value_range, "nbins": nbins, "dtype": dtype, "name": name}
+    # Input 4: Single element float32 array, many bins
+    input_dict = {
+        'values': np.array([0.55], dtype=np.float32),
+        'value_range': np.array([0.0, 1.0], dtype=np.float32),
+        'nbins': 100,
+        'dtype': np.int32,
+        'name': 'bins_4'
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 5: Small value range
-    values = np.array([1.1, 1.2, 1.3, 1.4, 1.5], dtype=np.float32)
-    value_range = np.array([1.0, 2.0], dtype=np.float32)
-    nbins = 5
-    dtype = tf.int32
-    name = "small_value_range"
-    input_dict = {"values": values, "value_range": value_range, "nbins": nbins, "dtype": dtype, "name": name}
+    # Input 5: Float32 values with negative range bounds
+    input_dict = {
+        'values': np.array([-3.5, -2.1, -1.0, -0.5], dtype=np.float32),
+        'value_range': np.array([-5.0, -1.0], dtype=np.float32),
+        'nbins': 4,
+        'dtype': np.int32,
+        'name': 'bins_5'
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 6: All values the same
-    values = np.array([2.0, 2.0, 2.0, 2.0, 2.0], dtype=np.float32)
-    value_range = np.array([0.0, 5.0], dtype=np.float32)
-    nbins = 5
-    dtype = tf.int32
-    name = "all_same_values"
-    input_dict = {"values": values, "value_range": value_range, "nbins": nbins, "dtype": dtype, "name": name}
+    # Input 6: Scalar/0D float32 value
+    input_dict = {
+        'values': np.array(2.5, dtype=np.float32),
+        'value_range': np.array([0.0, 5.0], dtype=np.float32),
+        'nbins': 5,
+        'dtype': np.int32,
+        'name': 'bins_6'
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 7: Edge case with value_range
-    values = np.array([0.0, 5.0], dtype=np.float32)
-    value_range = np.array([0.0, 5.0], dtype=np.float32)
-    nbins = 5
-    dtype = tf.int32
-    name = "edge_value_range"
-    input_dict = {"values": values, "value_range": value_range, "nbins": nbins, "dtype": dtype, "name": name}
+    # Input 7: Float64 values with very large range and bin size
+    input_dict = {
+        'values': np.array([1e5, 2e5, 3e5], dtype=np.float64),
+        'value_range': np.array([0.0, 1e6], dtype=np.float64),
+        'nbins': 1000,
+        'dtype': np.int32,
+        'name': 'bins_7'
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 8: 2D values
-    values = np.array([[1.0, 2.0], [3.0, 4.0]], dtype=np.float32)
-    value_range = np.array([0.0, 5.0], dtype=np.float32)
-    nbins = 5
-    dtype = tf.int32
-    name = "2d_values"
-    input_dict = {"values": values, "value_range": value_range, "nbins": nbins, "dtype": dtype, "name": name}
+    # Input 8: Float64 values, different bounds
+    input_dict = {
+        'values': np.array([-1.5, 0.5, 1.5], dtype=np.float64),
+        'value_range': np.array([-2.0, 2.0], dtype=np.float64),
+        'nbins': 4,
+        'dtype': np.int32,
+        'name': 'bins_8'
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 9: Larger number of bins
-    values = np.array([i for i in range(100)], dtype=np.float32)
-    value_range = np.array([0.0, 100.0], dtype=np.float32)
-    nbins = 200
-    dtype = tf.int32
-    name = "larger_nbins"
-    input_dict = {"values": values, "value_range": value_range, "nbins": nbins, "dtype": dtype, "name": name}
+    # Input 9: High-dimensional float32 array using generated random values
+    input_dict = {
+        'values': np.random.uniform(-10, 10, (2, 2, 2, 2)).astype(np.float32),
+        'value_range': np.array([-10.0, 10.0], dtype=np.float32),
+        'nbins': 10,
+        'dtype': np.int32,
+        'name': 'bins_9'
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
-    
+
+    # Input 10: Float64 values and Int64 output dtype
+    input_dict = {
+        'values': np.array([10.0, 20.0, 30.0, 40.0], dtype=np.float64),
+        'value_range': np.array([0.0, 100.0], dtype=np.float64),
+        'nbins': 10,
+        'dtype': np.int64,
+        'name': 'bins_10'
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
     return list_of_inputs
 
-generated_inputs = {}
 generated_inputs["tf.histogram_fixed_width_bins"] = tf_histogram_fixed_width_bins_inputs()
 
 def check_valid(api, list_of_inputs, lib="tf", suffix=0):
@@ -102,9 +120,16 @@ def check_valid(api, list_of_inputs, lib="tf", suffix=0):
         _ = get_abstract_input(input_dict, get_signature(api, lib=lib, suffix=suffix))
         output = run_api(api, input_dict, cpu=True, lib=lib)
     
+    if len(list_of_inputs) == 0:
+        raise Exception("No inputs were generated for the API. Please check the input generation code.")
+
     print("Valid")
 
 if 'tf.histogram_fixed_width_bins' not in generated_inputs:
     raise Exception("Output of the input generating function was not assigned to the generated_inputs dictionary to the key 'tf.histogram_fixed_width_bins'.")
+
+
+tf.config.experimental.enable_op_determinism()
+tf.random.set_seed(42)
 
 check_valid('tf.histogram_fixed_width_bins', generated_inputs['tf.histogram_fixed_width_bins'], lib="tf", suffix=0)

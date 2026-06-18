@@ -4,146 +4,122 @@ from generator.input_generators import get_abstract_input
 
 generated_inputs = dict()
 
+import tensorflow as tf
 import numpy as np
 import copy
 
 def tf_nn_max_pool2d_inputs():
     list_of_inputs = []
 
-    # Input 1: Basic NHWC, no padding, 2x2 stride
-    input_dict_1 = {
-        'input': np.arange(1, 17, dtype=np.float32).reshape(1, 4, 4, 1),
-        'ksize': 2,
-        'strides': [1, 2, 2, 1],
-        'padding': [[0, 0], [0, 0], [0, 0], [0, 0]],
-        'data_format': 'NHWC',
-        'name': 'pool_1'
+    # Input 1
+    input_dict = {
+        "input": np.random.randn(1, 4, 4, 1).astype(np.float32),
+        "ksize": 2,
+        "strides": [2, 2],
+        "padding": [[0, 0], [0, 0], [0, 0], [0, 0]],
+        "data_format": "NHWC",
+        "name": "pool1"
     }
-    list_of_inputs.append(copy.deepcopy(input_dict_1))
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 2: NHWC, no padding, 1x1 stride (overlapping)
-    # Changed from NCHW to NHWC to support CPU execution.
-    input_dict_2 = {
-        'input': np.arange(1, 17, dtype=np.float32).reshape(1, 4, 4, 1),
-        'ksize': 2,
-        'strides': [1, 1, 1, 1],
-        'padding': [[0, 0], [0, 0], [0, 0], [0, 0]],
-        'data_format': 'NHWC',
-        'name': 'pool_2'
+    # Input 2
+    input_dict = {
+        "input": np.random.randn(2, 6, 6, 3).astype(np.float32),
+        "ksize": 3,
+        "strides": [1, 1],
+        "padding": [[0, 0], [1, 1], [1, 1], [0, 0]],
+        "data_format": "NHWC",
+        "name": "pool2"
     }
-    list_of_inputs.append(copy.deepcopy(input_dict_2))
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 3: NHWC with symmetric explicit padding
-    input_dict_3 = {
-        'input': np.arange(1, 10, dtype=np.float32).reshape(1, 3, 3, 1),
-        'ksize': 2,
-        'strides': [1, 2, 2, 1],
-        'padding': [[0, 0], [1, 1], [1, 1], [0, 0]],
-        'data_format': 'NHWC',
-        'name': 'pool_3'
+    # Input 3
+    input_dict = {
+        "input": np.random.randn(1, 8, 8, 3).astype(np.float32),
+        "ksize": 2,
+        "strides": [2, 2],
+        "padding": [[0, 0], [1, 1], [1, 1], [0, 0]],
+        "data_format": "NHWC",
+        "name": "pool3"
     }
-    list_of_inputs.append(copy.deepcopy(input_dict_3))
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 4: Overlapping pool with larger input
-    input_dict_4 = {
-        'input': np.arange(1, 26, dtype=np.float32).reshape(1, 5, 5, 1),
-        'ksize': 2,
-        'strides': [1, 1, 1, 1],
-        'padding': [[0, 0], [0, 0], [0, 0], [0, 0]],
-        'data_format': 'NHWC',
-        'name': 'pool_4'
+    # Input 4
+    input_dict = {
+        "input": np.random.randn(1, 4, 4, 2).astype(np.float32),
+        "ksize": 2,
+        "strides": [1, 1, 1, 1],
+        "padding": [[0, 0], [0, 0], [0, 0], [0, 0]],
+        "data_format": "NHWC",
+        "name": "pool4"
     }
-    list_of_inputs.append(copy.deepcopy(input_dict_4))
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 5: Multiple channels (NHWC)
-    input_dict_5 = {
-        'input': np.arange(1, 33, dtype=np.float32).reshape(1, 4, 4, 2),
-        'ksize': 2,
-        'strides': [1, 2, 2, 1],
-        'padding': [[0, 0], [0, 0], [0, 0], [0, 0]],
-        'data_format': 'NHWC',
-        'name': 'pool_5'
+    # Input 5
+    input_dict = {
+        "input": np.random.randn(1, 5, 5, 2).astype(np.float64),
+        "ksize": 2,
+        "strides": [1, 2, 2, 1],
+        "padding": [[0, 0], [1, 1], [1, 1], [0, 0]],
+        "data_format": "NHWC",
+        "name": "pool5"
     }
-    list_of_inputs.append(copy.deepcopy(input_dict_5))
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 6: Multiple batches (NHWC)
-    input_dict_6 = {
-        'input': np.arange(1, 33, dtype=np.float32).reshape(2, 4, 4, 1),
-        'ksize': 2,
-        'strides': [1, 2, 2, 1],
-        'padding': [[0, 0], [0, 0], [0, 0], [0, 0]],
-        'data_format': 'NHWC',
-        'name': 'pool_6'
+    # Input 6
+    input_dict = {
+        "input": np.random.randn(1, 4, 4, 1).astype(np.float16),
+        "ksize": 2,
+        "strides": [1, 1],
+        "padding": [[0, 0], [0, 0], [0, 0], [0, 0]],
+        "data_format": "NHWC",
+        "name": "pool6"
     }
-    list_of_inputs.append(copy.deepcopy(input_dict_6))
-    
-    # Input 7: NHWC with asymmetric explicit padding
-    # Changed from NCHW to NHWC to support CPU execution.
-    input_dict_7 = {
-        'input': np.arange(1, 10, dtype=np.float32).reshape(1, 3, 3, 1),
-        'ksize': 2,
-        'strides': [1, 1, 1, 1],
-        'padding': [[0, 0], [1, 0], [0, 1], [0, 0]],
-        'data_format': 'NHWC',
-        'name': 'pool_7'
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict_7))
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 8: Larger ksize
-    input_dict_8 = {
-        'input': np.arange(1, 26, dtype=np.float32).reshape(1, 5, 5, 1),
-        'ksize': 3,
-        'strides': [1, 1, 1, 1],
-        'padding': [[0, 0], [0, 0], [0, 0], [0, 0]],
-        'data_format': 'NHWC',
-        'name': 'pool_8'
+    # Input 7
+    input_dict = {
+        "input": -np.abs(np.random.randn(2, 5, 5, 2).astype(np.float32)),
+        "ksize": 2,
+        "strides": [2, 2],
+        "padding": [[0, 0], [0, 0], [0, 0], [0, 0]],
+        "data_format": "NHWC",
+        "name": "pool7"
     }
-    list_of_inputs.append(copy.deepcopy(input_dict_8))
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 9: Non-square input with padding
-    input_dict_9 = {
-        'input': np.arange(1, 19, dtype=np.float32).reshape(1, 3, 6, 1),
-        'ksize': 2,
-        'strides': [1, 2, 2, 1],
-        'padding': [[0, 0], [1, 0], [0, 1], [0, 0]],
-        'data_format': 'NHWC',
-        'name': 'pool_9'
+    # Input 8
+    input_dict = {
+        "input": np.random.randn(1, 10, 10, 3).astype(np.float32),
+        "ksize": 3,
+        "strides": [2, 2],
+        "padding": [[0, 0], [1, 1], [1, 1], [0, 0]],
+        "data_format": "NHWC",
+        "name": "pool8"
     }
-    list_of_inputs.append(copy.deepcopy(input_dict_9))
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 10: float64 data type
-    input_dict_10 = {
-        'input': np.arange(1, 17, dtype=np.float64).reshape(1, 4, 4, 1),
-        'ksize': 2,
-        'strides': [1, 2, 2, 1],
-        'padding': [[0, 0], [0, 0], [0, 0], [0, 0]],
-        'data_format': 'NHWC',
-        'name': 'pool_10'
+    # Input 9
+    input_dict = {
+        "input": np.random.randn(2, 2, 2, 2).astype(np.float32),
+        "ksize": 1,
+        "strides": [1, 1],
+        "padding": [[0, 0], [0, 0], [0, 0], [0, 0]],
+        "data_format": "NHWC",
+        "name": "pool9"
     }
-    list_of_inputs.append(copy.deepcopy(input_dict_10))
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 11: Larger padding, ksize=3 to ensure padding <= ksize_dim
-    input_dict_11 = {
-        'input': np.arange(1, 10, dtype=np.float32).reshape(1, 3, 3, 1),
-        'ksize': 3,
-        'strides': [1, 1, 1, 1],
-        'padding': [[0, 0], [1, 2], [2, 1], [0, 0]],
-        'data_format': 'NHWC',
-        'name': 'pool_11'
+    # Input 10
+    input_dict = {
+        "input": np.random.randn(3, 10, 10, 4).astype(np.float32),
+        "ksize": 4,
+        "strides": [3, 3],
+        "padding": [[0, 0], [1, 2], [2, 1], [0, 0]],
+        "data_format": "NHWC",
+        "name": "pool10"
     }
-    list_of_inputs.append(copy.deepcopy(input_dict_11))
-
-    # Input 12: Multiple batches and channels with non-square HxW
-    # Changed from NCHW to NHWC to support CPU execution.
-    input_dict_12 = {
-        'input': np.arange(1, 73, dtype=np.float32).reshape(2, 4, 3, 3),
-        'ksize': 2,
-        'strides': [1, 2, 2, 1],
-        'padding': [[0, 0], [0, 0], [0, 0], [0, 0]],
-        'data_format': 'NHWC',
-        'name': 'pool_12'
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict_12))
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs
 
@@ -161,5 +137,9 @@ def check_valid(api, list_of_inputs, lib="tf", suffix=0):
 
 if 'tf.nn.max_pool2d_7' not in generated_inputs:
     raise Exception("Output of the input generating function was not assigned to the generated_inputs dictionary to the key 'tf.nn.max_pool2d_7'.")
+
+
+tf.config.experimental.enable_op_determinism()
+tf.random.set_seed(42)
 
 check_valid('tf.nn.max_pool2d', generated_inputs['tf.nn.max_pool2d_7'], lib="tf", suffix=7)

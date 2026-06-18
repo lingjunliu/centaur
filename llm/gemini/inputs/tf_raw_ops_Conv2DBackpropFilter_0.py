@@ -6,238 +6,194 @@ generated_inputs = dict()
 
 import numpy as np
 import copy
-# Assume generated_inputs dictionary is pre-initialized
-# generated_inputs = {}
+import tensorflow as tf
 
-def tf_raw_ops_conv2dbackpropfilter_inputs():
-    """
-    Generates a list of valid inputs for tf.raw_ops.Conv2DBackpropFilter.
-    """
+def tf_raw_ops_Conv2DBackpropFilter_inputs():
     list_of_inputs = []
 
-    # Input 1: Basic case with 'VALID' padding and 'NHWC' format.
-    in_channels_1 = 3
-    out_channels_1 = 5
-    input_shape_1 = [2, 10, 10, in_channels_1]
-    filter_sizes_1 = [3, 3, in_channels_1, out_channels_1]
-    out_backprop_shape_1 = [2, 8, 8, out_channels_1]
-    input_dict_1 = {
-        'input': np.random.rand(*input_shape_1).astype(np.float32),
-        'filter_sizes': np.array(filter_sizes_1, dtype=np.int32),
-        'out_backprop': np.random.rand(*out_backprop_shape_1).astype(np.float32),
+    # Case 1: NHWC, SAME, float32, stride 1
+    input_val = np.random.randn(2, 4, 4, 3).astype(np.float32)
+    filter_sizes = np.array([3, 3, 3, 8], dtype=np.int32)
+    out_backprop = np.random.randn(2, 4, 4, 8).astype(np.float32)
+    input_dict = {
+        'input': input_val,
+        'filter_sizes': filter_sizes,
+        'out_backprop': out_backprop,
         'strides': [1, 1, 1, 1],
-        'padding': 'VALID',
+        'padding': "SAME",
         'use_cudnn_on_gpu': True,
         'explicit_paddings': [],
-        'data_format': 'NHWC',
+        'data_format': "NHWC",
         'dilations': [1, 1, 1, 1],
-        'name': 'valid_nhwc'
+        'name': "conv2d_bprop_1"
     }
-    list_of_inputs.append(copy.deepcopy(input_dict_1))
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 2: Basic case with 'SAME' padding and 'NHWC' format.
-    in_channels_2 = 4
-    out_channels_2 = 8
-    input_shape_2 = [1, 7, 7, in_channels_2]
-    filter_sizes_2 = [3, 3, in_channels_2, out_channels_2]
-    out_backprop_shape_2 = [1, 7, 7, out_channels_2]
-    input_dict_2 = {
-        'input': np.random.rand(*input_shape_2).astype(np.float32),
-        'filter_sizes': np.array(filter_sizes_2, dtype=np.int32),
-        'out_backprop': np.random.rand(*out_backprop_shape_2).astype(np.float32),
+    # Case 2: NHWC, VALID, float32, stride 1
+    input_val = np.random.randn(1, 5, 5, 2).astype(np.float32)
+    filter_sizes = np.array([3, 3, 2, 4], dtype=np.int32)
+    out_backprop = np.random.randn(1, 3, 3, 4).astype(np.float32)
+    input_dict = {
+        'input': input_val,
+        'filter_sizes': filter_sizes,
+        'out_backprop': out_backprop,
         'strides': [1, 1, 1, 1],
-        'padding': 'SAME',
-        'use_cudnn_on_gpu': True,
-        'explicit_paddings': [],
-        'data_format': 'NHWC',
-        'dilations': [1, 1, 1, 1],
-        'name': 'same_nhwc'
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict_2))
-
-    # Input 3: 'NCHW' data format.
-    in_channels_3 = 3
-    out_channels_3 = 6
-    input_shape_3 = [2, in_channels_3, 12, 12]
-    filter_sizes_3 = [4, 4, in_channels_3, out_channels_3]
-    out_backprop_shape_3 = [2, out_channels_3, 9, 9]
-    input_dict_3 = {
-        'input': np.random.rand(*input_shape_3).astype(np.float32),
-        'filter_sizes': np.array(filter_sizes_3, dtype=np.int32),
-        'out_backprop': np.random.rand(*out_backprop_shape_3).astype(np.float32),
-        'strides': [1, 1, 1, 1],
-        'padding': 'VALID',
+        'padding': "VALID",
         'use_cudnn_on_gpu': False,
         'explicit_paddings': [],
-        'data_format': 'NCHW',
+        'data_format': "NHWC",
         'dilations': [1, 1, 1, 1],
-        'name': 'valid_nchw'
+        'name': "conv2d_bprop_2"
     }
-    list_of_inputs.append(copy.deepcopy(input_dict_3))
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 4: Strides > 1.
-    in_channels_4 = 2
-    out_channels_4 = 4
-    input_shape_4 = [1, 10, 10, in_channels_4]
-    filter_sizes_4 = [3, 3, in_channels_4, out_channels_4]
-    out_backprop_shape_4 = [1, 4, 4, out_channels_4]
-    input_dict_4 = {
-        'input': np.random.rand(*input_shape_4).astype(np.float32),
-        'filter_sizes': np.array(filter_sizes_4, dtype=np.int32),
-        'out_backprop': np.random.rand(*out_backprop_shape_4).astype(np.float32),
+    # Case 3: NHWC, VALID, float32, stride 2
+    input_val = np.random.randn(2, 6, 6, 3).astype(np.float32)
+    filter_sizes = np.array([2, 2, 3, 2], dtype=np.int32)
+    out_backprop = np.random.randn(2, 3, 3, 2).astype(np.float32)
+    input_dict = {
+        'input': input_val,
+        'filter_sizes': filter_sizes,
+        'out_backprop': out_backprop,
         'strides': [1, 2, 2, 1],
-        'padding': 'VALID',
+        'padding': "VALID",
         'use_cudnn_on_gpu': True,
         'explicit_paddings': [],
-        'data_format': 'NHWC',
+        'data_format': "NHWC",
         'dilations': [1, 1, 1, 1],
-        'name': 'strided_valid_nhwc'
+        'name': "conv2d_bprop_3"
     }
-    list_of_inputs.append(copy.deepcopy(input_dict_4))
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 5: Dilations > 1.
-    in_channels_5 = 3
-    out_channels_5 = 5
-    input_shape_5 = [1, 10, 10, in_channels_5]
-    filter_sizes_5 = [3, 3, in_channels_5, out_channels_5]
-    out_backprop_shape_5 = [1, 6, 6, out_channels_5]
-    input_dict_5 = {
-        'input': np.random.rand(*input_shape_5).astype(np.float32),
-        'filter_sizes': np.array(filter_sizes_5, dtype=np.int32),
-        'out_backprop': np.random.rand(*out_backprop_shape_5).astype(np.float32),
+    # Case 4: NHWC, VALID, float32, stride 1 (changed from NCHW)
+    input_val = np.random.randn(2, 5, 5, 3).astype(np.float32)
+    filter_sizes = np.array([3, 3, 3, 4], dtype=np.int32)
+    out_backprop = np.random.randn(2, 3, 3, 4).astype(np.float32)
+    input_dict = {
+        'input': input_val,
+        'filter_sizes': filter_sizes,
+        'out_backprop': out_backprop,
         'strides': [1, 1, 1, 1],
-        'padding': 'VALID',
+        'padding': "VALID",
         'use_cudnn_on_gpu': True,
         'explicit_paddings': [],
-        'data_format': 'NHWC',
+        'data_format': "NHWC",
+        'dilations': [1, 1, 1, 1],
+        'name': "conv2d_bprop_4"
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Case 5: NHWC, SAME, float32, stride 2
+    input_val = np.random.randn(1, 8, 8, 4).astype(np.float32)
+    filter_sizes = np.array([4, 4, 4, 2], dtype=np.int32)
+    out_backprop = np.random.randn(1, 4, 4, 2).astype(np.float32)
+    input_dict = {
+        'input': input_val,
+        'filter_sizes': filter_sizes,
+        'out_backprop': out_backprop,
+        'strides': [1, 2, 2, 1],
+        'padding': "SAME",
+        'use_cudnn_on_gpu': True,
+        'explicit_paddings': [],
+        'data_format': "NHWC",
+        'dilations': [1, 1, 1, 1],
+        'name': "conv2d_bprop_5"
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Case 6: NHWC, VALID, float32, stride 1, dilation 2
+    input_val = np.random.randn(1, 7, 7, 2).astype(np.float32)
+    filter_sizes = np.array([3, 3, 2, 2], dtype=np.int32)
+    out_backprop = np.random.randn(1, 3, 3, 2).astype(np.float32)
+    input_dict = {
+        'input': input_val,
+        'filter_sizes': filter_sizes,
+        'out_backprop': out_backprop,
+        'strides': [1, 1, 1, 1],
+        'padding': "VALID",
+        'use_cudnn_on_gpu': True,
+        'explicit_paddings': [],
+        'data_format': "NHWC",
         'dilations': [1, 2, 2, 1],
-        'name': 'dilated_valid_nhwc'
+        'name': "conv2d_bprop_6"
     }
-    list_of_inputs.append(copy.deepcopy(input_dict_5))
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 6: float64 dtype.
-    in_channels_6 = 4
-    out_channels_6 = 6
-    input_shape_6 = [1, 8, 8, in_channels_6]
-    filter_sizes_6 = [2, 2, in_channels_6, out_channels_6]
-    out_backprop_shape_6 = [1, 4, 4, out_channels_6]
-    input_dict_6 = {
-        'input': np.random.rand(*input_shape_6).astype(np.float64),
-        'filter_sizes': np.array(filter_sizes_6, dtype=np.int32),
-        'out_backprop': np.random.rand(*out_backprop_shape_6).astype(np.float64),
-        'strides': [1, 2, 2, 1],
-        'padding': 'SAME',
-        'use_cudnn_on_gpu': True,
-        'explicit_paddings': [],
-        'data_format': 'NHWC',
-        'dilations': [1, 1, 1, 1],
-        'name': 'float64_same_strided'
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict_6))
-
-    # Input 7: float16 (half) dtype.
-    in_channels_7 = 2
-    out_channels_7 = 8
-    input_shape_7 = [3, 12, 12, in_channels_7]
-    filter_sizes_7 = [4, 4, in_channels_7, out_channels_7]
-    out_backprop_shape_7 = [3, 9, 9, out_channels_7]
-    input_dict_7 = {
-        'input': np.random.rand(*input_shape_7).astype(np.float16),
-        'filter_sizes': np.array(filter_sizes_7, dtype=np.int32),
-        'out_backprop': np.random.rand(*out_backprop_shape_7).astype(np.float16),
+    # Case 7: NHWC, EXPLICIT, float32, stride 1
+    input_val = np.random.randn(1, 3, 3, 1).astype(np.float32)
+    filter_sizes = np.array([3, 3, 1, 1], dtype=np.int32)
+    out_backprop = np.random.randn(1, 3, 3, 1).astype(np.float32)
+    input_dict = {
+        'input': input_val,
+        'filter_sizes': filter_sizes,
+        'out_backprop': out_backprop,
         'strides': [1, 1, 1, 1],
-        'padding': 'VALID',
+        'padding': "EXPLICIT",
         'use_cudnn_on_gpu': True,
-        'explicit_paddings': [],
-        'data_format': 'NHWC',
+        'explicit_paddings': [0, 0, 1, 1, 1, 1, 0, 0],
+        'data_format': "NHWC",
         'dilations': [1, 1, 1, 1],
-        'name': 'float16_valid'
+        'name': "conv2d_bprop_7"
     }
-    list_of_inputs.append(copy.deepcopy(input_dict_7))
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 8: 'EXPLICIT' padding with 'NHWC'.
-    in_channels_8 = 1
-    out_channels_8 = 1
-    input_shape_8 = [1, 5, 5, in_channels_8]
-    filter_sizes_8 = [3, 3, in_channels_8, out_channels_8]
-    out_backprop_shape_8 = [1, 5, 7, out_channels_8]
-    input_dict_8 = {
-        'input': np.random.rand(*input_shape_8).astype(np.float32),
-        'filter_sizes': np.array(filter_sizes_8, dtype=np.int32),
-        'out_backprop': np.random.rand(*out_backprop_shape_8).astype(np.float32),
+    # Case 8: NHWC, EXPLICIT, float32, stride 1 (changed from NCHW)
+    input_val = np.random.randn(1, 3, 3, 1).astype(np.float32)
+    filter_sizes = np.array([3, 3, 1, 1], dtype=np.int32)
+    out_backprop = np.random.randn(1, 3, 3, 1).astype(np.float32)
+    input_dict = {
+        'input': input_val,
+        'filter_sizes': filter_sizes,
+        'out_backprop': out_backprop,
         'strides': [1, 1, 1, 1],
-        'padding': 'EXPLICIT',
+        'padding': "EXPLICIT",
         'use_cudnn_on_gpu': True,
-        'explicit_paddings': [0, 0, 1, 1, 2, 2, 0, 0],
-        'data_format': 'NHWC',
+        'explicit_paddings': [0, 0, 1, 1, 1, 1, 0, 0],
+        'data_format': "NHWC",
         'dilations': [1, 1, 1, 1],
-        'name': 'explicit_nhwc'
+        'name': "conv2d_bprop_8"
     }
-    list_of_inputs.append(copy.deepcopy(input_dict_8))
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 9: Complex case: 'NCHW', strided, dilated, 'SAME' padding.
-    in_channels_9 = 4
-    out_channels_9 = 8
-    input_shape_9 = [2, in_channels_9, 15, 15]
-    filter_sizes_9 = [4, 4, in_channels_9, out_channels_9]
-    out_backprop_shape_9 = [2, out_channels_9, 8, 8]
-    input_dict_9 = {
-        'input': np.random.rand(*input_shape_9).astype(np.float32),
-        'filter_sizes': np.array(filter_sizes_9, dtype=np.int32),
-        'out_backprop': np.random.rand(*out_backprop_shape_9).astype(np.float32),
-        'strides': [1, 1, 2, 2],
-        'padding': 'SAME',
-        'use_cudnn_on_gpu': True,
-        'explicit_paddings': [],
-        'data_format': 'NCHW',
-        'dilations': [1, 1, 2, 2],
-        'name': 'complex_nchw'
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict_9))
-
-    # Input 10: Minimal case (1x1 filter, no padding change).
-    in_channels_11 = 1
-    out_channels_11 = 1
-    input_shape_11 = [1, 5, 5, in_channels_11]
-    filter_sizes_11 = [1, 1, in_channels_11, out_channels_11]
-    out_backprop_shape_11 = [1, 5, 5, out_channels_11]
-    input_dict_11 = {
-        'input': np.random.rand(*input_shape_11).astype(np.float32),
-        'filter_sizes': np.array(filter_sizes_11, dtype=np.int32),
-        'out_backprop': np.random.rand(*out_backprop_shape_11).astype(np.float32),
+    # Case 9: NHWC, VALID, float64, stride 1
+    input_val = np.random.randn(1, 4, 4, 1).astype(np.float64)
+    filter_sizes = np.array([2, 2, 1, 1], dtype=np.int32)
+    out_backprop = np.random.randn(1, 3, 3, 1).astype(np.float64)
+    input_dict = {
+        'input': input_val,
+        'filter_sizes': filter_sizes,
+        'out_backprop': out_backprop,
         'strides': [1, 1, 1, 1],
-        'padding': 'VALID',
+        'padding': "VALID",
         'use_cudnn_on_gpu': True,
         'explicit_paddings': [],
-        'data_format': 'NHWC',
+        'data_format': "NHWC",
         'dilations': [1, 1, 1, 1],
-        'name': 'minimal_1x1_filter'
+        'name': "conv2d_bprop_9"
     }
-    list_of_inputs.append(copy.deepcopy(input_dict_11))
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 11: Larger dimensions, 'SAME' padding.
-    in_channels_12 = 32
-    out_channels_12 = 64
-    input_shape_12 = [16, 32, 32, in_channels_12]
-    filter_sizes_12 = [3, 3, in_channels_12, out_channels_12]
-    out_backprop_shape_12 = [16, 32, 32, out_channels_12]
-    input_dict_12 = {
-        'input': np.random.rand(*input_shape_12).astype(np.float32),
-        'filter_sizes': np.array(filter_sizes_12, dtype=np.int32),
-        'out_backprop': np.random.rand(*out_backprop_shape_12).astype(np.float32),
+    # Case 10: NHWC, SAME, float16, stride 1
+    input_val = np.random.randn(2, 5, 5, 3).astype(np.float16)
+    filter_sizes = np.array([3, 3, 3, 4], dtype=np.int32)
+    out_backprop = np.random.randn(2, 5, 5, 4).astype(np.float16)
+    input_dict = {
+        'input': input_val,
+        'filter_sizes': filter_sizes,
+        'out_backprop': out_backprop,
         'strides': [1, 1, 1, 1],
-        'padding': 'SAME',
+        'padding': "SAME",
         'use_cudnn_on_gpu': True,
         'explicit_paddings': [],
-        'data_format': 'NHWC',
+        'data_format': "NHWC",
         'dilations': [1, 1, 1, 1],
-        'name': 'large_dims_same'
+        'name': "conv2d_bprop_10"
     }
-    list_of_inputs.append(copy.deepcopy(input_dict_12))
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs
 
-generated_inputs["tf.raw_ops.Conv2DBackpropFilter"] = tf_raw_ops_conv2dbackpropfilter_inputs()
+generated_inputs["tf.raw_ops.Conv2DBackpropFilter"] = tf_raw_ops_Conv2DBackpropFilter_inputs()
 
 def check_valid(api, list_of_inputs, lib="tf", suffix=0):
     for idx, input_dict in enumerate(list_of_inputs):
@@ -251,5 +207,9 @@ def check_valid(api, list_of_inputs, lib="tf", suffix=0):
 
 if 'tf.raw_ops.Conv2DBackpropFilter' not in generated_inputs:
     raise Exception("Output of the input generating function was not assigned to the generated_inputs dictionary to the key 'tf.raw_ops.Conv2DBackpropFilter'.")
+
+
+tf.config.experimental.enable_op_determinism()
+tf.random.set_seed(42)
 
 check_valid('tf.raw_ops.Conv2DBackpropFilter', generated_inputs['tf.raw_ops.Conv2DBackpropFilter'], lib="tf", suffix=0)
