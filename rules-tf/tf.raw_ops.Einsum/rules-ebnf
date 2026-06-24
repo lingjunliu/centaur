@@ -1,0 +1,57 @@
+>>
+Rule 1 (Length of inputs list must be 1 or 2)
+{v_1 : list(tensor)} |= v_1.len ≥ 1 ∧ v_1.len ≤ 2
+>>
+Rule 2 (Equation format must be valid and explicit)
+{v_2 : str} |= v_2 = "ii->i" ∨ v_2 = "i,j->ij" ∨ v_2 = "bij,bjk->bik" ∨ v_2 = "...ij->...ji"
+>>
+Rule 3 (The number of elements in inputs must match the equation arity)
+{v_1 : list(tensor), v_2 : str} |= (if (v_2 = "ii->i" ∨ v_2 = "...ij->...ji") then v_1.len = 1 else (if (v_2 = "i,j->ij" ∨ v_2 = "bij,bjk->bik") then v_1.len = 2))
+>>
+Rule 4 (Dimension requirements for diagonal reduction equation "ii->i")
+{v_1 : tensor, v_2 : str} |= if v_2 = "ii->i" then ndim(v_1) = 2 ∧ shape(v_1, 0) = shape(v_1, 1)
+>>
+Rule 5 (Dimension requirements for outer product equation "i,j->ij")
+{v_1 : tensor, v_2 : tensor, v_3 : str} |= if v_3 = "i,j->ij" then ndim(v_1) = 1 ∧ ndim(v_2) = 1
+>>
+Rule 6 (Dimension requirements for batch matrix multiplication "bij,bjk->bik")
+{v_1 : tensor, v_2 : tensor, v_3 : str} |= if v_3 = "bij,bjk->bik" then ndim(v_1) = 3 ∧ ndim(v_2) = 3 ∧ shape(v_1, 0) = shape(v_2, 0) ∧ shape(v_1, 2) = shape(v_2, 1)
+>>
+Rule 7 (Dimension requirements for transpose equation "...ij->...ji")
+{v_1 : tensor, v_2 : str} |= if v_2 = "...ij->...ji" then ndim(v_1) ≥ 2
+>>
+Rule 8 (Input tensors in binary einsum must have matching data types)
+{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) = dtype_(v_2)
+>>
+Rule 10 (input tensor must not have string dtype)
+{v_1 : tensor} |= dtype_(v_1) < 11
+>>
+Rule 11 (inputs list length must be either 1 or 2)
+{v_1 : list(tensor)} |= v_1.len = 1 ∨ v_1.len = 2
+>>
+Rule 12 (einsum equation must match input list length)
+{v_1 : list(tensor), v_2 : str} |= if v_2 = "ii->i" ∨ v_2 = "...ij->...ji" then v_1.len = 1 else (if v_2 = "i,j->ij" ∨ v_2 = "bij,bjk->bik" then v_1.len = 2)
+>>
+Rule 17 (equation must be one of the supported einsum patterns)
+{v_1 : str} |= v_1 = "ii->i" ∨ v_1 = "i,j->ij" ∨ v_1 = "bij,bjk->bik" ∨ v_1 = "...ij->...ji"
+>>
+Rule 18 (input tensor must have a numeric or boolean dtype)
+{v_1 : tensor} |= dtype_(v_1) ≤ 10
+>>
+Rule 20 (binary equations require exactly 2 input tensors)
+{v_1 : list(tensor), v_2 : str} |= if v_2 = "i,j->ij" ∨ v_2 = "bij,bjk->bik" then v_1.len = 2
+>>
+Rule 21 (unary equations require exactly 1 input tensor)
+{v_1 : list(tensor), v_2 : str} |= if v_2 = "ii->i" ∨ v_2 = "...ij->...ji" then v_1.len = 1
+>>
+Rule 22 (batch dimension must match for batch matrix multiplication)
+{v_1 : tensor, v_2 : tensor, v_3 : str} |= if v_3 = "bij,bjk->bik" then shape(v_1, 0) = shape(v_2, 0)
+>>
+Rule 23 (contracting dimension must match for batch matrix multiplication)
+{v_1 : tensor, v_2 : tensor, v_3 : str} |= if v_3 = "bij,bjk->bik" then shape(v_1, 2) = shape(v_2, 1)
+>>
+Rule 24 (dimensions must be equal for diagonal reduction)
+{v_1 : tensor, v_2 : str} |= if v_2 = "ii->i" then shape(v_1, 0) = shape(v_1, 1)
+>>
+Rule 25 (input tensor must be 2D for diagonal reduction)
+{v_1 : tensor, v_2 : str} |= if v_2 = "ii->i" then ndim(v_1) = 2

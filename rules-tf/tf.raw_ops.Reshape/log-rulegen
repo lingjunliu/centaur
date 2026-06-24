@@ -1,0 +1,2606 @@
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.raw_ops.Reshape API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first", "channels_last", "channels_first", "VALID", "SAME", "EXPLICIT", "NWC", "NCW", "NHWC", "NCHW", "NDHWC", "NCDHW", "NCHW_VECT_C", "REFLECT", "SYMMETRIC", "UTF-8", "UTF-16-BE", "UTF-32-BE", "replace", "ignore", "strict"]
+
+[API Documentation]
+Reshapes a tensor.
+
+  Given `tensor`, this operation returns a tensor that has the same values
+  as `tensor` with shape `shape`.
+
+  If one component of 1-D tensor `shape` is the special value -1, the size of that
+  dimension is computed so that the total size remains constant.  In particular, a
+  `shape` of `[-1]` flattens into 1-D.  At most one component of `shape` may be
+  unknown.
+
+  The `shape` must be 1-D and the operation returns a tensor with shape
+  `shape` filled with the values of `tensor`. In this case, the number of elements
+  implied by `shape` must be the same as the number of elements in `tensor`.
+
+  It is an error if `shape` is not 1-D.
+
+  For example:
+
+  ```
+  # tensor 't' is [1, 2, 3, 4, 5, 6, 7, 8, 9]
+  # tensor 't' has shape [9]
+  reshape(t, [3, 3]) ==> [[1, 2, 3],
+                          [4, 5, 6],
+                          [7, 8, 9]]
+
+  # tensor 't' is [[[1, 1], [2, 2]],
+  #                [[3, 3], [4, 4]]]
+  # tensor 't' has shape [2, 2, 2]
+  reshape(t, [2, 4]) ==> [[1, 1, 2, 2],
+                          [3, 3, 4, 4]]
+
+  # tensor 't' is [[[1, 1, 1],
+  #                 [2, 2, 2]],
+  #                [[3, 3, 3],
+  #                 [4, 4, 4]],
+  #                [[5, 5, 5],
+  #                 [6, 6, 6]]]
+  # tensor 't' has shape [3, 2, 3]
+  # pass '[-1]' to flatten 't'
+  reshape(t, [-1]) ==> [1, 1, 1, 2, 2, 2, 3, 3, 3, 4, 4, 4, 5, 5, 5, 6, 6, 6]
+
+  # -1 can also be used to infer the shape
+
+  # -1 is inferred to be 9:
+  reshape(t, [2, -1]) ==> [[1, 1, 1, 2, 2, 2, 3, 3, 3],
+                           [4, 4, 4, 5, 5, 5, 6, 6, 6]]
+  # -1 is inferred to be 2:
+  reshape(t, [-1, 9]) ==> [[1, 1, 1, 2, 2, 2, 3, 3, 3],
+                           [4, 4, 4, 5, 5, 5, 6, 6, 6]]
+  # -1 is inferred to be 3:
+  reshape(t, [ 2, -1, 3]) ==> [[[1, 1, 1],
+                                [2, 2, 2],
+                                [3, 3, 3]],
+                               [[4, 4, 4],
+                                [5, 5, 5],
+                                [6, 6, 6]]]
+
+  # tensor 't' is [7]
+  # shape `[]` reshapes to a scalar
+  reshape(t, []) ==> 7
+  ```
+
+  Args:
+    tensor: A `Tensor`.
+    shape: A `Tensor`. Must be one of the following types: `int32`, `int64`.
+      Defines the shape of the output tensor.
+    name: A name for the operation (optional).
+
+  Returns:
+    A `Tensor`. Has the same type as `tensor`.
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 32 (Integer indices only valid with int-compatible dtype)
+{v_1 : tuple(int), v_2 : dtype} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] ≥ 0 ∧ v_2 = 1 ∨ v_2 = 2 ∨ v_2 = 3 ∨ v_2 = 4 ∨ v_2 = 5
+
+Rule 20 (input tensor must be 1-dimensional)
+{v_1 : tensor} |= ndim(v_1) = 1
+
+Rule 30 (list of bools for masking or selection)
+{v_1 : tensor, v_2 : list(bool)} |= v_2.len = shape(v_1, 0)
+
+Rule 23 (3-dimensional tensor with all positive shape dimensions)
+{v_1 : tensor} |= ndim(v_1) = 3 ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+
+Rule 1 (tensor shapes should be the same)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = shape(v_2, i)
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 1 (The shape parameter must be a 1-dimensional tensor)
+{v_2 : tensor} |= ndim(v_2) = 1
+Token usage: input=2461, output=286, total=7247
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.raw_ops.Reshape API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first", "channels_last", "channels_first", "VALID", "SAME", "EXPLICIT", "NWC", "NCW", "NHWC", "NCHW", "NDHWC", "NCDHW", "NCHW_VECT_C", "REFLECT", "SYMMETRIC", "UTF-8", "UTF-16-BE", "UTF-32-BE", "replace", "ignore", "strict"]
+
+[API Documentation]
+Reshapes a tensor.
+
+  Given `tensor`, this operation returns a tensor that has the same values
+  as `tensor` with shape `shape`.
+
+  If one component of 1-D tensor `shape` is the special value -1, the size of that
+  dimension is computed so that the total size remains constant.  In particular, a
+  `shape` of `[-1]` flattens into 1-D.  At most one component of `shape` may be
+  unknown.
+
+  The `shape` must be 1-D and the operation returns a tensor with shape
+  `shape` filled with the values of `tensor`. In this case, the number of elements
+  implied by `shape` must be the same as the number of elements in `tensor`.
+
+  It is an error if `shape` is not 1-D.
+
+  For example:
+
+  ```
+  # tensor 't' is [1, 2, 3, 4, 5, 6, 7, 8, 9]
+  # tensor 't' has shape [9]
+  reshape(t, [3, 3]) ==> [[1, 2, 3],
+                          [4, 5, 6],
+                          [7, 8, 9]]
+
+  # tensor 't' is [[[1, 1], [2, 2]],
+  #                [[3, 3], [4, 4]]]
+  # tensor 't' has shape [2, 2, 2]
+  reshape(t, [2, 4]) ==> [[1, 1, 2, 2],
+                          [3, 3, 4, 4]]
+
+  # tensor 't' is [[[1, 1, 1],
+  #                 [2, 2, 2]],
+  #                [[3, 3, 3],
+  #                 [4, 4, 4]],
+  #                [[5, 5, 5],
+  #                 [6, 6, 6]]]
+  # tensor 't' has shape [3, 2, 3]
+  # pass '[-1]' to flatten 't'
+  reshape(t, [-1]) ==> [1, 1, 1, 2, 2, 2, 3, 3, 3, 4, 4, 4, 5, 5, 5, 6, 6, 6]
+
+  # -1 can also be used to infer the shape
+
+  # -1 is inferred to be 9:
+  reshape(t, [2, -1]) ==> [[1, 1, 1, 2, 2, 2, 3, 3, 3],
+                           [4, 4, 4, 5, 5, 5, 6, 6, 6]]
+  # -1 is inferred to be 2:
+  reshape(t, [-1, 9]) ==> [[1, 1, 1, 2, 2, 2, 3, 3, 3],
+                           [4, 4, 4, 5, 5, 5, 6, 6, 6]]
+  # -1 is inferred to be 3:
+  reshape(t, [ 2, -1, 3]) ==> [[[1, 1, 1],
+                                [2, 2, 2],
+                                [3, 3, 3]],
+                               [[4, 4, 4],
+                                [5, 5, 5],
+                                [6, 6, 6]]]
+
+  # tensor 't' is [7]
+  # shape `[]` reshapes to a scalar
+  reshape(t, []) ==> 7
+  ```
+
+  Args:
+    tensor: A `Tensor`.
+    shape: A `Tensor`. Must be one of the following types: `int32`, `int64`.
+      Defines the shape of the output tensor.
+    name: A name for the operation (optional).
+
+  Returns:
+    A `Tensor`. Has the same type as `tensor`.
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 32 (Integer indices only valid with int-compatible dtype)
+{v_1 : tuple(int), v_2 : dtype} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] ≥ 0 ∧ v_2 = 1 ∨ v_2 = 2 ∨ v_2 = 3 ∨ v_2 = 4 ∨ v_2 = 5
+
+Rule 20 (input tensor must be 1-dimensional)
+{v_1 : tensor} |= ndim(v_1) = 1
+
+Rule 30 (list of bools for masking or selection)
+{v_1 : tensor, v_2 : list(bool)} |= v_2.len = shape(v_1, 0)
+
+Rule 23 (3-dimensional tensor with all positive shape dimensions)
+{v_1 : tensor} |= ndim(v_1) = 3 ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+
+Rule 1 (tensor shapes should be the same)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = shape(v_2, i)
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 2 (The shape tensor must have int32 or int64 data type)
+{v_2 : tensor} |= dtype_(v_2) = 3 ∨ dtype_(v_2) = 4
+Token usage: input=2461, output=286, total=7247
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.raw_ops.Reshape API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first", "channels_last", "channels_first", "VALID", "SAME", "EXPLICIT", "NWC", "NCW", "NHWC", "NCHW", "NDHWC", "NCDHW", "NCHW_VECT_C", "REFLECT", "SYMMETRIC", "UTF-8", "UTF-16-BE", "UTF-32-BE", "replace", "ignore", "strict"]
+
+[API Documentation]
+Reshapes a tensor.
+
+  Given `tensor`, this operation returns a tensor that has the same values
+  as `tensor` with shape `shape`.
+
+  If one component of 1-D tensor `shape` is the special value -1, the size of that
+  dimension is computed so that the total size remains constant.  In particular, a
+  `shape` of `[-1]` flattens into 1-D.  At most one component of `shape` may be
+  unknown.
+
+  The `shape` must be 1-D and the operation returns a tensor with shape
+  `shape` filled with the values of `tensor`. In this case, the number of elements
+  implied by `shape` must be the same as the number of elements in `tensor`.
+
+  It is an error if `shape` is not 1-D.
+
+  For example:
+
+  ```
+  # tensor 't' is [1, 2, 3, 4, 5, 6, 7, 8, 9]
+  # tensor 't' has shape [9]
+  reshape(t, [3, 3]) ==> [[1, 2, 3],
+                          [4, 5, 6],
+                          [7, 8, 9]]
+
+  # tensor 't' is [[[1, 1], [2, 2]],
+  #                [[3, 3], [4, 4]]]
+  # tensor 't' has shape [2, 2, 2]
+  reshape(t, [2, 4]) ==> [[1, 1, 2, 2],
+                          [3, 3, 4, 4]]
+
+  # tensor 't' is [[[1, 1, 1],
+  #                 [2, 2, 2]],
+  #                [[3, 3, 3],
+  #                 [4, 4, 4]],
+  #                [[5, 5, 5],
+  #                 [6, 6, 6]]]
+  # tensor 't' has shape [3, 2, 3]
+  # pass '[-1]' to flatten 't'
+  reshape(t, [-1]) ==> [1, 1, 1, 2, 2, 2, 3, 3, 3, 4, 4, 4, 5, 5, 5, 6, 6, 6]
+
+  # -1 can also be used to infer the shape
+
+  # -1 is inferred to be 9:
+  reshape(t, [2, -1]) ==> [[1, 1, 1, 2, 2, 2, 3, 3, 3],
+                           [4, 4, 4, 5, 5, 5, 6, 6, 6]]
+  # -1 is inferred to be 2:
+  reshape(t, [-1, 9]) ==> [[1, 1, 1, 2, 2, 2, 3, 3, 3],
+                           [4, 4, 4, 5, 5, 5, 6, 6, 6]]
+  # -1 is inferred to be 3:
+  reshape(t, [ 2, -1, 3]) ==> [[[1, 1, 1],
+                                [2, 2, 2],
+                                [3, 3, 3]],
+                               [[4, 4, 4],
+                                [5, 5, 5],
+                                [6, 6, 6]]]
+
+  # tensor 't' is [7]
+  # shape `[]` reshapes to a scalar
+  reshape(t, []) ==> 7
+  ```
+
+  Args:
+    tensor: A `Tensor`.
+    shape: A `Tensor`. Must be one of the following types: `int32`, `int64`.
+      Defines the shape of the output tensor.
+    name: A name for the operation (optional).
+
+  Returns:
+    A `Tensor`. Has the same type as `tensor`.
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 32 (Integer indices only valid with int-compatible dtype)
+{v_1 : tuple(int), v_2 : dtype} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] ≥ 0 ∧ v_2 = 1 ∨ v_2 = 2 ∨ v_2 = 3 ∨ v_2 = 4 ∨ v_2 = 5
+
+Rule 20 (input tensor must be 1-dimensional)
+{v_1 : tensor} |= ndim(v_1) = 1
+
+Rule 30 (list of bools for masking or selection)
+{v_1 : tensor, v_2 : list(bool)} |= v_2.len = shape(v_1, 0)
+
+Rule 23 (3-dimensional tensor with all positive shape dimensions)
+{v_1 : tensor} |= ndim(v_1) = 3 ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+
+Rule 1 (tensor shapes should be the same)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = shape(v_2, i)
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 3 (All elements of the shape tuple must be greater than or equal to -1)
+{v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : v_2[i] ≥ -1
+Token usage: input=2461, output=286, total=7247
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.raw_ops.Reshape API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first", "channels_last", "channels_first", "VALID", "SAME", "EXPLICIT", "NWC", "NCW", "NHWC", "NCHW", "NDHWC", "NCDHW", "NCHW_VECT_C", "REFLECT", "SYMMETRIC", "UTF-8", "UTF-16-BE", "UTF-32-BE", "replace", "ignore", "strict"]
+
+[API Documentation]
+Reshapes a tensor.
+
+  Given `tensor`, this operation returns a tensor that has the same values
+  as `tensor` with shape `shape`.
+
+  If one component of 1-D tensor `shape` is the special value -1, the size of that
+  dimension is computed so that the total size remains constant.  In particular, a
+  `shape` of `[-1]` flattens into 1-D.  At most one component of `shape` may be
+  unknown.
+
+  The `shape` must be 1-D and the operation returns a tensor with shape
+  `shape` filled with the values of `tensor`. In this case, the number of elements
+  implied by `shape` must be the same as the number of elements in `tensor`.
+
+  It is an error if `shape` is not 1-D.
+
+  For example:
+
+  ```
+  # tensor 't' is [1, 2, 3, 4, 5, 6, 7, 8, 9]
+  # tensor 't' has shape [9]
+  reshape(t, [3, 3]) ==> [[1, 2, 3],
+                          [4, 5, 6],
+                          [7, 8, 9]]
+
+  # tensor 't' is [[[1, 1], [2, 2]],
+  #                [[3, 3], [4, 4]]]
+  # tensor 't' has shape [2, 2, 2]
+  reshape(t, [2, 4]) ==> [[1, 1, 2, 2],
+                          [3, 3, 4, 4]]
+
+  # tensor 't' is [[[1, 1, 1],
+  #                 [2, 2, 2]],
+  #                [[3, 3, 3],
+  #                 [4, 4, 4]],
+  #                [[5, 5, 5],
+  #                 [6, 6, 6]]]
+  # tensor 't' has shape [3, 2, 3]
+  # pass '[-1]' to flatten 't'
+  reshape(t, [-1]) ==> [1, 1, 1, 2, 2, 2, 3, 3, 3, 4, 4, 4, 5, 5, 5, 6, 6, 6]
+
+  # -1 can also be used to infer the shape
+
+  # -1 is inferred to be 9:
+  reshape(t, [2, -1]) ==> [[1, 1, 1, 2, 2, 2, 3, 3, 3],
+                           [4, 4, 4, 5, 5, 5, 6, 6, 6]]
+  # -1 is inferred to be 2:
+  reshape(t, [-1, 9]) ==> [[1, 1, 1, 2, 2, 2, 3, 3, 3],
+                           [4, 4, 4, 5, 5, 5, 6, 6, 6]]
+  # -1 is inferred to be 3:
+  reshape(t, [ 2, -1, 3]) ==> [[[1, 1, 1],
+                                [2, 2, 2],
+                                [3, 3, 3]],
+                               [[4, 4, 4],
+                                [5, 5, 5],
+                                [6, 6, 6]]]
+
+  # tensor 't' is [7]
+  # shape `[]` reshapes to a scalar
+  reshape(t, []) ==> 7
+  ```
+
+  Args:
+    tensor: A `Tensor`.
+    shape: A `Tensor`. Must be one of the following types: `int32`, `int64`.
+      Defines the shape of the output tensor.
+    name: A name for the operation (optional).
+
+  Returns:
+    A `Tensor`. Has the same type as `tensor`.
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 32 (Integer indices only valid with int-compatible dtype)
+{v_1 : tuple(int), v_2 : dtype} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] ≥ 0 ∧ v_2 = 1 ∨ v_2 = 2 ∨ v_2 = 3 ∨ v_2 = 4 ∨ v_2 = 5
+
+Rule 20 (input tensor must be 1-dimensional)
+{v_1 : tensor} |= ndim(v_1) = 1
+
+Rule 30 (list of bools for masking or selection)
+{v_1 : tensor, v_2 : list(bool)} |= v_2.len = shape(v_1, 0)
+
+Rule 23 (3-dimensional tensor with all positive shape dimensions)
+{v_1 : tensor} |= ndim(v_1) = 3 ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+
+Rule 1 (tensor shapes should be the same)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = shape(v_2, i)
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 4 (At most one component of the shape tuple may be -1)
+{v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : v_2[i] ≠ -1 ∨ (∀j ∈ [0, v_2.len - 1] : j = i ∨ v_2[j] ≠ -1)
+Token usage: input=2461, output=286, total=7247
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.raw_ops.Reshape API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first", "channels_last", "channels_first", "VALID", "SAME", "EXPLICIT", "NWC", "NCW", "NHWC", "NCHW", "NDHWC", "NCDHW", "NCHW_VECT_C", "REFLECT", "SYMMETRIC", "UTF-8", "UTF-16-BE", "UTF-32-BE", "replace", "ignore", "strict"]
+
+[API Documentation]
+Reshapes a tensor.
+
+  Given `tensor`, this operation returns a tensor that has the same values
+  as `tensor` with shape `shape`.
+
+  If one component of 1-D tensor `shape` is the special value -1, the size of that
+  dimension is computed so that the total size remains constant.  In particular, a
+  `shape` of `[-1]` flattens into 1-D.  At most one component of `shape` may be
+  unknown.
+
+  The `shape` must be 1-D and the operation returns a tensor with shape
+  `shape` filled with the values of `tensor`. In this case, the number of elements
+  implied by `shape` must be the same as the number of elements in `tensor`.
+
+  It is an error if `shape` is not 1-D.
+
+  For example:
+
+  ```
+  # tensor 't' is [1, 2, 3, 4, 5, 6, 7, 8, 9]
+  # tensor 't' has shape [9]
+  reshape(t, [3, 3]) ==> [[1, 2, 3],
+                          [4, 5, 6],
+                          [7, 8, 9]]
+
+  # tensor 't' is [[[1, 1], [2, 2]],
+  #                [[3, 3], [4, 4]]]
+  # tensor 't' has shape [2, 2, 2]
+  reshape(t, [2, 4]) ==> [[1, 1, 2, 2],
+                          [3, 3, 4, 4]]
+
+  # tensor 't' is [[[1, 1, 1],
+  #                 [2, 2, 2]],
+  #                [[3, 3, 3],
+  #                 [4, 4, 4]],
+  #                [[5, 5, 5],
+  #                 [6, 6, 6]]]
+  # tensor 't' has shape [3, 2, 3]
+  # pass '[-1]' to flatten 't'
+  reshape(t, [-1]) ==> [1, 1, 1, 2, 2, 2, 3, 3, 3, 4, 4, 4, 5, 5, 5, 6, 6, 6]
+
+  # -1 can also be used to infer the shape
+
+  # -1 is inferred to be 9:
+  reshape(t, [2, -1]) ==> [[1, 1, 1, 2, 2, 2, 3, 3, 3],
+                           [4, 4, 4, 5, 5, 5, 6, 6, 6]]
+  # -1 is inferred to be 2:
+  reshape(t, [-1, 9]) ==> [[1, 1, 1, 2, 2, 2, 3, 3, 3],
+                           [4, 4, 4, 5, 5, 5, 6, 6, 6]]
+  # -1 is inferred to be 3:
+  reshape(t, [ 2, -1, 3]) ==> [[[1, 1, 1],
+                                [2, 2, 2],
+                                [3, 3, 3]],
+                               [[4, 4, 4],
+                                [5, 5, 5],
+                                [6, 6, 6]]]
+
+  # tensor 't' is [7]
+  # shape `[]` reshapes to a scalar
+  reshape(t, []) ==> 7
+  ```
+
+  Args:
+    tensor: A `Tensor`.
+    shape: A `Tensor`. Must be one of the following types: `int32`, `int64`.
+      Defines the shape of the output tensor.
+    name: A name for the operation (optional).
+
+  Returns:
+    A `Tensor`. Has the same type as `tensor`.
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 32 (Integer indices only valid with int-compatible dtype)
+{v_1 : tuple(int), v_2 : dtype} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] ≥ 0 ∧ v_2 = 1 ∨ v_2 = 2 ∨ v_2 = 3 ∨ v_2 = 4 ∨ v_2 = 5
+
+Rule 20 (input tensor must be 1-dimensional)
+{v_1 : tensor} |= ndim(v_1) = 1
+
+Rule 30 (list of bools for masking or selection)
+{v_1 : tensor, v_2 : list(bool)} |= v_2.len = shape(v_1, 0)
+
+Rule 23 (3-dimensional tensor with all positive shape dimensions)
+{v_1 : tensor} |= ndim(v_1) = 3 ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+
+Rule 1 (tensor shapes should be the same)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = shape(v_2, i)
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 5 (All elements of the shape list must be greater than or equal to -1)
+{v_2 : list(int)} |= ∀i ∈ [0, v_2.len - 1] : v_2[i] ≥ -1
+Token usage: input=2461, output=286, total=7247
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.raw_ops.Reshape API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first", "channels_last", "channels_first", "VALID", "SAME", "EXPLICIT", "NWC", "NCW", "NHWC", "NCHW", "NDHWC", "NCDHW", "NCHW_VECT_C", "REFLECT", "SYMMETRIC", "UTF-8", "UTF-16-BE", "UTF-32-BE", "replace", "ignore", "strict"]
+
+[API Documentation]
+Reshapes a tensor.
+
+  Given `tensor`, this operation returns a tensor that has the same values
+  as `tensor` with shape `shape`.
+
+  If one component of 1-D tensor `shape` is the special value -1, the size of that
+  dimension is computed so that the total size remains constant.  In particular, a
+  `shape` of `[-1]` flattens into 1-D.  At most one component of `shape` may be
+  unknown.
+
+  The `shape` must be 1-D and the operation returns a tensor with shape
+  `shape` filled with the values of `tensor`. In this case, the number of elements
+  implied by `shape` must be the same as the number of elements in `tensor`.
+
+  It is an error if `shape` is not 1-D.
+
+  For example:
+
+  ```
+  # tensor 't' is [1, 2, 3, 4, 5, 6, 7, 8, 9]
+  # tensor 't' has shape [9]
+  reshape(t, [3, 3]) ==> [[1, 2, 3],
+                          [4, 5, 6],
+                          [7, 8, 9]]
+
+  # tensor 't' is [[[1, 1], [2, 2]],
+  #                [[3, 3], [4, 4]]]
+  # tensor 't' has shape [2, 2, 2]
+  reshape(t, [2, 4]) ==> [[1, 1, 2, 2],
+                          [3, 3, 4, 4]]
+
+  # tensor 't' is [[[1, 1, 1],
+  #                 [2, 2, 2]],
+  #                [[3, 3, 3],
+  #                 [4, 4, 4]],
+  #                [[5, 5, 5],
+  #                 [6, 6, 6]]]
+  # tensor 't' has shape [3, 2, 3]
+  # pass '[-1]' to flatten 't'
+  reshape(t, [-1]) ==> [1, 1, 1, 2, 2, 2, 3, 3, 3, 4, 4, 4, 5, 5, 5, 6, 6, 6]
+
+  # -1 can also be used to infer the shape
+
+  # -1 is inferred to be 9:
+  reshape(t, [2, -1]) ==> [[1, 1, 1, 2, 2, 2, 3, 3, 3],
+                           [4, 4, 4, 5, 5, 5, 6, 6, 6]]
+  # -1 is inferred to be 2:
+  reshape(t, [-1, 9]) ==> [[1, 1, 1, 2, 2, 2, 3, 3, 3],
+                           [4, 4, 4, 5, 5, 5, 6, 6, 6]]
+  # -1 is inferred to be 3:
+  reshape(t, [ 2, -1, 3]) ==> [[[1, 1, 1],
+                                [2, 2, 2],
+                                [3, 3, 3]],
+                               [[4, 4, 4],
+                                [5, 5, 5],
+                                [6, 6, 6]]]
+
+  # tensor 't' is [7]
+  # shape `[]` reshapes to a scalar
+  reshape(t, []) ==> 7
+  ```
+
+  Args:
+    tensor: A `Tensor`.
+    shape: A `Tensor`. Must be one of the following types: `int32`, `int64`.
+      Defines the shape of the output tensor.
+    name: A name for the operation (optional).
+
+  Returns:
+    A `Tensor`. Has the same type as `tensor`.
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 7 (first dimension of a tensor matches second dimension of the other)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) ≥ 1 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, 0) = shape(v_2, 1)
+
+Rule 1 (tensor shapes should be the same)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = shape(v_2, i)
+
+Rule 16 (shape alignment for matrix multiplication)
+{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) ≥ 2 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, ndim(v_2) − 2)) ∨ (ndim(v_1) ≥ 2 ∧ ndim(v_2) = 1 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, 0))
+
+Rule 30 (list of bools for masking or selection)
+{v_1 : tensor, v_2 : list(bool)} |= v_2.len = shape(v_1, 0)
+
+Rule 23 (3-dimensional tensor with all positive shape dimensions)
+{v_1 : tensor} |= ndim(v_1) = 3 ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 6 (The shape parameter must be a 1-dimensional tensor)
+{v_2 : tensor} |= ndim(v_2) = 1
+Token usage: input=9791, output=446, total=12537
+** DUPLICATED RULE ** (num_failures: 1)
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.raw_ops.Reshape API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first", "channels_last", "channels_first", "VALID", "SAME", "EXPLICIT", "NWC", "NCW", "NHWC", "NCHW", "NDHWC", "NCDHW", "NCHW_VECT_C", "REFLECT", "SYMMETRIC", "UTF-8", "UTF-16-BE", "UTF-32-BE", "replace", "ignore", "strict"]
+
+[API Documentation]
+Reshapes a tensor.
+
+  Given `tensor`, this operation returns a tensor that has the same values
+  as `tensor` with shape `shape`.
+
+  If one component of 1-D tensor `shape` is the special value -1, the size of that
+  dimension is computed so that the total size remains constant.  In particular, a
+  `shape` of `[-1]` flattens into 1-D.  At most one component of `shape` may be
+  unknown.
+
+  The `shape` must be 1-D and the operation returns a tensor with shape
+  `shape` filled with the values of `tensor`. In this case, the number of elements
+  implied by `shape` must be the same as the number of elements in `tensor`.
+
+  It is an error if `shape` is not 1-D.
+
+  For example:
+
+  ```
+  # tensor 't' is [1, 2, 3, 4, 5, 6, 7, 8, 9]
+  # tensor 't' has shape [9]
+  reshape(t, [3, 3]) ==> [[1, 2, 3],
+                          [4, 5, 6],
+                          [7, 8, 9]]
+
+  # tensor 't' is [[[1, 1], [2, 2]],
+  #                [[3, 3], [4, 4]]]
+  # tensor 't' has shape [2, 2, 2]
+  reshape(t, [2, 4]) ==> [[1, 1, 2, 2],
+                          [3, 3, 4, 4]]
+
+  # tensor 't' is [[[1, 1, 1],
+  #                 [2, 2, 2]],
+  #                [[3, 3, 3],
+  #                 [4, 4, 4]],
+  #                [[5, 5, 5],
+  #                 [6, 6, 6]]]
+  # tensor 't' has shape [3, 2, 3]
+  # pass '[-1]' to flatten 't'
+  reshape(t, [-1]) ==> [1, 1, 1, 2, 2, 2, 3, 3, 3, 4, 4, 4, 5, 5, 5, 6, 6, 6]
+
+  # -1 can also be used to infer the shape
+
+  # -1 is inferred to be 9:
+  reshape(t, [2, -1]) ==> [[1, 1, 1, 2, 2, 2, 3, 3, 3],
+                           [4, 4, 4, 5, 5, 5, 6, 6, 6]]
+  # -1 is inferred to be 2:
+  reshape(t, [-1, 9]) ==> [[1, 1, 1, 2, 2, 2, 3, 3, 3],
+                           [4, 4, 4, 5, 5, 5, 6, 6, 6]]
+  # -1 is inferred to be 3:
+  reshape(t, [ 2, -1, 3]) ==> [[[1, 1, 1],
+                                [2, 2, 2],
+                                [3, 3, 3]],
+                               [[4, 4, 4],
+                                [5, 5, 5],
+                                [6, 6, 6]]]
+
+  # tensor 't' is [7]
+  # shape `[]` reshapes to a scalar
+  reshape(t, []) ==> 7
+  ```
+
+  Args:
+    tensor: A `Tensor`.
+    shape: A `Tensor`. Must be one of the following types: `int32`, `int64`.
+      Defines the shape of the output tensor.
+    name: A name for the operation (optional).
+
+  Returns:
+    A `Tensor`. Has the same type as `tensor`.
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 7 (first dimension of a tensor matches second dimension of the other)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) ≥ 1 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, 0) = shape(v_2, 1)
+
+Rule 1 (tensor shapes should be the same)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = shape(v_2, i)
+
+Rule 16 (shape alignment for matrix multiplication)
+{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) ≥ 2 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, ndim(v_2) − 2)) ∨ (ndim(v_1) ≥ 2 ∧ ndim(v_2) = 1 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, 0))
+
+Rule 30 (list of bools for masking or selection)
+{v_1 : tensor, v_2 : list(bool)} |= v_2.len = shape(v_1, 0)
+
+Rule 23 (3-dimensional tensor with all positive shape dimensions)
+{v_1 : tensor} |= ndim(v_1) = 3 ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 7 (The shape tensor must have int32 or int64 data type)
+{v_2 : tensor} |= dtype_(v_2) = 3 ∨ dtype_(v_2) = 4
+Token usage: input=9791, output=446, total=12537
+** DUPLICATED RULE ** (num_failures: 2)
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.raw_ops.Reshape API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first", "channels_last", "channels_first", "VALID", "SAME", "EXPLICIT", "NWC", "NCW", "NHWC", "NCHW", "NDHWC", "NCDHW", "NCHW_VECT_C", "REFLECT", "SYMMETRIC", "UTF-8", "UTF-16-BE", "UTF-32-BE", "replace", "ignore", "strict"]
+
+[API Documentation]
+Reshapes a tensor.
+
+  Given `tensor`, this operation returns a tensor that has the same values
+  as `tensor` with shape `shape`.
+
+  If one component of 1-D tensor `shape` is the special value -1, the size of that
+  dimension is computed so that the total size remains constant.  In particular, a
+  `shape` of `[-1]` flattens into 1-D.  At most one component of `shape` may be
+  unknown.
+
+  The `shape` must be 1-D and the operation returns a tensor with shape
+  `shape` filled with the values of `tensor`. In this case, the number of elements
+  implied by `shape` must be the same as the number of elements in `tensor`.
+
+  It is an error if `shape` is not 1-D.
+
+  For example:
+
+  ```
+  # tensor 't' is [1, 2, 3, 4, 5, 6, 7, 8, 9]
+  # tensor 't' has shape [9]
+  reshape(t, [3, 3]) ==> [[1, 2, 3],
+                          [4, 5, 6],
+                          [7, 8, 9]]
+
+  # tensor 't' is [[[1, 1], [2, 2]],
+  #                [[3, 3], [4, 4]]]
+  # tensor 't' has shape [2, 2, 2]
+  reshape(t, [2, 4]) ==> [[1, 1, 2, 2],
+                          [3, 3, 4, 4]]
+
+  # tensor 't' is [[[1, 1, 1],
+  #                 [2, 2, 2]],
+  #                [[3, 3, 3],
+  #                 [4, 4, 4]],
+  #                [[5, 5, 5],
+  #                 [6, 6, 6]]]
+  # tensor 't' has shape [3, 2, 3]
+  # pass '[-1]' to flatten 't'
+  reshape(t, [-1]) ==> [1, 1, 1, 2, 2, 2, 3, 3, 3, 4, 4, 4, 5, 5, 5, 6, 6, 6]
+
+  # -1 can also be used to infer the shape
+
+  # -1 is inferred to be 9:
+  reshape(t, [2, -1]) ==> [[1, 1, 1, 2, 2, 2, 3, 3, 3],
+                           [4, 4, 4, 5, 5, 5, 6, 6, 6]]
+  # -1 is inferred to be 2:
+  reshape(t, [-1, 9]) ==> [[1, 1, 1, 2, 2, 2, 3, 3, 3],
+                           [4, 4, 4, 5, 5, 5, 6, 6, 6]]
+  # -1 is inferred to be 3:
+  reshape(t, [ 2, -1, 3]) ==> [[[1, 1, 1],
+                                [2, 2, 2],
+                                [3, 3, 3]],
+                               [[4, 4, 4],
+                                [5, 5, 5],
+                                [6, 6, 6]]]
+
+  # tensor 't' is [7]
+  # shape `[]` reshapes to a scalar
+  reshape(t, []) ==> 7
+  ```
+
+  Args:
+    tensor: A `Tensor`.
+    shape: A `Tensor`. Must be one of the following types: `int32`, `int64`.
+      Defines the shape of the output tensor.
+    name: A name for the operation (optional).
+
+  Returns:
+    A `Tensor`. Has the same type as `tensor`.
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 7 (first dimension of a tensor matches second dimension of the other)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) ≥ 1 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, 0) = shape(v_2, 1)
+
+Rule 1 (tensor shapes should be the same)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = shape(v_2, i)
+
+Rule 16 (shape alignment for matrix multiplication)
+{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) ≥ 2 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, ndim(v_2) − 2)) ∨ (ndim(v_1) ≥ 2 ∧ ndim(v_2) = 1 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, 0))
+
+Rule 30 (list of bools for masking or selection)
+{v_1 : tensor, v_2 : list(bool)} |= v_2.len = shape(v_1, 0)
+
+Rule 23 (3-dimensional tensor with all positive shape dimensions)
+{v_1 : tensor} |= ndim(v_1) = 3 ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 8 (All elements of the shape tuple must be greater than or equal to -1)
+{v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : v_2[i] ≥ -1
+Token usage: input=9791, output=446, total=12537
+** DUPLICATED RULE ** (num_failures: 3)
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.raw_ops.Reshape API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first", "channels_last", "channels_first", "VALID", "SAME", "EXPLICIT", "NWC", "NCW", "NHWC", "NCHW", "NDHWC", "NCDHW", "NCHW_VECT_C", "REFLECT", "SYMMETRIC", "UTF-8", "UTF-16-BE", "UTF-32-BE", "replace", "ignore", "strict"]
+
+[API Documentation]
+Reshapes a tensor.
+
+  Given `tensor`, this operation returns a tensor that has the same values
+  as `tensor` with shape `shape`.
+
+  If one component of 1-D tensor `shape` is the special value -1, the size of that
+  dimension is computed so that the total size remains constant.  In particular, a
+  `shape` of `[-1]` flattens into 1-D.  At most one component of `shape` may be
+  unknown.
+
+  The `shape` must be 1-D and the operation returns a tensor with shape
+  `shape` filled with the values of `tensor`. In this case, the number of elements
+  implied by `shape` must be the same as the number of elements in `tensor`.
+
+  It is an error if `shape` is not 1-D.
+
+  For example:
+
+  ```
+  # tensor 't' is [1, 2, 3, 4, 5, 6, 7, 8, 9]
+  # tensor 't' has shape [9]
+  reshape(t, [3, 3]) ==> [[1, 2, 3],
+                          [4, 5, 6],
+                          [7, 8, 9]]
+
+  # tensor 't' is [[[1, 1], [2, 2]],
+  #                [[3, 3], [4, 4]]]
+  # tensor 't' has shape [2, 2, 2]
+  reshape(t, [2, 4]) ==> [[1, 1, 2, 2],
+                          [3, 3, 4, 4]]
+
+  # tensor 't' is [[[1, 1, 1],
+  #                 [2, 2, 2]],
+  #                [[3, 3, 3],
+  #                 [4, 4, 4]],
+  #                [[5, 5, 5],
+  #                 [6, 6, 6]]]
+  # tensor 't' has shape [3, 2, 3]
+  # pass '[-1]' to flatten 't'
+  reshape(t, [-1]) ==> [1, 1, 1, 2, 2, 2, 3, 3, 3, 4, 4, 4, 5, 5, 5, 6, 6, 6]
+
+  # -1 can also be used to infer the shape
+
+  # -1 is inferred to be 9:
+  reshape(t, [2, -1]) ==> [[1, 1, 1, 2, 2, 2, 3, 3, 3],
+                           [4, 4, 4, 5, 5, 5, 6, 6, 6]]
+  # -1 is inferred to be 2:
+  reshape(t, [-1, 9]) ==> [[1, 1, 1, 2, 2, 2, 3, 3, 3],
+                           [4, 4, 4, 5, 5, 5, 6, 6, 6]]
+  # -1 is inferred to be 3:
+  reshape(t, [ 2, -1, 3]) ==> [[[1, 1, 1],
+                                [2, 2, 2],
+                                [3, 3, 3]],
+                               [[4, 4, 4],
+                                [5, 5, 5],
+                                [6, 6, 6]]]
+
+  # tensor 't' is [7]
+  # shape `[]` reshapes to a scalar
+  reshape(t, []) ==> 7
+  ```
+
+  Args:
+    tensor: A `Tensor`.
+    shape: A `Tensor`. Must be one of the following types: `int32`, `int64`.
+      Defines the shape of the output tensor.
+    name: A name for the operation (optional).
+
+  Returns:
+    A `Tensor`. Has the same type as `tensor`.
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 7 (first dimension of a tensor matches second dimension of the other)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) ≥ 1 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, 0) = shape(v_2, 1)
+
+Rule 1 (tensor shapes should be the same)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = shape(v_2, i)
+
+Rule 16 (shape alignment for matrix multiplication)
+{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) ≥ 2 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, ndim(v_2) − 2)) ∨ (ndim(v_1) ≥ 2 ∧ ndim(v_2) = 1 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, 0))
+
+Rule 30 (list of bools for masking or selection)
+{v_1 : tensor, v_2 : list(bool)} |= v_2.len = shape(v_1, 0)
+
+Rule 23 (3-dimensional tensor with all positive shape dimensions)
+{v_1 : tensor} |= ndim(v_1) = 3 ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 9 (At most one component of the shape tuple may be -1)
+{v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : v_2[i] ≠ -1 ∨ (∀j ∈ [0, v_2.len - 1] : j = i ∨ v_2[j] ≠ -1)
+Token usage: input=9791, output=446, total=12537
+** DUPLICATED RULE ** (num_failures: 4)
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.raw_ops.Reshape API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first", "channels_last", "channels_first", "VALID", "SAME", "EXPLICIT", "NWC", "NCW", "NHWC", "NCHW", "NDHWC", "NCDHW", "NCHW_VECT_C", "REFLECT", "SYMMETRIC", "UTF-8", "UTF-16-BE", "UTF-32-BE", "replace", "ignore", "strict"]
+
+[API Documentation]
+Reshapes a tensor.
+
+  Given `tensor`, this operation returns a tensor that has the same values
+  as `tensor` with shape `shape`.
+
+  If one component of 1-D tensor `shape` is the special value -1, the size of that
+  dimension is computed so that the total size remains constant.  In particular, a
+  `shape` of `[-1]` flattens into 1-D.  At most one component of `shape` may be
+  unknown.
+
+  The `shape` must be 1-D and the operation returns a tensor with shape
+  `shape` filled with the values of `tensor`. In this case, the number of elements
+  implied by `shape` must be the same as the number of elements in `tensor`.
+
+  It is an error if `shape` is not 1-D.
+
+  For example:
+
+  ```
+  # tensor 't' is [1, 2, 3, 4, 5, 6, 7, 8, 9]
+  # tensor 't' has shape [9]
+  reshape(t, [3, 3]) ==> [[1, 2, 3],
+                          [4, 5, 6],
+                          [7, 8, 9]]
+
+  # tensor 't' is [[[1, 1], [2, 2]],
+  #                [[3, 3], [4, 4]]]
+  # tensor 't' has shape [2, 2, 2]
+  reshape(t, [2, 4]) ==> [[1, 1, 2, 2],
+                          [3, 3, 4, 4]]
+
+  # tensor 't' is [[[1, 1, 1],
+  #                 [2, 2, 2]],
+  #                [[3, 3, 3],
+  #                 [4, 4, 4]],
+  #                [[5, 5, 5],
+  #                 [6, 6, 6]]]
+  # tensor 't' has shape [3, 2, 3]
+  # pass '[-1]' to flatten 't'
+  reshape(t, [-1]) ==> [1, 1, 1, 2, 2, 2, 3, 3, 3, 4, 4, 4, 5, 5, 5, 6, 6, 6]
+
+  # -1 can also be used to infer the shape
+
+  # -1 is inferred to be 9:
+  reshape(t, [2, -1]) ==> [[1, 1, 1, 2, 2, 2, 3, 3, 3],
+                           [4, 4, 4, 5, 5, 5, 6, 6, 6]]
+  # -1 is inferred to be 2:
+  reshape(t, [-1, 9]) ==> [[1, 1, 1, 2, 2, 2, 3, 3, 3],
+                           [4, 4, 4, 5, 5, 5, 6, 6, 6]]
+  # -1 is inferred to be 3:
+  reshape(t, [ 2, -1, 3]) ==> [[[1, 1, 1],
+                                [2, 2, 2],
+                                [3, 3, 3]],
+                               [[4, 4, 4],
+                                [5, 5, 5],
+                                [6, 6, 6]]]
+
+  # tensor 't' is [7]
+  # shape `[]` reshapes to a scalar
+  reshape(t, []) ==> 7
+  ```
+
+  Args:
+    tensor: A `Tensor`.
+    shape: A `Tensor`. Must be one of the following types: `int32`, `int64`.
+      Defines the shape of the output tensor.
+    name: A name for the operation (optional).
+
+  Returns:
+    A `Tensor`. Has the same type as `tensor`.
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 7 (first dimension of a tensor matches second dimension of the other)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) ≥ 1 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, 0) = shape(v_2, 1)
+
+Rule 1 (tensor shapes should be the same)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = shape(v_2, i)
+
+Rule 16 (shape alignment for matrix multiplication)
+{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) ≥ 2 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, ndim(v_2) − 2)) ∨ (ndim(v_1) ≥ 2 ∧ ndim(v_2) = 1 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, 0))
+
+Rule 30 (list of bools for masking or selection)
+{v_1 : tensor, v_2 : list(bool)} |= v_2.len = shape(v_1, 0)
+
+Rule 23 (3-dimensional tensor with all positive shape dimensions)
+{v_1 : tensor} |= ndim(v_1) = 3 ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 10 (If the input is 1-dimensional and is reshaped into a 1-dimensional tensor without shape inference, the dimension size must match)
+{v_1 : tensor, v_2 : tuple(int)} |= if ndim(v_1) = 1 ∧ v_2.len = 1 ∧ v_2[0] ≥ 0 then shape(v_1, 0) = v_2[0]
+Token usage: input=9791, output=446, total=12537
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.raw_ops.Reshape API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first", "channels_last", "channels_first", "VALID", "SAME", "EXPLICIT", "NWC", "NCW", "NHWC", "NCHW", "NDHWC", "NCDHW", "NCHW_VECT_C", "REFLECT", "SYMMETRIC", "UTF-8", "UTF-16-BE", "UTF-32-BE", "replace", "ignore", "strict"]
+
+[API Documentation]
+Reshapes a tensor.
+
+  Given `tensor`, this operation returns a tensor that has the same values
+  as `tensor` with shape `shape`.
+
+  If one component of 1-D tensor `shape` is the special value -1, the size of that
+  dimension is computed so that the total size remains constant.  In particular, a
+  `shape` of `[-1]` flattens into 1-D.  At most one component of `shape` may be
+  unknown.
+
+  The `shape` must be 1-D and the operation returns a tensor with shape
+  `shape` filled with the values of `tensor`. In this case, the number of elements
+  implied by `shape` must be the same as the number of elements in `tensor`.
+
+  It is an error if `shape` is not 1-D.
+
+  For example:
+
+  ```
+  # tensor 't' is [1, 2, 3, 4, 5, 6, 7, 8, 9]
+  # tensor 't' has shape [9]
+  reshape(t, [3, 3]) ==> [[1, 2, 3],
+                          [4, 5, 6],
+                          [7, 8, 9]]
+
+  # tensor 't' is [[[1, 1], [2, 2]],
+  #                [[3, 3], [4, 4]]]
+  # tensor 't' has shape [2, 2, 2]
+  reshape(t, [2, 4]) ==> [[1, 1, 2, 2],
+                          [3, 3, 4, 4]]
+
+  # tensor 't' is [[[1, 1, 1],
+  #                 [2, 2, 2]],
+  #                [[3, 3, 3],
+  #                 [4, 4, 4]],
+  #                [[5, 5, 5],
+  #                 [6, 6, 6]]]
+  # tensor 't' has shape [3, 2, 3]
+  # pass '[-1]' to flatten 't'
+  reshape(t, [-1]) ==> [1, 1, 1, 2, 2, 2, 3, 3, 3, 4, 4, 4, 5, 5, 5, 6, 6, 6]
+
+  # -1 can also be used to infer the shape
+
+  # -1 is inferred to be 9:
+  reshape(t, [2, -1]) ==> [[1, 1, 1, 2, 2, 2, 3, 3, 3],
+                           [4, 4, 4, 5, 5, 5, 6, 6, 6]]
+  # -1 is inferred to be 2:
+  reshape(t, [-1, 9]) ==> [[1, 1, 1, 2, 2, 2, 3, 3, 3],
+                           [4, 4, 4, 5, 5, 5, 6, 6, 6]]
+  # -1 is inferred to be 3:
+  reshape(t, [ 2, -1, 3]) ==> [[[1, 1, 1],
+                                [2, 2, 2],
+                                [3, 3, 3]],
+                               [[4, 4, 4],
+                                [5, 5, 5],
+                                [6, 6, 6]]]
+
+  # tensor 't' is [7]
+  # shape `[]` reshapes to a scalar
+  reshape(t, []) ==> 7
+  ```
+
+  Args:
+    tensor: A `Tensor`.
+    shape: A `Tensor`. Must be one of the following types: `int32`, `int64`.
+      Defines the shape of the output tensor.
+    name: A name for the operation (optional).
+
+  Returns:
+    A `Tensor`. Has the same type as `tensor`.
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 7 (first dimension of a tensor matches second dimension of the other)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) ≥ 1 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, 0) = shape(v_2, 1)
+
+Rule 1 (tensor shapes should be the same)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = shape(v_2, i)
+
+Rule 16 (shape alignment for matrix multiplication)
+{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) ≥ 2 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, ndim(v_2) − 2)) ∨ (ndim(v_1) ≥ 2 ∧ ndim(v_2) = 1 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, 0))
+
+Rule 30 (list of bools for masking or selection)
+{v_1 : tensor, v_2 : list(bool)} |= v_2.len = shape(v_1, 0)
+
+Rule 23 (3-dimensional tensor with all positive shape dimensions)
+{v_1 : tensor} |= ndim(v_1) = 3 ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 11 (If the input is 2-dimensional and is reshaped into a 1-dimensional tensor without shape inference, the new dimension size must equal the product of the input dimensions)
+{v_1 : tensor, v_2 : tuple(int)} |= if ndim(v_1) = 2 ∧ v_2.len = 1 ∧ v_2[0] ≥ 0 then shape(v_1, 0) * shape(v_1, 1) = v_2[0]
+Token usage: input=9791, output=446, total=12537
+** SUCCESS **
+
+>>> PROMPT
+[Feedback Message from Prior Run]
+Duplicated rule: {v_2 : tensor} |= ndim(v_2) = 1
+Duplicated rule: {v_2 : tensor} |= dtype_(v_2) = 3 ∨ dtype_(v_2) = 4
+Duplicated rule: {v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : v_2[i] ≥ -1
+Duplicated rule: {v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : v_2[i] ≠ -1 ∨ (∀j ∈ [0, v_2.len - 1] : j = i ∨ v_2[j] ≠ -1)
+
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.raw_ops.Reshape API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first", "channels_last", "channels_first", "VALID", "SAME", "EXPLICIT", "NWC", "NCW", "NHWC", "NCHW", "NDHWC", "NCDHW", "NCHW_VECT_C", "REFLECT", "SYMMETRIC", "UTF-8", "UTF-16-BE", "UTF-32-BE", "replace", "ignore", "strict"]
+
+[API Documentation]
+Reshapes a tensor.
+
+  Given `tensor`, this operation returns a tensor that has the same values
+  as `tensor` with shape `shape`.
+
+  If one component of 1-D tensor `shape` is the special value -1, the size of that
+  dimension is computed so that the total size remains constant.  In particular, a
+  `shape` of `[-1]` flattens into 1-D.  At most one component of `shape` may be
+  unknown.
+
+  The `shape` must be 1-D and the operation returns a tensor with shape
+  `shape` filled with the values of `tensor`. In this case, the number of elements
+  implied by `shape` must be the same as the number of elements in `tensor`.
+
+  It is an error if `shape` is not 1-D.
+
+  For example:
+
+  ```
+  # tensor 't' is [1, 2, 3, 4, 5, 6, 7, 8, 9]
+  # tensor 't' has shape [9]
+  reshape(t, [3, 3]) ==> [[1, 2, 3],
+                          [4, 5, 6],
+                          [7, 8, 9]]
+
+  # tensor 't' is [[[1, 1], [2, 2]],
+  #                [[3, 3], [4, 4]]]
+  # tensor 't' has shape [2, 2, 2]
+  reshape(t, [2, 4]) ==> [[1, 1, 2, 2],
+                          [3, 3, 4, 4]]
+
+  # tensor 't' is [[[1, 1, 1],
+  #                 [2, 2, 2]],
+  #                [[3, 3, 3],
+  #                 [4, 4, 4]],
+  #                [[5, 5, 5],
+  #                 [6, 6, 6]]]
+  # tensor 't' has shape [3, 2, 3]
+  # pass '[-1]' to flatten 't'
+  reshape(t, [-1]) ==> [1, 1, 1, 2, 2, 2, 3, 3, 3, 4, 4, 4, 5, 5, 5, 6, 6, 6]
+
+  # -1 can also be used to infer the shape
+
+  # -1 is inferred to be 9:
+  reshape(t, [2, -1]) ==> [[1, 1, 1, 2, 2, 2, 3, 3, 3],
+                           [4, 4, 4, 5, 5, 5, 6, 6, 6]]
+  # -1 is inferred to be 2:
+  reshape(t, [-1, 9]) ==> [[1, 1, 1, 2, 2, 2, 3, 3, 3],
+                           [4, 4, 4, 5, 5, 5, 6, 6, 6]]
+  # -1 is inferred to be 3:
+  reshape(t, [ 2, -1, 3]) ==> [[[1, 1, 1],
+                                [2, 2, 2],
+                                [3, 3, 3]],
+                               [[4, 4, 4],
+                                [5, 5, 5],
+                                [6, 6, 6]]]
+
+  # tensor 't' is [7]
+  # shape `[]` reshapes to a scalar
+  reshape(t, []) ==> 7
+  ```
+
+  Args:
+    tensor: A `Tensor`.
+    shape: A `Tensor`. Must be one of the following types: `int32`, `int64`.
+      Defines the shape of the output tensor.
+    name: A name for the operation (optional).
+
+  Returns:
+    A `Tensor`. Has the same type as `tensor`.
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 1 (tensor shapes should be the same)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = shape(v_2, i)
+
+Rule 8 (tensor must have an integer dtype: 1–5)
+{v1: tensor} |= 1 ≤ dtype(v1) ∧ dtype(v1) ≤ 5
+
+Rule 2 (v_2 should be a valid dimension of input tensor)
+{v_1 : tensor, v_2 : int} |= −1 × ndim(v_1) ≤ v_2 ∧ v_2 ≤ ndim(v_1) − 1
+
+Rule 30 (list of bools for masking or selection)
+{v_1 : tensor, v_2 : list(bool)} |= v_2.len = shape(v_1, 0)
+
+Rule 12 (a primitive type variable is smaller than the other)
+{v_1 : int ⊎ float, v_2 : int ⊎ float} |= v_1 ≤ v_2
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 12 (1D input tensor reshaped to a 2D target shape with first dimension 1 and non-negative second dimension requires second dimension matching)
+{v_1 : tensor, v_2 : tuple(int)} |= if ndim(v_1) = 1 ∧ v_2.len = 2 ∧ v_2[0] = 1 ∧ v_2[1] ≥ 0 then shape(v_1, 0) = v_2[1]
+Token usage: input=15132, output=591, total=21109
+** SUCCESS **
+
+>>> PROMPT
+[Feedback Message from Prior Run]
+Duplicated rule: {v_2 : tensor} |= ndim(v_2) = 1
+Duplicated rule: {v_2 : tensor} |= dtype_(v_2) = 3 ∨ dtype_(v_2) = 4
+Duplicated rule: {v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : v_2[i] ≥ -1
+Duplicated rule: {v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : v_2[i] ≠ -1 ∨ (∀j ∈ [0, v_2.len - 1] : j = i ∨ v_2[j] ≠ -1)
+
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.raw_ops.Reshape API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first", "channels_last", "channels_first", "VALID", "SAME", "EXPLICIT", "NWC", "NCW", "NHWC", "NCHW", "NDHWC", "NCDHW", "NCHW_VECT_C", "REFLECT", "SYMMETRIC", "UTF-8", "UTF-16-BE", "UTF-32-BE", "replace", "ignore", "strict"]
+
+[API Documentation]
+Reshapes a tensor.
+
+  Given `tensor`, this operation returns a tensor that has the same values
+  as `tensor` with shape `shape`.
+
+  If one component of 1-D tensor `shape` is the special value -1, the size of that
+  dimension is computed so that the total size remains constant.  In particular, a
+  `shape` of `[-1]` flattens into 1-D.  At most one component of `shape` may be
+  unknown.
+
+  The `shape` must be 1-D and the operation returns a tensor with shape
+  `shape` filled with the values of `tensor`. In this case, the number of elements
+  implied by `shape` must be the same as the number of elements in `tensor`.
+
+  It is an error if `shape` is not 1-D.
+
+  For example:
+
+  ```
+  # tensor 't' is [1, 2, 3, 4, 5, 6, 7, 8, 9]
+  # tensor 't' has shape [9]
+  reshape(t, [3, 3]) ==> [[1, 2, 3],
+                          [4, 5, 6],
+                          [7, 8, 9]]
+
+  # tensor 't' is [[[1, 1], [2, 2]],
+  #                [[3, 3], [4, 4]]]
+  # tensor 't' has shape [2, 2, 2]
+  reshape(t, [2, 4]) ==> [[1, 1, 2, 2],
+                          [3, 3, 4, 4]]
+
+  # tensor 't' is [[[1, 1, 1],
+  #                 [2, 2, 2]],
+  #                [[3, 3, 3],
+  #                 [4, 4, 4]],
+  #                [[5, 5, 5],
+  #                 [6, 6, 6]]]
+  # tensor 't' has shape [3, 2, 3]
+  # pass '[-1]' to flatten 't'
+  reshape(t, [-1]) ==> [1, 1, 1, 2, 2, 2, 3, 3, 3, 4, 4, 4, 5, 5, 5, 6, 6, 6]
+
+  # -1 can also be used to infer the shape
+
+  # -1 is inferred to be 9:
+  reshape(t, [2, -1]) ==> [[1, 1, 1, 2, 2, 2, 3, 3, 3],
+                           [4, 4, 4, 5, 5, 5, 6, 6, 6]]
+  # -1 is inferred to be 2:
+  reshape(t, [-1, 9]) ==> [[1, 1, 1, 2, 2, 2, 3, 3, 3],
+                           [4, 4, 4, 5, 5, 5, 6, 6, 6]]
+  # -1 is inferred to be 3:
+  reshape(t, [ 2, -1, 3]) ==> [[[1, 1, 1],
+                                [2, 2, 2],
+                                [3, 3, 3]],
+                               [[4, 4, 4],
+                                [5, 5, 5],
+                                [6, 6, 6]]]
+
+  # tensor 't' is [7]
+  # shape `[]` reshapes to a scalar
+  reshape(t, []) ==> 7
+  ```
+
+  Args:
+    tensor: A `Tensor`.
+    shape: A `Tensor`. Must be one of the following types: `int32`, `int64`.
+      Defines the shape of the output tensor.
+    name: A name for the operation (optional).
+
+  Returns:
+    A `Tensor`. Has the same type as `tensor`.
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 1 (tensor shapes should be the same)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = shape(v_2, i)
+
+Rule 8 (tensor must have an integer dtype: 1–5)
+{v1: tensor} |= 1 ≤ dtype(v1) ∧ dtype(v1) ≤ 5
+
+Rule 2 (v_2 should be a valid dimension of input tensor)
+{v_1 : tensor, v_2 : int} |= −1 × ndim(v_1) ≤ v_2 ∧ v_2 ≤ ndim(v_1) − 1
+
+Rule 30 (list of bools for masking or selection)
+{v_1 : tensor, v_2 : list(bool)} |= v_2.len = shape(v_1, 0)
+
+Rule 12 (a primitive type variable is smaller than the other)
+{v_1 : int ⊎ float, v_2 : int ⊎ float} |= v_1 ≤ v_2
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 13 (1D input tensor reshaped to a 2D target shape with second dimension 1 and non-negative first dimension requires first dimension matching)
+{v_1 : tensor, v_2 : tuple(int)} |= if ndim(v_1) = 1 ∧ v_2.len = 2 ∧ v_2[1] = 1 ∧ v_2[0] ≥ 0 then shape(v_1, 0) = v_2[0]
+Token usage: input=15132, output=591, total=21109
+** SUCCESS **
+
+>>> PROMPT
+[Feedback Message from Prior Run]
+Duplicated rule: {v_2 : tensor} |= ndim(v_2) = 1
+Duplicated rule: {v_2 : tensor} |= dtype_(v_2) = 3 ∨ dtype_(v_2) = 4
+Duplicated rule: {v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : v_2[i] ≥ -1
+Duplicated rule: {v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : v_2[i] ≠ -1 ∨ (∀j ∈ [0, v_2.len - 1] : j = i ∨ v_2[j] ≠ -1)
+
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.raw_ops.Reshape API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first", "channels_last", "channels_first", "VALID", "SAME", "EXPLICIT", "NWC", "NCW", "NHWC", "NCHW", "NDHWC", "NCDHW", "NCHW_VECT_C", "REFLECT", "SYMMETRIC", "UTF-8", "UTF-16-BE", "UTF-32-BE", "replace", "ignore", "strict"]
+
+[API Documentation]
+Reshapes a tensor.
+
+  Given `tensor`, this operation returns a tensor that has the same values
+  as `tensor` with shape `shape`.
+
+  If one component of 1-D tensor `shape` is the special value -1, the size of that
+  dimension is computed so that the total size remains constant.  In particular, a
+  `shape` of `[-1]` flattens into 1-D.  At most one component of `shape` may be
+  unknown.
+
+  The `shape` must be 1-D and the operation returns a tensor with shape
+  `shape` filled with the values of `tensor`. In this case, the number of elements
+  implied by `shape` must be the same as the number of elements in `tensor`.
+
+  It is an error if `shape` is not 1-D.
+
+  For example:
+
+  ```
+  # tensor 't' is [1, 2, 3, 4, 5, 6, 7, 8, 9]
+  # tensor 't' has shape [9]
+  reshape(t, [3, 3]) ==> [[1, 2, 3],
+                          [4, 5, 6],
+                          [7, 8, 9]]
+
+  # tensor 't' is [[[1, 1], [2, 2]],
+  #                [[3, 3], [4, 4]]]
+  # tensor 't' has shape [2, 2, 2]
+  reshape(t, [2, 4]) ==> [[1, 1, 2, 2],
+                          [3, 3, 4, 4]]
+
+  # tensor 't' is [[[1, 1, 1],
+  #                 [2, 2, 2]],
+  #                [[3, 3, 3],
+  #                 [4, 4, 4]],
+  #                [[5, 5, 5],
+  #                 [6, 6, 6]]]
+  # tensor 't' has shape [3, 2, 3]
+  # pass '[-1]' to flatten 't'
+  reshape(t, [-1]) ==> [1, 1, 1, 2, 2, 2, 3, 3, 3, 4, 4, 4, 5, 5, 5, 6, 6, 6]
+
+  # -1 can also be used to infer the shape
+
+  # -1 is inferred to be 9:
+  reshape(t, [2, -1]) ==> [[1, 1, 1, 2, 2, 2, 3, 3, 3],
+                           [4, 4, 4, 5, 5, 5, 6, 6, 6]]
+  # -1 is inferred to be 2:
+  reshape(t, [-1, 9]) ==> [[1, 1, 1, 2, 2, 2, 3, 3, 3],
+                           [4, 4, 4, 5, 5, 5, 6, 6, 6]]
+  # -1 is inferred to be 3:
+  reshape(t, [ 2, -1, 3]) ==> [[[1, 1, 1],
+                                [2, 2, 2],
+                                [3, 3, 3]],
+                               [[4, 4, 4],
+                                [5, 5, 5],
+                                [6, 6, 6]]]
+
+  # tensor 't' is [7]
+  # shape `[]` reshapes to a scalar
+  reshape(t, []) ==> 7
+  ```
+
+  Args:
+    tensor: A `Tensor`.
+    shape: A `Tensor`. Must be one of the following types: `int32`, `int64`.
+      Defines the shape of the output tensor.
+    name: A name for the operation (optional).
+
+  Returns:
+    A `Tensor`. Has the same type as `tensor`.
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 1 (tensor shapes should be the same)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = shape(v_2, i)
+
+Rule 8 (tensor must have an integer dtype: 1–5)
+{v1: tensor} |= 1 ≤ dtype(v1) ∧ dtype(v1) ≤ 5
+
+Rule 2 (v_2 should be a valid dimension of input tensor)
+{v_1 : tensor, v_2 : int} |= −1 × ndim(v_1) ≤ v_2 ∧ v_2 ≤ ndim(v_1) − 1
+
+Rule 30 (list of bools for masking or selection)
+{v_1 : tensor, v_2 : list(bool)} |= v_2.len = shape(v_1, 0)
+
+Rule 12 (a primitive type variable is smaller than the other)
+{v_1 : int ⊎ float, v_2 : int ⊎ float} |= v_1 ≤ v_2
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 14 (2D input tensor reshaped to a 2D target shape with matching first dimension and non-negative second dimension requires matching second dimension)
+{v_1 : tensor, v_2 : tuple(int)} |= if ndim(v_1) = 2 ∧ v_2.len = 2 ∧ v_2[0] = shape(v_1, 0) ∧ v_2[1] ≥ 0 then shape(v_1, 1) = v_2[1]
+Token usage: input=15132, output=591, total=21109
+** SUCCESS **
+
+>>> PROMPT
+[Feedback Message from Prior Run]
+Duplicated rule: {v_2 : tensor} |= ndim(v_2) = 1
+Duplicated rule: {v_2 : tensor} |= dtype_(v_2) = 3 ∨ dtype_(v_2) = 4
+Duplicated rule: {v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : v_2[i] ≥ -1
+Duplicated rule: {v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : v_2[i] ≠ -1 ∨ (∀j ∈ [0, v_2.len - 1] : j = i ∨ v_2[j] ≠ -1)
+
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.raw_ops.Reshape API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first", "channels_last", "channels_first", "VALID", "SAME", "EXPLICIT", "NWC", "NCW", "NHWC", "NCHW", "NDHWC", "NCDHW", "NCHW_VECT_C", "REFLECT", "SYMMETRIC", "UTF-8", "UTF-16-BE", "UTF-32-BE", "replace", "ignore", "strict"]
+
+[API Documentation]
+Reshapes a tensor.
+
+  Given `tensor`, this operation returns a tensor that has the same values
+  as `tensor` with shape `shape`.
+
+  If one component of 1-D tensor `shape` is the special value -1, the size of that
+  dimension is computed so that the total size remains constant.  In particular, a
+  `shape` of `[-1]` flattens into 1-D.  At most one component of `shape` may be
+  unknown.
+
+  The `shape` must be 1-D and the operation returns a tensor with shape
+  `shape` filled with the values of `tensor`. In this case, the number of elements
+  implied by `shape` must be the same as the number of elements in `tensor`.
+
+  It is an error if `shape` is not 1-D.
+
+  For example:
+
+  ```
+  # tensor 't' is [1, 2, 3, 4, 5, 6, 7, 8, 9]
+  # tensor 't' has shape [9]
+  reshape(t, [3, 3]) ==> [[1, 2, 3],
+                          [4, 5, 6],
+                          [7, 8, 9]]
+
+  # tensor 't' is [[[1, 1], [2, 2]],
+  #                [[3, 3], [4, 4]]]
+  # tensor 't' has shape [2, 2, 2]
+  reshape(t, [2, 4]) ==> [[1, 1, 2, 2],
+                          [3, 3, 4, 4]]
+
+  # tensor 't' is [[[1, 1, 1],
+  #                 [2, 2, 2]],
+  #                [[3, 3, 3],
+  #                 [4, 4, 4]],
+  #                [[5, 5, 5],
+  #                 [6, 6, 6]]]
+  # tensor 't' has shape [3, 2, 3]
+  # pass '[-1]' to flatten 't'
+  reshape(t, [-1]) ==> [1, 1, 1, 2, 2, 2, 3, 3, 3, 4, 4, 4, 5, 5, 5, 6, 6, 6]
+
+  # -1 can also be used to infer the shape
+
+  # -1 is inferred to be 9:
+  reshape(t, [2, -1]) ==> [[1, 1, 1, 2, 2, 2, 3, 3, 3],
+                           [4, 4, 4, 5, 5, 5, 6, 6, 6]]
+  # -1 is inferred to be 2:
+  reshape(t, [-1, 9]) ==> [[1, 1, 1, 2, 2, 2, 3, 3, 3],
+                           [4, 4, 4, 5, 5, 5, 6, 6, 6]]
+  # -1 is inferred to be 3:
+  reshape(t, [ 2, -1, 3]) ==> [[[1, 1, 1],
+                                [2, 2, 2],
+                                [3, 3, 3]],
+                               [[4, 4, 4],
+                                [5, 5, 5],
+                                [6, 6, 6]]]
+
+  # tensor 't' is [7]
+  # shape `[]` reshapes to a scalar
+  reshape(t, []) ==> 7
+  ```
+
+  Args:
+    tensor: A `Tensor`.
+    shape: A `Tensor`. Must be one of the following types: `int32`, `int64`.
+      Defines the shape of the output tensor.
+    name: A name for the operation (optional).
+
+  Returns:
+    A `Tensor`. Has the same type as `tensor`.
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 1 (tensor shapes should be the same)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = shape(v_2, i)
+
+Rule 8 (tensor must have an integer dtype: 1–5)
+{v1: tensor} |= 1 ≤ dtype(v1) ∧ dtype(v1) ≤ 5
+
+Rule 2 (v_2 should be a valid dimension of input tensor)
+{v_1 : tensor, v_2 : int} |= −1 × ndim(v_1) ≤ v_2 ∧ v_2 ≤ ndim(v_1) − 1
+
+Rule 30 (list of bools for masking or selection)
+{v_1 : tensor, v_2 : list(bool)} |= v_2.len = shape(v_1, 0)
+
+Rule 12 (a primitive type variable is smaller than the other)
+{v_1 : int ⊎ float, v_2 : int ⊎ float} |= v_1 ≤ v_2
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 15 (2D input tensor reshaped to a 2D target shape with matching second dimension and non-negative first dimension requires matching first dimension)
+{v_1 : tensor, v_2 : list(int)} |= if ndim(v_1) = 2 ∧ v_2.len = 2 ∧ v_2[1] = shape(v_1, 1) ∧ v_2[0] ≥ 0 then shape(v_1, 0) = v_2[0]
+Token usage: input=15132, output=591, total=21109
+** SUCCESS **
+
+>>> PROMPT
+[Feedback Message from Prior Run]
+Duplicated rule: {v_2 : tensor} |= ndim(v_2) = 1
+Duplicated rule: {v_2 : tensor} |= dtype_(v_2) = 3 ∨ dtype_(v_2) = 4
+Duplicated rule: {v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : v_2[i] ≥ -1
+Duplicated rule: {v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : v_2[i] ≠ -1 ∨ (∀j ∈ [0, v_2.len - 1] : j = i ∨ v_2[j] ≠ -1)
+
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.raw_ops.Reshape API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first", "channels_last", "channels_first", "VALID", "SAME", "EXPLICIT", "NWC", "NCW", "NHWC", "NCHW", "NDHWC", "NCDHW", "NCHW_VECT_C", "REFLECT", "SYMMETRIC", "UTF-8", "UTF-16-BE", "UTF-32-BE", "replace", "ignore", "strict"]
+
+[API Documentation]
+Reshapes a tensor.
+
+  Given `tensor`, this operation returns a tensor that has the same values
+  as `tensor` with shape `shape`.
+
+  If one component of 1-D tensor `shape` is the special value -1, the size of that
+  dimension is computed so that the total size remains constant.  In particular, a
+  `shape` of `[-1]` flattens into 1-D.  At most one component of `shape` may be
+  unknown.
+
+  The `shape` must be 1-D and the operation returns a tensor with shape
+  `shape` filled with the values of `tensor`. In this case, the number of elements
+  implied by `shape` must be the same as the number of elements in `tensor`.
+
+  It is an error if `shape` is not 1-D.
+
+  For example:
+
+  ```
+  # tensor 't' is [1, 2, 3, 4, 5, 6, 7, 8, 9]
+  # tensor 't' has shape [9]
+  reshape(t, [3, 3]) ==> [[1, 2, 3],
+                          [4, 5, 6],
+                          [7, 8, 9]]
+
+  # tensor 't' is [[[1, 1], [2, 2]],
+  #                [[3, 3], [4, 4]]]
+  # tensor 't' has shape [2, 2, 2]
+  reshape(t, [2, 4]) ==> [[1, 1, 2, 2],
+                          [3, 3, 4, 4]]
+
+  # tensor 't' is [[[1, 1, 1],
+  #                 [2, 2, 2]],
+  #                [[3, 3, 3],
+  #                 [4, 4, 4]],
+  #                [[5, 5, 5],
+  #                 [6, 6, 6]]]
+  # tensor 't' has shape [3, 2, 3]
+  # pass '[-1]' to flatten 't'
+  reshape(t, [-1]) ==> [1, 1, 1, 2, 2, 2, 3, 3, 3, 4, 4, 4, 5, 5, 5, 6, 6, 6]
+
+  # -1 can also be used to infer the shape
+
+  # -1 is inferred to be 9:
+  reshape(t, [2, -1]) ==> [[1, 1, 1, 2, 2, 2, 3, 3, 3],
+                           [4, 4, 4, 5, 5, 5, 6, 6, 6]]
+  # -1 is inferred to be 2:
+  reshape(t, [-1, 9]) ==> [[1, 1, 1, 2, 2, 2, 3, 3, 3],
+                           [4, 4, 4, 5, 5, 5, 6, 6, 6]]
+  # -1 is inferred to be 3:
+  reshape(t, [ 2, -1, 3]) ==> [[[1, 1, 1],
+                                [2, 2, 2],
+                                [3, 3, 3]],
+                               [[4, 4, 4],
+                                [5, 5, 5],
+                                [6, 6, 6]]]
+
+  # tensor 't' is [7]
+  # shape `[]` reshapes to a scalar
+  reshape(t, []) ==> 7
+  ```
+
+  Args:
+    tensor: A `Tensor`.
+    shape: A `Tensor`. Must be one of the following types: `int32`, `int64`.
+      Defines the shape of the output tensor.
+    name: A name for the operation (optional).
+
+  Returns:
+    A `Tensor`. Has the same type as `tensor`.
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 1 (tensor shapes should be the same)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = shape(v_2, i)
+
+Rule 8 (tensor must have an integer dtype: 1–5)
+{v1: tensor} |= 1 ≤ dtype(v1) ∧ dtype(v1) ≤ 5
+
+Rule 2 (v_2 should be a valid dimension of input tensor)
+{v_1 : tensor, v_2 : int} |= −1 × ndim(v_1) ≤ v_2 ∧ v_2 ≤ ndim(v_1) − 1
+
+Rule 30 (list of bools for masking or selection)
+{v_1 : tensor, v_2 : list(bool)} |= v_2.len = shape(v_1, 0)
+
+Rule 12 (a primitive type variable is smaller than the other)
+{v_1 : int ⊎ float, v_2 : int ⊎ float} |= v_1 ≤ v_2
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 16 (3D input tensor reshaped to a 3D target shape with matching first two dimensions and non-negative third dimension requires matching third dimension)
+{v_1 : tensor, v_2 : tuple(int)} |= if ndim(v_1) = 3 ∧ v_2.len = 3 ∧ v_2[0] = shape(v_1, 0) ∧ v_2[1] = shape(v_1, 1) ∧ v_2[2] ≥ 0 then shape(v_1, 2) = v_2[2]
+Token usage: input=15132, output=591, total=21109
+** SUCCESS **
+
