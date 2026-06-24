@@ -42,7 +42,18 @@ list_of_string_values_tf = [
     "none", "sum", "max", "min", "prod",
     "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear",
     "valid", "same", "causal",
-    "channels_last", "channels_first"
+    "channels_last", "channels_first",
+    "channels_last", "channels_first",
+    "VALID", "SAME",       # padding (conv ops) — TF kernel requires uppercase
+    "EXPLICIT",
+    "NWC", "NCW",          # data_format (conv1d)
+    "NHWC", "NCHW",        # data_format (conv2d/conv3d)
+    "NDHWC", "NCDHW",      # data_format (conv3d volumetric)
+    "NCHW_VECT_C",
+    "REFLECT", "SYMMETRIC",
+    "UTF-8", "UTF-16-BE", "UTF-32-BE",
+    "replace", "ignore", "strict",
+    "ab,bc->ac", "i,i->", "ij->ji", "ii->", "ij->j", "ijk->", "...ij,...jk->...ik",
 ]
 
 domain_limits_torch = {
