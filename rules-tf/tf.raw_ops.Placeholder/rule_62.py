@@ -31,7 +31,7 @@ def rule_62_func(arg1, arg2, arg3, solver=None, neg=False):
         arg1_length = Int('arg1_length')
         arg1_values = Array('arg1_values', IntSort(), IntSort())
         arg2_value = Int('arg2_value')
-        arg3_value = String('arg3_value')
+        arg3_value = Int('arg3_value')
 
         # Value assignments
         solver.add(arg1_length == len(arg1))

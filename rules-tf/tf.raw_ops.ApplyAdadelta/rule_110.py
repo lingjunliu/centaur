@@ -31,7 +31,7 @@ def rule_110_func(arg1, arg2, arg3, arg4, solver=None, neg=False):
 
         # Variable declarations
         solver = Solver()
-        arg1_value = String('arg1_value')
+        arg1_value = Int('arg1_value')
         arg2_range = Array('arg2_range', IntSort(), IntSort())
         arg3_range = Array('arg3_range', IntSort(), IntSort())
         arg4_range = Array('arg4_range', IntSort(), IntSort())

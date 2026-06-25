@@ -42,7 +42,7 @@ def rule_62_func(arg1, arg2, arg3, arg4, arg5, arg6, solver=None, neg=False):
         arg1_dtype = Int('arg1_dtype')
         arg2_value = Bool('arg2_value')
         arg3_value = Bool('arg3_value')
-        arg4_value = String('arg4_value')
+        arg4_value = Int('arg4_value')
         arg5_value = Bool('arg5_value')
         arg6_value = Bool('arg6_value')
 

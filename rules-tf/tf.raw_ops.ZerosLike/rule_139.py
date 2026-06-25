@@ -28,7 +28,7 @@ def rule_139_func(arg1, arg2, solver=None, neg=False):
         arg1_ndim = Int('arg1_ndim')
         arg1_dtype = Int('arg1_dtype')
         arg1_range = Array('arg1_range', IntSort(), IntSort())
-        arg2_value = String('arg2_value')
+        arg2_value = Int('arg2_value')
 
         # Value assignments
         solver.add(arg1_ndim == arg1.ndim)

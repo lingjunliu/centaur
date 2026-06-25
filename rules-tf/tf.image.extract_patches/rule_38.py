@@ -28,7 +28,7 @@ def rule_38_func(arg1, arg2, arg3, solver=None, neg=False):
 
         # Variable declarations
         solver = Solver()
-        arg1_value = String('arg1_value')
+        arg1_value = Int('arg1_value')
         arg2_values = Array('arg2_values', IntSort(), IntSort())
         arg3_values = Array('arg3_values', IntSort(), IntSort())
 

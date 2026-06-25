@@ -42,7 +42,7 @@ def rule_51_func(arg1, arg2, arg3, arg4, arg5, arg6, solver=None, neg=False):
         arg3_value = Int('arg3_value')
         arg4_value = Bool('arg4_value')
         arg5_value = Real('arg5_value')
-        arg6_value = String('arg6_value')
+        arg6_value = Int('arg6_value')
 
         # Value assignments
         solver.add(arg1_value == int(arg1))

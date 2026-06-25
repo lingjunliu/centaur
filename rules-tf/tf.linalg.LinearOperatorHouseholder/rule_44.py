@@ -42,7 +42,7 @@ def rule_44_func(arg1, arg2, arg3, arg4, arg5, arg6, solver=None, neg=False):
         arg3_ndim = Int('arg3_ndim')
         arg3_shape = Array('arg3_shape', IntSort(), IntSort())
         arg3_dtype = Int('arg3_dtype')
-        arg4_value = String('arg4_value')
+        arg4_value = Int('arg4_value')
         arg5_value = Bool('arg5_value')
         arg6_value = Bool('arg6_value')
 

@@ -28,7 +28,7 @@ def rule_50_func(arg1, arg2, arg3, solver=None, neg=False):
 
         # Variable declarations
         solver = Solver()
-        arg1_value = String('arg1_value')
+        arg1_value = Int('arg1_value')
         arg2_length = Int('arg2_length')
         arg2_values = Array('arg2_values', IntSort(), IntSort())
         arg3_shape = Array('arg3_shape', IntSort(), IntSort())

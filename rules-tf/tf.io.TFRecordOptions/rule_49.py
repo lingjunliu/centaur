@@ -28,7 +28,7 @@ def rule_49_func(arg1, arg2, arg3, solver=None, neg=False):
 
         # Variable declarations
         solver = Solver()
-        arg1_value = String('arg1_value')
+        arg1_value = Int('arg1_value')
         arg2_value = Int('arg2_value')
         arg3_value = Int('arg3_value')
 

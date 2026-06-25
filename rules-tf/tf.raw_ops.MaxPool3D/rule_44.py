@@ -33,8 +33,8 @@ def rule_44_func(arg1, arg2, arg3, arg4, solver=None, neg=False):
         solver = Solver()
         arg1_shape = Array('arg1_shape', IntSort(), IntSort())
         arg2_values = Array('arg2_values', IntSort(), IntSort())
-        arg3_value = String('arg3_value')
-        arg4_value = String('arg4_value')
+        arg3_value = Int('arg3_value')
+        arg4_value = Int('arg4_value')
 
         # Value assignments
         for i in range(arg1.ndim):

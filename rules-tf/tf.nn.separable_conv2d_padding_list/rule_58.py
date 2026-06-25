@@ -34,7 +34,7 @@ def rule_58_func(arg1, arg2, arg3, arg4, solver=None, neg=False):
         arg1_shape = Array('arg1_shape', IntSort(), IntSort())
         arg2_shape = Array('arg2_shape', IntSort(), IntSort())
         arg3_shape = Array('arg3_shape', IntSort(), IntSort())
-        arg4_value = String('arg4_value')
+        arg4_value = Int('arg4_value')
 
         # Value assignments
         for i in range(arg1.ndim):

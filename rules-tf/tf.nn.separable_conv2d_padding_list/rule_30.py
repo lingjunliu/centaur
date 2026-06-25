@@ -27,7 +27,7 @@ def rule_30_func(arg1, arg2, solver=None, neg=False):
         solver = Solver()
         arg1_length = Int('arg1_length')
         arg1_values = Array('arg1_values', IntSort(), IntSort())
-        arg2_value = String('arg2_value')
+        arg2_value = Int('arg2_value')
 
         # Value assignments
         solver.add(arg1_length == len(arg1))

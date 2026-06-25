@@ -29,8 +29,8 @@ def rule_39_func(arg1, arg2, arg3, solver=None, neg=False):
         # Variable declarations
         solver = Solver()
         arg1_shape = Array('arg1_shape', IntSort(), IntSort())
-        arg2_value = String('arg2_value')
-        arg3_value = String('arg3_value')
+        arg2_value = Int('arg2_value')
+        arg3_value = Int('arg3_value')
 
         # Value assignments
         for i in range(arg1.ndim):

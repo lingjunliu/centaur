@@ -86,7 +86,7 @@ def create_func_body(rule_number, rule_def, var_map, var_types, filename, lib="t
                 lines.append(f"{eindent}{arg}_value = Bool('{arg}_value')")
         elif typ == "str":
             if "value" in entries:
-                lines.append(f"{eindent}{arg}_value = String('{arg}_value')") 
+                lines.append(f"{eindent}{arg}_value = Int('{arg}_value')")
         elif (typ.startswith("tuple(") and typ.endswith(")")) or (typ.startswith("list(") and typ.endswith(")")):
             is_tuple = typ.startswith("tuple(")
             inner = typ[typ.index("(")+1:-1]

@@ -26,7 +26,7 @@ def rule_77_func(arg1, arg2, solver=None, neg=False):
         # Variable declarations
         solver = Solver()
         arg1_values = Array('arg1_values', IntSort(), IntSort())
-        arg2_value = String('arg2_value')
+        arg2_value = Int('arg2_value')
 
         # Value assignments
         for i in range(len(arg1)):

@@ -36,7 +36,7 @@ def rule_61_func(arg1, arg2, arg3, arg4, solver=None, neg=False):
         arg1_dtype = Int('arg1_dtype')
         arg2_value = Bool('arg2_value')
         arg3_value = Bool('arg3_value')
-        arg4_value = String('arg4_value')
+        arg4_value = Int('arg4_value')
 
         # Value assignments
         solver.add(arg1_ndim == arg1.ndim)

@@ -1,0 +1,46 @@
+import numpy as np
+import torch 
+import tensorflow as tf
+
+from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
+from z3 import *
+
+# If input_encoding is not UTF-8, and replace_control_characters is true, replacement_char must be greater or equal than 32 (Rule 77)
+
+rule_77 = lambda s, v, n=False: (
+    s.add(Not(If(And(v["arg1_value"] != 40, v["arg2_value"] == True), v["arg3_value"] >= 32, True)) if n else
+          If(And(v["arg1_value"] != 40, v["arg2_value"] == True), v["arg3_value"] >= 32, True))
+)
+
+def rule_77_func(arg1, arg2, arg3, solver=None, neg=False):
+    arg1 = next(iter(arg1.values()))
+    arg2 = next(iter(arg2.values()))
+    arg3 = next(iter(arg3.values()))
+
+    # Invariant learning phase
+    if not solver:
+        if not isinstance(arg1, str):
+            return False
+        if not isinstance(arg2, bool):
+            return False
+        if not (isinstance(arg3, (int, np.integer)) and not isinstance(arg3, bool)):
+            return False
+
+        # Variable declarations
+        solver = Solver()
+        arg1_value = Int('arg1_value')
+        arg2_value = Bool('arg2_value')
+        arg3_value = Int('arg3_value')
+
+        # Value assignments
+        solver.add(arg1_value == list_of_string_values_tf.index(arg1))
+        solver.add(arg2_value == arg2)
+        solver.add(arg3_value == int(arg3))
+
+        # Constraints for rule 77
+        rule_77(solver, {'arg1_value': arg1_value, 'arg2_value': arg2_value, 'arg3_value': arg3_value})
+        return solver.check() == sat
+
+    # Fuzz input generation phase
+    else:
+        rule_77(solver, {'arg1_value': arg1['value'], 'arg2_value': arg2['value'], 'arg3_value': arg3['value']}, neg)

@@ -32,7 +32,7 @@ def rule_130_func(arg1, arg2, arg3, arg4, solver=None, neg=False):
         # Variable declarations
         solver = Solver()
         arg1_length = Int('arg1_length')
-        arg2_value = String('arg2_value')
+        arg2_value = Int('arg2_value')
         arg3_value = Int('arg3_value')
         arg4_value = Int('arg4_value')
 

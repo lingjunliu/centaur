@@ -26,7 +26,7 @@ def rule_133_func(arg1, arg2, solver=None, neg=False):
         # Variable declarations
         solver = Solver()
         arg1_range = Array('arg1_range', IntSort(), IntSort())
-        arg2_value = String('arg2_value')
+        arg2_value = Int('arg2_value')
 
         # Value assignments
         arg1_range = Store(arg1_range, 0, int(np.min(arg1)))

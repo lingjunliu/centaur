@@ -38,7 +38,7 @@ def rule_39_func(arg1, arg2, arg3, arg4, arg5, solver=None, neg=False):
         arg2_values = Array('arg2_values', IntSort(), IntSort())
         arg3_values = Array('arg3_values', IntSort(), IntSort())
         arg4_shape = Array('arg4_shape', IntSort(), IntSort())
-        arg5_value = String('arg5_value')
+        arg5_value = Int('arg5_value')
 
         # Value assignments
         for i in range(arg1.ndim):

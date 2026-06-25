@@ -40,7 +40,7 @@ def rule_48_func(arg1, arg2, arg3, arg4, arg5, arg6, arg7, solver=None, neg=Fals
 
         # Variable declarations
         solver = Solver()
-        arg1_value = String('arg1_value')
+        arg1_value = Int('arg1_value')
         arg2_value = Int('arg2_value')
         arg3_value = Int('arg3_value')
         arg4_value = Int('arg4_value')

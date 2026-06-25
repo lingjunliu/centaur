@@ -30,7 +30,7 @@ def rule_49_func(arg1, arg2, arg3, solver=None, neg=False):
         solver = Solver()
         arg1_dtype = Int('arg1_dtype')
         arg2_value = Int('arg2_value')
-        arg3_value = String('arg3_value')
+        arg3_value = Int('arg3_value')
 
         # Value assignments
         solver.add(arg1_dtype == list_of_available_dtypes.index(arg1.dtype))
