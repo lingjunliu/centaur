@@ -67,6 +67,44 @@ def run_with_timeout(func, timeout, *args, **kwargs):
     else:        
         return return_dict
 
+def _worker_pipe(func, pipe, *args, **kwargs):
+    """Subprocess target: runs func and sends result over pipe (no TF tensor serialization)."""
+    try:
+        func(*args, **kwargs)
+        pipe.send({"return_code": 0, "output": None, "exception_message": "", "traceback": ""})
+    except Exception as e:
+        pipe.send({"return_code": 1, "output": None,
+                   "exception_message": f"{e.__class__.__name__}: {str(e)}",
+                   "traceback": traceback.format_exc()})
+    finally:
+        pipe.close()
+
+# Add run_subprocess to isolate TF SIGABRT/SIGILL crashes in a child process
+def run_subprocess(func, *args, **kwargs):
+    """Like run() but isolated in a child process to survive TF FATAL aborts (SIGABRT/SIGILL).
+    Uses a Pipe instead of Manager to avoid serializing TF tensors."""
+    parent_conn, child_conn = multiprocessing.Pipe(duplex=False)
+    p = multiprocessing.Process(target=_worker_pipe, args=(func, child_conn) + args, kwargs=kwargs)
+    p.start()
+    child_conn.close()
+    result = None
+    if parent_conn.poll(15):
+        try:
+            result = parent_conn.recv()
+        except Exception:
+            pass
+    parent_conn.close()
+    if p.is_alive():
+        p.kill()
+    p.join(5)
+    if p.is_alive():
+        p.terminate()
+    if result is None:
+        ec = p.exitcode if p.exitcode is not None else -9
+        return {"return_code": ec, "output": None,
+                "exception_message": f"Process exited with code {ec}", "traceback": ""}
+    return result
+
 def run(func, *args, **kwargs):
     return_dict = {}
     worker(func, return_dict, *args, **kwargs)

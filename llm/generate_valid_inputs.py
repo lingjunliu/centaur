@@ -192,7 +192,7 @@ def generate_inputs(api, suffix=0, max_attempts=5, lib="torch", llm="gemini"):
     time.sleep(6)
     
     if llm == "gemini":
-        model = "gemini-2.0-flash"
+        model = "gemini-3.5-flash"
         gemini_key = os.getenv("gemini_key")
         client = genai.Client(api_key=gemini_key)
         chat = client.chats.create(model=model)

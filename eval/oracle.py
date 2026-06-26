@@ -1,4 +1,4 @@
-from utils.proc import run
+from utils.proc import run, run_subprocess
 from utils.new_api_utils import get_signature, get_lib_version
 from utils.new_api_utils import run_api
 from utils.misc import get_tmp_dir, create_subdir, read_pkl, save_to_pkl, is_inhomogeneous, flatten
@@ -167,7 +167,11 @@ def oracle_crash(api, input_dict, cpu=True, lib="torch", include_traceback=False
             - ("cpu_excp", exception_message) if the API throws an exception on CPU.
             - ("gpu_excp", exception_message) if the API throws an exception on GPU.
     """
-    return_dict = run(run_api, api, input_dict, cpu=cpu, lib=lib)
+    # TF's oneDNN/MKL layer fatally aborts (SIGABRT/SIGILL) for some invalid inputs
+    # (zero strides, negative explicit_paddings, NCHW on CPU, etc.) instead of raising.
+    # run_subprocess isolates the call so a crash kills only the child process.
+    _runner = run_subprocess if lib == "tf" else run
+    return_dict = _runner(run_api, api, input_dict, cpu=cpu, lib=lib)
     return_code, exception_message = return_dict["return_code"], return_dict["exception_message"]
     
     if return_code < 0: # signal raised

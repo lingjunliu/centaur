@@ -1,5 +1,5 @@
 import numpy as np
-from utils.defaults import domain_limits_torch, domain_limits_tf, list_of_available_dtypes, MAX_SZ_TENSOR
+from utils.defaults import domain_limits_torch, domain_limits_tf, list_of_available_dtypes, MAX_SZ_TENSOR, list_of_string_values_torch, list_of_string_values_tf
 from utils.misc import get_tensor_size
 
 def gen_ran_ll(domain, rng=np.random.default_rng(42), lib="torch"):
@@ -32,7 +32,13 @@ def gen_ran_ll(domain, rng=np.random.default_rng(42), lib="torch"):
         
     if domain == "tensor" and get_tensor_size(ll) > MAX_SZ_TENSOR:   # Too large, try again
         return gen_ran_ll(domain, rng, lib=lib)
-    
+    # String domain generates indices into the curated vocabulary, not raw
+    # values — map indices back to the actual string tokens (per library).
+    if domain == "string":
+        string_list = list_of_string_values_torch if lib == "torch" else list_of_string_values_tf
+        ll[0] = [string_list[ll[0][0]]]
+        ll[2] = [string_list[ll[2][0]], string_list[ll[2][1]]]
+
     return ll
 
 def get_ll(domain, value):

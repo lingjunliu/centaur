@@ -54,6 +54,8 @@ list_of_string_values_tf = [
     "UTF-8", "UTF-16-BE", "UTF-32-BE",
     "replace", "ignore", "strict",
     "ab,bc->ac", "i,i->", "ij->ji", "ii->", "ij->j", "ijk->", "...ij,...jk->...ik",
+    "LEFT_RIGHT", "RIGHT_LEFT", "LEFT_LEFT", "RIGHT_RIGHT",
+    "quicksort", "stable",
 ]
 
 domain_limits_torch = {
