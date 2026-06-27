@@ -1,0 +1,53 @@
+import numpy as np
+import torch 
+import tensorflow as tf
+
+from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
+from z3 import *
+
+# valid padding requires input spatial dimensions to be larger than or equal to pool_size (Rule 25)
+
+rule_25 = lambda s, v, n=False: (
+    s.add(Not(If(v["arg2_value"] == 21, (If(v["arg3_value"] == 24, (And([Implies(i < (2 + 1), Select(v["arg1_values"], i) <= Select(v["arg4_shape"], i + 1)) for i in range(6)])), (And([Implies(i < (2 + 1), Select(v["arg1_values"], i) <= Select(v["arg4_shape"], i + 2)) for i in range(6)])))), True)) if n else
+          If(v["arg2_value"] == 21, (If(v["arg3_value"] == 24, (And([Implies(i < (2 + 1), Select(v["arg1_values"], i) <= Select(v["arg4_shape"], i + 1)) for i in range(6)])), (And([Implies(i < (2 + 1), Select(v["arg1_values"], i) <= Select(v["arg4_shape"], i + 2)) for i in range(6)])))), True))
+)
+
+def rule_25_func(arg1, arg2, arg3, arg4, solver=None, neg=False):
+    arg1 = next(iter(arg1.values()))
+    arg2 = next(iter(arg2.values()))
+    arg3 = next(iter(arg3.values()))
+    arg4 = next(iter(arg4.values()))
+
+    # Invariant learning phase
+    if not solver:
+        if not (isinstance(arg1, tuple) and all((isinstance(e, (int, np.integer)) and not isinstance(e, bool)) for e in arg1)):
+            return False
+        if not isinstance(arg2, str):
+            return False
+        if not isinstance(arg3, str):
+            return False
+        if not isinstance(arg4, np.ndarray):
+            return False
+
+        # Variable declarations
+        solver = Solver()
+        arg1_values = Array('arg1_values', IntSort(), IntSort())
+        arg2_value = String('arg2_value')
+        arg3_value = String('arg3_value')
+        arg4_shape = Array('arg4_shape', IntSort(), IntSort())
+
+        # Value assignments
+        for i in range(len(arg1)):
+            arg1_values = Store(arg1_values, i, arg1[i])
+        solver.add(arg2_value == list_of_string_values_tf.index(arg2))
+        solver.add(arg3_value == list_of_string_values_tf.index(arg3))
+        for i in range(arg4.ndim):
+            arg4_shape = Store(arg4_shape, i, arg4.shape[i])
+
+        # Constraints for rule 25
+        rule_25(solver, {'arg1_values': arg1_values, 'arg2_value': arg2_value, 'arg3_value': arg3_value, 'arg4_shape': arg4_shape})
+        return solver.check() == sat
+
+    # Fuzz input generation phase
+    else:
+        rule_25(solver, {'arg1_values': arg1['values'], 'arg2_value': arg2['value'], 'arg3_value': arg3['value'], 'arg4_shape': arg4['shape']}, neg)

@@ -1,0 +1,1154 @@
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.keras.layers.AdditiveAttention API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Additive attention layer, a.k.a. Bahdanau-style attention.
+
+    Inputs are a list with 2 or 3 elements:
+    1. A `query` tensor of shape `(batch_size, Tq, dim)`.
+    2. A `value` tensor of shape `(batch_size, Tv, dim)`.
+    3. A optional `key` tensor of shape `(batch_size, Tv, dim)`. If none
+        supplied, `value` will be used as `key`.
+
+    The calculation follows the steps:
+    1. Calculate attention scores using `query` and `key` with shape
+        `(batch_size, Tq, Tv)` as a non-linear sum
+        `scores = reduce_sum(tanh(query + key), axis=-1)`.
+    2. Use scores to calculate a softmax distribution with shape
+        `(batch_size, Tq, Tv)`.
+    3. Use the softmax distribution to create a linear combination of `value`
+        with shape `(batch_size, Tq, dim)`.
+
+    Args:
+        use_scale: If `True`, will create a scalar variable to scale the
+            attention scores.
+        dropout: Float between 0 and 1. Fraction of the units to drop for the
+            attention scores. Defaults to `0.0`.
+
+    Call arguments:
+        inputs: List of the following tensors:
+            - `query`: Query tensor of shape `(batch_size, Tq, dim)`.
+            - `value`: Value tensor of shape `(batch_size, Tv, dim)`.
+            - `key`: Optional key tensor of shape `(batch_size, Tv, dim)`. If
+                not given, will use `value` for both `key` and `value`, which is
+                the most common case.
+        mask: List of the following tensors:
+            - `query_mask`: A boolean mask tensor of shape `(batch_size, Tq)`.
+                If given, the output will be zero at the positions where
+                `mask==False`.
+            - `value_mask`: A boolean mask tensor of shape `(batch_size, Tv)`.
+                If given, will apply the mask such that values at positions
+                 where `mask==False` do not contribute to the result.
+        return_attention_scores: bool, it `True`, returns the attention scores
+            (after masking and softmax) as an additional output argument.
+        training: Python boolean indicating whether the layer should behave in
+            training mode (adding dropout) or in inference mode (no dropout).
+        use_causal_mask: Boolean. Set to `True` for decoder self-attention. Adds
+            a mask such that position `i` cannot attend to positions `j > i`.
+            This prevents the flow of information from the future towards the
+            past. Defaults to `False`.
+
+    Output:
+        Attention outputs of shape `(batch_size, Tq, dim)`.
+        (Optional) Attention scores after masking and softmax with shape
+            `(batch_size, Tq, Tv)`.
+
+[API Signature] use_scale: boolean, dropout: float, inputs: list, mask: list, return_attention_scores: boolean, training: boolean, use_causal_mask: boolean
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 22 (valid step size for a range)
+{v_1 : int ⊎ float, v_2 : int ⊎ float, v_3 : int ⊎ float} |= if v_1 > 0 then v_2 ≤ v_3 else if v_1 < 0 then v_2 ≥ v_3 else true
+
+Rule 4 (tensor data types should match)
+{v_1 : tensor, v_2 : tensor} |= dtype(v_1) = dtype(v_2)
+
+Rule 8 (tensor must have an integer dtype: 1–5)
+{v1: tensor} |= 1 ≤ dtype(v1) ∧ dtype(v1) ≤ 5
+
+Rule 24 (tuple of ints represents valid shape dimensions)
+{v_1 : tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] > 0
+
+Rule 23 (3-dimensional tensor with all positive shape dimensions)
+{v_1 : tensor} |= ndim(v_1) = 3 ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 1 (dropout rate must be between 0 and 1 inclusive)
+{v_1 : float} |= v_1 ≥ 0 ∧ v_1 ≤ 1
+Token usage: input=2108, output=115, total=5382
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.keras.layers.AdditiveAttention API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Additive attention layer, a.k.a. Bahdanau-style attention.
+
+    Inputs are a list with 2 or 3 elements:
+    1. A `query` tensor of shape `(batch_size, Tq, dim)`.
+    2. A `value` tensor of shape `(batch_size, Tv, dim)`.
+    3. A optional `key` tensor of shape `(batch_size, Tv, dim)`. If none
+        supplied, `value` will be used as `key`.
+
+    The calculation follows the steps:
+    1. Calculate attention scores using `query` and `key` with shape
+        `(batch_size, Tq, Tv)` as a non-linear sum
+        `scores = reduce_sum(tanh(query + key), axis=-1)`.
+    2. Use scores to calculate a softmax distribution with shape
+        `(batch_size, Tq, Tv)`.
+    3. Use the softmax distribution to create a linear combination of `value`
+        with shape `(batch_size, Tq, dim)`.
+
+    Args:
+        use_scale: If `True`, will create a scalar variable to scale the
+            attention scores.
+        dropout: Float between 0 and 1. Fraction of the units to drop for the
+            attention scores. Defaults to `0.0`.
+
+    Call arguments:
+        inputs: List of the following tensors:
+            - `query`: Query tensor of shape `(batch_size, Tq, dim)`.
+            - `value`: Value tensor of shape `(batch_size, Tv, dim)`.
+            - `key`: Optional key tensor of shape `(batch_size, Tv, dim)`. If
+                not given, will use `value` for both `key` and `value`, which is
+                the most common case.
+        mask: List of the following tensors:
+            - `query_mask`: A boolean mask tensor of shape `(batch_size, Tq)`.
+                If given, the output will be zero at the positions where
+                `mask==False`.
+            - `value_mask`: A boolean mask tensor of shape `(batch_size, Tv)`.
+                If given, will apply the mask such that values at positions
+                 where `mask==False` do not contribute to the result.
+        return_attention_scores: bool, it `True`, returns the attention scores
+            (after masking and softmax) as an additional output argument.
+        training: Python boolean indicating whether the layer should behave in
+            training mode (adding dropout) or in inference mode (no dropout).
+        use_causal_mask: Boolean. Set to `True` for decoder self-attention. Adds
+            a mask such that position `i` cannot attend to positions `j > i`.
+            This prevents the flow of information from the future towards the
+            past. Defaults to `False`.
+
+    Output:
+        Attention outputs of shape `(batch_size, Tq, dim)`.
+        (Optional) Attention scores after masking and softmax with shape
+            `(batch_size, Tq, Tv)`.
+
+[API Signature] use_scale: boolean, dropout: float, inputs: list, mask: list, return_attention_scores: boolean, training: boolean, use_causal_mask: boolean
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 22 (valid step size for a range)
+{v_1 : int ⊎ float, v_2 : int ⊎ float, v_3 : int ⊎ float} |= if v_1 > 0 then v_2 ≤ v_3 else if v_1 < 0 then v_2 ≥ v_3 else true
+
+Rule 4 (tensor data types should match)
+{v_1 : tensor, v_2 : tensor} |= dtype(v_1) = dtype(v_2)
+
+Rule 8 (tensor must have an integer dtype: 1–5)
+{v1: tensor} |= 1 ≤ dtype(v1) ∧ dtype(v1) ≤ 5
+
+Rule 24 (tuple of ints represents valid shape dimensions)
+{v_1 : tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] > 0
+
+Rule 23 (3-dimensional tensor with all positive shape dimensions)
+{v_1 : tensor} |= ndim(v_1) = 3 ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 2 (inputs must contain 2 or 3 tensors)
+{v_1 : list(tensor)} |= v_1.len ≥ 2 ∧ v_1.len ≤ 3
+Token usage: input=2108, output=115, total=5382
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.keras.layers.AdditiveAttention API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Additive attention layer, a.k.a. Bahdanau-style attention.
+
+    Inputs are a list with 2 or 3 elements:
+    1. A `query` tensor of shape `(batch_size, Tq, dim)`.
+    2. A `value` tensor of shape `(batch_size, Tv, dim)`.
+    3. A optional `key` tensor of shape `(batch_size, Tv, dim)`. If none
+        supplied, `value` will be used as `key`.
+
+    The calculation follows the steps:
+    1. Calculate attention scores using `query` and `key` with shape
+        `(batch_size, Tq, Tv)` as a non-linear sum
+        `scores = reduce_sum(tanh(query + key), axis=-1)`.
+    2. Use scores to calculate a softmax distribution with shape
+        `(batch_size, Tq, Tv)`.
+    3. Use the softmax distribution to create a linear combination of `value`
+        with shape `(batch_size, Tq, dim)`.
+
+    Args:
+        use_scale: If `True`, will create a scalar variable to scale the
+            attention scores.
+        dropout: Float between 0 and 1. Fraction of the units to drop for the
+            attention scores. Defaults to `0.0`.
+
+    Call arguments:
+        inputs: List of the following tensors:
+            - `query`: Query tensor of shape `(batch_size, Tq, dim)`.
+            - `value`: Value tensor of shape `(batch_size, Tv, dim)`.
+            - `key`: Optional key tensor of shape `(batch_size, Tv, dim)`. If
+                not given, will use `value` for both `key` and `value`, which is
+                the most common case.
+        mask: List of the following tensors:
+            - `query_mask`: A boolean mask tensor of shape `(batch_size, Tq)`.
+                If given, the output will be zero at the positions where
+                `mask==False`.
+            - `value_mask`: A boolean mask tensor of shape `(batch_size, Tv)`.
+                If given, will apply the mask such that values at positions
+                 where `mask==False` do not contribute to the result.
+        return_attention_scores: bool, it `True`, returns the attention scores
+            (after masking and softmax) as an additional output argument.
+        training: Python boolean indicating whether the layer should behave in
+            training mode (adding dropout) or in inference mode (no dropout).
+        use_causal_mask: Boolean. Set to `True` for decoder self-attention. Adds
+            a mask such that position `i` cannot attend to positions `j > i`.
+            This prevents the flow of information from the future towards the
+            past. Defaults to `False`.
+
+    Output:
+        Attention outputs of shape `(batch_size, Tq, dim)`.
+        (Optional) Attention scores after masking and softmax with shape
+            `(batch_size, Tq, Tv)`.
+
+[API Signature] use_scale: boolean, dropout: float, inputs: list, mask: list, return_attention_scores: boolean, training: boolean, use_causal_mask: boolean
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 22 (valid step size for a range)
+{v_1 : int ⊎ float, v_2 : int ⊎ float, v_3 : int ⊎ float} |= if v_1 > 0 then v_2 ≤ v_3 else if v_1 < 0 then v_2 ≥ v_3 else true
+
+Rule 4 (tensor data types should match)
+{v_1 : tensor, v_2 : tensor} |= dtype(v_1) = dtype(v_2)
+
+Rule 8 (tensor must have an integer dtype: 1–5)
+{v1: tensor} |= 1 ≤ dtype(v1) ∧ dtype(v1) ≤ 5
+
+Rule 24 (tuple of ints represents valid shape dimensions)
+{v_1 : tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] > 0
+
+Rule 23 (3-dimensional tensor with all positive shape dimensions)
+{v_1 : tensor} |= ndim(v_1) = 3 ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 3 (mask must contain exactly 2 tensors)
+{v_1 : list(tensor)} |= v_1.len = 2
+Token usage: input=2108, output=115, total=5382
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.keras.layers.AdditiveAttention API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Additive attention layer, a.k.a. Bahdanau-style attention.
+
+    Inputs are a list with 2 or 3 elements:
+    1. A `query` tensor of shape `(batch_size, Tq, dim)`.
+    2. A `value` tensor of shape `(batch_size, Tv, dim)`.
+    3. A optional `key` tensor of shape `(batch_size, Tv, dim)`. If none
+        supplied, `value` will be used as `key`.
+
+    The calculation follows the steps:
+    1. Calculate attention scores using `query` and `key` with shape
+        `(batch_size, Tq, Tv)` as a non-linear sum
+        `scores = reduce_sum(tanh(query + key), axis=-1)`.
+    2. Use scores to calculate a softmax distribution with shape
+        `(batch_size, Tq, Tv)`.
+    3. Use the softmax distribution to create a linear combination of `value`
+        with shape `(batch_size, Tq, dim)`.
+
+    Args:
+        use_scale: If `True`, will create a scalar variable to scale the
+            attention scores.
+        dropout: Float between 0 and 1. Fraction of the units to drop for the
+            attention scores. Defaults to `0.0`.
+
+    Call arguments:
+        inputs: List of the following tensors:
+            - `query`: Query tensor of shape `(batch_size, Tq, dim)`.
+            - `value`: Value tensor of shape `(batch_size, Tv, dim)`.
+            - `key`: Optional key tensor of shape `(batch_size, Tv, dim)`. If
+                not given, will use `value` for both `key` and `value`, which is
+                the most common case.
+        mask: List of the following tensors:
+            - `query_mask`: A boolean mask tensor of shape `(batch_size, Tq)`.
+                If given, the output will be zero at the positions where
+                `mask==False`.
+            - `value_mask`: A boolean mask tensor of shape `(batch_size, Tv)`.
+                If given, will apply the mask such that values at positions
+                 where `mask==False` do not contribute to the result.
+        return_attention_scores: bool, it `True`, returns the attention scores
+            (after masking and softmax) as an additional output argument.
+        training: Python boolean indicating whether the layer should behave in
+            training mode (adding dropout) or in inference mode (no dropout).
+        use_causal_mask: Boolean. Set to `True` for decoder self-attention. Adds
+            a mask such that position `i` cannot attend to positions `j > i`.
+            This prevents the flow of information from the future towards the
+            past. Defaults to `False`.
+
+    Output:
+        Attention outputs of shape `(batch_size, Tq, dim)`.
+        (Optional) Attention scores after masking and softmax with shape
+            `(batch_size, Tq, Tv)`.
+
+[API Signature] use_scale: boolean, dropout: float, inputs: list, mask: list, return_attention_scores: boolean, training: boolean, use_causal_mask: boolean
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 24 (tuple of ints represents valid shape dimensions)
+{v_1 : tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] > 0
+
+Rule 12 (a primitive type variable is smaller than the other)
+{v_1 : int ⊎ float, v_2 : int ⊎ float} |= v_1 ≤ v_2
+
+Rule 27 (reduction over valid dimensions)
+{v_1 : tensor, v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 20 (input tensor must be 1-dimensional)
+{v_1 : tensor} |= ndim(v_1) = 1
+
+Rule 13 (tensor must have a floating-point dtype: 6–8)
+{v1: tensor} |= 6 ≤ dtype(v1) ∧ dtype(v1) ≤ 8
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 4 (valid range for dropout)
+{v_1 : float} |= v_1 ≥ 0 ∧ v_1 ≤ 1
+Token usage: input=7458, output=110, total=10701
+** DUPLICATED RULE ** (num_failures: 1)
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.keras.layers.AdditiveAttention API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Additive attention layer, a.k.a. Bahdanau-style attention.
+
+    Inputs are a list with 2 or 3 elements:
+    1. A `query` tensor of shape `(batch_size, Tq, dim)`.
+    2. A `value` tensor of shape `(batch_size, Tv, dim)`.
+    3. A optional `key` tensor of shape `(batch_size, Tv, dim)`. If none
+        supplied, `value` will be used as `key`.
+
+    The calculation follows the steps:
+    1. Calculate attention scores using `query` and `key` with shape
+        `(batch_size, Tq, Tv)` as a non-linear sum
+        `scores = reduce_sum(tanh(query + key), axis=-1)`.
+    2. Use scores to calculate a softmax distribution with shape
+        `(batch_size, Tq, Tv)`.
+    3. Use the softmax distribution to create a linear combination of `value`
+        with shape `(batch_size, Tq, dim)`.
+
+    Args:
+        use_scale: If `True`, will create a scalar variable to scale the
+            attention scores.
+        dropout: Float between 0 and 1. Fraction of the units to drop for the
+            attention scores. Defaults to `0.0`.
+
+    Call arguments:
+        inputs: List of the following tensors:
+            - `query`: Query tensor of shape `(batch_size, Tq, dim)`.
+            - `value`: Value tensor of shape `(batch_size, Tv, dim)`.
+            - `key`: Optional key tensor of shape `(batch_size, Tv, dim)`. If
+                not given, will use `value` for both `key` and `value`, which is
+                the most common case.
+        mask: List of the following tensors:
+            - `query_mask`: A boolean mask tensor of shape `(batch_size, Tq)`.
+                If given, the output will be zero at the positions where
+                `mask==False`.
+            - `value_mask`: A boolean mask tensor of shape `(batch_size, Tv)`.
+                If given, will apply the mask such that values at positions
+                 where `mask==False` do not contribute to the result.
+        return_attention_scores: bool, it `True`, returns the attention scores
+            (after masking and softmax) as an additional output argument.
+        training: Python boolean indicating whether the layer should behave in
+            training mode (adding dropout) or in inference mode (no dropout).
+        use_causal_mask: Boolean. Set to `True` for decoder self-attention. Adds
+            a mask such that position `i` cannot attend to positions `j > i`.
+            This prevents the flow of information from the future towards the
+            past. Defaults to `False`.
+
+    Output:
+        Attention outputs of shape `(batch_size, Tq, dim)`.
+        (Optional) Attention scores after masking and softmax with shape
+            `(batch_size, Tq, Tv)`.
+
+[API Signature] use_scale: boolean, dropout: float, inputs: list, mask: list, return_attention_scores: boolean, training: boolean, use_causal_mask: boolean
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 24 (tuple of ints represents valid shape dimensions)
+{v_1 : tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] > 0
+
+Rule 12 (a primitive type variable is smaller than the other)
+{v_1 : int ⊎ float, v_2 : int ⊎ float} |= v_1 ≤ v_2
+
+Rule 27 (reduction over valid dimensions)
+{v_1 : tensor, v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 20 (input tensor must be 1-dimensional)
+{v_1 : tensor} |= ndim(v_1) = 1
+
+Rule 13 (tensor must have a floating-point dtype: 6–8)
+{v1: tensor} |= 6 ≤ dtype(v1) ∧ dtype(v1) ≤ 8
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 5 (inputs must have length between 2 and 3)
+{v_1 : list(tensor)} |= v_1.len ≥ 2 ∧ v_1.len ≤ 3
+Token usage: input=7458, output=110, total=10701
+** DUPLICATED RULE ** (num_failures: 2)
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.keras.layers.AdditiveAttention API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Additive attention layer, a.k.a. Bahdanau-style attention.
+
+    Inputs are a list with 2 or 3 elements:
+    1. A `query` tensor of shape `(batch_size, Tq, dim)`.
+    2. A `value` tensor of shape `(batch_size, Tv, dim)`.
+    3. A optional `key` tensor of shape `(batch_size, Tv, dim)`. If none
+        supplied, `value` will be used as `key`.
+
+    The calculation follows the steps:
+    1. Calculate attention scores using `query` and `key` with shape
+        `(batch_size, Tq, Tv)` as a non-linear sum
+        `scores = reduce_sum(tanh(query + key), axis=-1)`.
+    2. Use scores to calculate a softmax distribution with shape
+        `(batch_size, Tq, Tv)`.
+    3. Use the softmax distribution to create a linear combination of `value`
+        with shape `(batch_size, Tq, dim)`.
+
+    Args:
+        use_scale: If `True`, will create a scalar variable to scale the
+            attention scores.
+        dropout: Float between 0 and 1. Fraction of the units to drop for the
+            attention scores. Defaults to `0.0`.
+
+    Call arguments:
+        inputs: List of the following tensors:
+            - `query`: Query tensor of shape `(batch_size, Tq, dim)`.
+            - `value`: Value tensor of shape `(batch_size, Tv, dim)`.
+            - `key`: Optional key tensor of shape `(batch_size, Tv, dim)`. If
+                not given, will use `value` for both `key` and `value`, which is
+                the most common case.
+        mask: List of the following tensors:
+            - `query_mask`: A boolean mask tensor of shape `(batch_size, Tq)`.
+                If given, the output will be zero at the positions where
+                `mask==False`.
+            - `value_mask`: A boolean mask tensor of shape `(batch_size, Tv)`.
+                If given, will apply the mask such that values at positions
+                 where `mask==False` do not contribute to the result.
+        return_attention_scores: bool, it `True`, returns the attention scores
+            (after masking and softmax) as an additional output argument.
+        training: Python boolean indicating whether the layer should behave in
+            training mode (adding dropout) or in inference mode (no dropout).
+        use_causal_mask: Boolean. Set to `True` for decoder self-attention. Adds
+            a mask such that position `i` cannot attend to positions `j > i`.
+            This prevents the flow of information from the future towards the
+            past. Defaults to `False`.
+
+    Output:
+        Attention outputs of shape `(batch_size, Tq, dim)`.
+        (Optional) Attention scores after masking and softmax with shape
+            `(batch_size, Tq, Tv)`.
+
+[API Signature] use_scale: boolean, dropout: float, inputs: list, mask: list, return_attention_scores: boolean, training: boolean, use_causal_mask: boolean
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 24 (tuple of ints represents valid shape dimensions)
+{v_1 : tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] > 0
+
+Rule 12 (a primitive type variable is smaller than the other)
+{v_1 : int ⊎ float, v_2 : int ⊎ float} |= v_1 ≤ v_2
+
+Rule 27 (reduction over valid dimensions)
+{v_1 : tensor, v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 20 (input tensor must be 1-dimensional)
+{v_1 : tensor} |= ndim(v_1) = 1
+
+Rule 13 (tensor must have a floating-point dtype: 6–8)
+{v1: tensor} |= 6 ≤ dtype(v1) ∧ dtype(v1) ≤ 8
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 6 (mask list must have length of 2)
+{v_1 : list(tensor)} |= v_1.len = 2
+Token usage: input=7458, output=110, total=10701
+** DUPLICATED RULE ** (num_failures: 3)
+
+>>> PROMPT
+[Feedback Message from Prior Run]
+Duplicated rule: {v_1 : float} |= v_1 ≥ 0 ∧ v_1 ≤ 1
+Duplicated rule: {v_1 : list(tensor)} |= v_1.len ≥ 2 ∧ v_1.len ≤ 3
+Duplicated rule: {v_1 : list(tensor)} |= v_1.len = 2
+
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.keras.layers.AdditiveAttention API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Additive attention layer, a.k.a. Bahdanau-style attention.
+
+    Inputs are a list with 2 or 3 elements:
+    1. A `query` tensor of shape `(batch_size, Tq, dim)`.
+    2. A `value` tensor of shape `(batch_size, Tv, dim)`.
+    3. A optional `key` tensor of shape `(batch_size, Tv, dim)`. If none
+        supplied, `value` will be used as `key`.
+
+    The calculation follows the steps:
+    1. Calculate attention scores using `query` and `key` with shape
+        `(batch_size, Tq, Tv)` as a non-linear sum
+        `scores = reduce_sum(tanh(query + key), axis=-1)`.
+    2. Use scores to calculate a softmax distribution with shape
+        `(batch_size, Tq, Tv)`.
+    3. Use the softmax distribution to create a linear combination of `value`
+        with shape `(batch_size, Tq, dim)`.
+
+    Args:
+        use_scale: If `True`, will create a scalar variable to scale the
+            attention scores.
+        dropout: Float between 0 and 1. Fraction of the units to drop for the
+            attention scores. Defaults to `0.0`.
+
+    Call arguments:
+        inputs: List of the following tensors:
+            - `query`: Query tensor of shape `(batch_size, Tq, dim)`.
+            - `value`: Value tensor of shape `(batch_size, Tv, dim)`.
+            - `key`: Optional key tensor of shape `(batch_size, Tv, dim)`. If
+                not given, will use `value` for both `key` and `value`, which is
+                the most common case.
+        mask: List of the following tensors:
+            - `query_mask`: A boolean mask tensor of shape `(batch_size, Tq)`.
+                If given, the output will be zero at the positions where
+                `mask==False`.
+            - `value_mask`: A boolean mask tensor of shape `(batch_size, Tv)`.
+                If given, will apply the mask such that values at positions
+                 where `mask==False` do not contribute to the result.
+        return_attention_scores: bool, it `True`, returns the attention scores
+            (after masking and softmax) as an additional output argument.
+        training: Python boolean indicating whether the layer should behave in
+            training mode (adding dropout) or in inference mode (no dropout).
+        use_causal_mask: Boolean. Set to `True` for decoder self-attention. Adds
+            a mask such that position `i` cannot attend to positions `j > i`.
+            This prevents the flow of information from the future towards the
+            past. Defaults to `False`.
+
+    Output:
+        Attention outputs of shape `(batch_size, Tq, dim)`.
+        (Optional) Attention scores after masking and softmax with shape
+            `(batch_size, Tq, Tv)`.
+
+[API Signature] use_scale: boolean, dropout: float, inputs: list, mask: list, return_attention_scores: boolean, training: boolean, use_causal_mask: boolean
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 11 (index tensor (v_3) is within the input tensor along the specified dimension)
+{v_1 : tensor, v_2 : int, v_3 : tensor} |= min(v_3) ≥ 0 ∧ max(v_3) ≤ shape(v_1, v_2) − 1
+
+Rule 5 (index tensor (v_2) should be within the range of input tensor)
+{v_1 : tensor, v_2 : tensor} |= min(v_2) ≥ 0 ∧ ∀i ∈ [0, ndim(v_1) − 1] : max(v_2) ≤ shape(v_1, i) − 1
+
+Rule 27 (reduction over valid dimensions)
+{v_1 : tensor, v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 19 (compatibility of integer or float (data) type tensor and variable)
+{v1 : tensor, v2 : int ⊎ float} |= if 1 ≤ dtype(v1) ∧ dtype(v1) ≤ 5 then 1 ≤ v2 ∧ v2 ≤ 5 else if 6 ≤ dtype(v1) ∧ dtype(v1) ≤ 8 then 1 ≤ v2 ∧ v2 ≤ 8 else false
+
+Rule 20 (input tensor must be 1-dimensional)
+{v_1 : tensor} |= ndim(v_1) = 1
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 7 (the number of input tensors must be at least the number of mask tensors)
+{v_1 : list(tensor), v_2 : list(tensor)} |= v_1.len ≥ v_2.len
+Token usage: input=12986, output=146, total=18697
+** SUCCESS **
+
+>>> PROMPT
+[Feedback Message from Prior Run]
+Duplicated rule: {v_1 : float} |= v_1 ≥ 0 ∧ v_1 ≤ 1
+Duplicated rule: {v_1 : list(tensor)} |= v_1.len ≥ 2 ∧ v_1.len ≤ 3
+Duplicated rule: {v_1 : list(tensor)} |= v_1.len = 2
+
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.keras.layers.AdditiveAttention API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Additive attention layer, a.k.a. Bahdanau-style attention.
+
+    Inputs are a list with 2 or 3 elements:
+    1. A `query` tensor of shape `(batch_size, Tq, dim)`.
+    2. A `value` tensor of shape `(batch_size, Tv, dim)`.
+    3. A optional `key` tensor of shape `(batch_size, Tv, dim)`. If none
+        supplied, `value` will be used as `key`.
+
+    The calculation follows the steps:
+    1. Calculate attention scores using `query` and `key` with shape
+        `(batch_size, Tq, Tv)` as a non-linear sum
+        `scores = reduce_sum(tanh(query + key), axis=-1)`.
+    2. Use scores to calculate a softmax distribution with shape
+        `(batch_size, Tq, Tv)`.
+    3. Use the softmax distribution to create a linear combination of `value`
+        with shape `(batch_size, Tq, dim)`.
+
+    Args:
+        use_scale: If `True`, will create a scalar variable to scale the
+            attention scores.
+        dropout: Float between 0 and 1. Fraction of the units to drop for the
+            attention scores. Defaults to `0.0`.
+
+    Call arguments:
+        inputs: List of the following tensors:
+            - `query`: Query tensor of shape `(batch_size, Tq, dim)`.
+            - `value`: Value tensor of shape `(batch_size, Tv, dim)`.
+            - `key`: Optional key tensor of shape `(batch_size, Tv, dim)`. If
+                not given, will use `value` for both `key` and `value`, which is
+                the most common case.
+        mask: List of the following tensors:
+            - `query_mask`: A boolean mask tensor of shape `(batch_size, Tq)`.
+                If given, the output will be zero at the positions where
+                `mask==False`.
+            - `value_mask`: A boolean mask tensor of shape `(batch_size, Tv)`.
+                If given, will apply the mask such that values at positions
+                 where `mask==False` do not contribute to the result.
+        return_attention_scores: bool, it `True`, returns the attention scores
+            (after masking and softmax) as an additional output argument.
+        training: Python boolean indicating whether the layer should behave in
+            training mode (adding dropout) or in inference mode (no dropout).
+        use_causal_mask: Boolean. Set to `True` for decoder self-attention. Adds
+            a mask such that position `i` cannot attend to positions `j > i`.
+            This prevents the flow of information from the future towards the
+            past. Defaults to `False`.
+
+    Output:
+        Attention outputs of shape `(batch_size, Tq, dim)`.
+        (Optional) Attention scores after masking and softmax with shape
+            `(batch_size, Tq, Tv)`.
+
+[API Signature] use_scale: boolean, dropout: float, inputs: list, mask: list, return_attention_scores: boolean, training: boolean, use_causal_mask: boolean
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 11 (index tensor (v_3) is within the input tensor along the specified dimension)
+{v_1 : tensor, v_2 : int, v_3 : tensor} |= min(v_3) ≥ 0 ∧ max(v_3) ≤ shape(v_1, v_2) − 1
+
+Rule 5 (index tensor (v_2) should be within the range of input tensor)
+{v_1 : tensor, v_2 : tensor} |= min(v_2) ≥ 0 ∧ ∀i ∈ [0, ndim(v_1) − 1] : max(v_2) ≤ shape(v_1, i) − 1
+
+Rule 27 (reduction over valid dimensions)
+{v_1 : tensor, v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 19 (compatibility of integer or float (data) type tensor and variable)
+{v1 : tensor, v2 : int ⊎ float} |= if 1 ≤ dtype(v1) ∧ dtype(v1) ≤ 5 then 1 ≤ v2 ∧ v2 ≤ 5 else if 6 ≤ dtype(v1) ∧ dtype(v1) ≤ 8 then 1 ≤ v2 ∧ v2 ≤ 8 else false
+
+Rule 20 (input tensor must be 1-dimensional)
+{v_1 : tensor} |= ndim(v_1) = 1
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 8 (the mask list must be either empty or contain exactly 2 tensors)
+{v_1 : list(tensor)} |= v_1.len = 0 ∨ v_1.len = 2
+Token usage: input=12986, output=146, total=18697
+** SUCCESS **
+

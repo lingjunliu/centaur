@@ -1,0 +1,4252 @@
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.keras.layers.RandomCrop API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+A preprocessing layer which randomly crops images during training.
+
+    During training, this layer will randomly choose a location to crop images
+    down to a target size. The layer will crop all the images in the same batch
+    to the same cropping location.
+
+    At inference time, and during training if an input image is smaller than the
+    target size, the input will be resized and cropped so as to return the
+    largest possible window in the image that matches the target aspect ratio.
+    If you need to apply random cropping at inference time, set `training` to
+    True when calling the layer.
+
+    Input pixel values can be of any range (e.g. `[0., 1.)` or `[0, 255]`) and
+    of integer or floating point dtype. By default, the layer will output
+    floats.
+
+    **Note:** This layer is safe to use inside a `tf.data` or `grain` pipeline
+    (independently of which backend you're using).
+
+    Input shape:
+        3D (unbatched) or 4D (batched) tensor with shape:
+        `(..., height, width, channels)`, in `"channels_last"` format.
+
+    Output shape:
+        3D (unbatched) or 4D (batched) tensor with shape:
+        `(..., target_height, target_width, channels)`.
+
+    Args:
+        height: Integer, the height of the output shape.
+        width: Integer, the width of the output shape.
+        seed: Integer. Used to create a random seed.
+        **kwargs: Base layer keyword arguments, such as
+            `name` and `dtype`.
+
+    Example:
+
+    
+```python
+layer = keras.layers.RandomCrop(bounding_box_format="xyxy")
+images = np.random.randint(0, 255, (4, 224, 224, 3), dtype="uint8")
+
+bounding_boxes = {
+    "boxes": np.array([
+        [[10, 20, 100, 150], [50, 60, 200, 250]],
+        [[15, 25, 110, 160], [55, 65, 210, 260]],
+        [[20, 30, 120, 170], [60, 70, 220, 270]],
+        [[25, 35, 130, 180], [65, 75, 230, 280]],
+    ], dtype="float32"),
+    "labels": np.array([[0, 1], [1, 2], [2, 3], [0, 3]], dtype="int32")
+}
+
+labels = keras.ops.one_hot(
+    np.array([0, 1, 2, 3]),
+    num_classes=4
+)
+
+segmentation_masks = np.random.randint(0, 3, (4, 224, 224, 1), dtype="uint8")
+
+output = layer(
+    {
+        "images": images,
+        "bounding_boxes": bounding_boxes,
+        "labels": labels,
+        "segmentation_masks": segmentation_masks
+    },
+    training=True
+)
+```
+
+[API Signature] height: integer, width: integer, seed: integer, data_format: string, inputs: tensor
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 14 (tensor should not be empty)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+
+Rule 19 (compatibility of integer or float (data) type tensor and variable)
+{v1 : tensor, v2 : int ⊎ float} |= if 1 ≤ dtype(v1) ∧ dtype(v1) ≤ 5 then 1 ≤ v2 ∧ v2 ≤ 5 else if 6 ≤ dtype(v1) ∧ dtype(v1) ≤ 8 then 1 ≤ v2 ∧ v2 ≤ 8 else false
+
+Rule 5 (index tensor (v_2) should be within the range of input tensor)
+{v_1 : tensor, v_2 : tensor} |= min(v_2) ≥ 0 ∧ ∀i ∈ [0, ndim(v_1) − 1] : max(v_2) ≤ shape(v_1, i) − 1
+
+Rule 29 (list of floats for weights must match length of a tensor dimension)
+{v_1 : tensor, v_2 : list(float)} |= v_2.len = shape(v_1, 0) ∧ ∀i ∈ [0, v_2.len - 1] : v_2[i] ≥ 0
+
+Rule 31 (dtype must be a floating-point type)
+{v_1 : dtype} |= v_1 = 6 ∨ v_1 = 7 ∨ v_1 = 8
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 1 (dimension of inputs must be 3 or 4)
+{v_5 : tensor} |= ndim(v_5) = 3 ∨ ndim(v_5) = 4
+Token usage: input=2268, output=231, total=6218
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.keras.layers.RandomCrop API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+A preprocessing layer which randomly crops images during training.
+
+    During training, this layer will randomly choose a location to crop images
+    down to a target size. The layer will crop all the images in the same batch
+    to the same cropping location.
+
+    At inference time, and during training if an input image is smaller than the
+    target size, the input will be resized and cropped so as to return the
+    largest possible window in the image that matches the target aspect ratio.
+    If you need to apply random cropping at inference time, set `training` to
+    True when calling the layer.
+
+    Input pixel values can be of any range (e.g. `[0., 1.)` or `[0, 255]`) and
+    of integer or floating point dtype. By default, the layer will output
+    floats.
+
+    **Note:** This layer is safe to use inside a `tf.data` or `grain` pipeline
+    (independently of which backend you're using).
+
+    Input shape:
+        3D (unbatched) or 4D (batched) tensor with shape:
+        `(..., height, width, channels)`, in `"channels_last"` format.
+
+    Output shape:
+        3D (unbatched) or 4D (batched) tensor with shape:
+        `(..., target_height, target_width, channels)`.
+
+    Args:
+        height: Integer, the height of the output shape.
+        width: Integer, the width of the output shape.
+        seed: Integer. Used to create a random seed.
+        **kwargs: Base layer keyword arguments, such as
+            `name` and `dtype`.
+
+    Example:
+
+    
+```python
+layer = keras.layers.RandomCrop(bounding_box_format="xyxy")
+images = np.random.randint(0, 255, (4, 224, 224, 3), dtype="uint8")
+
+bounding_boxes = {
+    "boxes": np.array([
+        [[10, 20, 100, 150], [50, 60, 200, 250]],
+        [[15, 25, 110, 160], [55, 65, 210, 260]],
+        [[20, 30, 120, 170], [60, 70, 220, 270]],
+        [[25, 35, 130, 180], [65, 75, 230, 280]],
+    ], dtype="float32"),
+    "labels": np.array([[0, 1], [1, 2], [2, 3], [0, 3]], dtype="int32")
+}
+
+labels = keras.ops.one_hot(
+    np.array([0, 1, 2, 3]),
+    num_classes=4
+)
+
+segmentation_masks = np.random.randint(0, 3, (4, 224, 224, 1), dtype="uint8")
+
+output = layer(
+    {
+        "images": images,
+        "bounding_boxes": bounding_boxes,
+        "labels": labels,
+        "segmentation_masks": segmentation_masks
+    },
+    training=True
+)
+```
+
+[API Signature] height: integer, width: integer, seed: integer, data_format: string, inputs: tensor
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 14 (tensor should not be empty)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+
+Rule 19 (compatibility of integer or float (data) type tensor and variable)
+{v1 : tensor, v2 : int ⊎ float} |= if 1 ≤ dtype(v1) ∧ dtype(v1) ≤ 5 then 1 ≤ v2 ∧ v2 ≤ 5 else if 6 ≤ dtype(v1) ∧ dtype(v1) ≤ 8 then 1 ≤ v2 ∧ v2 ≤ 8 else false
+
+Rule 5 (index tensor (v_2) should be within the range of input tensor)
+{v_1 : tensor, v_2 : tensor} |= min(v_2) ≥ 0 ∧ ∀i ∈ [0, ndim(v_1) − 1] : max(v_2) ≤ shape(v_1, i) − 1
+
+Rule 29 (list of floats for weights must match length of a tensor dimension)
+{v_1 : tensor, v_2 : list(float)} |= v_2.len = shape(v_1, 0) ∧ ∀i ∈ [0, v_2.len - 1] : v_2[i] ≥ 0
+
+Rule 31 (dtype must be a floating-point type)
+{v_1 : dtype} |= v_1 = 6 ∨ v_1 = 7 ∨ v_1 = 8
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 2 (height and width must be positive integers)
+{v_1 : int, v_2 : int} |= v_1 > 0 ∧ v_2 > 0
+Token usage: input=2268, output=231, total=6218
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.keras.layers.RandomCrop API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+A preprocessing layer which randomly crops images during training.
+
+    During training, this layer will randomly choose a location to crop images
+    down to a target size. The layer will crop all the images in the same batch
+    to the same cropping location.
+
+    At inference time, and during training if an input image is smaller than the
+    target size, the input will be resized and cropped so as to return the
+    largest possible window in the image that matches the target aspect ratio.
+    If you need to apply random cropping at inference time, set `training` to
+    True when calling the layer.
+
+    Input pixel values can be of any range (e.g. `[0., 1.)` or `[0, 255]`) and
+    of integer or floating point dtype. By default, the layer will output
+    floats.
+
+    **Note:** This layer is safe to use inside a `tf.data` or `grain` pipeline
+    (independently of which backend you're using).
+
+    Input shape:
+        3D (unbatched) or 4D (batched) tensor with shape:
+        `(..., height, width, channels)`, in `"channels_last"` format.
+
+    Output shape:
+        3D (unbatched) or 4D (batched) tensor with shape:
+        `(..., target_height, target_width, channels)`.
+
+    Args:
+        height: Integer, the height of the output shape.
+        width: Integer, the width of the output shape.
+        seed: Integer. Used to create a random seed.
+        **kwargs: Base layer keyword arguments, such as
+            `name` and `dtype`.
+
+    Example:
+
+    
+```python
+layer = keras.layers.RandomCrop(bounding_box_format="xyxy")
+images = np.random.randint(0, 255, (4, 224, 224, 3), dtype="uint8")
+
+bounding_boxes = {
+    "boxes": np.array([
+        [[10, 20, 100, 150], [50, 60, 200, 250]],
+        [[15, 25, 110, 160], [55, 65, 210, 260]],
+        [[20, 30, 120, 170], [60, 70, 220, 270]],
+        [[25, 35, 130, 180], [65, 75, 230, 280]],
+    ], dtype="float32"),
+    "labels": np.array([[0, 1], [1, 2], [2, 3], [0, 3]], dtype="int32")
+}
+
+labels = keras.ops.one_hot(
+    np.array([0, 1, 2, 3]),
+    num_classes=4
+)
+
+segmentation_masks = np.random.randint(0, 3, (4, 224, 224, 1), dtype="uint8")
+
+output = layer(
+    {
+        "images": images,
+        "bounding_boxes": bounding_boxes,
+        "labels": labels,
+        "segmentation_masks": segmentation_masks
+    },
+    training=True
+)
+```
+
+[API Signature] height: integer, width: integer, seed: integer, data_format: string, inputs: tensor
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 14 (tensor should not be empty)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+
+Rule 19 (compatibility of integer or float (data) type tensor and variable)
+{v1 : tensor, v2 : int ⊎ float} |= if 1 ≤ dtype(v1) ∧ dtype(v1) ≤ 5 then 1 ≤ v2 ∧ v2 ≤ 5 else if 6 ≤ dtype(v1) ∧ dtype(v1) ≤ 8 then 1 ≤ v2 ∧ v2 ≤ 8 else false
+
+Rule 5 (index tensor (v_2) should be within the range of input tensor)
+{v_1 : tensor, v_2 : tensor} |= min(v_2) ≥ 0 ∧ ∀i ∈ [0, ndim(v_1) − 1] : max(v_2) ≤ shape(v_1, i) − 1
+
+Rule 29 (list of floats for weights must match length of a tensor dimension)
+{v_1 : tensor, v_2 : list(float)} |= v_2.len = shape(v_1, 0) ∧ ∀i ∈ [0, v_2.len - 1] : v_2[i] ≥ 0
+
+Rule 31 (dtype must be a floating-point type)
+{v_1 : dtype} |= v_1 = 6 ∨ v_1 = 7 ∨ v_1 = 8
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 3 (data_format must be channels_last or channels_first)
+{v_4 : str} |= v_4 = "channels_last" ∨ v_4 = "channels_first"
+Token usage: input=2268, output=231, total=6218
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.keras.layers.RandomCrop API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+A preprocessing layer which randomly crops images during training.
+
+    During training, this layer will randomly choose a location to crop images
+    down to a target size. The layer will crop all the images in the same batch
+    to the same cropping location.
+
+    At inference time, and during training if an input image is smaller than the
+    target size, the input will be resized and cropped so as to return the
+    largest possible window in the image that matches the target aspect ratio.
+    If you need to apply random cropping at inference time, set `training` to
+    True when calling the layer.
+
+    Input pixel values can be of any range (e.g. `[0., 1.)` or `[0, 255]`) and
+    of integer or floating point dtype. By default, the layer will output
+    floats.
+
+    **Note:** This layer is safe to use inside a `tf.data` or `grain` pipeline
+    (independently of which backend you're using).
+
+    Input shape:
+        3D (unbatched) or 4D (batched) tensor with shape:
+        `(..., height, width, channels)`, in `"channels_last"` format.
+
+    Output shape:
+        3D (unbatched) or 4D (batched) tensor with shape:
+        `(..., target_height, target_width, channels)`.
+
+    Args:
+        height: Integer, the height of the output shape.
+        width: Integer, the width of the output shape.
+        seed: Integer. Used to create a random seed.
+        **kwargs: Base layer keyword arguments, such as
+            `name` and `dtype`.
+
+    Example:
+
+    
+```python
+layer = keras.layers.RandomCrop(bounding_box_format="xyxy")
+images = np.random.randint(0, 255, (4, 224, 224, 3), dtype="uint8")
+
+bounding_boxes = {
+    "boxes": np.array([
+        [[10, 20, 100, 150], [50, 60, 200, 250]],
+        [[15, 25, 110, 160], [55, 65, 210, 260]],
+        [[20, 30, 120, 170], [60, 70, 220, 270]],
+        [[25, 35, 130, 180], [65, 75, 230, 280]],
+    ], dtype="float32"),
+    "labels": np.array([[0, 1], [1, 2], [2, 3], [0, 3]], dtype="int32")
+}
+
+labels = keras.ops.one_hot(
+    np.array([0, 1, 2, 3]),
+    num_classes=4
+)
+
+segmentation_masks = np.random.randint(0, 3, (4, 224, 224, 1), dtype="uint8")
+
+output = layer(
+    {
+        "images": images,
+        "bounding_boxes": bounding_boxes,
+        "labels": labels,
+        "segmentation_masks": segmentation_masks
+    },
+    training=True
+)
+```
+
+[API Signature] height: integer, width: integer, seed: integer, data_format: string, inputs: tensor
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 14 (tensor should not be empty)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+
+Rule 19 (compatibility of integer or float (data) type tensor and variable)
+{v1 : tensor, v2 : int ⊎ float} |= if 1 ≤ dtype(v1) ∧ dtype(v1) ≤ 5 then 1 ≤ v2 ∧ v2 ≤ 5 else if 6 ≤ dtype(v1) ∧ dtype(v1) ≤ 8 then 1 ≤ v2 ∧ v2 ≤ 8 else false
+
+Rule 5 (index tensor (v_2) should be within the range of input tensor)
+{v_1 : tensor, v_2 : tensor} |= min(v_2) ≥ 0 ∧ ∀i ∈ [0, ndim(v_1) − 1] : max(v_2) ≤ shape(v_1, i) − 1
+
+Rule 29 (list of floats for weights must match length of a tensor dimension)
+{v_1 : tensor, v_2 : list(float)} |= v_2.len = shape(v_1, 0) ∧ ∀i ∈ [0, v_2.len - 1] : v_2[i] ≥ 0
+
+Rule 31 (dtype must be a floating-point type)
+{v_1 : dtype} |= v_1 = 6 ∨ v_1 = 7 ∨ v_1 = 8
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 4 (input tensor should not have zero-sized dimensions)
+{v_5 : tensor} |= ∀i ∈ [0, ndim(v_5) - 1] : shape(v_5, i) > 0
+Token usage: input=2268, output=231, total=6218
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.keras.layers.RandomCrop API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+A preprocessing layer which randomly crops images during training.
+
+    During training, this layer will randomly choose a location to crop images
+    down to a target size. The layer will crop all the images in the same batch
+    to the same cropping location.
+
+    At inference time, and during training if an input image is smaller than the
+    target size, the input will be resized and cropped so as to return the
+    largest possible window in the image that matches the target aspect ratio.
+    If you need to apply random cropping at inference time, set `training` to
+    True when calling the layer.
+
+    Input pixel values can be of any range (e.g. `[0., 1.)` or `[0, 255]`) and
+    of integer or floating point dtype. By default, the layer will output
+    floats.
+
+    **Note:** This layer is safe to use inside a `tf.data` or `grain` pipeline
+    (independently of which backend you're using).
+
+    Input shape:
+        3D (unbatched) or 4D (batched) tensor with shape:
+        `(..., height, width, channels)`, in `"channels_last"` format.
+
+    Output shape:
+        3D (unbatched) or 4D (batched) tensor with shape:
+        `(..., target_height, target_width, channels)`.
+
+    Args:
+        height: Integer, the height of the output shape.
+        width: Integer, the width of the output shape.
+        seed: Integer. Used to create a random seed.
+        **kwargs: Base layer keyword arguments, such as
+            `name` and `dtype`.
+
+    Example:
+
+    
+```python
+layer = keras.layers.RandomCrop(bounding_box_format="xyxy")
+images = np.random.randint(0, 255, (4, 224, 224, 3), dtype="uint8")
+
+bounding_boxes = {
+    "boxes": np.array([
+        [[10, 20, 100, 150], [50, 60, 200, 250]],
+        [[15, 25, 110, 160], [55, 65, 210, 260]],
+        [[20, 30, 120, 170], [60, 70, 220, 270]],
+        [[25, 35, 130, 180], [65, 75, 230, 280]],
+    ], dtype="float32"),
+    "labels": np.array([[0, 1], [1, 2], [2, 3], [0, 3]], dtype="int32")
+}
+
+labels = keras.ops.one_hot(
+    np.array([0, 1, 2, 3]),
+    num_classes=4
+)
+
+segmentation_masks = np.random.randint(0, 3, (4, 224, 224, 1), dtype="uint8")
+
+output = layer(
+    {
+        "images": images,
+        "bounding_boxes": bounding_boxes,
+        "labels": labels,
+        "segmentation_masks": segmentation_masks
+    },
+    training=True
+)
+```
+
+[API Signature] height: integer, width: integer, seed: integer, data_format: string, inputs: tensor
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 14 (tensor should not be empty)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+
+Rule 19 (compatibility of integer or float (data) type tensor and variable)
+{v1 : tensor, v2 : int ⊎ float} |= if 1 ≤ dtype(v1) ∧ dtype(v1) ≤ 5 then 1 ≤ v2 ∧ v2 ≤ 5 else if 6 ≤ dtype(v1) ∧ dtype(v1) ≤ 8 then 1 ≤ v2 ∧ v2 ≤ 8 else false
+
+Rule 5 (index tensor (v_2) should be within the range of input tensor)
+{v_1 : tensor, v_2 : tensor} |= min(v_2) ≥ 0 ∧ ∀i ∈ [0, ndim(v_1) − 1] : max(v_2) ≤ shape(v_1, i) − 1
+
+Rule 29 (list of floats for weights must match length of a tensor dimension)
+{v_1 : tensor, v_2 : list(float)} |= v_2.len = shape(v_1, 0) ∧ ∀i ∈ [0, v_2.len - 1] : v_2[i] ≥ 0
+
+Rule 31 (dtype must be a floating-point type)
+{v_1 : dtype} |= v_1 = 6 ∨ v_1 = 7 ∨ v_1 = 8
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 5 (inputs must have integer or floating point dtype)
+{v_5 : tensor} |= 1 ≤ dtype_(v_5) ∧ dtype_(v_5) ≤ 8
+Token usage: input=2268, output=231, total=6218
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.keras.layers.RandomCrop API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+A preprocessing layer which randomly crops images during training.
+
+    During training, this layer will randomly choose a location to crop images
+    down to a target size. The layer will crop all the images in the same batch
+    to the same cropping location.
+
+    At inference time, and during training if an input image is smaller than the
+    target size, the input will be resized and cropped so as to return the
+    largest possible window in the image that matches the target aspect ratio.
+    If you need to apply random cropping at inference time, set `training` to
+    True when calling the layer.
+
+    Input pixel values can be of any range (e.g. `[0., 1.)` or `[0, 255]`) and
+    of integer or floating point dtype. By default, the layer will output
+    floats.
+
+    **Note:** This layer is safe to use inside a `tf.data` or `grain` pipeline
+    (independently of which backend you're using).
+
+    Input shape:
+        3D (unbatched) or 4D (batched) tensor with shape:
+        `(..., height, width, channels)`, in `"channels_last"` format.
+
+    Output shape:
+        3D (unbatched) or 4D (batched) tensor with shape:
+        `(..., target_height, target_width, channels)`.
+
+    Args:
+        height: Integer, the height of the output shape.
+        width: Integer, the width of the output shape.
+        seed: Integer. Used to create a random seed.
+        **kwargs: Base layer keyword arguments, such as
+            `name` and `dtype`.
+
+    Example:
+
+    
+```python
+layer = keras.layers.RandomCrop(bounding_box_format="xyxy")
+images = np.random.randint(0, 255, (4, 224, 224, 3), dtype="uint8")
+
+bounding_boxes = {
+    "boxes": np.array([
+        [[10, 20, 100, 150], [50, 60, 200, 250]],
+        [[15, 25, 110, 160], [55, 65, 210, 260]],
+        [[20, 30, 120, 170], [60, 70, 220, 270]],
+        [[25, 35, 130, 180], [65, 75, 230, 280]],
+    ], dtype="float32"),
+    "labels": np.array([[0, 1], [1, 2], [2, 3], [0, 3]], dtype="int32")
+}
+
+labels = keras.ops.one_hot(
+    np.array([0, 1, 2, 3]),
+    num_classes=4
+)
+
+segmentation_masks = np.random.randint(0, 3, (4, 224, 224, 1), dtype="uint8")
+
+output = layer(
+    {
+        "images": images,
+        "bounding_boxes": bounding_boxes,
+        "labels": labels,
+        "segmentation_masks": segmentation_masks
+    },
+    training=True
+)
+```
+
+[API Signature] height: integer, width: integer, seed: integer, data_format: string, inputs: tensor
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 24 (tuple of ints represents valid shape dimensions)
+{v_1 : tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] > 0
+
+Rule 1 (tensor shapes should be the same)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = shape(v_2, i)
+
+Rule 5 (index tensor (v_2) should be within the range of input tensor)
+{v_1 : tensor, v_2 : tensor} |= min(v_2) ≥ 0 ∧ ∀i ∈ [0, ndim(v_1) − 1] : max(v_2) ≤ shape(v_1, i) − 1
+
+Rule 16 (shape alignment for matrix multiplication)
+{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) ≥ 2 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, ndim(v_2) − 2)) ∨ (ndim(v_1) ≥ 2 ∧ ndim(v_2) = 1 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, 0))
+
+Rule 31 (dtype must be a floating-point type)
+{v_1 : dtype} |= v_1 = 6 ∨ v_1 = 7 ∨ v_1 = 8
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 6 (dimension of inputs must be 3 or 4)
+{v_5 : tensor} |= ndim(v_5) = 3 ∨ ndim(v_5) = 4
+Token usage: input=8523, output=259, total=11165
+** DUPLICATED RULE ** (num_failures: 1)
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.keras.layers.RandomCrop API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+A preprocessing layer which randomly crops images during training.
+
+    During training, this layer will randomly choose a location to crop images
+    down to a target size. The layer will crop all the images in the same batch
+    to the same cropping location.
+
+    At inference time, and during training if an input image is smaller than the
+    target size, the input will be resized and cropped so as to return the
+    largest possible window in the image that matches the target aspect ratio.
+    If you need to apply random cropping at inference time, set `training` to
+    True when calling the layer.
+
+    Input pixel values can be of any range (e.g. `[0., 1.)` or `[0, 255]`) and
+    of integer or floating point dtype. By default, the layer will output
+    floats.
+
+    **Note:** This layer is safe to use inside a `tf.data` or `grain` pipeline
+    (independently of which backend you're using).
+
+    Input shape:
+        3D (unbatched) or 4D (batched) tensor with shape:
+        `(..., height, width, channels)`, in `"channels_last"` format.
+
+    Output shape:
+        3D (unbatched) or 4D (batched) tensor with shape:
+        `(..., target_height, target_width, channels)`.
+
+    Args:
+        height: Integer, the height of the output shape.
+        width: Integer, the width of the output shape.
+        seed: Integer. Used to create a random seed.
+        **kwargs: Base layer keyword arguments, such as
+            `name` and `dtype`.
+
+    Example:
+
+    
+```python
+layer = keras.layers.RandomCrop(bounding_box_format="xyxy")
+images = np.random.randint(0, 255, (4, 224, 224, 3), dtype="uint8")
+
+bounding_boxes = {
+    "boxes": np.array([
+        [[10, 20, 100, 150], [50, 60, 200, 250]],
+        [[15, 25, 110, 160], [55, 65, 210, 260]],
+        [[20, 30, 120, 170], [60, 70, 220, 270]],
+        [[25, 35, 130, 180], [65, 75, 230, 280]],
+    ], dtype="float32"),
+    "labels": np.array([[0, 1], [1, 2], [2, 3], [0, 3]], dtype="int32")
+}
+
+labels = keras.ops.one_hot(
+    np.array([0, 1, 2, 3]),
+    num_classes=4
+)
+
+segmentation_masks = np.random.randint(0, 3, (4, 224, 224, 1), dtype="uint8")
+
+output = layer(
+    {
+        "images": images,
+        "bounding_boxes": bounding_boxes,
+        "labels": labels,
+        "segmentation_masks": segmentation_masks
+    },
+    training=True
+)
+```
+
+[API Signature] height: integer, width: integer, seed: integer, data_format: string, inputs: tensor
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 24 (tuple of ints represents valid shape dimensions)
+{v_1 : tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] > 0
+
+Rule 1 (tensor shapes should be the same)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = shape(v_2, i)
+
+Rule 5 (index tensor (v_2) should be within the range of input tensor)
+{v_1 : tensor, v_2 : tensor} |= min(v_2) ≥ 0 ∧ ∀i ∈ [0, ndim(v_1) − 1] : max(v_2) ≤ shape(v_1, i) − 1
+
+Rule 16 (shape alignment for matrix multiplication)
+{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) ≥ 2 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, ndim(v_2) − 2)) ∨ (ndim(v_1) ≥ 2 ∧ ndim(v_2) = 1 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, 0))
+
+Rule 31 (dtype must be a floating-point type)
+{v_1 : dtype} |= v_1 = 6 ∨ v_1 = 7 ∨ v_1 = 8
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 7 (height and width of output shape must be positive)
+{v_1 : int, v_2 : int} |= v_1 > 0 ∧ v_2 > 0
+Token usage: input=8523, output=259, total=11165
+** DUPLICATED RULE ** (num_failures: 2)
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.keras.layers.RandomCrop API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+A preprocessing layer which randomly crops images during training.
+
+    During training, this layer will randomly choose a location to crop images
+    down to a target size. The layer will crop all the images in the same batch
+    to the same cropping location.
+
+    At inference time, and during training if an input image is smaller than the
+    target size, the input will be resized and cropped so as to return the
+    largest possible window in the image that matches the target aspect ratio.
+    If you need to apply random cropping at inference time, set `training` to
+    True when calling the layer.
+
+    Input pixel values can be of any range (e.g. `[0., 1.)` or `[0, 255]`) and
+    of integer or floating point dtype. By default, the layer will output
+    floats.
+
+    **Note:** This layer is safe to use inside a `tf.data` or `grain` pipeline
+    (independently of which backend you're using).
+
+    Input shape:
+        3D (unbatched) or 4D (batched) tensor with shape:
+        `(..., height, width, channels)`, in `"channels_last"` format.
+
+    Output shape:
+        3D (unbatched) or 4D (batched) tensor with shape:
+        `(..., target_height, target_width, channels)`.
+
+    Args:
+        height: Integer, the height of the output shape.
+        width: Integer, the width of the output shape.
+        seed: Integer. Used to create a random seed.
+        **kwargs: Base layer keyword arguments, such as
+            `name` and `dtype`.
+
+    Example:
+
+    
+```python
+layer = keras.layers.RandomCrop(bounding_box_format="xyxy")
+images = np.random.randint(0, 255, (4, 224, 224, 3), dtype="uint8")
+
+bounding_boxes = {
+    "boxes": np.array([
+        [[10, 20, 100, 150], [50, 60, 200, 250]],
+        [[15, 25, 110, 160], [55, 65, 210, 260]],
+        [[20, 30, 120, 170], [60, 70, 220, 270]],
+        [[25, 35, 130, 180], [65, 75, 230, 280]],
+    ], dtype="float32"),
+    "labels": np.array([[0, 1], [1, 2], [2, 3], [0, 3]], dtype="int32")
+}
+
+labels = keras.ops.one_hot(
+    np.array([0, 1, 2, 3]),
+    num_classes=4
+)
+
+segmentation_masks = np.random.randint(0, 3, (4, 224, 224, 1), dtype="uint8")
+
+output = layer(
+    {
+        "images": images,
+        "bounding_boxes": bounding_boxes,
+        "labels": labels,
+        "segmentation_masks": segmentation_masks
+    },
+    training=True
+)
+```
+
+[API Signature] height: integer, width: integer, seed: integer, data_format: string, inputs: tensor
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 24 (tuple of ints represents valid shape dimensions)
+{v_1 : tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] > 0
+
+Rule 1 (tensor shapes should be the same)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = shape(v_2, i)
+
+Rule 5 (index tensor (v_2) should be within the range of input tensor)
+{v_1 : tensor, v_2 : tensor} |= min(v_2) ≥ 0 ∧ ∀i ∈ [0, ndim(v_1) − 1] : max(v_2) ≤ shape(v_1, i) − 1
+
+Rule 16 (shape alignment for matrix multiplication)
+{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) ≥ 2 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, ndim(v_2) − 2)) ∨ (ndim(v_1) ≥ 2 ∧ ndim(v_2) = 1 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, 0))
+
+Rule 31 (dtype must be a floating-point type)
+{v_1 : dtype} |= v_1 = 6 ∨ v_1 = 7 ∨ v_1 = 8
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 8 (data_format must be a valid image data format)
+{v_4 : str} |= v_4 = "channels_last" ∨ v_4 = "channels_first"
+Token usage: input=8523, output=259, total=11165
+** DUPLICATED RULE ** (num_failures: 3)
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.keras.layers.RandomCrop API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+A preprocessing layer which randomly crops images during training.
+
+    During training, this layer will randomly choose a location to crop images
+    down to a target size. The layer will crop all the images in the same batch
+    to the same cropping location.
+
+    At inference time, and during training if an input image is smaller than the
+    target size, the input will be resized and cropped so as to return the
+    largest possible window in the image that matches the target aspect ratio.
+    If you need to apply random cropping at inference time, set `training` to
+    True when calling the layer.
+
+    Input pixel values can be of any range (e.g. `[0., 1.)` or `[0, 255]`) and
+    of integer or floating point dtype. By default, the layer will output
+    floats.
+
+    **Note:** This layer is safe to use inside a `tf.data` or `grain` pipeline
+    (independently of which backend you're using).
+
+    Input shape:
+        3D (unbatched) or 4D (batched) tensor with shape:
+        `(..., height, width, channels)`, in `"channels_last"` format.
+
+    Output shape:
+        3D (unbatched) or 4D (batched) tensor with shape:
+        `(..., target_height, target_width, channels)`.
+
+    Args:
+        height: Integer, the height of the output shape.
+        width: Integer, the width of the output shape.
+        seed: Integer. Used to create a random seed.
+        **kwargs: Base layer keyword arguments, such as
+            `name` and `dtype`.
+
+    Example:
+
+    
+```python
+layer = keras.layers.RandomCrop(bounding_box_format="xyxy")
+images = np.random.randint(0, 255, (4, 224, 224, 3), dtype="uint8")
+
+bounding_boxes = {
+    "boxes": np.array([
+        [[10, 20, 100, 150], [50, 60, 200, 250]],
+        [[15, 25, 110, 160], [55, 65, 210, 260]],
+        [[20, 30, 120, 170], [60, 70, 220, 270]],
+        [[25, 35, 130, 180], [65, 75, 230, 280]],
+    ], dtype="float32"),
+    "labels": np.array([[0, 1], [1, 2], [2, 3], [0, 3]], dtype="int32")
+}
+
+labels = keras.ops.one_hot(
+    np.array([0, 1, 2, 3]),
+    num_classes=4
+)
+
+segmentation_masks = np.random.randint(0, 3, (4, 224, 224, 1), dtype="uint8")
+
+output = layer(
+    {
+        "images": images,
+        "bounding_boxes": bounding_boxes,
+        "labels": labels,
+        "segmentation_masks": segmentation_masks
+    },
+    training=True
+)
+```
+
+[API Signature] height: integer, width: integer, seed: integer, data_format: string, inputs: tensor
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 24 (tuple of ints represents valid shape dimensions)
+{v_1 : tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] > 0
+
+Rule 1 (tensor shapes should be the same)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = shape(v_2, i)
+
+Rule 5 (index tensor (v_2) should be within the range of input tensor)
+{v_1 : tensor, v_2 : tensor} |= min(v_2) ≥ 0 ∧ ∀i ∈ [0, ndim(v_1) − 1] : max(v_2) ≤ shape(v_1, i) − 1
+
+Rule 16 (shape alignment for matrix multiplication)
+{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) ≥ 2 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, ndim(v_2) − 2)) ∨ (ndim(v_1) ≥ 2 ∧ ndim(v_2) = 1 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, 0))
+
+Rule 31 (dtype must be a floating-point type)
+{v_1 : dtype} |= v_1 = 6 ∨ v_1 = 7 ∨ v_1 = 8
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 9 (all dimensions of input tensor must be positive)
+{v_5 : tensor} |= ∀i ∈ [0, ndim(v_5) - 1] : shape(v_5, i) > 0
+Token usage: input=8523, output=259, total=11165
+** DUPLICATED RULE ** (num_failures: 4)
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.keras.layers.RandomCrop API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+A preprocessing layer which randomly crops images during training.
+
+    During training, this layer will randomly choose a location to crop images
+    down to a target size. The layer will crop all the images in the same batch
+    to the same cropping location.
+
+    At inference time, and during training if an input image is smaller than the
+    target size, the input will be resized and cropped so as to return the
+    largest possible window in the image that matches the target aspect ratio.
+    If you need to apply random cropping at inference time, set `training` to
+    True when calling the layer.
+
+    Input pixel values can be of any range (e.g. `[0., 1.)` or `[0, 255]`) and
+    of integer or floating point dtype. By default, the layer will output
+    floats.
+
+    **Note:** This layer is safe to use inside a `tf.data` or `grain` pipeline
+    (independently of which backend you're using).
+
+    Input shape:
+        3D (unbatched) or 4D (batched) tensor with shape:
+        `(..., height, width, channels)`, in `"channels_last"` format.
+
+    Output shape:
+        3D (unbatched) or 4D (batched) tensor with shape:
+        `(..., target_height, target_width, channels)`.
+
+    Args:
+        height: Integer, the height of the output shape.
+        width: Integer, the width of the output shape.
+        seed: Integer. Used to create a random seed.
+        **kwargs: Base layer keyword arguments, such as
+            `name` and `dtype`.
+
+    Example:
+
+    
+```python
+layer = keras.layers.RandomCrop(bounding_box_format="xyxy")
+images = np.random.randint(0, 255, (4, 224, 224, 3), dtype="uint8")
+
+bounding_boxes = {
+    "boxes": np.array([
+        [[10, 20, 100, 150], [50, 60, 200, 250]],
+        [[15, 25, 110, 160], [55, 65, 210, 260]],
+        [[20, 30, 120, 170], [60, 70, 220, 270]],
+        [[25, 35, 130, 180], [65, 75, 230, 280]],
+    ], dtype="float32"),
+    "labels": np.array([[0, 1], [1, 2], [2, 3], [0, 3]], dtype="int32")
+}
+
+labels = keras.ops.one_hot(
+    np.array([0, 1, 2, 3]),
+    num_classes=4
+)
+
+segmentation_masks = np.random.randint(0, 3, (4, 224, 224, 1), dtype="uint8")
+
+output = layer(
+    {
+        "images": images,
+        "bounding_boxes": bounding_boxes,
+        "labels": labels,
+        "segmentation_masks": segmentation_masks
+    },
+    training=True
+)
+```
+
+[API Signature] height: integer, width: integer, seed: integer, data_format: string, inputs: tensor
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 24 (tuple of ints represents valid shape dimensions)
+{v_1 : tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] > 0
+
+Rule 1 (tensor shapes should be the same)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = shape(v_2, i)
+
+Rule 5 (index tensor (v_2) should be within the range of input tensor)
+{v_1 : tensor, v_2 : tensor} |= min(v_2) ≥ 0 ∧ ∀i ∈ [0, ndim(v_1) − 1] : max(v_2) ≤ shape(v_1, i) − 1
+
+Rule 16 (shape alignment for matrix multiplication)
+{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) ≥ 2 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, ndim(v_2) − 2)) ∨ (ndim(v_1) ≥ 2 ∧ ndim(v_2) = 1 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, 0))
+
+Rule 31 (dtype must be a floating-point type)
+{v_1 : dtype} |= v_1 = 6 ∨ v_1 = 7 ∨ v_1 = 8
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 10 (inputs must be of integer or floating-point type)
+{v_5 : tensor} |= 1 ≤ dtype_(v_5) ∧ dtype_(v_5) ≤ 8
+Token usage: input=8523, output=259, total=11165
+** DUPLICATED RULE ** (num_failures: 5)
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.keras.layers.RandomCrop API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+A preprocessing layer which randomly crops images during training.
+
+    During training, this layer will randomly choose a location to crop images
+    down to a target size. The layer will crop all the images in the same batch
+    to the same cropping location.
+
+    At inference time, and during training if an input image is smaller than the
+    target size, the input will be resized and cropped so as to return the
+    largest possible window in the image that matches the target aspect ratio.
+    If you need to apply random cropping at inference time, set `training` to
+    True when calling the layer.
+
+    Input pixel values can be of any range (e.g. `[0., 1.)` or `[0, 255]`) and
+    of integer or floating point dtype. By default, the layer will output
+    floats.
+
+    **Note:** This layer is safe to use inside a `tf.data` or `grain` pipeline
+    (independently of which backend you're using).
+
+    Input shape:
+        3D (unbatched) or 4D (batched) tensor with shape:
+        `(..., height, width, channels)`, in `"channels_last"` format.
+
+    Output shape:
+        3D (unbatched) or 4D (batched) tensor with shape:
+        `(..., target_height, target_width, channels)`.
+
+    Args:
+        height: Integer, the height of the output shape.
+        width: Integer, the width of the output shape.
+        seed: Integer. Used to create a random seed.
+        **kwargs: Base layer keyword arguments, such as
+            `name` and `dtype`.
+
+    Example:
+
+    
+```python
+layer = keras.layers.RandomCrop(bounding_box_format="xyxy")
+images = np.random.randint(0, 255, (4, 224, 224, 3), dtype="uint8")
+
+bounding_boxes = {
+    "boxes": np.array([
+        [[10, 20, 100, 150], [50, 60, 200, 250]],
+        [[15, 25, 110, 160], [55, 65, 210, 260]],
+        [[20, 30, 120, 170], [60, 70, 220, 270]],
+        [[25, 35, 130, 180], [65, 75, 230, 280]],
+    ], dtype="float32"),
+    "labels": np.array([[0, 1], [1, 2], [2, 3], [0, 3]], dtype="int32")
+}
+
+labels = keras.ops.one_hot(
+    np.array([0, 1, 2, 3]),
+    num_classes=4
+)
+
+segmentation_masks = np.random.randint(0, 3, (4, 224, 224, 1), dtype="uint8")
+
+output = layer(
+    {
+        "images": images,
+        "bounding_boxes": bounding_boxes,
+        "labels": labels,
+        "segmentation_masks": segmentation_masks
+    },
+    training=True
+)
+```
+
+[API Signature] height: integer, width: integer, seed: integer, data_format: string, inputs: tensor
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 24 (tuple of ints represents valid shape dimensions)
+{v_1 : tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] > 0
+
+Rule 1 (tensor shapes should be the same)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = shape(v_2, i)
+
+Rule 5 (index tensor (v_2) should be within the range of input tensor)
+{v_1 : tensor, v_2 : tensor} |= min(v_2) ≥ 0 ∧ ∀i ∈ [0, ndim(v_1) − 1] : max(v_2) ≤ shape(v_1, i) − 1
+
+Rule 16 (shape alignment for matrix multiplication)
+{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) ≥ 2 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, ndim(v_2) − 2)) ∨ (ndim(v_1) ≥ 2 ∧ ndim(v_2) = 1 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, 0))
+
+Rule 31 (dtype must be a floating-point type)
+{v_1 : dtype} |= v_1 = 6 ∨ v_1 = 7 ∨ v_1 = 8
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 11 (seed should be non-negative)
+{v_3 : int} |= v_3 ≥ 0
+Token usage: input=8523, output=259, total=11165
+** SUCCESS **
+
+>>> PROMPT
+[Feedback Message from Prior Run]
+Duplicated rule: {v_5 : tensor} |= ndim(v_5) = 3 ∨ ndim(v_5) = 4
+Duplicated rule: {v_1 : int, v_2 : int} |= v_1 > 0 ∧ v_2 > 0
+Duplicated rule: {v_4 : str} |= v_4 = "channels_last" ∨ v_4 = "channels_first"
+Duplicated rule: {v_5 : tensor} |= ∀i ∈ [0, ndim(v_5) - 1] : shape(v_5, i) > 0
+Duplicated rule: {v_5 : tensor} |= 1 ≤ dtype_(v_5) ∧ dtype_(v_5) ≤ 8
+
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.keras.layers.RandomCrop API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+A preprocessing layer which randomly crops images during training.
+
+    During training, this layer will randomly choose a location to crop images
+    down to a target size. The layer will crop all the images in the same batch
+    to the same cropping location.
+
+    At inference time, and during training if an input image is smaller than the
+    target size, the input will be resized and cropped so as to return the
+    largest possible window in the image that matches the target aspect ratio.
+    If you need to apply random cropping at inference time, set `training` to
+    True when calling the layer.
+
+    Input pixel values can be of any range (e.g. `[0., 1.)` or `[0, 255]`) and
+    of integer or floating point dtype. By default, the layer will output
+    floats.
+
+    **Note:** This layer is safe to use inside a `tf.data` or `grain` pipeline
+    (independently of which backend you're using).
+
+    Input shape:
+        3D (unbatched) or 4D (batched) tensor with shape:
+        `(..., height, width, channels)`, in `"channels_last"` format.
+
+    Output shape:
+        3D (unbatched) or 4D (batched) tensor with shape:
+        `(..., target_height, target_width, channels)`.
+
+    Args:
+        height: Integer, the height of the output shape.
+        width: Integer, the width of the output shape.
+        seed: Integer. Used to create a random seed.
+        **kwargs: Base layer keyword arguments, such as
+            `name` and `dtype`.
+
+    Example:
+
+    
+```python
+layer = keras.layers.RandomCrop(bounding_box_format="xyxy")
+images = np.random.randint(0, 255, (4, 224, 224, 3), dtype="uint8")
+
+bounding_boxes = {
+    "boxes": np.array([
+        [[10, 20, 100, 150], [50, 60, 200, 250]],
+        [[15, 25, 110, 160], [55, 65, 210, 260]],
+        [[20, 30, 120, 170], [60, 70, 220, 270]],
+        [[25, 35, 130, 180], [65, 75, 230, 280]],
+    ], dtype="float32"),
+    "labels": np.array([[0, 1], [1, 2], [2, 3], [0, 3]], dtype="int32")
+}
+
+labels = keras.ops.one_hot(
+    np.array([0, 1, 2, 3]),
+    num_classes=4
+)
+
+segmentation_masks = np.random.randint(0, 3, (4, 224, 224, 1), dtype="uint8")
+
+output = layer(
+    {
+        "images": images,
+        "bounding_boxes": bounding_boxes,
+        "labels": labels,
+        "segmentation_masks": segmentation_masks
+    },
+    training=True
+)
+```
+
+[API Signature] height: integer, width: integer, seed: integer, data_format: string, inputs: tensor
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 15 (broadcasting compatibility for tensor shapes)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ ∀i ∈ [0, if ndim(v_1) ≥ ndim(v_2) then ndim(v_1) − 1 else ndim(v_2) − 1] : ndim(v_1) − i − 1 < 0 ∨ ndim(v_2) − i − 1 < 0 ∨ shape(v_1, ndim(v_1) − i − 1) = 1 ∨ shape(v_2, ndim(v_2) − i − 1) = 1 ∨ shape(v_1, ndim(v_1) − i − 1) = shape(v_2, ndim(v_2) − i − 1)
+
+Rule 29 (list of floats for weights must match length of a tensor dimension)
+{v_1 : tensor, v_2 : list(float)} |= v_2.len = shape(v_1, 0) ∧ ∀i ∈ [0, v_2.len - 1] : v_2[i] ≥ 0
+
+Rule 5 (index tensor (v_2) should be within the range of input tensor)
+{v_1 : tensor, v_2 : tensor} |= min(v_2) ≥ 0 ∧ ∀i ∈ [0, ndim(v_1) − 1] : max(v_2) ≤ shape(v_1, i) − 1
+
+Rule 2 (v_2 should be a valid dimension of input tensor)
+{v_1 : tensor, v_2 : int} |= −1 × ndim(v_1) ≤ v_2 ∧ v_2 ≤ ndim(v_1) − 1
+
+Rule 1 (tensor shapes should be the same)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = shape(v_2, i)
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 12 (dimension of input tensor must be between 3 and 4 inclusive)
+{v_5 : tensor} |= ndim(v_5) ≥ 3 ∧ ndim(v_5) ≤ 4
+Token usage: input=13778, output=437, total=19697
+** SUCCESS **
+
+>>> PROMPT
+[Feedback Message from Prior Run]
+Duplicated rule: {v_5 : tensor} |= ndim(v_5) = 3 ∨ ndim(v_5) = 4
+Duplicated rule: {v_1 : int, v_2 : int} |= v_1 > 0 ∧ v_2 > 0
+Duplicated rule: {v_4 : str} |= v_4 = "channels_last" ∨ v_4 = "channels_first"
+Duplicated rule: {v_5 : tensor} |= ∀i ∈ [0, ndim(v_5) - 1] : shape(v_5, i) > 0
+Duplicated rule: {v_5 : tensor} |= 1 ≤ dtype_(v_5) ∧ dtype_(v_5) ≤ 8
+
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.keras.layers.RandomCrop API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+A preprocessing layer which randomly crops images during training.
+
+    During training, this layer will randomly choose a location to crop images
+    down to a target size. The layer will crop all the images in the same batch
+    to the same cropping location.
+
+    At inference time, and during training if an input image is smaller than the
+    target size, the input will be resized and cropped so as to return the
+    largest possible window in the image that matches the target aspect ratio.
+    If you need to apply random cropping at inference time, set `training` to
+    True when calling the layer.
+
+    Input pixel values can be of any range (e.g. `[0., 1.)` or `[0, 255]`) and
+    of integer or floating point dtype. By default, the layer will output
+    floats.
+
+    **Note:** This layer is safe to use inside a `tf.data` or `grain` pipeline
+    (independently of which backend you're using).
+
+    Input shape:
+        3D (unbatched) or 4D (batched) tensor with shape:
+        `(..., height, width, channels)`, in `"channels_last"` format.
+
+    Output shape:
+        3D (unbatched) or 4D (batched) tensor with shape:
+        `(..., target_height, target_width, channels)`.
+
+    Args:
+        height: Integer, the height of the output shape.
+        width: Integer, the width of the output shape.
+        seed: Integer. Used to create a random seed.
+        **kwargs: Base layer keyword arguments, such as
+            `name` and `dtype`.
+
+    Example:
+
+    
+```python
+layer = keras.layers.RandomCrop(bounding_box_format="xyxy")
+images = np.random.randint(0, 255, (4, 224, 224, 3), dtype="uint8")
+
+bounding_boxes = {
+    "boxes": np.array([
+        [[10, 20, 100, 150], [50, 60, 200, 250]],
+        [[15, 25, 110, 160], [55, 65, 210, 260]],
+        [[20, 30, 120, 170], [60, 70, 220, 270]],
+        [[25, 35, 130, 180], [65, 75, 230, 280]],
+    ], dtype="float32"),
+    "labels": np.array([[0, 1], [1, 2], [2, 3], [0, 3]], dtype="int32")
+}
+
+labels = keras.ops.one_hot(
+    np.array([0, 1, 2, 3]),
+    num_classes=4
+)
+
+segmentation_masks = np.random.randint(0, 3, (4, 224, 224, 1), dtype="uint8")
+
+output = layer(
+    {
+        "images": images,
+        "bounding_boxes": bounding_boxes,
+        "labels": labels,
+        "segmentation_masks": segmentation_masks
+    },
+    training=True
+)
+```
+
+[API Signature] height: integer, width: integer, seed: integer, data_format: string, inputs: tensor
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 15 (broadcasting compatibility for tensor shapes)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ ∀i ∈ [0, if ndim(v_1) ≥ ndim(v_2) then ndim(v_1) − 1 else ndim(v_2) − 1] : ndim(v_1) − i − 1 < 0 ∨ ndim(v_2) − i − 1 < 0 ∨ shape(v_1, ndim(v_1) − i − 1) = 1 ∨ shape(v_2, ndim(v_2) − i − 1) = 1 ∨ shape(v_1, ndim(v_1) − i − 1) = shape(v_2, ndim(v_2) − i − 1)
+
+Rule 29 (list of floats for weights must match length of a tensor dimension)
+{v_1 : tensor, v_2 : list(float)} |= v_2.len = shape(v_1, 0) ∧ ∀i ∈ [0, v_2.len - 1] : v_2[i] ≥ 0
+
+Rule 5 (index tensor (v_2) should be within the range of input tensor)
+{v_1 : tensor, v_2 : tensor} |= min(v_2) ≥ 0 ∧ ∀i ∈ [0, ndim(v_1) − 1] : max(v_2) ≤ shape(v_1, i) − 1
+
+Rule 2 (v_2 should be a valid dimension of input tensor)
+{v_1 : tensor, v_2 : int} |= −1 × ndim(v_1) ≤ v_2 ∧ v_2 ≤ ndim(v_1) − 1
+
+Rule 1 (tensor shapes should be the same)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = shape(v_2, i)
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 13 (target height and target width must be at least 1)
+{v_1 : int, v_2 : int} |= v_1 ≥ 1 ∧ v_2 ≥ 1
+Token usage: input=13778, output=437, total=19697
+** SUCCESS **
+
+>>> PROMPT
+[Feedback Message from Prior Run]
+Duplicated rule: {v_5 : tensor} |= ndim(v_5) = 3 ∨ ndim(v_5) = 4
+Duplicated rule: {v_1 : int, v_2 : int} |= v_1 > 0 ∧ v_2 > 0
+Duplicated rule: {v_4 : str} |= v_4 = "channels_last" ∨ v_4 = "channels_first"
+Duplicated rule: {v_5 : tensor} |= ∀i ∈ [0, ndim(v_5) - 1] : shape(v_5, i) > 0
+Duplicated rule: {v_5 : tensor} |= 1 ≤ dtype_(v_5) ∧ dtype_(v_5) ≤ 8
+
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.keras.layers.RandomCrop API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+A preprocessing layer which randomly crops images during training.
+
+    During training, this layer will randomly choose a location to crop images
+    down to a target size. The layer will crop all the images in the same batch
+    to the same cropping location.
+
+    At inference time, and during training if an input image is smaller than the
+    target size, the input will be resized and cropped so as to return the
+    largest possible window in the image that matches the target aspect ratio.
+    If you need to apply random cropping at inference time, set `training` to
+    True when calling the layer.
+
+    Input pixel values can be of any range (e.g. `[0., 1.)` or `[0, 255]`) and
+    of integer or floating point dtype. By default, the layer will output
+    floats.
+
+    **Note:** This layer is safe to use inside a `tf.data` or `grain` pipeline
+    (independently of which backend you're using).
+
+    Input shape:
+        3D (unbatched) or 4D (batched) tensor with shape:
+        `(..., height, width, channels)`, in `"channels_last"` format.
+
+    Output shape:
+        3D (unbatched) or 4D (batched) tensor with shape:
+        `(..., target_height, target_width, channels)`.
+
+    Args:
+        height: Integer, the height of the output shape.
+        width: Integer, the width of the output shape.
+        seed: Integer. Used to create a random seed.
+        **kwargs: Base layer keyword arguments, such as
+            `name` and `dtype`.
+
+    Example:
+
+    
+```python
+layer = keras.layers.RandomCrop(bounding_box_format="xyxy")
+images = np.random.randint(0, 255, (4, 224, 224, 3), dtype="uint8")
+
+bounding_boxes = {
+    "boxes": np.array([
+        [[10, 20, 100, 150], [50, 60, 200, 250]],
+        [[15, 25, 110, 160], [55, 65, 210, 260]],
+        [[20, 30, 120, 170], [60, 70, 220, 270]],
+        [[25, 35, 130, 180], [65, 75, 230, 280]],
+    ], dtype="float32"),
+    "labels": np.array([[0, 1], [1, 2], [2, 3], [0, 3]], dtype="int32")
+}
+
+labels = keras.ops.one_hot(
+    np.array([0, 1, 2, 3]),
+    num_classes=4
+)
+
+segmentation_masks = np.random.randint(0, 3, (4, 224, 224, 1), dtype="uint8")
+
+output = layer(
+    {
+        "images": images,
+        "bounding_boxes": bounding_boxes,
+        "labels": labels,
+        "segmentation_masks": segmentation_masks
+    },
+    training=True
+)
+```
+
+[API Signature] height: integer, width: integer, seed: integer, data_format: string, inputs: tensor
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 15 (broadcasting compatibility for tensor shapes)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ ∀i ∈ [0, if ndim(v_1) ≥ ndim(v_2) then ndim(v_1) − 1 else ndim(v_2) − 1] : ndim(v_1) − i − 1 < 0 ∨ ndim(v_2) − i − 1 < 0 ∨ shape(v_1, ndim(v_1) − i − 1) = 1 ∨ shape(v_2, ndim(v_2) − i − 1) = 1 ∨ shape(v_1, ndim(v_1) − i − 1) = shape(v_2, ndim(v_2) − i − 1)
+
+Rule 29 (list of floats for weights must match length of a tensor dimension)
+{v_1 : tensor, v_2 : list(float)} |= v_2.len = shape(v_1, 0) ∧ ∀i ∈ [0, v_2.len - 1] : v_2[i] ≥ 0
+
+Rule 5 (index tensor (v_2) should be within the range of input tensor)
+{v_1 : tensor, v_2 : tensor} |= min(v_2) ≥ 0 ∧ ∀i ∈ [0, ndim(v_1) − 1] : max(v_2) ≤ shape(v_1, i) − 1
+
+Rule 2 (v_2 should be a valid dimension of input tensor)
+{v_1 : tensor, v_2 : int} |= −1 × ndim(v_1) ≤ v_2 ∧ v_2 ≤ ndim(v_1) − 1
+
+Rule 1 (tensor shapes should be the same)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = shape(v_2, i)
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 14 (data_format must be either channels_last or channels_first)
+{v_4 : str} |= if v_4 = "channels_last" then true else v_4 = "channels_first"
+Token usage: input=13778, output=437, total=19697
+** SUCCESS **
+
+>>> PROMPT
+[Feedback Message from Prior Run]
+Duplicated rule: {v_5 : tensor} |= ndim(v_5) = 3 ∨ ndim(v_5) = 4
+Duplicated rule: {v_1 : int, v_2 : int} |= v_1 > 0 ∧ v_2 > 0
+Duplicated rule: {v_4 : str} |= v_4 = "channels_last" ∨ v_4 = "channels_first"
+Duplicated rule: {v_5 : tensor} |= ∀i ∈ [0, ndim(v_5) - 1] : shape(v_5, i) > 0
+Duplicated rule: {v_5 : tensor} |= 1 ≤ dtype_(v_5) ∧ dtype_(v_5) ≤ 8
+
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.keras.layers.RandomCrop API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+A preprocessing layer which randomly crops images during training.
+
+    During training, this layer will randomly choose a location to crop images
+    down to a target size. The layer will crop all the images in the same batch
+    to the same cropping location.
+
+    At inference time, and during training if an input image is smaller than the
+    target size, the input will be resized and cropped so as to return the
+    largest possible window in the image that matches the target aspect ratio.
+    If you need to apply random cropping at inference time, set `training` to
+    True when calling the layer.
+
+    Input pixel values can be of any range (e.g. `[0., 1.)` or `[0, 255]`) and
+    of integer or floating point dtype. By default, the layer will output
+    floats.
+
+    **Note:** This layer is safe to use inside a `tf.data` or `grain` pipeline
+    (independently of which backend you're using).
+
+    Input shape:
+        3D (unbatched) or 4D (batched) tensor with shape:
+        `(..., height, width, channels)`, in `"channels_last"` format.
+
+    Output shape:
+        3D (unbatched) or 4D (batched) tensor with shape:
+        `(..., target_height, target_width, channels)`.
+
+    Args:
+        height: Integer, the height of the output shape.
+        width: Integer, the width of the output shape.
+        seed: Integer. Used to create a random seed.
+        **kwargs: Base layer keyword arguments, such as
+            `name` and `dtype`.
+
+    Example:
+
+    
+```python
+layer = keras.layers.RandomCrop(bounding_box_format="xyxy")
+images = np.random.randint(0, 255, (4, 224, 224, 3), dtype="uint8")
+
+bounding_boxes = {
+    "boxes": np.array([
+        [[10, 20, 100, 150], [50, 60, 200, 250]],
+        [[15, 25, 110, 160], [55, 65, 210, 260]],
+        [[20, 30, 120, 170], [60, 70, 220, 270]],
+        [[25, 35, 130, 180], [65, 75, 230, 280]],
+    ], dtype="float32"),
+    "labels": np.array([[0, 1], [1, 2], [2, 3], [0, 3]], dtype="int32")
+}
+
+labels = keras.ops.one_hot(
+    np.array([0, 1, 2, 3]),
+    num_classes=4
+)
+
+segmentation_masks = np.random.randint(0, 3, (4, 224, 224, 1), dtype="uint8")
+
+output = layer(
+    {
+        "images": images,
+        "bounding_boxes": bounding_boxes,
+        "labels": labels,
+        "segmentation_masks": segmentation_masks
+    },
+    training=True
+)
+```
+
+[API Signature] height: integer, width: integer, seed: integer, data_format: string, inputs: tensor
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 15 (broadcasting compatibility for tensor shapes)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ ∀i ∈ [0, if ndim(v_1) ≥ ndim(v_2) then ndim(v_1) − 1 else ndim(v_2) − 1] : ndim(v_1) − i − 1 < 0 ∨ ndim(v_2) − i − 1 < 0 ∨ shape(v_1, ndim(v_1) − i − 1) = 1 ∨ shape(v_2, ndim(v_2) − i − 1) = 1 ∨ shape(v_1, ndim(v_1) − i − 1) = shape(v_2, ndim(v_2) − i − 1)
+
+Rule 29 (list of floats for weights must match length of a tensor dimension)
+{v_1 : tensor, v_2 : list(float)} |= v_2.len = shape(v_1, 0) ∧ ∀i ∈ [0, v_2.len - 1] : v_2[i] ≥ 0
+
+Rule 5 (index tensor (v_2) should be within the range of input tensor)
+{v_1 : tensor, v_2 : tensor} |= min(v_2) ≥ 0 ∧ ∀i ∈ [0, ndim(v_1) − 1] : max(v_2) ≤ shape(v_1, i) − 1
+
+Rule 2 (v_2 should be a valid dimension of input tensor)
+{v_1 : tensor, v_2 : int} |= −1 × ndim(v_1) ≤ v_2 ∧ v_2 ≤ ndim(v_1) − 1
+
+Rule 1 (tensor shapes should be the same)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = shape(v_2, i)
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 15 (input tensor spatial height dimension must be positive depending on data_format)
+{v_4 : str, v_5 : tensor} |= if v_4 = "channels_last" then (if ndim(v_5) = 4 then shape(v_5, 1) > 0 else shape(v_5, 0) > 0) else (if ndim(v_5) = 4 then shape(v_5, 2) > 0 else shape(v_5, 1) > 0)
+Token usage: input=13778, output=437, total=19697
+** SUCCESS **
+
+>>> PROMPT
+[Feedback Message from Prior Run]
+Duplicated rule: {v_5 : tensor} |= ndim(v_5) = 3 ∨ ndim(v_5) = 4
+Duplicated rule: {v_1 : int, v_2 : int} |= v_1 > 0 ∧ v_2 > 0
+Duplicated rule: {v_4 : str} |= v_4 = "channels_last" ∨ v_4 = "channels_first"
+Duplicated rule: {v_5 : tensor} |= ∀i ∈ [0, ndim(v_5) - 1] : shape(v_5, i) > 0
+Duplicated rule: {v_5 : tensor} |= 1 ≤ dtype_(v_5) ∧ dtype_(v_5) ≤ 8
+
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.keras.layers.RandomCrop API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+A preprocessing layer which randomly crops images during training.
+
+    During training, this layer will randomly choose a location to crop images
+    down to a target size. The layer will crop all the images in the same batch
+    to the same cropping location.
+
+    At inference time, and during training if an input image is smaller than the
+    target size, the input will be resized and cropped so as to return the
+    largest possible window in the image that matches the target aspect ratio.
+    If you need to apply random cropping at inference time, set `training` to
+    True when calling the layer.
+
+    Input pixel values can be of any range (e.g. `[0., 1.)` or `[0, 255]`) and
+    of integer or floating point dtype. By default, the layer will output
+    floats.
+
+    **Note:** This layer is safe to use inside a `tf.data` or `grain` pipeline
+    (independently of which backend you're using).
+
+    Input shape:
+        3D (unbatched) or 4D (batched) tensor with shape:
+        `(..., height, width, channels)`, in `"channels_last"` format.
+
+    Output shape:
+        3D (unbatched) or 4D (batched) tensor with shape:
+        `(..., target_height, target_width, channels)`.
+
+    Args:
+        height: Integer, the height of the output shape.
+        width: Integer, the width of the output shape.
+        seed: Integer. Used to create a random seed.
+        **kwargs: Base layer keyword arguments, such as
+            `name` and `dtype`.
+
+    Example:
+
+    
+```python
+layer = keras.layers.RandomCrop(bounding_box_format="xyxy")
+images = np.random.randint(0, 255, (4, 224, 224, 3), dtype="uint8")
+
+bounding_boxes = {
+    "boxes": np.array([
+        [[10, 20, 100, 150], [50, 60, 200, 250]],
+        [[15, 25, 110, 160], [55, 65, 210, 260]],
+        [[20, 30, 120, 170], [60, 70, 220, 270]],
+        [[25, 35, 130, 180], [65, 75, 230, 280]],
+    ], dtype="float32"),
+    "labels": np.array([[0, 1], [1, 2], [2, 3], [0, 3]], dtype="int32")
+}
+
+labels = keras.ops.one_hot(
+    np.array([0, 1, 2, 3]),
+    num_classes=4
+)
+
+segmentation_masks = np.random.randint(0, 3, (4, 224, 224, 1), dtype="uint8")
+
+output = layer(
+    {
+        "images": images,
+        "bounding_boxes": bounding_boxes,
+        "labels": labels,
+        "segmentation_masks": segmentation_masks
+    },
+    training=True
+)
+```
+
+[API Signature] height: integer, width: integer, seed: integer, data_format: string, inputs: tensor
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 15 (broadcasting compatibility for tensor shapes)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ ∀i ∈ [0, if ndim(v_1) ≥ ndim(v_2) then ndim(v_1) − 1 else ndim(v_2) − 1] : ndim(v_1) − i − 1 < 0 ∨ ndim(v_2) − i − 1 < 0 ∨ shape(v_1, ndim(v_1) − i − 1) = 1 ∨ shape(v_2, ndim(v_2) − i − 1) = 1 ∨ shape(v_1, ndim(v_1) − i − 1) = shape(v_2, ndim(v_2) − i − 1)
+
+Rule 29 (list of floats for weights must match length of a tensor dimension)
+{v_1 : tensor, v_2 : list(float)} |= v_2.len = shape(v_1, 0) ∧ ∀i ∈ [0, v_2.len - 1] : v_2[i] ≥ 0
+
+Rule 5 (index tensor (v_2) should be within the range of input tensor)
+{v_1 : tensor, v_2 : tensor} |= min(v_2) ≥ 0 ∧ ∀i ∈ [0, ndim(v_1) − 1] : max(v_2) ≤ shape(v_1, i) − 1
+
+Rule 2 (v_2 should be a valid dimension of input tensor)
+{v_1 : tensor, v_2 : int} |= −1 × ndim(v_1) ≤ v_2 ∧ v_2 ≤ ndim(v_1) − 1
+
+Rule 1 (tensor shapes should be the same)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = shape(v_2, i)
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 16 (input tensor spatial width dimension must be positive depending on data_format)
+{v_4 : str, v_5 : tensor} |= if v_4 = "channels_last" then (if ndim(v_5) = 4 then shape(v_5, 2) > 0 else shape(v_5, 1) > 0) else (if ndim(v_5) = 4 then shape(v_5, 3) > 0 else shape(v_5, 2) > 0)
+Token usage: input=13778, output=437, total=19697
+** SUCCESS **
+
+>>> PROMPT
+[Feedback Message from Prior Run]
+Duplicated rule: {v_5 : tensor} |= ndim(v_5) = 3 ∨ ndim(v_5) = 4
+Duplicated rule: {v_1 : int, v_2 : int} |= v_1 > 0 ∧ v_2 > 0
+Duplicated rule: {v_4 : str} |= v_4 = "channels_last" ∨ v_4 = "channels_first"
+Duplicated rule: {v_5 : tensor} |= ∀i ∈ [0, ndim(v_5) - 1] : shape(v_5, i) > 0
+Duplicated rule: {v_5 : tensor} |= 1 ≤ dtype_(v_5) ∧ dtype_(v_5) ≤ 8
+
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.keras.layers.RandomCrop API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+A preprocessing layer which randomly crops images during training.
+
+    During training, this layer will randomly choose a location to crop images
+    down to a target size. The layer will crop all the images in the same batch
+    to the same cropping location.
+
+    At inference time, and during training if an input image is smaller than the
+    target size, the input will be resized and cropped so as to return the
+    largest possible window in the image that matches the target aspect ratio.
+    If you need to apply random cropping at inference time, set `training` to
+    True when calling the layer.
+
+    Input pixel values can be of any range (e.g. `[0., 1.)` or `[0, 255]`) and
+    of integer or floating point dtype. By default, the layer will output
+    floats.
+
+    **Note:** This layer is safe to use inside a `tf.data` or `grain` pipeline
+    (independently of which backend you're using).
+
+    Input shape:
+        3D (unbatched) or 4D (batched) tensor with shape:
+        `(..., height, width, channels)`, in `"channels_last"` format.
+
+    Output shape:
+        3D (unbatched) or 4D (batched) tensor with shape:
+        `(..., target_height, target_width, channels)`.
+
+    Args:
+        height: Integer, the height of the output shape.
+        width: Integer, the width of the output shape.
+        seed: Integer. Used to create a random seed.
+        **kwargs: Base layer keyword arguments, such as
+            `name` and `dtype`.
+
+    Example:
+
+    
+```python
+layer = keras.layers.RandomCrop(bounding_box_format="xyxy")
+images = np.random.randint(0, 255, (4, 224, 224, 3), dtype="uint8")
+
+bounding_boxes = {
+    "boxes": np.array([
+        [[10, 20, 100, 150], [50, 60, 200, 250]],
+        [[15, 25, 110, 160], [55, 65, 210, 260]],
+        [[20, 30, 120, 170], [60, 70, 220, 270]],
+        [[25, 35, 130, 180], [65, 75, 230, 280]],
+    ], dtype="float32"),
+    "labels": np.array([[0, 1], [1, 2], [2, 3], [0, 3]], dtype="int32")
+}
+
+labels = keras.ops.one_hot(
+    np.array([0, 1, 2, 3]),
+    num_classes=4
+)
+
+segmentation_masks = np.random.randint(0, 3, (4, 224, 224, 1), dtype="uint8")
+
+output = layer(
+    {
+        "images": images,
+        "bounding_boxes": bounding_boxes,
+        "labels": labels,
+        "segmentation_masks": segmentation_masks
+    },
+    training=True
+)
+```
+
+[API Signature] height: integer, width: integer, seed: integer, data_format: string, inputs: tensor
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 15 (broadcasting compatibility for tensor shapes)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ ∀i ∈ [0, if ndim(v_1) ≥ ndim(v_2) then ndim(v_1) − 1 else ndim(v_2) − 1] : ndim(v_1) − i − 1 < 0 ∨ ndim(v_2) − i − 1 < 0 ∨ shape(v_1, ndim(v_1) − i − 1) = 1 ∨ shape(v_2, ndim(v_2) − i − 1) = 1 ∨ shape(v_1, ndim(v_1) − i − 1) = shape(v_2, ndim(v_2) − i − 1)
+
+Rule 29 (list of floats for weights must match length of a tensor dimension)
+{v_1 : tensor, v_2 : list(float)} |= v_2.len = shape(v_1, 0) ∧ ∀i ∈ [0, v_2.len - 1] : v_2[i] ≥ 0
+
+Rule 5 (index tensor (v_2) should be within the range of input tensor)
+{v_1 : tensor, v_2 : tensor} |= min(v_2) ≥ 0 ∧ ∀i ∈ [0, ndim(v_1) − 1] : max(v_2) ≤ shape(v_1, i) − 1
+
+Rule 2 (v_2 should be a valid dimension of input tensor)
+{v_1 : tensor, v_2 : int} |= −1 × ndim(v_1) ≤ v_2 ∧ v_2 ≤ ndim(v_1) − 1
+
+Rule 1 (tensor shapes should be the same)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = shape(v_2, i)
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 17 (input tensor dtype must be supported integer or float)
+{v_5 : tensor} |= dtype_(v_5) ≥ 1 ∧ dtype_(v_5) ≤ 8
+Token usage: input=13778, output=437, total=19697
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.keras.layers.RandomCrop API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+A preprocessing layer which randomly crops images during training.
+
+    During training, this layer will randomly choose a location to crop images
+    down to a target size. The layer will crop all the images in the same batch
+    to the same cropping location.
+
+    At inference time, and during training if an input image is smaller than the
+    target size, the input will be resized and cropped so as to return the
+    largest possible window in the image that matches the target aspect ratio.
+    If you need to apply random cropping at inference time, set `training` to
+    True when calling the layer.
+
+    Input pixel values can be of any range (e.g. `[0., 1.)` or `[0, 255]`) and
+    of integer or floating point dtype. By default, the layer will output
+    floats.
+
+    **Note:** This layer is safe to use inside a `tf.data` or `grain` pipeline
+    (independently of which backend you're using).
+
+    Input shape:
+        3D (unbatched) or 4D (batched) tensor with shape:
+        `(..., height, width, channels)`, in `"channels_last"` format.
+
+    Output shape:
+        3D (unbatched) or 4D (batched) tensor with shape:
+        `(..., target_height, target_width, channels)`.
+
+    Args:
+        height: Integer, the height of the output shape.
+        width: Integer, the width of the output shape.
+        seed: Integer. Used to create a random seed.
+        **kwargs: Base layer keyword arguments, such as
+            `name` and `dtype`.
+
+    Example:
+
+    
+```python
+layer = keras.layers.RandomCrop(bounding_box_format="xyxy")
+images = np.random.randint(0, 255, (4, 224, 224, 3), dtype="uint8")
+
+bounding_boxes = {
+    "boxes": np.array([
+        [[10, 20, 100, 150], [50, 60, 200, 250]],
+        [[15, 25, 110, 160], [55, 65, 210, 260]],
+        [[20, 30, 120, 170], [60, 70, 220, 270]],
+        [[25, 35, 130, 180], [65, 75, 230, 280]],
+    ], dtype="float32"),
+    "labels": np.array([[0, 1], [1, 2], [2, 3], [0, 3]], dtype="int32")
+}
+
+labels = keras.ops.one_hot(
+    np.array([0, 1, 2, 3]),
+    num_classes=4
+)
+
+segmentation_masks = np.random.randint(0, 3, (4, 224, 224, 1), dtype="uint8")
+
+output = layer(
+    {
+        "images": images,
+        "bounding_boxes": bounding_boxes,
+        "labels": labels,
+        "segmentation_masks": segmentation_masks
+    },
+    training=True
+)
+```
+
+[API Signature] height: integer, width: integer, seed: integer, data_format: string, inputs: tensor
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 27 (reduction over valid dimensions)
+{v_1 : tensor, v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 28 (list of ints used as dimensions/axes, all non-negative and valid for tensor shape)
+{v_1 : tensor, v_2 : list(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 16 (shape alignment for matrix multiplication)
+{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) ≥ 2 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, ndim(v_2) − 2)) ∨ (ndim(v_1) ≥ 2 ∧ ndim(v_2) = 1 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, 0))
+
+Rule 21 (primitive type variable should not be zero)
+{v_1 : int ⊎ float} |= v_1 ≠ 0
+
+Rule 26 (tuple of ints used as kernel size must have length 2)
+{v_1 : tuple(int)} |= v_1.len = 2 ∧ ∀i ∈ [0, 1] : v_1[i] > 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 18 (height and width must be positive integers)
+{v_1 : int, v_2 : int} |= v_1 > 0 ∧ v_2 > 0
+Token usage: input=2291, output=133, total=4686
+** DUPLICATED RULE ** (num_failures: 1)
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.keras.layers.RandomCrop API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+A preprocessing layer which randomly crops images during training.
+
+    During training, this layer will randomly choose a location to crop images
+    down to a target size. The layer will crop all the images in the same batch
+    to the same cropping location.
+
+    At inference time, and during training if an input image is smaller than the
+    target size, the input will be resized and cropped so as to return the
+    largest possible window in the image that matches the target aspect ratio.
+    If you need to apply random cropping at inference time, set `training` to
+    True when calling the layer.
+
+    Input pixel values can be of any range (e.g. `[0., 1.)` or `[0, 255]`) and
+    of integer or floating point dtype. By default, the layer will output
+    floats.
+
+    **Note:** This layer is safe to use inside a `tf.data` or `grain` pipeline
+    (independently of which backend you're using).
+
+    Input shape:
+        3D (unbatched) or 4D (batched) tensor with shape:
+        `(..., height, width, channels)`, in `"channels_last"` format.
+
+    Output shape:
+        3D (unbatched) or 4D (batched) tensor with shape:
+        `(..., target_height, target_width, channels)`.
+
+    Args:
+        height: Integer, the height of the output shape.
+        width: Integer, the width of the output shape.
+        seed: Integer. Used to create a random seed.
+        **kwargs: Base layer keyword arguments, such as
+            `name` and `dtype`.
+
+    Example:
+
+    
+```python
+layer = keras.layers.RandomCrop(bounding_box_format="xyxy")
+images = np.random.randint(0, 255, (4, 224, 224, 3), dtype="uint8")
+
+bounding_boxes = {
+    "boxes": np.array([
+        [[10, 20, 100, 150], [50, 60, 200, 250]],
+        [[15, 25, 110, 160], [55, 65, 210, 260]],
+        [[20, 30, 120, 170], [60, 70, 220, 270]],
+        [[25, 35, 130, 180], [65, 75, 230, 280]],
+    ], dtype="float32"),
+    "labels": np.array([[0, 1], [1, 2], [2, 3], [0, 3]], dtype="int32")
+}
+
+labels = keras.ops.one_hot(
+    np.array([0, 1, 2, 3]),
+    num_classes=4
+)
+
+segmentation_masks = np.random.randint(0, 3, (4, 224, 224, 1), dtype="uint8")
+
+output = layer(
+    {
+        "images": images,
+        "bounding_boxes": bounding_boxes,
+        "labels": labels,
+        "segmentation_masks": segmentation_masks
+    },
+    training=True
+)
+```
+
+[API Signature] height: integer, width: integer, seed: integer, data_format: string, inputs: tensor
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 27 (reduction over valid dimensions)
+{v_1 : tensor, v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 28 (list of ints used as dimensions/axes, all non-negative and valid for tensor shape)
+{v_1 : tensor, v_2 : list(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 16 (shape alignment for matrix multiplication)
+{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) ≥ 2 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, ndim(v_2) − 2)) ∨ (ndim(v_1) ≥ 2 ∧ ndim(v_2) = 1 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, 0))
+
+Rule 21 (primitive type variable should not be zero)
+{v_1 : int ⊎ float} |= v_1 ≠ 0
+
+Rule 26 (tuple of ints used as kernel size must have length 2)
+{v_1 : tuple(int)} |= v_1.len = 2 ∧ ∀i ∈ [0, 1] : v_1[i] > 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 19 (data_format must be a valid format)
+{v_4 : str} |= v_4 = "channels_last" ∨ v_4 = "channels_first"
+Token usage: input=2291, output=133, total=4686
+** DUPLICATED RULE ** (num_failures: 2)
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.keras.layers.RandomCrop API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+A preprocessing layer which randomly crops images during training.
+
+    During training, this layer will randomly choose a location to crop images
+    down to a target size. The layer will crop all the images in the same batch
+    to the same cropping location.
+
+    At inference time, and during training if an input image is smaller than the
+    target size, the input will be resized and cropped so as to return the
+    largest possible window in the image that matches the target aspect ratio.
+    If you need to apply random cropping at inference time, set `training` to
+    True when calling the layer.
+
+    Input pixel values can be of any range (e.g. `[0., 1.)` or `[0, 255]`) and
+    of integer or floating point dtype. By default, the layer will output
+    floats.
+
+    **Note:** This layer is safe to use inside a `tf.data` or `grain` pipeline
+    (independently of which backend you're using).
+
+    Input shape:
+        3D (unbatched) or 4D (batched) tensor with shape:
+        `(..., height, width, channels)`, in `"channels_last"` format.
+
+    Output shape:
+        3D (unbatched) or 4D (batched) tensor with shape:
+        `(..., target_height, target_width, channels)`.
+
+    Args:
+        height: Integer, the height of the output shape.
+        width: Integer, the width of the output shape.
+        seed: Integer. Used to create a random seed.
+        **kwargs: Base layer keyword arguments, such as
+            `name` and `dtype`.
+
+    Example:
+
+    
+```python
+layer = keras.layers.RandomCrop(bounding_box_format="xyxy")
+images = np.random.randint(0, 255, (4, 224, 224, 3), dtype="uint8")
+
+bounding_boxes = {
+    "boxes": np.array([
+        [[10, 20, 100, 150], [50, 60, 200, 250]],
+        [[15, 25, 110, 160], [55, 65, 210, 260]],
+        [[20, 30, 120, 170], [60, 70, 220, 270]],
+        [[25, 35, 130, 180], [65, 75, 230, 280]],
+    ], dtype="float32"),
+    "labels": np.array([[0, 1], [1, 2], [2, 3], [0, 3]], dtype="int32")
+}
+
+labels = keras.ops.one_hot(
+    np.array([0, 1, 2, 3]),
+    num_classes=4
+)
+
+segmentation_masks = np.random.randint(0, 3, (4, 224, 224, 1), dtype="uint8")
+
+output = layer(
+    {
+        "images": images,
+        "bounding_boxes": bounding_boxes,
+        "labels": labels,
+        "segmentation_masks": segmentation_masks
+    },
+    training=True
+)
+```
+
+[API Signature] height: integer, width: integer, seed: integer, data_format: string, inputs: tensor
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 27 (reduction over valid dimensions)
+{v_1 : tensor, v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 28 (list of ints used as dimensions/axes, all non-negative and valid for tensor shape)
+{v_1 : tensor, v_2 : list(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 16 (shape alignment for matrix multiplication)
+{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) ≥ 2 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, ndim(v_2) − 2)) ∨ (ndim(v_1) ≥ 2 ∧ ndim(v_2) = 1 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, 0))
+
+Rule 21 (primitive type variable should not be zero)
+{v_1 : int ⊎ float} |= v_1 ≠ 0
+
+Rule 26 (tuple of ints used as kernel size must have length 2)
+{v_1 : tuple(int)} |= v_1.len = 2 ∧ ∀i ∈ [0, 1] : v_1[i] > 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 20 (inputs must be a 3D or 4D tensor)
+{v_5 : tensor} |= ndim(v_5) = 3 ∨ ndim(v_5) = 4
+Token usage: input=2291, output=133, total=4686
+** DUPLICATED RULE ** (num_failures: 3)
+
+>>> PROMPT
+[Feedback Message from Prior Run]
+Duplicated rule: {v_1 : int, v_2 : int} |= v_1 > 0 ∧ v_2 > 0
+Duplicated rule: {v_4 : str} |= v_4 = "channels_last" ∨ v_4 = "channels_first"
+Duplicated rule: {v_5 : tensor} |= ndim(v_5) = 3 ∨ ndim(v_5) = 4
+
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.keras.layers.RandomCrop API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+A preprocessing layer which randomly crops images during training.
+
+    During training, this layer will randomly choose a location to crop images
+    down to a target size. The layer will crop all the images in the same batch
+    to the same cropping location.
+
+    At inference time, and during training if an input image is smaller than the
+    target size, the input will be resized and cropped so as to return the
+    largest possible window in the image that matches the target aspect ratio.
+    If you need to apply random cropping at inference time, set `training` to
+    True when calling the layer.
+
+    Input pixel values can be of any range (e.g. `[0., 1.)` or `[0, 255]`) and
+    of integer or floating point dtype. By default, the layer will output
+    floats.
+
+    **Note:** This layer is safe to use inside a `tf.data` or `grain` pipeline
+    (independently of which backend you're using).
+
+    Input shape:
+        3D (unbatched) or 4D (batched) tensor with shape:
+        `(..., height, width, channels)`, in `"channels_last"` format.
+
+    Output shape:
+        3D (unbatched) or 4D (batched) tensor with shape:
+        `(..., target_height, target_width, channels)`.
+
+    Args:
+        height: Integer, the height of the output shape.
+        width: Integer, the width of the output shape.
+        seed: Integer. Used to create a random seed.
+        **kwargs: Base layer keyword arguments, such as
+            `name` and `dtype`.
+
+    Example:
+
+    
+```python
+layer = keras.layers.RandomCrop(bounding_box_format="xyxy")
+images = np.random.randint(0, 255, (4, 224, 224, 3), dtype="uint8")
+
+bounding_boxes = {
+    "boxes": np.array([
+        [[10, 20, 100, 150], [50, 60, 200, 250]],
+        [[15, 25, 110, 160], [55, 65, 210, 260]],
+        [[20, 30, 120, 170], [60, 70, 220, 270]],
+        [[25, 35, 130, 180], [65, 75, 230, 280]],
+    ], dtype="float32"),
+    "labels": np.array([[0, 1], [1, 2], [2, 3], [0, 3]], dtype="int32")
+}
+
+labels = keras.ops.one_hot(
+    np.array([0, 1, 2, 3]),
+    num_classes=4
+)
+
+segmentation_masks = np.random.randint(0, 3, (4, 224, 224, 1), dtype="uint8")
+
+output = layer(
+    {
+        "images": images,
+        "bounding_boxes": bounding_boxes,
+        "labels": labels,
+        "segmentation_masks": segmentation_masks
+    },
+    training=True
+)
+```
+
+[API Signature] height: integer, width: integer, seed: integer, data_format: string, inputs: tensor
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 16 (shape alignment for matrix multiplication)
+{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) ≥ 2 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, ndim(v_2) − 2)) ∨ (ndim(v_1) ≥ 2 ∧ ndim(v_2) = 1 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, 0))
+
+Rule 14 (tensor should not be empty)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+
+Rule 25 (tensor shape matches given tuple shape)
+{v_1 : tensor, v_2 : tuple(int)} |= ndim(v_1) = v_2.len ∧ ∀i ∈ [0, v_2.len - 1] : shape(v_1, i) = v_2[i]
+
+Rule 7 (first dimension of a tensor matches second dimension of the other)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) ≥ 1 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, 0) = shape(v_2, 1)
+
+Rule 4 (tensor data types should match)
+{v_1 : tensor, v_2 : tensor} |= dtype(v_1) = dtype(v_2)
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 21 (inputs must have integer or floating point data type)
+{v_5 : tensor} |= dtype_(v_5) ≥ 1 ∧ dtype_(v_5) ≤ 8
+Token usage: input=7082, output=388, total=13555
+** DUPLICATED RULE ** (num_failures: 4)
+
+>>> PROMPT
+[Feedback Message from Prior Run]
+Duplicated rule: {v_1 : int, v_2 : int} |= v_1 > 0 ∧ v_2 > 0
+Duplicated rule: {v_4 : str} |= v_4 = "channels_last" ∨ v_4 = "channels_first"
+Duplicated rule: {v_5 : tensor} |= ndim(v_5) = 3 ∨ ndim(v_5) = 4
+
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.keras.layers.RandomCrop API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+A preprocessing layer which randomly crops images during training.
+
+    During training, this layer will randomly choose a location to crop images
+    down to a target size. The layer will crop all the images in the same batch
+    to the same cropping location.
+
+    At inference time, and during training if an input image is smaller than the
+    target size, the input will be resized and cropped so as to return the
+    largest possible window in the image that matches the target aspect ratio.
+    If you need to apply random cropping at inference time, set `training` to
+    True when calling the layer.
+
+    Input pixel values can be of any range (e.g. `[0., 1.)` or `[0, 255]`) and
+    of integer or floating point dtype. By default, the layer will output
+    floats.
+
+    **Note:** This layer is safe to use inside a `tf.data` or `grain` pipeline
+    (independently of which backend you're using).
+
+    Input shape:
+        3D (unbatched) or 4D (batched) tensor with shape:
+        `(..., height, width, channels)`, in `"channels_last"` format.
+
+    Output shape:
+        3D (unbatched) or 4D (batched) tensor with shape:
+        `(..., target_height, target_width, channels)`.
+
+    Args:
+        height: Integer, the height of the output shape.
+        width: Integer, the width of the output shape.
+        seed: Integer. Used to create a random seed.
+        **kwargs: Base layer keyword arguments, such as
+            `name` and `dtype`.
+
+    Example:
+
+    
+```python
+layer = keras.layers.RandomCrop(bounding_box_format="xyxy")
+images = np.random.randint(0, 255, (4, 224, 224, 3), dtype="uint8")
+
+bounding_boxes = {
+    "boxes": np.array([
+        [[10, 20, 100, 150], [50, 60, 200, 250]],
+        [[15, 25, 110, 160], [55, 65, 210, 260]],
+        [[20, 30, 120, 170], [60, 70, 220, 270]],
+        [[25, 35, 130, 180], [65, 75, 230, 280]],
+    ], dtype="float32"),
+    "labels": np.array([[0, 1], [1, 2], [2, 3], [0, 3]], dtype="int32")
+}
+
+labels = keras.ops.one_hot(
+    np.array([0, 1, 2, 3]),
+    num_classes=4
+)
+
+segmentation_masks = np.random.randint(0, 3, (4, 224, 224, 1), dtype="uint8")
+
+output = layer(
+    {
+        "images": images,
+        "bounding_boxes": bounding_boxes,
+        "labels": labels,
+        "segmentation_masks": segmentation_masks
+    },
+    training=True
+)
+```
+
+[API Signature] height: integer, width: integer, seed: integer, data_format: string, inputs: tensor
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 16 (shape alignment for matrix multiplication)
+{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) ≥ 2 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, ndim(v_2) − 2)) ∨ (ndim(v_1) ≥ 2 ∧ ndim(v_2) = 1 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, 0))
+
+Rule 14 (tensor should not be empty)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+
+Rule 25 (tensor shape matches given tuple shape)
+{v_1 : tensor, v_2 : tuple(int)} |= ndim(v_1) = v_2.len ∧ ∀i ∈ [0, v_2.len - 1] : shape(v_1, i) = v_2[i]
+
+Rule 7 (first dimension of a tensor matches second dimension of the other)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) ≥ 1 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, 0) = shape(v_2, 1)
+
+Rule 4 (tensor data types should match)
+{v_1 : tensor, v_2 : tensor} |= dtype(v_1) = dtype(v_2)
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 22 (input spatial dimensions must be greater than zero)
+{v_4 : str, v_5 : tensor} |= (ndim(v_5) = 3 ∨ ndim(v_5) = 4) ∧ (if v_4 = "channels_last" then (if ndim(v_5) = 3 then shape(v_5, 0) > 0 ∧ shape(v_5, 1) > 0 else shape(v_5, 1) > 0 ∧ shape(v_5, 2) > 0) else (if ndim(v_5) = 3 then shape(v_5, 1) > 0 ∧ shape(v_5, 2) > 0 else shape(v_5, 2) > 0 ∧ shape(v_5, 3) > 0))
+Token usage: input=7082, output=388, total=13555
+** SUCCESS **
+
+>>> PROMPT
+[Feedback Message from Prior Run]
+Duplicated rule: {v_1 : int, v_2 : int} |= v_1 > 0 ∧ v_2 > 0
+Duplicated rule: {v_4 : str} |= v_4 = "channels_last" ∨ v_4 = "channels_first"
+Duplicated rule: {v_5 : tensor} |= ndim(v_5) = 3 ∨ ndim(v_5) = 4
+
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.keras.layers.RandomCrop API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+A preprocessing layer which randomly crops images during training.
+
+    During training, this layer will randomly choose a location to crop images
+    down to a target size. The layer will crop all the images in the same batch
+    to the same cropping location.
+
+    At inference time, and during training if an input image is smaller than the
+    target size, the input will be resized and cropped so as to return the
+    largest possible window in the image that matches the target aspect ratio.
+    If you need to apply random cropping at inference time, set `training` to
+    True when calling the layer.
+
+    Input pixel values can be of any range (e.g. `[0., 1.)` or `[0, 255]`) and
+    of integer or floating point dtype. By default, the layer will output
+    floats.
+
+    **Note:** This layer is safe to use inside a `tf.data` or `grain` pipeline
+    (independently of which backend you're using).
+
+    Input shape:
+        3D (unbatched) or 4D (batched) tensor with shape:
+        `(..., height, width, channels)`, in `"channels_last"` format.
+
+    Output shape:
+        3D (unbatched) or 4D (batched) tensor with shape:
+        `(..., target_height, target_width, channels)`.
+
+    Args:
+        height: Integer, the height of the output shape.
+        width: Integer, the width of the output shape.
+        seed: Integer. Used to create a random seed.
+        **kwargs: Base layer keyword arguments, such as
+            `name` and `dtype`.
+
+    Example:
+
+    
+```python
+layer = keras.layers.RandomCrop(bounding_box_format="xyxy")
+images = np.random.randint(0, 255, (4, 224, 224, 3), dtype="uint8")
+
+bounding_boxes = {
+    "boxes": np.array([
+        [[10, 20, 100, 150], [50, 60, 200, 250]],
+        [[15, 25, 110, 160], [55, 65, 210, 260]],
+        [[20, 30, 120, 170], [60, 70, 220, 270]],
+        [[25, 35, 130, 180], [65, 75, 230, 280]],
+    ], dtype="float32"),
+    "labels": np.array([[0, 1], [1, 2], [2, 3], [0, 3]], dtype="int32")
+}
+
+labels = keras.ops.one_hot(
+    np.array([0, 1, 2, 3]),
+    num_classes=4
+)
+
+segmentation_masks = np.random.randint(0, 3, (4, 224, 224, 1), dtype="uint8")
+
+output = layer(
+    {
+        "images": images,
+        "bounding_boxes": bounding_boxes,
+        "labels": labels,
+        "segmentation_masks": segmentation_masks
+    },
+    training=True
+)
+```
+
+[API Signature] height: integer, width: integer, seed: integer, data_format: string, inputs: tensor
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 16 (shape alignment for matrix multiplication)
+{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) ≥ 2 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, ndim(v_2) − 2)) ∨ (ndim(v_1) ≥ 2 ∧ ndim(v_2) = 1 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, 0))
+
+Rule 14 (tensor should not be empty)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+
+Rule 25 (tensor shape matches given tuple shape)
+{v_1 : tensor, v_2 : tuple(int)} |= ndim(v_1) = v_2.len ∧ ∀i ∈ [0, v_2.len - 1] : shape(v_1, i) = v_2[i]
+
+Rule 7 (first dimension of a tensor matches second dimension of the other)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) ≥ 1 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, 0) = shape(v_2, 1)
+
+Rule 4 (tensor data types should match)
+{v_1 : tensor, v_2 : tensor} |= dtype(v_1) = dtype(v_2)
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 23 (input must have at least one channel)
+{v_4 : str, v_5 : tensor} |= (ndim(v_5) = 3 ∨ ndim(v_5) = 4) ∧ (if v_4 = "channels_last" then (if ndim(v_5) = 3 then shape(v_5, 2) > 0 else shape(v_5, 3) > 0) else (if ndim(v_5) = 3 then shape(v_5, 0) > 0 else shape(v_5, 1) > 0))
+Token usage: input=7082, output=388, total=13555
+** SUCCESS **
+
+>>> PROMPT
+[Feedback Message from Prior Run]
+Duplicated rule: {v_5 : tensor} |= dtype_(v_5) ≥ 1 ∧ dtype_(v_5) ≤ 8
+
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.keras.layers.RandomCrop API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+A preprocessing layer which randomly crops images during training.
+
+    During training, this layer will randomly choose a location to crop images
+    down to a target size. The layer will crop all the images in the same batch
+    to the same cropping location.
+
+    At inference time, and during training if an input image is smaller than the
+    target size, the input will be resized and cropped so as to return the
+    largest possible window in the image that matches the target aspect ratio.
+    If you need to apply random cropping at inference time, set `training` to
+    True when calling the layer.
+
+    Input pixel values can be of any range (e.g. `[0., 1.)` or `[0, 255]`) and
+    of integer or floating point dtype. By default, the layer will output
+    floats.
+
+    **Note:** This layer is safe to use inside a `tf.data` or `grain` pipeline
+    (independently of which backend you're using).
+
+    Input shape:
+        3D (unbatched) or 4D (batched) tensor with shape:
+        `(..., height, width, channels)`, in `"channels_last"` format.
+
+    Output shape:
+        3D (unbatched) or 4D (batched) tensor with shape:
+        `(..., target_height, target_width, channels)`.
+
+    Args:
+        height: Integer, the height of the output shape.
+        width: Integer, the width of the output shape.
+        seed: Integer. Used to create a random seed.
+        **kwargs: Base layer keyword arguments, such as
+            `name` and `dtype`.
+
+    Example:
+
+    
+```python
+layer = keras.layers.RandomCrop(bounding_box_format="xyxy")
+images = np.random.randint(0, 255, (4, 224, 224, 3), dtype="uint8")
+
+bounding_boxes = {
+    "boxes": np.array([
+        [[10, 20, 100, 150], [50, 60, 200, 250]],
+        [[15, 25, 110, 160], [55, 65, 210, 260]],
+        [[20, 30, 120, 170], [60, 70, 220, 270]],
+        [[25, 35, 130, 180], [65, 75, 230, 280]],
+    ], dtype="float32"),
+    "labels": np.array([[0, 1], [1, 2], [2, 3], [0, 3]], dtype="int32")
+}
+
+labels = keras.ops.one_hot(
+    np.array([0, 1, 2, 3]),
+    num_classes=4
+)
+
+segmentation_masks = np.random.randint(0, 3, (4, 224, 224, 1), dtype="uint8")
+
+output = layer(
+    {
+        "images": images,
+        "bounding_boxes": bounding_boxes,
+        "labels": labels,
+        "segmentation_masks": segmentation_masks
+    },
+    training=True
+)
+```
+
+[API Signature] height: integer, width: integer, seed: integer, data_format: string, inputs: tensor
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 2 (v_2 should be a valid dimension of input tensor)
+{v_1 : tensor, v_2 : int} |= −1 × ndim(v_1) ≤ v_2 ∧ v_2 ≤ ndim(v_1) − 1
+
+Rule 26 (tuple of ints used as kernel size must have length 2)
+{v_1 : tuple(int)} |= v_1.len = 2 ∧ ∀i ∈ [0, 1] : v_1[i] > 0
+
+Rule 8 (tensor must have an integer dtype: 1–5)
+{v1: tensor} |= 1 ≤ dtype(v1) ∧ dtype(v1) ≤ 5
+
+Rule 29 (list of floats for weights must match length of a tensor dimension)
+{v_1 : tensor, v_2 : list(float)} |= v_2.len = shape(v_1, 0) ∧ ∀i ∈ [0, v_2.len - 1] : v_2[i] ≥ 0
+
+Rule 9 (4D tensor with all shape dimensions positive)
+{v_1 : tensor} |= ndim(v_1) = 4 ∧ ∀i ∈ [0, 3] : shape(v_1, i) > 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 24 (spatial dimensions for 3D input must be positive under channels_last format)
+{v_4 : str, v_5 : tensor} |= if v_4 = "channels_last" ∧ ndim(v_5) = 3 then shape(v_5, 0) > 0 ∧ shape(v_5, 1) > 0
+Token usage: input=15801, output=274, total=20019
+** SUCCESS **
+
+>>> PROMPT
+[Feedback Message from Prior Run]
+Duplicated rule: {v_5 : tensor} |= dtype_(v_5) ≥ 1 ∧ dtype_(v_5) ≤ 8
+
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.keras.layers.RandomCrop API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+A preprocessing layer which randomly crops images during training.
+
+    During training, this layer will randomly choose a location to crop images
+    down to a target size. The layer will crop all the images in the same batch
+    to the same cropping location.
+
+    At inference time, and during training if an input image is smaller than the
+    target size, the input will be resized and cropped so as to return the
+    largest possible window in the image that matches the target aspect ratio.
+    If you need to apply random cropping at inference time, set `training` to
+    True when calling the layer.
+
+    Input pixel values can be of any range (e.g. `[0., 1.)` or `[0, 255]`) and
+    of integer or floating point dtype. By default, the layer will output
+    floats.
+
+    **Note:** This layer is safe to use inside a `tf.data` or `grain` pipeline
+    (independently of which backend you're using).
+
+    Input shape:
+        3D (unbatched) or 4D (batched) tensor with shape:
+        `(..., height, width, channels)`, in `"channels_last"` format.
+
+    Output shape:
+        3D (unbatched) or 4D (batched) tensor with shape:
+        `(..., target_height, target_width, channels)`.
+
+    Args:
+        height: Integer, the height of the output shape.
+        width: Integer, the width of the output shape.
+        seed: Integer. Used to create a random seed.
+        **kwargs: Base layer keyword arguments, such as
+            `name` and `dtype`.
+
+    Example:
+
+    
+```python
+layer = keras.layers.RandomCrop(bounding_box_format="xyxy")
+images = np.random.randint(0, 255, (4, 224, 224, 3), dtype="uint8")
+
+bounding_boxes = {
+    "boxes": np.array([
+        [[10, 20, 100, 150], [50, 60, 200, 250]],
+        [[15, 25, 110, 160], [55, 65, 210, 260]],
+        [[20, 30, 120, 170], [60, 70, 220, 270]],
+        [[25, 35, 130, 180], [65, 75, 230, 280]],
+    ], dtype="float32"),
+    "labels": np.array([[0, 1], [1, 2], [2, 3], [0, 3]], dtype="int32")
+}
+
+labels = keras.ops.one_hot(
+    np.array([0, 1, 2, 3]),
+    num_classes=4
+)
+
+segmentation_masks = np.random.randint(0, 3, (4, 224, 224, 1), dtype="uint8")
+
+output = layer(
+    {
+        "images": images,
+        "bounding_boxes": bounding_boxes,
+        "labels": labels,
+        "segmentation_masks": segmentation_masks
+    },
+    training=True
+)
+```
+
+[API Signature] height: integer, width: integer, seed: integer, data_format: string, inputs: tensor
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 2 (v_2 should be a valid dimension of input tensor)
+{v_1 : tensor, v_2 : int} |= −1 × ndim(v_1) ≤ v_2 ∧ v_2 ≤ ndim(v_1) − 1
+
+Rule 26 (tuple of ints used as kernel size must have length 2)
+{v_1 : tuple(int)} |= v_1.len = 2 ∧ ∀i ∈ [0, 1] : v_1[i] > 0
+
+Rule 8 (tensor must have an integer dtype: 1–5)
+{v1: tensor} |= 1 ≤ dtype(v1) ∧ dtype(v1) ≤ 5
+
+Rule 29 (list of floats for weights must match length of a tensor dimension)
+{v_1 : tensor, v_2 : list(float)} |= v_2.len = shape(v_1, 0) ∧ ∀i ∈ [0, v_2.len - 1] : v_2[i] ≥ 0
+
+Rule 9 (4D tensor with all shape dimensions positive)
+{v_1 : tensor} |= ndim(v_1) = 4 ∧ ∀i ∈ [0, 3] : shape(v_1, i) > 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 25 (spatial dimensions for 4D input must be positive under channels_last format)
+{v_4 : str, v_5 : tensor} |= if v_4 = "channels_last" ∧ ndim(v_5) = 4 then shape(v_5, 1) > 0 ∧ shape(v_5, 2) > 0
+Token usage: input=15801, output=274, total=20019
+** SUCCESS **
+
+>>> PROMPT
+[Feedback Message from Prior Run]
+Duplicated rule: {v_5 : tensor} |= dtype_(v_5) ≥ 1 ∧ dtype_(v_5) ≤ 8
+
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.keras.layers.RandomCrop API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+A preprocessing layer which randomly crops images during training.
+
+    During training, this layer will randomly choose a location to crop images
+    down to a target size. The layer will crop all the images in the same batch
+    to the same cropping location.
+
+    At inference time, and during training if an input image is smaller than the
+    target size, the input will be resized and cropped so as to return the
+    largest possible window in the image that matches the target aspect ratio.
+    If you need to apply random cropping at inference time, set `training` to
+    True when calling the layer.
+
+    Input pixel values can be of any range (e.g. `[0., 1.)` or `[0, 255]`) and
+    of integer or floating point dtype. By default, the layer will output
+    floats.
+
+    **Note:** This layer is safe to use inside a `tf.data` or `grain` pipeline
+    (independently of which backend you're using).
+
+    Input shape:
+        3D (unbatched) or 4D (batched) tensor with shape:
+        `(..., height, width, channels)`, in `"channels_last"` format.
+
+    Output shape:
+        3D (unbatched) or 4D (batched) tensor with shape:
+        `(..., target_height, target_width, channels)`.
+
+    Args:
+        height: Integer, the height of the output shape.
+        width: Integer, the width of the output shape.
+        seed: Integer. Used to create a random seed.
+        **kwargs: Base layer keyword arguments, such as
+            `name` and `dtype`.
+
+    Example:
+
+    
+```python
+layer = keras.layers.RandomCrop(bounding_box_format="xyxy")
+images = np.random.randint(0, 255, (4, 224, 224, 3), dtype="uint8")
+
+bounding_boxes = {
+    "boxes": np.array([
+        [[10, 20, 100, 150], [50, 60, 200, 250]],
+        [[15, 25, 110, 160], [55, 65, 210, 260]],
+        [[20, 30, 120, 170], [60, 70, 220, 270]],
+        [[25, 35, 130, 180], [65, 75, 230, 280]],
+    ], dtype="float32"),
+    "labels": np.array([[0, 1], [1, 2], [2, 3], [0, 3]], dtype="int32")
+}
+
+labels = keras.ops.one_hot(
+    np.array([0, 1, 2, 3]),
+    num_classes=4
+)
+
+segmentation_masks = np.random.randint(0, 3, (4, 224, 224, 1), dtype="uint8")
+
+output = layer(
+    {
+        "images": images,
+        "bounding_boxes": bounding_boxes,
+        "labels": labels,
+        "segmentation_masks": segmentation_masks
+    },
+    training=True
+)
+```
+
+[API Signature] height: integer, width: integer, seed: integer, data_format: string, inputs: tensor
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 2 (v_2 should be a valid dimension of input tensor)
+{v_1 : tensor, v_2 : int} |= −1 × ndim(v_1) ≤ v_2 ∧ v_2 ≤ ndim(v_1) − 1
+
+Rule 26 (tuple of ints used as kernel size must have length 2)
+{v_1 : tuple(int)} |= v_1.len = 2 ∧ ∀i ∈ [0, 1] : v_1[i] > 0
+
+Rule 8 (tensor must have an integer dtype: 1–5)
+{v1: tensor} |= 1 ≤ dtype(v1) ∧ dtype(v1) ≤ 5
+
+Rule 29 (list of floats for weights must match length of a tensor dimension)
+{v_1 : tensor, v_2 : list(float)} |= v_2.len = shape(v_1, 0) ∧ ∀i ∈ [0, v_2.len - 1] : v_2[i] ≥ 0
+
+Rule 9 (4D tensor with all shape dimensions positive)
+{v_1 : tensor} |= ndim(v_1) = 4 ∧ ∀i ∈ [0, 3] : shape(v_1, i) > 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 26 (number of channels must be positive for channels_last format)
+{v_4 : str, v_5 : tensor} |= if v_4 = "channels_last" ∧ ndim(v_5) = 3 then shape(v_5, 2) > 0 else (if v_4 = "channels_last" ∧ ndim(v_5) = 4 then shape(v_5, 3) > 0)
+Token usage: input=15801, output=274, total=20019
+** SUCCESS **
+

@@ -1,0 +1,2515 @@
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.keras.layers.Discretization API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+A preprocessing layer which buckets continuous features by ranges.
+
+    This layer will place each element of its input data into one of several
+    contiguous ranges and output an integer index indicating which range each
+    element was placed in.
+
+    **Note:** This layer is safe to use inside a `tf.data` or `grain` pipeline
+    (independently of which backend you're using).
+
+    Input shape:
+        Any array of dimension 2 or higher.
+
+    Output shape:
+        Same as input shape.
+
+    Arguments:
+        bin_boundaries: A list of bin boundaries.
+            The leftmost and rightmost bins
+            will always extend to `-inf` and `inf`,
+            so `bin_boundaries=[0., 1., 2.]`
+            generates bins `(-inf, 0.)`, `[0., 1.)`, `[1., 2.)`,
+            and `[2., +inf)`.
+            If this option is set, `adapt()` should not be called.
+        num_bins: The integer number of bins to compute.
+            If this option is set, `bin_boundaries` should not be set and
+            `adapt()` should be called to learn the bin boundaries.
+        epsilon: Error tolerance, typically a small fraction
+            close to zero (e.g. 0.01). Higher values of epsilon increase
+            the quantile approximation, and hence result in more
+            unequal buckets, but could improve performance
+            and resource consumption.
+        output_mode: Specification for the output of the layer.
+            Values can be `"int"`, `"one_hot"`, `"multi_hot"`, or
+            `"count"` configuring the layer as follows:
+            - `"int"`: Return the discretized bin indices directly.
+            - `"one_hot"`: Encodes each individual element in the
+                input into an array the same size as `num_bins`,
+                containing a 1 at the input's bin
+                index. If the last dimension is size 1, will encode on that
+                dimension.  If the last dimension is not size 1,
+                will append a new dimension for the encoded output.
+            - `"multi_hot"`: Encodes each sample in the input into a
+                single array the same size as `num_bins`,
+                containing a 1 for each bin index
+                index present in the sample.
+                Treats the last dimension as the sample
+                dimension, if input shape is `(..., sample_length)`,
+                output shape will be `(..., num_tokens)`.
+            - `"count"`: As `"multi_hot"`, but the int array contains
+                a count of the number of times the bin index appeared
+                in the sample.
+            Defaults to `"int"`.
+        sparse: Boolean. Only applicable to `"one_hot"`, `"multi_hot"`,
+            and `"count"` output modes. Only supported with TensorFlow
+            backend. If `True`, returns a `SparseTensor` instead of
+            a dense `Tensor`. Defaults to `False`.
+
+    Examples:
+
+    Discretize float values based on provided buckets.
+    >>> input = np.array([[-1.5, 1.0, 3.4, .5], [0.0, 3.0, 1.3, 0.0]])
+    >>> layer = Discretization(bin_boundaries=[0., 1., 2.])
+    >>> layer(input)
+    array([[0, 2, 3, 1],
+           [1, 3, 2, 1]])
+
+    Discretize float values based on a number of buckets to compute.
+    >>> input = np.array([[-1.5, 1.0, 3.4, .5], [0.0, 3.0, 1.3, 0.0]])
+    >>> layer = Discretization(num_bins=4, epsilon=0.01)
+    >>> layer.adapt(input)
+    >>> layer(input)
+    array([[0, 2, 3, 2],
+           [1, 3, 3, 1]])
+
+[API Signature] bin_boundaries: list, num_bins: integer, epsilon: float, output_mode: string, sparse: string, dtype: dtype, name: string, inputs: tensor
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 15 (broadcasting compatibility for tensor shapes)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ ∀i ∈ [0, if ndim(v_1) ≥ ndim(v_2) then ndim(v_1) − 1 else ndim(v_2) − 1] : ndim(v_1) − i − 1 < 0 ∨ ndim(v_2) − i − 1 < 0 ∨ shape(v_1, ndim(v_1) − i − 1) = 1 ∨ shape(v_2, ndim(v_2) − i − 1) = 1 ∨ shape(v_1, ndim(v_1) − i − 1) = shape(v_2, ndim(v_2) − i − 1)
+
+Rule 16 (shape alignment for matrix multiplication)
+{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) ≥ 2 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, ndim(v_2) − 2)) ∨ (ndim(v_1) ≥ 2 ∧ ndim(v_2) = 1 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, 0))
+
+Rule 2 (v_2 should be a valid dimension of input tensor)
+{v_1 : tensor, v_2 : int} |= −1 × ndim(v_1) ≤ v_2 ∧ v_2 ≤ ndim(v_1) − 1
+
+Rule 21 (primitive type variable should not be zero)
+{v_1 : int ⊎ float} |= v_1 ≠ 0
+
+Rule 6 (last dimension of a tensor matches first dimension of the other)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, 0)
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 1 (dimension of input tensor must be 2 or higher)
+{v_1 : tensor} |= ndim(v_1) ≥ 2
+Token usage: input=2601, output=190, total=8738
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.keras.layers.Discretization API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+A preprocessing layer which buckets continuous features by ranges.
+
+    This layer will place each element of its input data into one of several
+    contiguous ranges and output an integer index indicating which range each
+    element was placed in.
+
+    **Note:** This layer is safe to use inside a `tf.data` or `grain` pipeline
+    (independently of which backend you're using).
+
+    Input shape:
+        Any array of dimension 2 or higher.
+
+    Output shape:
+        Same as input shape.
+
+    Arguments:
+        bin_boundaries: A list of bin boundaries.
+            The leftmost and rightmost bins
+            will always extend to `-inf` and `inf`,
+            so `bin_boundaries=[0., 1., 2.]`
+            generates bins `(-inf, 0.)`, `[0., 1.)`, `[1., 2.)`,
+            and `[2., +inf)`.
+            If this option is set, `adapt()` should not be called.
+        num_bins: The integer number of bins to compute.
+            If this option is set, `bin_boundaries` should not be set and
+            `adapt()` should be called to learn the bin boundaries.
+        epsilon: Error tolerance, typically a small fraction
+            close to zero (e.g. 0.01). Higher values of epsilon increase
+            the quantile approximation, and hence result in more
+            unequal buckets, but could improve performance
+            and resource consumption.
+        output_mode: Specification for the output of the layer.
+            Values can be `"int"`, `"one_hot"`, `"multi_hot"`, or
+            `"count"` configuring the layer as follows:
+            - `"int"`: Return the discretized bin indices directly.
+            - `"one_hot"`: Encodes each individual element in the
+                input into an array the same size as `num_bins`,
+                containing a 1 at the input's bin
+                index. If the last dimension is size 1, will encode on that
+                dimension.  If the last dimension is not size 1,
+                will append a new dimension for the encoded output.
+            - `"multi_hot"`: Encodes each sample in the input into a
+                single array the same size as `num_bins`,
+                containing a 1 for each bin index
+                index present in the sample.
+                Treats the last dimension as the sample
+                dimension, if input shape is `(..., sample_length)`,
+                output shape will be `(..., num_tokens)`.
+            - `"count"`: As `"multi_hot"`, but the int array contains
+                a count of the number of times the bin index appeared
+                in the sample.
+            Defaults to `"int"`.
+        sparse: Boolean. Only applicable to `"one_hot"`, `"multi_hot"`,
+            and `"count"` output modes. Only supported with TensorFlow
+            backend. If `True`, returns a `SparseTensor` instead of
+            a dense `Tensor`. Defaults to `False`.
+
+    Examples:
+
+    Discretize float values based on provided buckets.
+    >>> input = np.array([[-1.5, 1.0, 3.4, .5], [0.0, 3.0, 1.3, 0.0]])
+    >>> layer = Discretization(bin_boundaries=[0., 1., 2.])
+    >>> layer(input)
+    array([[0, 2, 3, 1],
+           [1, 3, 2, 1]])
+
+    Discretize float values based on a number of buckets to compute.
+    >>> input = np.array([[-1.5, 1.0, 3.4, .5], [0.0, 3.0, 1.3, 0.0]])
+    >>> layer = Discretization(num_bins=4, epsilon=0.01)
+    >>> layer.adapt(input)
+    >>> layer(input)
+    array([[0, 2, 3, 2],
+           [1, 3, 3, 1]])
+
+[API Signature] bin_boundaries: list, num_bins: integer, epsilon: float, output_mode: string, sparse: string, dtype: dtype, name: string, inputs: tensor
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 15 (broadcasting compatibility for tensor shapes)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ ∀i ∈ [0, if ndim(v_1) ≥ ndim(v_2) then ndim(v_1) − 1 else ndim(v_2) − 1] : ndim(v_1) − i − 1 < 0 ∨ ndim(v_2) − i − 1 < 0 ∨ shape(v_1, ndim(v_1) − i − 1) = 1 ∨ shape(v_2, ndim(v_2) − i − 1) = 1 ∨ shape(v_1, ndim(v_1) − i − 1) = shape(v_2, ndim(v_2) − i − 1)
+
+Rule 16 (shape alignment for matrix multiplication)
+{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) ≥ 2 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, ndim(v_2) − 2)) ∨ (ndim(v_1) ≥ 2 ∧ ndim(v_2) = 1 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, 0))
+
+Rule 2 (v_2 should be a valid dimension of input tensor)
+{v_1 : tensor, v_2 : int} |= −1 × ndim(v_1) ≤ v_2 ∧ v_2 ≤ ndim(v_1) − 1
+
+Rule 21 (primitive type variable should not be zero)
+{v_1 : int ⊎ float} |= v_1 ≠ 0
+
+Rule 6 (last dimension of a tensor matches first dimension of the other)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, 0)
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 2 (number of bins must be at least 1)
+{v_1 : int} |= v_1 ≥ 1
+Token usage: input=2601, output=190, total=8738
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.keras.layers.Discretization API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+A preprocessing layer which buckets continuous features by ranges.
+
+    This layer will place each element of its input data into one of several
+    contiguous ranges and output an integer index indicating which range each
+    element was placed in.
+
+    **Note:** This layer is safe to use inside a `tf.data` or `grain` pipeline
+    (independently of which backend you're using).
+
+    Input shape:
+        Any array of dimension 2 or higher.
+
+    Output shape:
+        Same as input shape.
+
+    Arguments:
+        bin_boundaries: A list of bin boundaries.
+            The leftmost and rightmost bins
+            will always extend to `-inf` and `inf`,
+            so `bin_boundaries=[0., 1., 2.]`
+            generates bins `(-inf, 0.)`, `[0., 1.)`, `[1., 2.)`,
+            and `[2., +inf)`.
+            If this option is set, `adapt()` should not be called.
+        num_bins: The integer number of bins to compute.
+            If this option is set, `bin_boundaries` should not be set and
+            `adapt()` should be called to learn the bin boundaries.
+        epsilon: Error tolerance, typically a small fraction
+            close to zero (e.g. 0.01). Higher values of epsilon increase
+            the quantile approximation, and hence result in more
+            unequal buckets, but could improve performance
+            and resource consumption.
+        output_mode: Specification for the output of the layer.
+            Values can be `"int"`, `"one_hot"`, `"multi_hot"`, or
+            `"count"` configuring the layer as follows:
+            - `"int"`: Return the discretized bin indices directly.
+            - `"one_hot"`: Encodes each individual element in the
+                input into an array the same size as `num_bins`,
+                containing a 1 at the input's bin
+                index. If the last dimension is size 1, will encode on that
+                dimension.  If the last dimension is not size 1,
+                will append a new dimension for the encoded output.
+            - `"multi_hot"`: Encodes each sample in the input into a
+                single array the same size as `num_bins`,
+                containing a 1 for each bin index
+                index present in the sample.
+                Treats the last dimension as the sample
+                dimension, if input shape is `(..., sample_length)`,
+                output shape will be `(..., num_tokens)`.
+            - `"count"`: As `"multi_hot"`, but the int array contains
+                a count of the number of times the bin index appeared
+                in the sample.
+            Defaults to `"int"`.
+        sparse: Boolean. Only applicable to `"one_hot"`, `"multi_hot"`,
+            and `"count"` output modes. Only supported with TensorFlow
+            backend. If `True`, returns a `SparseTensor` instead of
+            a dense `Tensor`. Defaults to `False`.
+
+    Examples:
+
+    Discretize float values based on provided buckets.
+    >>> input = np.array([[-1.5, 1.0, 3.4, .5], [0.0, 3.0, 1.3, 0.0]])
+    >>> layer = Discretization(bin_boundaries=[0., 1., 2.])
+    >>> layer(input)
+    array([[0, 2, 3, 1],
+           [1, 3, 2, 1]])
+
+    Discretize float values based on a number of buckets to compute.
+    >>> input = np.array([[-1.5, 1.0, 3.4, .5], [0.0, 3.0, 1.3, 0.0]])
+    >>> layer = Discretization(num_bins=4, epsilon=0.01)
+    >>> layer.adapt(input)
+    >>> layer(input)
+    array([[0, 2, 3, 2],
+           [1, 3, 3, 1]])
+
+[API Signature] bin_boundaries: list, num_bins: integer, epsilon: float, output_mode: string, sparse: string, dtype: dtype, name: string, inputs: tensor
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 15 (broadcasting compatibility for tensor shapes)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ ∀i ∈ [0, if ndim(v_1) ≥ ndim(v_2) then ndim(v_1) − 1 else ndim(v_2) − 1] : ndim(v_1) − i − 1 < 0 ∨ ndim(v_2) − i − 1 < 0 ∨ shape(v_1, ndim(v_1) − i − 1) = 1 ∨ shape(v_2, ndim(v_2) − i − 1) = 1 ∨ shape(v_1, ndim(v_1) − i − 1) = shape(v_2, ndim(v_2) − i − 1)
+
+Rule 16 (shape alignment for matrix multiplication)
+{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) ≥ 2 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, ndim(v_2) − 2)) ∨ (ndim(v_1) ≥ 2 ∧ ndim(v_2) = 1 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, 0))
+
+Rule 2 (v_2 should be a valid dimension of input tensor)
+{v_1 : tensor, v_2 : int} |= −1 × ndim(v_1) ≤ v_2 ∧ v_2 ≤ ndim(v_1) − 1
+
+Rule 21 (primitive type variable should not be zero)
+{v_1 : int ⊎ float} |= v_1 ≠ 0
+
+Rule 6 (last dimension of a tensor matches first dimension of the other)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, 0)
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 3 (epsilon must be strictly positive)
+{v_1 : float} |= v_1 > 0
+Token usage: input=2601, output=190, total=8738
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.keras.layers.Discretization API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+A preprocessing layer which buckets continuous features by ranges.
+
+    This layer will place each element of its input data into one of several
+    contiguous ranges and output an integer index indicating which range each
+    element was placed in.
+
+    **Note:** This layer is safe to use inside a `tf.data` or `grain` pipeline
+    (independently of which backend you're using).
+
+    Input shape:
+        Any array of dimension 2 or higher.
+
+    Output shape:
+        Same as input shape.
+
+    Arguments:
+        bin_boundaries: A list of bin boundaries.
+            The leftmost and rightmost bins
+            will always extend to `-inf` and `inf`,
+            so `bin_boundaries=[0., 1., 2.]`
+            generates bins `(-inf, 0.)`, `[0., 1.)`, `[1., 2.)`,
+            and `[2., +inf)`.
+            If this option is set, `adapt()` should not be called.
+        num_bins: The integer number of bins to compute.
+            If this option is set, `bin_boundaries` should not be set and
+            `adapt()` should be called to learn the bin boundaries.
+        epsilon: Error tolerance, typically a small fraction
+            close to zero (e.g. 0.01). Higher values of epsilon increase
+            the quantile approximation, and hence result in more
+            unequal buckets, but could improve performance
+            and resource consumption.
+        output_mode: Specification for the output of the layer.
+            Values can be `"int"`, `"one_hot"`, `"multi_hot"`, or
+            `"count"` configuring the layer as follows:
+            - `"int"`: Return the discretized bin indices directly.
+            - `"one_hot"`: Encodes each individual element in the
+                input into an array the same size as `num_bins`,
+                containing a 1 at the input's bin
+                index. If the last dimension is size 1, will encode on that
+                dimension.  If the last dimension is not size 1,
+                will append a new dimension for the encoded output.
+            - `"multi_hot"`: Encodes each sample in the input into a
+                single array the same size as `num_bins`,
+                containing a 1 for each bin index
+                index present in the sample.
+                Treats the last dimension as the sample
+                dimension, if input shape is `(..., sample_length)`,
+                output shape will be `(..., num_tokens)`.
+            - `"count"`: As `"multi_hot"`, but the int array contains
+                a count of the number of times the bin index appeared
+                in the sample.
+            Defaults to `"int"`.
+        sparse: Boolean. Only applicable to `"one_hot"`, `"multi_hot"`,
+            and `"count"` output modes. Only supported with TensorFlow
+            backend. If `True`, returns a `SparseTensor` instead of
+            a dense `Tensor`. Defaults to `False`.
+
+    Examples:
+
+    Discretize float values based on provided buckets.
+    >>> input = np.array([[-1.5, 1.0, 3.4, .5], [0.0, 3.0, 1.3, 0.0]])
+    >>> layer = Discretization(bin_boundaries=[0., 1., 2.])
+    >>> layer(input)
+    array([[0, 2, 3, 1],
+           [1, 3, 2, 1]])
+
+    Discretize float values based on a number of buckets to compute.
+    >>> input = np.array([[-1.5, 1.0, 3.4, .5], [0.0, 3.0, 1.3, 0.0]])
+    >>> layer = Discretization(num_bins=4, epsilon=0.01)
+    >>> layer.adapt(input)
+    >>> layer(input)
+    array([[0, 2, 3, 2],
+           [1, 3, 3, 1]])
+
+[API Signature] bin_boundaries: list, num_bins: integer, epsilon: float, output_mode: string, sparse: string, dtype: dtype, name: string, inputs: tensor
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 15 (broadcasting compatibility for tensor shapes)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ ∀i ∈ [0, if ndim(v_1) ≥ ndim(v_2) then ndim(v_1) − 1 else ndim(v_2) − 1] : ndim(v_1) − i − 1 < 0 ∨ ndim(v_2) − i − 1 < 0 ∨ shape(v_1, ndim(v_1) − i − 1) = 1 ∨ shape(v_2, ndim(v_2) − i − 1) = 1 ∨ shape(v_1, ndim(v_1) − i − 1) = shape(v_2, ndim(v_2) − i − 1)
+
+Rule 16 (shape alignment for matrix multiplication)
+{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) ≥ 2 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, ndim(v_2) − 2)) ∨ (ndim(v_1) ≥ 2 ∧ ndim(v_2) = 1 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, 0))
+
+Rule 2 (v_2 should be a valid dimension of input tensor)
+{v_1 : tensor, v_2 : int} |= −1 × ndim(v_1) ≤ v_2 ∧ v_2 ≤ ndim(v_1) − 1
+
+Rule 21 (primitive type variable should not be zero)
+{v_1 : int ⊎ float} |= v_1 ≠ 0
+
+Rule 6 (last dimension of a tensor matches first dimension of the other)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, 0)
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 4 (bin_boundaries must contain at least one boundary)
+{v_1 : list(int ⊎ float)} |= v_1.len ≥ 1
+Token usage: input=2601, output=190, total=8738
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.keras.layers.Discretization API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+A preprocessing layer which buckets continuous features by ranges.
+
+    This layer will place each element of its input data into one of several
+    contiguous ranges and output an integer index indicating which range each
+    element was placed in.
+
+    **Note:** This layer is safe to use inside a `tf.data` or `grain` pipeline
+    (independently of which backend you're using).
+
+    Input shape:
+        Any array of dimension 2 or higher.
+
+    Output shape:
+        Same as input shape.
+
+    Arguments:
+        bin_boundaries: A list of bin boundaries.
+            The leftmost and rightmost bins
+            will always extend to `-inf` and `inf`,
+            so `bin_boundaries=[0., 1., 2.]`
+            generates bins `(-inf, 0.)`, `[0., 1.)`, `[1., 2.)`,
+            and `[2., +inf)`.
+            If this option is set, `adapt()` should not be called.
+        num_bins: The integer number of bins to compute.
+            If this option is set, `bin_boundaries` should not be set and
+            `adapt()` should be called to learn the bin boundaries.
+        epsilon: Error tolerance, typically a small fraction
+            close to zero (e.g. 0.01). Higher values of epsilon increase
+            the quantile approximation, and hence result in more
+            unequal buckets, but could improve performance
+            and resource consumption.
+        output_mode: Specification for the output of the layer.
+            Values can be `"int"`, `"one_hot"`, `"multi_hot"`, or
+            `"count"` configuring the layer as follows:
+            - `"int"`: Return the discretized bin indices directly.
+            - `"one_hot"`: Encodes each individual element in the
+                input into an array the same size as `num_bins`,
+                containing a 1 at the input's bin
+                index. If the last dimension is size 1, will encode on that
+                dimension.  If the last dimension is not size 1,
+                will append a new dimension for the encoded output.
+            - `"multi_hot"`: Encodes each sample in the input into a
+                single array the same size as `num_bins`,
+                containing a 1 for each bin index
+                index present in the sample.
+                Treats the last dimension as the sample
+                dimension, if input shape is `(..., sample_length)`,
+                output shape will be `(..., num_tokens)`.
+            - `"count"`: As `"multi_hot"`, but the int array contains
+                a count of the number of times the bin index appeared
+                in the sample.
+            Defaults to `"int"`.
+        sparse: Boolean. Only applicable to `"one_hot"`, `"multi_hot"`,
+            and `"count"` output modes. Only supported with TensorFlow
+            backend. If `True`, returns a `SparseTensor` instead of
+            a dense `Tensor`. Defaults to `False`.
+
+    Examples:
+
+    Discretize float values based on provided buckets.
+    >>> input = np.array([[-1.5, 1.0, 3.4, .5], [0.0, 3.0, 1.3, 0.0]])
+    >>> layer = Discretization(bin_boundaries=[0., 1., 2.])
+    >>> layer(input)
+    array([[0, 2, 3, 1],
+           [1, 3, 2, 1]])
+
+    Discretize float values based on a number of buckets to compute.
+    >>> input = np.array([[-1.5, 1.0, 3.4, .5], [0.0, 3.0, 1.3, 0.0]])
+    >>> layer = Discretization(num_bins=4, epsilon=0.01)
+    >>> layer.adapt(input)
+    >>> layer(input)
+    array([[0, 2, 3, 2],
+           [1, 3, 3, 1]])
+
+[API Signature] bin_boundaries: list, num_bins: integer, epsilon: float, output_mode: string, sparse: string, dtype: dtype, name: string, inputs: tensor
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 15 (broadcasting compatibility for tensor shapes)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ ∀i ∈ [0, if ndim(v_1) ≥ ndim(v_2) then ndim(v_1) − 1 else ndim(v_2) − 1] : ndim(v_1) − i − 1 < 0 ∨ ndim(v_2) − i − 1 < 0 ∨ shape(v_1, ndim(v_1) − i − 1) = 1 ∨ shape(v_2, ndim(v_2) − i − 1) = 1 ∨ shape(v_1, ndim(v_1) − i − 1) = shape(v_2, ndim(v_2) − i − 1)
+
+Rule 16 (shape alignment for matrix multiplication)
+{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) ≥ 2 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, ndim(v_2) − 2)) ∨ (ndim(v_1) ≥ 2 ∧ ndim(v_2) = 1 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, 0))
+
+Rule 2 (v_2 should be a valid dimension of input tensor)
+{v_1 : tensor, v_2 : int} |= −1 × ndim(v_1) ≤ v_2 ∧ v_2 ≤ ndim(v_1) − 1
+
+Rule 21 (primitive type variable should not be zero)
+{v_1 : int ⊎ float} |= v_1 ≠ 0
+
+Rule 6 (last dimension of a tensor matches first dimension of the other)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, 0)
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 5 (bin_boundaries must be strictly increasing)
+{v_1 : list(int ⊎ float)} |= ∀i ∈ [0, v_1.len - 2] : v_1[i] < v_1[i + 1]
+Token usage: input=2601, output=190, total=8738
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.keras.layers.Discretization API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+A preprocessing layer which buckets continuous features by ranges.
+
+    This layer will place each element of its input data into one of several
+    contiguous ranges and output an integer index indicating which range each
+    element was placed in.
+
+    **Note:** This layer is safe to use inside a `tf.data` or `grain` pipeline
+    (independently of which backend you're using).
+
+    Input shape:
+        Any array of dimension 2 or higher.
+
+    Output shape:
+        Same as input shape.
+
+    Arguments:
+        bin_boundaries: A list of bin boundaries.
+            The leftmost and rightmost bins
+            will always extend to `-inf` and `inf`,
+            so `bin_boundaries=[0., 1., 2.]`
+            generates bins `(-inf, 0.)`, `[0., 1.)`, `[1., 2.)`,
+            and `[2., +inf)`.
+            If this option is set, `adapt()` should not be called.
+        num_bins: The integer number of bins to compute.
+            If this option is set, `bin_boundaries` should not be set and
+            `adapt()` should be called to learn the bin boundaries.
+        epsilon: Error tolerance, typically a small fraction
+            close to zero (e.g. 0.01). Higher values of epsilon increase
+            the quantile approximation, and hence result in more
+            unequal buckets, but could improve performance
+            and resource consumption.
+        output_mode: Specification for the output of the layer.
+            Values can be `"int"`, `"one_hot"`, `"multi_hot"`, or
+            `"count"` configuring the layer as follows:
+            - `"int"`: Return the discretized bin indices directly.
+            - `"one_hot"`: Encodes each individual element in the
+                input into an array the same size as `num_bins`,
+                containing a 1 at the input's bin
+                index. If the last dimension is size 1, will encode on that
+                dimension.  If the last dimension is not size 1,
+                will append a new dimension for the encoded output.
+            - `"multi_hot"`: Encodes each sample in the input into a
+                single array the same size as `num_bins`,
+                containing a 1 for each bin index
+                index present in the sample.
+                Treats the last dimension as the sample
+                dimension, if input shape is `(..., sample_length)`,
+                output shape will be `(..., num_tokens)`.
+            - `"count"`: As `"multi_hot"`, but the int array contains
+                a count of the number of times the bin index appeared
+                in the sample.
+            Defaults to `"int"`.
+        sparse: Boolean. Only applicable to `"one_hot"`, `"multi_hot"`,
+            and `"count"` output modes. Only supported with TensorFlow
+            backend. If `True`, returns a `SparseTensor` instead of
+            a dense `Tensor`. Defaults to `False`.
+
+    Examples:
+
+    Discretize float values based on provided buckets.
+    >>> input = np.array([[-1.5, 1.0, 3.4, .5], [0.0, 3.0, 1.3, 0.0]])
+    >>> layer = Discretization(bin_boundaries=[0., 1., 2.])
+    >>> layer(input)
+    array([[0, 2, 3, 1],
+           [1, 3, 2, 1]])
+
+    Discretize float values based on a number of buckets to compute.
+    >>> input = np.array([[-1.5, 1.0, 3.4, .5], [0.0, 3.0, 1.3, 0.0]])
+    >>> layer = Discretization(num_bins=4, epsilon=0.01)
+    >>> layer.adapt(input)
+    >>> layer(input)
+    array([[0, 2, 3, 2],
+           [1, 3, 3, 1]])
+
+[API Signature] bin_boundaries: list, num_bins: integer, epsilon: float, output_mode: string, sparse: string, dtype: dtype, name: string, inputs: tensor
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 13 (tensor must have a floating-point dtype: 6–8)
+{v1: tensor} |= 6 ≤ dtype(v1) ∧ dtype(v1) ≤ 8
+
+Rule 28 (list of ints used as dimensions/axes, all non-negative and valid for tensor shape)
+{v_1 : tensor, v_2 : list(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 11 (index tensor (v_3) is within the input tensor along the specified dimension)
+{v_1 : tensor, v_2 : int, v_3 : tensor} |= min(v_3) ≥ 0 ∧ max(v_3) ≤ shape(v_1, v_2) − 1
+
+Rule 10 (valid 2D transposed convolution)
+{v_1 : tensor, v_2 : tensor, v_3 : int, v_4 : int} |= ndim(v_1) = 4 ∧ ndim(v_2) = 4 ∧ v_3 ≥ 1 ∧ v_4 ≥ 0 ∧ v_3 × (shape(v_1, 2) − 1) + shape(v_2, 2) − 2 × v_4 > 0 ∧ v_3 × (shape(v_1, 3) − 1) + shape(v_2, 3) − 2 × v_4 > 0
+
+Rule 1 (tensor shapes should be the same)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = shape(v_2, i)
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 6 (dimension of inputs must be 2 or higher)
+{v_1 : tensor} |= ndim(v_1) ≥ 2
+Token usage: input=11244, output=193, total=15179
+** DUPLICATED RULE ** (num_failures: 1)
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.keras.layers.Discretization API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+A preprocessing layer which buckets continuous features by ranges.
+
+    This layer will place each element of its input data into one of several
+    contiguous ranges and output an integer index indicating which range each
+    element was placed in.
+
+    **Note:** This layer is safe to use inside a `tf.data` or `grain` pipeline
+    (independently of which backend you're using).
+
+    Input shape:
+        Any array of dimension 2 or higher.
+
+    Output shape:
+        Same as input shape.
+
+    Arguments:
+        bin_boundaries: A list of bin boundaries.
+            The leftmost and rightmost bins
+            will always extend to `-inf` and `inf`,
+            so `bin_boundaries=[0., 1., 2.]`
+            generates bins `(-inf, 0.)`, `[0., 1.)`, `[1., 2.)`,
+            and `[2., +inf)`.
+            If this option is set, `adapt()` should not be called.
+        num_bins: The integer number of bins to compute.
+            If this option is set, `bin_boundaries` should not be set and
+            `adapt()` should be called to learn the bin boundaries.
+        epsilon: Error tolerance, typically a small fraction
+            close to zero (e.g. 0.01). Higher values of epsilon increase
+            the quantile approximation, and hence result in more
+            unequal buckets, but could improve performance
+            and resource consumption.
+        output_mode: Specification for the output of the layer.
+            Values can be `"int"`, `"one_hot"`, `"multi_hot"`, or
+            `"count"` configuring the layer as follows:
+            - `"int"`: Return the discretized bin indices directly.
+            - `"one_hot"`: Encodes each individual element in the
+                input into an array the same size as `num_bins`,
+                containing a 1 at the input's bin
+                index. If the last dimension is size 1, will encode on that
+                dimension.  If the last dimension is not size 1,
+                will append a new dimension for the encoded output.
+            - `"multi_hot"`: Encodes each sample in the input into a
+                single array the same size as `num_bins`,
+                containing a 1 for each bin index
+                index present in the sample.
+                Treats the last dimension as the sample
+                dimension, if input shape is `(..., sample_length)`,
+                output shape will be `(..., num_tokens)`.
+            - `"count"`: As `"multi_hot"`, but the int array contains
+                a count of the number of times the bin index appeared
+                in the sample.
+            Defaults to `"int"`.
+        sparse: Boolean. Only applicable to `"one_hot"`, `"multi_hot"`,
+            and `"count"` output modes. Only supported with TensorFlow
+            backend. If `True`, returns a `SparseTensor` instead of
+            a dense `Tensor`. Defaults to `False`.
+
+    Examples:
+
+    Discretize float values based on provided buckets.
+    >>> input = np.array([[-1.5, 1.0, 3.4, .5], [0.0, 3.0, 1.3, 0.0]])
+    >>> layer = Discretization(bin_boundaries=[0., 1., 2.])
+    >>> layer(input)
+    array([[0, 2, 3, 1],
+           [1, 3, 2, 1]])
+
+    Discretize float values based on a number of buckets to compute.
+    >>> input = np.array([[-1.5, 1.0, 3.4, .5], [0.0, 3.0, 1.3, 0.0]])
+    >>> layer = Discretization(num_bins=4, epsilon=0.01)
+    >>> layer.adapt(input)
+    >>> layer(input)
+    array([[0, 2, 3, 2],
+           [1, 3, 3, 1]])
+
+[API Signature] bin_boundaries: list, num_bins: integer, epsilon: float, output_mode: string, sparse: string, dtype: dtype, name: string, inputs: tensor
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 13 (tensor must have a floating-point dtype: 6–8)
+{v1: tensor} |= 6 ≤ dtype(v1) ∧ dtype(v1) ≤ 8
+
+Rule 28 (list of ints used as dimensions/axes, all non-negative and valid for tensor shape)
+{v_1 : tensor, v_2 : list(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 11 (index tensor (v_3) is within the input tensor along the specified dimension)
+{v_1 : tensor, v_2 : int, v_3 : tensor} |= min(v_3) ≥ 0 ∧ max(v_3) ≤ shape(v_1, v_2) − 1
+
+Rule 10 (valid 2D transposed convolution)
+{v_1 : tensor, v_2 : tensor, v_3 : int, v_4 : int} |= ndim(v_1) = 4 ∧ ndim(v_2) = 4 ∧ v_3 ≥ 1 ∧ v_4 ≥ 0 ∧ v_3 × (shape(v_1, 2) − 1) + shape(v_2, 2) − 2 × v_4 > 0 ∧ v_3 × (shape(v_1, 3) − 1) + shape(v_2, 3) − 2 × v_4 > 0
+
+Rule 1 (tensor shapes should be the same)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = shape(v_2, i)
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 7 (input tensor must have a floating-point dtype)
+{v_1 : tensor} |= 6 ≤ dtype_(v_1) ∧ dtype_(v_1) ≤ 8
+Token usage: input=11244, output=193, total=15179
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.keras.layers.Discretization API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+A preprocessing layer which buckets continuous features by ranges.
+
+    This layer will place each element of its input data into one of several
+    contiguous ranges and output an integer index indicating which range each
+    element was placed in.
+
+    **Note:** This layer is safe to use inside a `tf.data` or `grain` pipeline
+    (independently of which backend you're using).
+
+    Input shape:
+        Any array of dimension 2 or higher.
+
+    Output shape:
+        Same as input shape.
+
+    Arguments:
+        bin_boundaries: A list of bin boundaries.
+            The leftmost and rightmost bins
+            will always extend to `-inf` and `inf`,
+            so `bin_boundaries=[0., 1., 2.]`
+            generates bins `(-inf, 0.)`, `[0., 1.)`, `[1., 2.)`,
+            and `[2., +inf)`.
+            If this option is set, `adapt()` should not be called.
+        num_bins: The integer number of bins to compute.
+            If this option is set, `bin_boundaries` should not be set and
+            `adapt()` should be called to learn the bin boundaries.
+        epsilon: Error tolerance, typically a small fraction
+            close to zero (e.g. 0.01). Higher values of epsilon increase
+            the quantile approximation, and hence result in more
+            unequal buckets, but could improve performance
+            and resource consumption.
+        output_mode: Specification for the output of the layer.
+            Values can be `"int"`, `"one_hot"`, `"multi_hot"`, or
+            `"count"` configuring the layer as follows:
+            - `"int"`: Return the discretized bin indices directly.
+            - `"one_hot"`: Encodes each individual element in the
+                input into an array the same size as `num_bins`,
+                containing a 1 at the input's bin
+                index. If the last dimension is size 1, will encode on that
+                dimension.  If the last dimension is not size 1,
+                will append a new dimension for the encoded output.
+            - `"multi_hot"`: Encodes each sample in the input into a
+                single array the same size as `num_bins`,
+                containing a 1 for each bin index
+                index present in the sample.
+                Treats the last dimension as the sample
+                dimension, if input shape is `(..., sample_length)`,
+                output shape will be `(..., num_tokens)`.
+            - `"count"`: As `"multi_hot"`, but the int array contains
+                a count of the number of times the bin index appeared
+                in the sample.
+            Defaults to `"int"`.
+        sparse: Boolean. Only applicable to `"one_hot"`, `"multi_hot"`,
+            and `"count"` output modes. Only supported with TensorFlow
+            backend. If `True`, returns a `SparseTensor` instead of
+            a dense `Tensor`. Defaults to `False`.
+
+    Examples:
+
+    Discretize float values based on provided buckets.
+    >>> input = np.array([[-1.5, 1.0, 3.4, .5], [0.0, 3.0, 1.3, 0.0]])
+    >>> layer = Discretization(bin_boundaries=[0., 1., 2.])
+    >>> layer(input)
+    array([[0, 2, 3, 1],
+           [1, 3, 2, 1]])
+
+    Discretize float values based on a number of buckets to compute.
+    >>> input = np.array([[-1.5, 1.0, 3.4, .5], [0.0, 3.0, 1.3, 0.0]])
+    >>> layer = Discretization(num_bins=4, epsilon=0.01)
+    >>> layer.adapt(input)
+    >>> layer(input)
+    array([[0, 2, 3, 2],
+           [1, 3, 3, 1]])
+
+[API Signature] bin_boundaries: list, num_bins: integer, epsilon: float, output_mode: string, sparse: string, dtype: dtype, name: string, inputs: tensor
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 13 (tensor must have a floating-point dtype: 6–8)
+{v1: tensor} |= 6 ≤ dtype(v1) ∧ dtype(v1) ≤ 8
+
+Rule 28 (list of ints used as dimensions/axes, all non-negative and valid for tensor shape)
+{v_1 : tensor, v_2 : list(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 11 (index tensor (v_3) is within the input tensor along the specified dimension)
+{v_1 : tensor, v_2 : int, v_3 : tensor} |= min(v_3) ≥ 0 ∧ max(v_3) ≤ shape(v_1, v_2) − 1
+
+Rule 10 (valid 2D transposed convolution)
+{v_1 : tensor, v_2 : tensor, v_3 : int, v_4 : int} |= ndim(v_1) = 4 ∧ ndim(v_2) = 4 ∧ v_3 ≥ 1 ∧ v_4 ≥ 0 ∧ v_3 × (shape(v_1, 2) − 1) + shape(v_2, 2) − 2 × v_4 > 0 ∧ v_3 × (shape(v_1, 3) − 1) + shape(v_2, 3) − 2 × v_4 > 0
+
+Rule 1 (tensor shapes should be the same)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = shape(v_2, i)
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 8 (number of bins must be at least 1)
+{v_1 : int} |= v_1 ≥ 1
+Token usage: input=11244, output=193, total=15179
+** DUPLICATED RULE ** (num_failures: 2)
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.keras.layers.Discretization API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+A preprocessing layer which buckets continuous features by ranges.
+
+    This layer will place each element of its input data into one of several
+    contiguous ranges and output an integer index indicating which range each
+    element was placed in.
+
+    **Note:** This layer is safe to use inside a `tf.data` or `grain` pipeline
+    (independently of which backend you're using).
+
+    Input shape:
+        Any array of dimension 2 or higher.
+
+    Output shape:
+        Same as input shape.
+
+    Arguments:
+        bin_boundaries: A list of bin boundaries.
+            The leftmost and rightmost bins
+            will always extend to `-inf` and `inf`,
+            so `bin_boundaries=[0., 1., 2.]`
+            generates bins `(-inf, 0.)`, `[0., 1.)`, `[1., 2.)`,
+            and `[2., +inf)`.
+            If this option is set, `adapt()` should not be called.
+        num_bins: The integer number of bins to compute.
+            If this option is set, `bin_boundaries` should not be set and
+            `adapt()` should be called to learn the bin boundaries.
+        epsilon: Error tolerance, typically a small fraction
+            close to zero (e.g. 0.01). Higher values of epsilon increase
+            the quantile approximation, and hence result in more
+            unequal buckets, but could improve performance
+            and resource consumption.
+        output_mode: Specification for the output of the layer.
+            Values can be `"int"`, `"one_hot"`, `"multi_hot"`, or
+            `"count"` configuring the layer as follows:
+            - `"int"`: Return the discretized bin indices directly.
+            - `"one_hot"`: Encodes each individual element in the
+                input into an array the same size as `num_bins`,
+                containing a 1 at the input's bin
+                index. If the last dimension is size 1, will encode on that
+                dimension.  If the last dimension is not size 1,
+                will append a new dimension for the encoded output.
+            - `"multi_hot"`: Encodes each sample in the input into a
+                single array the same size as `num_bins`,
+                containing a 1 for each bin index
+                index present in the sample.
+                Treats the last dimension as the sample
+                dimension, if input shape is `(..., sample_length)`,
+                output shape will be `(..., num_tokens)`.
+            - `"count"`: As `"multi_hot"`, but the int array contains
+                a count of the number of times the bin index appeared
+                in the sample.
+            Defaults to `"int"`.
+        sparse: Boolean. Only applicable to `"one_hot"`, `"multi_hot"`,
+            and `"count"` output modes. Only supported with TensorFlow
+            backend. If `True`, returns a `SparseTensor` instead of
+            a dense `Tensor`. Defaults to `False`.
+
+    Examples:
+
+    Discretize float values based on provided buckets.
+    >>> input = np.array([[-1.5, 1.0, 3.4, .5], [0.0, 3.0, 1.3, 0.0]])
+    >>> layer = Discretization(bin_boundaries=[0., 1., 2.])
+    >>> layer(input)
+    array([[0, 2, 3, 1],
+           [1, 3, 2, 1]])
+
+    Discretize float values based on a number of buckets to compute.
+    >>> input = np.array([[-1.5, 1.0, 3.4, .5], [0.0, 3.0, 1.3, 0.0]])
+    >>> layer = Discretization(num_bins=4, epsilon=0.01)
+    >>> layer.adapt(input)
+    >>> layer(input)
+    array([[0, 2, 3, 2],
+           [1, 3, 3, 1]])
+
+[API Signature] bin_boundaries: list, num_bins: integer, epsilon: float, output_mode: string, sparse: string, dtype: dtype, name: string, inputs: tensor
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 13 (tensor must have a floating-point dtype: 6–8)
+{v1: tensor} |= 6 ≤ dtype(v1) ∧ dtype(v1) ≤ 8
+
+Rule 28 (list of ints used as dimensions/axes, all non-negative and valid for tensor shape)
+{v_1 : tensor, v_2 : list(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 11 (index tensor (v_3) is within the input tensor along the specified dimension)
+{v_1 : tensor, v_2 : int, v_3 : tensor} |= min(v_3) ≥ 0 ∧ max(v_3) ≤ shape(v_1, v_2) − 1
+
+Rule 10 (valid 2D transposed convolution)
+{v_1 : tensor, v_2 : tensor, v_3 : int, v_4 : int} |= ndim(v_1) = 4 ∧ ndim(v_2) = 4 ∧ v_3 ≥ 1 ∧ v_4 ≥ 0 ∧ v_3 × (shape(v_1, 2) − 1) + shape(v_2, 2) − 2 × v_4 > 0 ∧ v_3 × (shape(v_1, 3) − 1) + shape(v_2, 3) − 2 × v_4 > 0
+
+Rule 1 (tensor shapes should be the same)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = shape(v_2, i)
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 9 (epsilon must be strictly positive)
+{v_1 : float} |= v_1 > 0
+Token usage: input=11244, output=193, total=15179
+** DUPLICATED RULE ** (num_failures: 3)
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.keras.layers.Discretization API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+A preprocessing layer which buckets continuous features by ranges.
+
+    This layer will place each element of its input data into one of several
+    contiguous ranges and output an integer index indicating which range each
+    element was placed in.
+
+    **Note:** This layer is safe to use inside a `tf.data` or `grain` pipeline
+    (independently of which backend you're using).
+
+    Input shape:
+        Any array of dimension 2 or higher.
+
+    Output shape:
+        Same as input shape.
+
+    Arguments:
+        bin_boundaries: A list of bin boundaries.
+            The leftmost and rightmost bins
+            will always extend to `-inf` and `inf`,
+            so `bin_boundaries=[0., 1., 2.]`
+            generates bins `(-inf, 0.)`, `[0., 1.)`, `[1., 2.)`,
+            and `[2., +inf)`.
+            If this option is set, `adapt()` should not be called.
+        num_bins: The integer number of bins to compute.
+            If this option is set, `bin_boundaries` should not be set and
+            `adapt()` should be called to learn the bin boundaries.
+        epsilon: Error tolerance, typically a small fraction
+            close to zero (e.g. 0.01). Higher values of epsilon increase
+            the quantile approximation, and hence result in more
+            unequal buckets, but could improve performance
+            and resource consumption.
+        output_mode: Specification for the output of the layer.
+            Values can be `"int"`, `"one_hot"`, `"multi_hot"`, or
+            `"count"` configuring the layer as follows:
+            - `"int"`: Return the discretized bin indices directly.
+            - `"one_hot"`: Encodes each individual element in the
+                input into an array the same size as `num_bins`,
+                containing a 1 at the input's bin
+                index. If the last dimension is size 1, will encode on that
+                dimension.  If the last dimension is not size 1,
+                will append a new dimension for the encoded output.
+            - `"multi_hot"`: Encodes each sample in the input into a
+                single array the same size as `num_bins`,
+                containing a 1 for each bin index
+                index present in the sample.
+                Treats the last dimension as the sample
+                dimension, if input shape is `(..., sample_length)`,
+                output shape will be `(..., num_tokens)`.
+            - `"count"`: As `"multi_hot"`, but the int array contains
+                a count of the number of times the bin index appeared
+                in the sample.
+            Defaults to `"int"`.
+        sparse: Boolean. Only applicable to `"one_hot"`, `"multi_hot"`,
+            and `"count"` output modes. Only supported with TensorFlow
+            backend. If `True`, returns a `SparseTensor` instead of
+            a dense `Tensor`. Defaults to `False`.
+
+    Examples:
+
+    Discretize float values based on provided buckets.
+    >>> input = np.array([[-1.5, 1.0, 3.4, .5], [0.0, 3.0, 1.3, 0.0]])
+    >>> layer = Discretization(bin_boundaries=[0., 1., 2.])
+    >>> layer(input)
+    array([[0, 2, 3, 1],
+           [1, 3, 2, 1]])
+
+    Discretize float values based on a number of buckets to compute.
+    >>> input = np.array([[-1.5, 1.0, 3.4, .5], [0.0, 3.0, 1.3, 0.0]])
+    >>> layer = Discretization(num_bins=4, epsilon=0.01)
+    >>> layer.adapt(input)
+    >>> layer(input)
+    array([[0, 2, 3, 2],
+           [1, 3, 3, 1]])
+
+[API Signature] bin_boundaries: list, num_bins: integer, epsilon: float, output_mode: string, sparse: string, dtype: dtype, name: string, inputs: tensor
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 13 (tensor must have a floating-point dtype: 6–8)
+{v1: tensor} |= 6 ≤ dtype(v1) ∧ dtype(v1) ≤ 8
+
+Rule 28 (list of ints used as dimensions/axes, all non-negative and valid for tensor shape)
+{v_1 : tensor, v_2 : list(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 11 (index tensor (v_3) is within the input tensor along the specified dimension)
+{v_1 : tensor, v_2 : int, v_3 : tensor} |= min(v_3) ≥ 0 ∧ max(v_3) ≤ shape(v_1, v_2) − 1
+
+Rule 10 (valid 2D transposed convolution)
+{v_1 : tensor, v_2 : tensor, v_3 : int, v_4 : int} |= ndim(v_1) = 4 ∧ ndim(v_2) = 4 ∧ v_3 ≥ 1 ∧ v_4 ≥ 0 ∧ v_3 × (shape(v_1, 2) − 1) + shape(v_2, 2) − 2 × v_4 > 0 ∧ v_3 × (shape(v_1, 3) − 1) + shape(v_2, 3) − 2 × v_4 > 0
+
+Rule 1 (tensor shapes should be the same)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = shape(v_2, i)
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 10 (bin boundaries must be strictly increasing)
+{v_1 : list(float ⊎ int)} |= ∀i ∈ [0, v_1.len - 2] : v_1[i] < v_1[i + 1]
+Token usage: input=11244, output=193, total=15179
+** SUCCESS **
+
+>>> PROMPT
+[Feedback Message from Prior Run]
+Duplicated rule: {v_1 : tensor} |= ndim(v_1) ≥ 2
+Duplicated rule: {v_1 : int} |= v_1 ≥ 1
+Duplicated rule: {v_1 : float} |= v_1 > 0
+
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.keras.layers.Discretization API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+A preprocessing layer which buckets continuous features by ranges.
+
+    This layer will place each element of its input data into one of several
+    contiguous ranges and output an integer index indicating which range each
+    element was placed in.
+
+    **Note:** This layer is safe to use inside a `tf.data` or `grain` pipeline
+    (independently of which backend you're using).
+
+    Input shape:
+        Any array of dimension 2 or higher.
+
+    Output shape:
+        Same as input shape.
+
+    Arguments:
+        bin_boundaries: A list of bin boundaries.
+            The leftmost and rightmost bins
+            will always extend to `-inf` and `inf`,
+            so `bin_boundaries=[0., 1., 2.]`
+            generates bins `(-inf, 0.)`, `[0., 1.)`, `[1., 2.)`,
+            and `[2., +inf)`.
+            If this option is set, `adapt()` should not be called.
+        num_bins: The integer number of bins to compute.
+            If this option is set, `bin_boundaries` should not be set and
+            `adapt()` should be called to learn the bin boundaries.
+        epsilon: Error tolerance, typically a small fraction
+            close to zero (e.g. 0.01). Higher values of epsilon increase
+            the quantile approximation, and hence result in more
+            unequal buckets, but could improve performance
+            and resource consumption.
+        output_mode: Specification for the output of the layer.
+            Values can be `"int"`, `"one_hot"`, `"multi_hot"`, or
+            `"count"` configuring the layer as follows:
+            - `"int"`: Return the discretized bin indices directly.
+            - `"one_hot"`: Encodes each individual element in the
+                input into an array the same size as `num_bins`,
+                containing a 1 at the input's bin
+                index. If the last dimension is size 1, will encode on that
+                dimension.  If the last dimension is not size 1,
+                will append a new dimension for the encoded output.
+            - `"multi_hot"`: Encodes each sample in the input into a
+                single array the same size as `num_bins`,
+                containing a 1 for each bin index
+                index present in the sample.
+                Treats the last dimension as the sample
+                dimension, if input shape is `(..., sample_length)`,
+                output shape will be `(..., num_tokens)`.
+            - `"count"`: As `"multi_hot"`, but the int array contains
+                a count of the number of times the bin index appeared
+                in the sample.
+            Defaults to `"int"`.
+        sparse: Boolean. Only applicable to `"one_hot"`, `"multi_hot"`,
+            and `"count"` output modes. Only supported with TensorFlow
+            backend. If `True`, returns a `SparseTensor` instead of
+            a dense `Tensor`. Defaults to `False`.
+
+    Examples:
+
+    Discretize float values based on provided buckets.
+    >>> input = np.array([[-1.5, 1.0, 3.4, .5], [0.0, 3.0, 1.3, 0.0]])
+    >>> layer = Discretization(bin_boundaries=[0., 1., 2.])
+    >>> layer(input)
+    array([[0, 2, 3, 1],
+           [1, 3, 2, 1]])
+
+    Discretize float values based on a number of buckets to compute.
+    >>> input = np.array([[-1.5, 1.0, 3.4, .5], [0.0, 3.0, 1.3, 0.0]])
+    >>> layer = Discretization(num_bins=4, epsilon=0.01)
+    >>> layer.adapt(input)
+    >>> layer(input)
+    array([[0, 2, 3, 2],
+           [1, 3, 3, 1]])
+
+[API Signature] bin_boundaries: list, num_bins: integer, epsilon: float, output_mode: string, sparse: string, dtype: dtype, name: string, inputs: tensor
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 1 (tensor shapes should be the same)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = shape(v_2, i)
+
+Rule 5 (index tensor (v_2) should be within the range of input tensor)
+{v_1 : tensor, v_2 : tensor} |= min(v_2) ≥ 0 ∧ ∀i ∈ [0, ndim(v_1) − 1] : max(v_2) ≤ shape(v_1, i) − 1
+
+Rule 10 (valid 2D transposed convolution)
+{v_1 : tensor, v_2 : tensor, v_3 : int, v_4 : int} |= ndim(v_1) = 4 ∧ ndim(v_2) = 4 ∧ v_3 ≥ 1 ∧ v_4 ≥ 0 ∧ v_3 × (shape(v_1, 2) − 1) + shape(v_2, 2) − 2 × v_4 > 0 ∧ v_3 × (shape(v_1, 3) − 1) + shape(v_2, 3) − 2 × v_4 > 0
+
+Rule 4 (tensor data types should match)
+{v_1 : tensor, v_2 : tensor} |= dtype(v_1) = dtype(v_2)
+
+Rule 18 (input tensor is empty or only contains non-negative values)
+{v_1 : tensor} |= (∃i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = 0) ∨ min(v_1) ≥ 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 11 (input tensor must be at least 2D and have non-empty dimensions)
+{v_1 : tensor} |= ndim(v_1) ≥ 2 ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
+Token usage: input=17739, output=264, total=22773
+** SUCCESS **
+
+>>> PROMPT
+[Feedback Message from Prior Run]
+Duplicated rule: {v_1 : tensor} |= ndim(v_1) ≥ 2
+Duplicated rule: {v_1 : int} |= v_1 ≥ 1
+Duplicated rule: {v_1 : float} |= v_1 > 0
+
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.keras.layers.Discretization API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+A preprocessing layer which buckets continuous features by ranges.
+
+    This layer will place each element of its input data into one of several
+    contiguous ranges and output an integer index indicating which range each
+    element was placed in.
+
+    **Note:** This layer is safe to use inside a `tf.data` or `grain` pipeline
+    (independently of which backend you're using).
+
+    Input shape:
+        Any array of dimension 2 or higher.
+
+    Output shape:
+        Same as input shape.
+
+    Arguments:
+        bin_boundaries: A list of bin boundaries.
+            The leftmost and rightmost bins
+            will always extend to `-inf` and `inf`,
+            so `bin_boundaries=[0., 1., 2.]`
+            generates bins `(-inf, 0.)`, `[0., 1.)`, `[1., 2.)`,
+            and `[2., +inf)`.
+            If this option is set, `adapt()` should not be called.
+        num_bins: The integer number of bins to compute.
+            If this option is set, `bin_boundaries` should not be set and
+            `adapt()` should be called to learn the bin boundaries.
+        epsilon: Error tolerance, typically a small fraction
+            close to zero (e.g. 0.01). Higher values of epsilon increase
+            the quantile approximation, and hence result in more
+            unequal buckets, but could improve performance
+            and resource consumption.
+        output_mode: Specification for the output of the layer.
+            Values can be `"int"`, `"one_hot"`, `"multi_hot"`, or
+            `"count"` configuring the layer as follows:
+            - `"int"`: Return the discretized bin indices directly.
+            - `"one_hot"`: Encodes each individual element in the
+                input into an array the same size as `num_bins`,
+                containing a 1 at the input's bin
+                index. If the last dimension is size 1, will encode on that
+                dimension.  If the last dimension is not size 1,
+                will append a new dimension for the encoded output.
+            - `"multi_hot"`: Encodes each sample in the input into a
+                single array the same size as `num_bins`,
+                containing a 1 for each bin index
+                index present in the sample.
+                Treats the last dimension as the sample
+                dimension, if input shape is `(..., sample_length)`,
+                output shape will be `(..., num_tokens)`.
+            - `"count"`: As `"multi_hot"`, but the int array contains
+                a count of the number of times the bin index appeared
+                in the sample.
+            Defaults to `"int"`.
+        sparse: Boolean. Only applicable to `"one_hot"`, `"multi_hot"`,
+            and `"count"` output modes. Only supported with TensorFlow
+            backend. If `True`, returns a `SparseTensor` instead of
+            a dense `Tensor`. Defaults to `False`.
+
+    Examples:
+
+    Discretize float values based on provided buckets.
+    >>> input = np.array([[-1.5, 1.0, 3.4, .5], [0.0, 3.0, 1.3, 0.0]])
+    >>> layer = Discretization(bin_boundaries=[0., 1., 2.])
+    >>> layer(input)
+    array([[0, 2, 3, 1],
+           [1, 3, 2, 1]])
+
+    Discretize float values based on a number of buckets to compute.
+    >>> input = np.array([[-1.5, 1.0, 3.4, .5], [0.0, 3.0, 1.3, 0.0]])
+    >>> layer = Discretization(num_bins=4, epsilon=0.01)
+    >>> layer.adapt(input)
+    >>> layer(input)
+    array([[0, 2, 3, 2],
+           [1, 3, 3, 1]])
+
+[API Signature] bin_boundaries: list, num_bins: integer, epsilon: float, output_mode: string, sparse: string, dtype: dtype, name: string, inputs: tensor
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 1 (tensor shapes should be the same)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = shape(v_2, i)
+
+Rule 5 (index tensor (v_2) should be within the range of input tensor)
+{v_1 : tensor, v_2 : tensor} |= min(v_2) ≥ 0 ∧ ∀i ∈ [0, ndim(v_1) − 1] : max(v_2) ≤ shape(v_1, i) − 1
+
+Rule 10 (valid 2D transposed convolution)
+{v_1 : tensor, v_2 : tensor, v_3 : int, v_4 : int} |= ndim(v_1) = 4 ∧ ndim(v_2) = 4 ∧ v_3 ≥ 1 ∧ v_4 ≥ 0 ∧ v_3 × (shape(v_1, 2) − 1) + shape(v_2, 2) − 2 × v_4 > 0 ∧ v_3 × (shape(v_1, 3) − 1) + shape(v_2, 3) − 2 × v_4 > 0
+
+Rule 4 (tensor data types should match)
+{v_1 : tensor, v_2 : tensor} |= dtype(v_1) = dtype(v_2)
+
+Rule 18 (input tensor is empty or only contains non-negative values)
+{v_1 : tensor} |= (∃i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = 0) ∨ min(v_1) ≥ 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 12 (input tensor must have a floating-point data type)
+{v_1 : tensor} |= dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8
+Token usage: input=17739, output=264, total=22773
+** SUCCESS **
+
+>>> PROMPT
+[Feedback Message from Prior Run]
+Duplicated rule: {v_1 : tensor} |= ndim(v_1) ≥ 2
+Duplicated rule: {v_1 : int} |= v_1 ≥ 1
+Duplicated rule: {v_1 : float} |= v_1 > 0
+
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.keras.layers.Discretization API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+A preprocessing layer which buckets continuous features by ranges.
+
+    This layer will place each element of its input data into one of several
+    contiguous ranges and output an integer index indicating which range each
+    element was placed in.
+
+    **Note:** This layer is safe to use inside a `tf.data` or `grain` pipeline
+    (independently of which backend you're using).
+
+    Input shape:
+        Any array of dimension 2 or higher.
+
+    Output shape:
+        Same as input shape.
+
+    Arguments:
+        bin_boundaries: A list of bin boundaries.
+            The leftmost and rightmost bins
+            will always extend to `-inf` and `inf`,
+            so `bin_boundaries=[0., 1., 2.]`
+            generates bins `(-inf, 0.)`, `[0., 1.)`, `[1., 2.)`,
+            and `[2., +inf)`.
+            If this option is set, `adapt()` should not be called.
+        num_bins: The integer number of bins to compute.
+            If this option is set, `bin_boundaries` should not be set and
+            `adapt()` should be called to learn the bin boundaries.
+        epsilon: Error tolerance, typically a small fraction
+            close to zero (e.g. 0.01). Higher values of epsilon increase
+            the quantile approximation, and hence result in more
+            unequal buckets, but could improve performance
+            and resource consumption.
+        output_mode: Specification for the output of the layer.
+            Values can be `"int"`, `"one_hot"`, `"multi_hot"`, or
+            `"count"` configuring the layer as follows:
+            - `"int"`: Return the discretized bin indices directly.
+            - `"one_hot"`: Encodes each individual element in the
+                input into an array the same size as `num_bins`,
+                containing a 1 at the input's bin
+                index. If the last dimension is size 1, will encode on that
+                dimension.  If the last dimension is not size 1,
+                will append a new dimension for the encoded output.
+            - `"multi_hot"`: Encodes each sample in the input into a
+                single array the same size as `num_bins`,
+                containing a 1 for each bin index
+                index present in the sample.
+                Treats the last dimension as the sample
+                dimension, if input shape is `(..., sample_length)`,
+                output shape will be `(..., num_tokens)`.
+            - `"count"`: As `"multi_hot"`, but the int array contains
+                a count of the number of times the bin index appeared
+                in the sample.
+            Defaults to `"int"`.
+        sparse: Boolean. Only applicable to `"one_hot"`, `"multi_hot"`,
+            and `"count"` output modes. Only supported with TensorFlow
+            backend. If `True`, returns a `SparseTensor` instead of
+            a dense `Tensor`. Defaults to `False`.
+
+    Examples:
+
+    Discretize float values based on provided buckets.
+    >>> input = np.array([[-1.5, 1.0, 3.4, .5], [0.0, 3.0, 1.3, 0.0]])
+    >>> layer = Discretization(bin_boundaries=[0., 1., 2.])
+    >>> layer(input)
+    array([[0, 2, 3, 1],
+           [1, 3, 2, 1]])
+
+    Discretize float values based on a number of buckets to compute.
+    >>> input = np.array([[-1.5, 1.0, 3.4, .5], [0.0, 3.0, 1.3, 0.0]])
+    >>> layer = Discretization(num_bins=4, epsilon=0.01)
+    >>> layer.adapt(input)
+    >>> layer(input)
+    array([[0, 2, 3, 2],
+           [1, 3, 3, 1]])
+
+[API Signature] bin_boundaries: list, num_bins: integer, epsilon: float, output_mode: string, sparse: string, dtype: dtype, name: string, inputs: tensor
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 1 (tensor shapes should be the same)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = shape(v_2, i)
+
+Rule 5 (index tensor (v_2) should be within the range of input tensor)
+{v_1 : tensor, v_2 : tensor} |= min(v_2) ≥ 0 ∧ ∀i ∈ [0, ndim(v_1) − 1] : max(v_2) ≤ shape(v_1, i) − 1
+
+Rule 10 (valid 2D transposed convolution)
+{v_1 : tensor, v_2 : tensor, v_3 : int, v_4 : int} |= ndim(v_1) = 4 ∧ ndim(v_2) = 4 ∧ v_3 ≥ 1 ∧ v_4 ≥ 0 ∧ v_3 × (shape(v_1, 2) − 1) + shape(v_2, 2) − 2 × v_4 > 0 ∧ v_3 × (shape(v_1, 3) − 1) + shape(v_2, 3) − 2 × v_4 > 0
+
+Rule 4 (tensor data types should match)
+{v_1 : tensor, v_2 : tensor} |= dtype(v_1) = dtype(v_2)
+
+Rule 18 (input tensor is empty or only contains non-negative values)
+{v_1 : tensor} |= (∃i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = 0) ∨ min(v_1) ≥ 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 13 (number of bins must be strictly greater than 1)
+{v_1 : int} |= v_1 > 1
+Token usage: input=17739, output=264, total=22773
+** SUCCESS **
+
+>>> PROMPT
+[Feedback Message from Prior Run]
+Duplicated rule: {v_1 : tensor} |= ndim(v_1) ≥ 2
+Duplicated rule: {v_1 : int} |= v_1 ≥ 1
+Duplicated rule: {v_1 : float} |= v_1 > 0
+
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.keras.layers.Discretization API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+A preprocessing layer which buckets continuous features by ranges.
+
+    This layer will place each element of its input data into one of several
+    contiguous ranges and output an integer index indicating which range each
+    element was placed in.
+
+    **Note:** This layer is safe to use inside a `tf.data` or `grain` pipeline
+    (independently of which backend you're using).
+
+    Input shape:
+        Any array of dimension 2 or higher.
+
+    Output shape:
+        Same as input shape.
+
+    Arguments:
+        bin_boundaries: A list of bin boundaries.
+            The leftmost and rightmost bins
+            will always extend to `-inf` and `inf`,
+            so `bin_boundaries=[0., 1., 2.]`
+            generates bins `(-inf, 0.)`, `[0., 1.)`, `[1., 2.)`,
+            and `[2., +inf)`.
+            If this option is set, `adapt()` should not be called.
+        num_bins: The integer number of bins to compute.
+            If this option is set, `bin_boundaries` should not be set and
+            `adapt()` should be called to learn the bin boundaries.
+        epsilon: Error tolerance, typically a small fraction
+            close to zero (e.g. 0.01). Higher values of epsilon increase
+            the quantile approximation, and hence result in more
+            unequal buckets, but could improve performance
+            and resource consumption.
+        output_mode: Specification for the output of the layer.
+            Values can be `"int"`, `"one_hot"`, `"multi_hot"`, or
+            `"count"` configuring the layer as follows:
+            - `"int"`: Return the discretized bin indices directly.
+            - `"one_hot"`: Encodes each individual element in the
+                input into an array the same size as `num_bins`,
+                containing a 1 at the input's bin
+                index. If the last dimension is size 1, will encode on that
+                dimension.  If the last dimension is not size 1,
+                will append a new dimension for the encoded output.
+            - `"multi_hot"`: Encodes each sample in the input into a
+                single array the same size as `num_bins`,
+                containing a 1 for each bin index
+                index present in the sample.
+                Treats the last dimension as the sample
+                dimension, if input shape is `(..., sample_length)`,
+                output shape will be `(..., num_tokens)`.
+            - `"count"`: As `"multi_hot"`, but the int array contains
+                a count of the number of times the bin index appeared
+                in the sample.
+            Defaults to `"int"`.
+        sparse: Boolean. Only applicable to `"one_hot"`, `"multi_hot"`,
+            and `"count"` output modes. Only supported with TensorFlow
+            backend. If `True`, returns a `SparseTensor` instead of
+            a dense `Tensor`. Defaults to `False`.
+
+    Examples:
+
+    Discretize float values based on provided buckets.
+    >>> input = np.array([[-1.5, 1.0, 3.4, .5], [0.0, 3.0, 1.3, 0.0]])
+    >>> layer = Discretization(bin_boundaries=[0., 1., 2.])
+    >>> layer(input)
+    array([[0, 2, 3, 1],
+           [1, 3, 2, 1]])
+
+    Discretize float values based on a number of buckets to compute.
+    >>> input = np.array([[-1.5, 1.0, 3.4, .5], [0.0, 3.0, 1.3, 0.0]])
+    >>> layer = Discretization(num_bins=4, epsilon=0.01)
+    >>> layer.adapt(input)
+    >>> layer(input)
+    array([[0, 2, 3, 2],
+           [1, 3, 3, 1]])
+
+[API Signature] bin_boundaries: list, num_bins: integer, epsilon: float, output_mode: string, sparse: string, dtype: dtype, name: string, inputs: tensor
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 1 (tensor shapes should be the same)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = shape(v_2, i)
+
+Rule 5 (index tensor (v_2) should be within the range of input tensor)
+{v_1 : tensor, v_2 : tensor} |= min(v_2) ≥ 0 ∧ ∀i ∈ [0, ndim(v_1) − 1] : max(v_2) ≤ shape(v_1, i) − 1
+
+Rule 10 (valid 2D transposed convolution)
+{v_1 : tensor, v_2 : tensor, v_3 : int, v_4 : int} |= ndim(v_1) = 4 ∧ ndim(v_2) = 4 ∧ v_3 ≥ 1 ∧ v_4 ≥ 0 ∧ v_3 × (shape(v_1, 2) − 1) + shape(v_2, 2) − 2 × v_4 > 0 ∧ v_3 × (shape(v_1, 3) − 1) + shape(v_2, 3) − 2 × v_4 > 0
+
+Rule 4 (tensor data types should match)
+{v_1 : tensor, v_2 : tensor} |= dtype(v_1) = dtype(v_2)
+
+Rule 18 (input tensor is empty or only contains non-negative values)
+{v_1 : tensor} |= (∃i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = 0) ∨ min(v_1) ≥ 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 14 (epsilon error tolerance must be a fraction strictly between 0 and 1)
+{v_1 : float} |= 0.0 < v_1 ∧ v_1 < 1.0
+Token usage: input=17739, output=264, total=22773
+** SUCCESS **
+
+>>> PROMPT
+[Feedback Message from Prior Run]
+Duplicated rule: {v_1 : tensor} |= ndim(v_1) ≥ 2
+Duplicated rule: {v_1 : int} |= v_1 ≥ 1
+Duplicated rule: {v_1 : float} |= v_1 > 0
+
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.keras.layers.Discretization API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+A preprocessing layer which buckets continuous features by ranges.
+
+    This layer will place each element of its input data into one of several
+    contiguous ranges and output an integer index indicating which range each
+    element was placed in.
+
+    **Note:** This layer is safe to use inside a `tf.data` or `grain` pipeline
+    (independently of which backend you're using).
+
+    Input shape:
+        Any array of dimension 2 or higher.
+
+    Output shape:
+        Same as input shape.
+
+    Arguments:
+        bin_boundaries: A list of bin boundaries.
+            The leftmost and rightmost bins
+            will always extend to `-inf` and `inf`,
+            so `bin_boundaries=[0., 1., 2.]`
+            generates bins `(-inf, 0.)`, `[0., 1.)`, `[1., 2.)`,
+            and `[2., +inf)`.
+            If this option is set, `adapt()` should not be called.
+        num_bins: The integer number of bins to compute.
+            If this option is set, `bin_boundaries` should not be set and
+            `adapt()` should be called to learn the bin boundaries.
+        epsilon: Error tolerance, typically a small fraction
+            close to zero (e.g. 0.01). Higher values of epsilon increase
+            the quantile approximation, and hence result in more
+            unequal buckets, but could improve performance
+            and resource consumption.
+        output_mode: Specification for the output of the layer.
+            Values can be `"int"`, `"one_hot"`, `"multi_hot"`, or
+            `"count"` configuring the layer as follows:
+            - `"int"`: Return the discretized bin indices directly.
+            - `"one_hot"`: Encodes each individual element in the
+                input into an array the same size as `num_bins`,
+                containing a 1 at the input's bin
+                index. If the last dimension is size 1, will encode on that
+                dimension.  If the last dimension is not size 1,
+                will append a new dimension for the encoded output.
+            - `"multi_hot"`: Encodes each sample in the input into a
+                single array the same size as `num_bins`,
+                containing a 1 for each bin index
+                index present in the sample.
+                Treats the last dimension as the sample
+                dimension, if input shape is `(..., sample_length)`,
+                output shape will be `(..., num_tokens)`.
+            - `"count"`: As `"multi_hot"`, but the int array contains
+                a count of the number of times the bin index appeared
+                in the sample.
+            Defaults to `"int"`.
+        sparse: Boolean. Only applicable to `"one_hot"`, `"multi_hot"`,
+            and `"count"` output modes. Only supported with TensorFlow
+            backend. If `True`, returns a `SparseTensor` instead of
+            a dense `Tensor`. Defaults to `False`.
+
+    Examples:
+
+    Discretize float values based on provided buckets.
+    >>> input = np.array([[-1.5, 1.0, 3.4, .5], [0.0, 3.0, 1.3, 0.0]])
+    >>> layer = Discretization(bin_boundaries=[0., 1., 2.])
+    >>> layer(input)
+    array([[0, 2, 3, 1],
+           [1, 3, 2, 1]])
+
+    Discretize float values based on a number of buckets to compute.
+    >>> input = np.array([[-1.5, 1.0, 3.4, .5], [0.0, 3.0, 1.3, 0.0]])
+    >>> layer = Discretization(num_bins=4, epsilon=0.01)
+    >>> layer.adapt(input)
+    >>> layer(input)
+    array([[0, 2, 3, 2],
+           [1, 3, 3, 1]])
+
+[API Signature] bin_boundaries: list, num_bins: integer, epsilon: float, output_mode: string, sparse: string, dtype: dtype, name: string, inputs: tensor
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 1 (tensor shapes should be the same)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = shape(v_2, i)
+
+Rule 5 (index tensor (v_2) should be within the range of input tensor)
+{v_1 : tensor, v_2 : tensor} |= min(v_2) ≥ 0 ∧ ∀i ∈ [0, ndim(v_1) − 1] : max(v_2) ≤ shape(v_1, i) − 1
+
+Rule 10 (valid 2D transposed convolution)
+{v_1 : tensor, v_2 : tensor, v_3 : int, v_4 : int} |= ndim(v_1) = 4 ∧ ndim(v_2) = 4 ∧ v_3 ≥ 1 ∧ v_4 ≥ 0 ∧ v_3 × (shape(v_1, 2) − 1) + shape(v_2, 2) − 2 × v_4 > 0 ∧ v_3 × (shape(v_1, 3) − 1) + shape(v_2, 3) − 2 × v_4 > 0
+
+Rule 4 (tensor data types should match)
+{v_1 : tensor, v_2 : tensor} |= dtype(v_1) = dtype(v_2)
+
+Rule 18 (input tensor is empty or only contains non-negative values)
+{v_1 : tensor} |= (∃i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = 0) ∨ min(v_1) ≥ 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 15 (bin boundaries must be strictly increasing)
+{v_1 : list(float ⊎ int)} |= ∀i ∈ [0, v_1.len - 2] : v_1[i] < v_1[i + 1]
+Token usage: input=17739, output=264, total=22773
+** DUPLICATED RULE ** (num_failures: 4)
+

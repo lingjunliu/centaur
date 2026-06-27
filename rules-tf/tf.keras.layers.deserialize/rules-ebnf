@@ -1,0 +1,48 @@
+>>
+Rule 1 (serialized config as a string must not be empty)
+{v_1 : str} |= v_1 ≠ ""
+>>
+Rule 2 (custom object names in the deserialization dictionary must be non-empty strings)
+{v_2 : tuple(str)} |= ∀i ∈ [0, v_2.len - 1] : v_2[i] ≠ ""
+>>
+Rule 3 (config string representing an activation function must be a recognized activation name)
+{v_1 : str} |= v_1 = "relu" ∨ v_1 = "tanh" ∨ v_1 = "sigmoid" ∨ v_1 = "softmax" ∨ v_1 = "elu" ∨ v_1 = "selu" ∨ v_1 = "gelu" ∨ v_1 = "swish" ∨ v_1 = "softplus" ∨ v_1 = "linear" ∨ v_1 = "none"
+>>
+Rule 4 (deserialization sequence of layer configs must not be empty)
+{v_1 : tuple(str)} |= v_1.len > 0
+>>
+Rule 5 (padding parameter in convolution layers must be valid, same, or causal)
+{v_1 : str} |= v_1 = "valid" ∨ v_1 = "same" ∨ v_1 = "causal"
+>>
+Rule 6 (data format parameter must be channels_last or channels_first)
+{v_1 : str} |= v_1 = "channels_last" ∨ v_1 = "channels_first"
+>>
+Rule 7 (input shape dimensions must be positive or -1 for dynamic dimensions)
+{v_1 : tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] > 0 ∨ v_1[i] = -1
+>>
+Rule 8 (number of units in a dense layer must be greater than zero)
+{v_1 : int} |= v_1 > 0
+>>
+Rule 9 (dropout rate must be a float in the range of 0 to 1)
+{v_1 : float} |= 0 ≤ v_1 ∧ v_1 < 1
+>>
+Rule 10 (alpha parameter for LeakyReLU must be a non-negative number)
+{v_1 : int ⊎ float} |= v_1 ≥ 0
+>>
+Rule 11 (if use_bias is true, the bias tensor must be 1-dimensional)
+{v_1 : bool, v_2 : tensor} |= if v_1 = true then ndim(v_2) = 1
+>>
+Rule 12 (output padding in Conv2DTranspose must be strictly less than strides)
+{v_1 : tuple(int), v_2 : tuple(int)} |= v_1.len = v_2.len ∧ (∀i ∈ [0, v_1.len - 1] : 0 ≤ v_1[i] ∧ v_1[i] < v_2[i])
+>>
+Rule 13 (axis parameter of BatchNormalization must be a valid axis index for the input tensor)
+{v_1 : tensor, v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : (0 - ndim(v_1) ≤ v_2[i] ∧ v_2[i] < ndim(v_1))
+>>
+Rule 14 (target shape of Reshape layer must contain at most one -1 dimension and all other dimensions must be positive)
+{v_1 : tuple(int)} |= (∀i ∈ [0, v_1.len - 1] : v_1[i] > 0 ∨ v_1[i] = -1) ∧ (∀i ∈ [0, v_1.len - 1] : (∀j ∈ [0, v_1.len - 1] : (if v_1[i] = -1 ∧ v_1[j] = -1 then i = j)))
+>>
+Rule 15 (momentum and epsilon parameters of BatchNormalization must be within valid numeric ranges)
+{v_1 : float, v_2 : float} |= 0 ≤ v_1 ∧ v_1 ≤ 1 ∧ v_2 > 0
+>>
+Rule 16 (input tensor to integer-indexing layers like Embedding must be of integer data type)
+{v_1 : tensor} |= 1 ≤ dtype_(v_1) ∧ dtype_(v_1) ≤ 5

@@ -1,0 +1,72 @@
+>>
+Rule 1 (The layer represented as a tensor must have a non-negative number of dimensions)
+{v_1 : tensor} |= ndim(v_1) ≥ 0
+>>
+Rule 2 (The serialization format flag must be a boolean)
+{v_1 : bool} |= v_1 = true ∨ v_1 = false
+>>
+Rule 3 (If custom objects are provided as a list of names, they must be non-empty strings)
+{v_1 : list(str)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] ≠ ""
+>>
+Rule 4 (The layer's tensor representation must have a valid data type index)
+{v_1 : tensor} |= 0 ≤ dtype_(v_1) ∧ dtype_(v_1) ≤ 12
+>>
+Rule 5 (If the layer's weights are represented as a list of tensors, the list must not be empty)
+{v_1 : list(tensor)} |= v_1.len > 0
+>>
+Rule 6 (The data type of the layer's weights tensor must be a floating-point or integer type)
+{v_1 : tensor} |= 1 ≤ dtype_(v_1) ∧ dtype_(v_1) ≤ 8
+>>
+Rule 7 (activation parameter must be a valid activation string)
+{v_1 : str} |= v_1 = "relu" ∨ v_1 = "tanh" ∨ v_1 = "sigmoid" ∨ v_1 = "softmax" ∨ v_1 = "elu" ∨ v_1 = "selu" ∨ v_1 = "gelu" ∨ v_1 = "swish" ∨ v_1 = "softplus" ∨ v_1 = "linear"
+>>
+Rule 8 (padding argument must be a valid padding mode string)
+{v_1 : str} |= v_1 = "valid" ∨ v_1 = "same" ∨ v_1 = "causal"
+>>
+Rule 9 (data format must be a valid Keras data format string)
+{v_1 : str} |= v_1 = "channels_last" ∨ v_1 = "channels_first"
+>>
+Rule 10 (reduction mode must be a valid reduction operation string)
+{v_1 : str} |= v_1 = "none" ∨ v_1 = "sum" ∨ v_1 = "max" ∨ v_1 = "min" ∨ v_1 = "prod"
+>>
+Rule 11 (Einsum equation must match one of the supported contraction patterns)
+{v_1 : str} |= v_1 = "ii" ∨ v_1 = "ii->i" ∨ v_1 = "i,j->ij" ∨ v_1 = "bij,bjk->bik" ∨ v_1 = "...ij->...ji" ∨ v_1 = "bn,anm,bm->ba"
+>>
+Rule 12 (kernel size tuple represent valid dimensional shapes)
+{v_1 : tuple(int)} |= v_1.len > 0 ∧ ∀i ∈ [0, v_1.len - 1] : v_1[i] > 0
+>>
+Rule 13 (layer units or filter count must be a positive integer)
+{v_1 : int} |= v_1 > 0
+>>
+Rule 14 (If the data format is channels_first, the input tensor must have a valid channels dimension at index 1)
+{v_1 : str, v_2 : tensor} |= ndim(v_2) > 1 ∧ (if v_1 = "channels_first" then shape(v_2, 1) > 0 else shape(v_2, ndim(v_2) - 1) > 0)
+>>
+Rule 15 (Strides must be 1 along any dimension where the dilation rate is greater than 1)
+{v_1 : tuple(int), v_2 : tuple(int)} |= v_1.len = v_2.len ∧ (∀i ∈ [0, v_1.len - 1] : if v_1[i] > 1 then v_2[i] = 1 else v_2[i] > 0)
+>>
+Rule 16 (Causal padding is only supported for 1D convolutions where the kernel dimension tuple length is 1)
+{v_1 : str, v_2 : tuple(int)} |= if v_1 = "causal" then v_2.len = 1 else v_2.len > 0
+>>
+Rule 17 (Input shape dimensions must be positive integers or -1 representing dynamic sizes)
+{v_1 : tuple(int)} |= v_1.len ≥ 1 ∧ (∀i ∈ [0, v_1.len - 1] : v_1[i] > 0 ∨ v_1[i] = -1)
+>>
+Rule 18 (The layer alpha parameter or scaling coefficient must be within the range 0 to 1)
+{v_1 : int ⊎ float} |= v_1 ≥ 0 ∧ v_1 ≤ 1
+>>
+Rule 19 (Input tensor spatial dimensions must match pooling strides size)
+{v_1 : tensor, v_2 : tuple(int)} |= ndim(v_1) = v_2.len + 2 ∧ ∀i ∈ [0, v_2.len - 1] : v_2[i] > 0
+>>
+Rule 20 (In a 2D convolutional layer, both kernel dimensions and strides must be positive)
+{v_1 : tuple(int), v_2 : tuple(int)} |= v_1.len = 2 ∧ v_2.len = 2 ∧ (∀i ∈ [0, 1] : v_1[i] > 0 ∧ v_2[i] > 0)
+>>
+Rule 21 (Kernel size for 1D convolution must not exceed the spatial dimension of the input tensor)
+{v_1 : tensor, v_2 : int} |= ndim(v_1) = 3 ∧ v_2 > 0 ∧ v_2 ≤ shape(v_1, 1)
+>>
+Rule 22 (Layer regularization rate or dropout rate must be within the range [0, 1))
+{v_1 : int ⊎ float} |= v_1 ≥ 0 ∧ v_1 < 1
+>>
+Rule 23 (Dtype of a mask tensor must be boolean)
+{v_1 : tensor} |= dtype_(v_1) = 0
+>>
+Rule 24 (Constraint on cropping dimensions for 2D cropping layer)
+{v_1 : tuple(int)} |= v_1.len = 4 ∧ (∀i ∈ [0, 3] : v_1[i] ≥ 0)

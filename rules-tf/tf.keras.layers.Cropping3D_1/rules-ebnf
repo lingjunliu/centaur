@@ -1,0 +1,45 @@
+>>
+Rule 1 (input tensor must be 5-dimensional)
+{v_1 : tensor} |= ndim(v_1) = 5
+>>
+Rule 2 (data format must be either channels_last or channels_first)
+{v_1 : str} |= v_1 = "channels_last" ∨ v_1 = "channels_first"
+>>
+Rule 3 (cropping tuple of ints must have length 3 and contain non-negative elements)
+{v_1 : tuple(int)} |= v_1.len = 3 ∧ (∀i ∈ [0, 2] : v_1[i] ≥ 0)
+>>
+Rule 4 (cropping values must be smaller than the input dimensions in channels_last mode)
+{v_1 : tuple(int), v_2 : str, v_3 : tensor} |= if ndim(v_3) = 5 ∧ v_1.len = 3 ∧ v_2 = "channels_last" then shape(v_3, 1) > 2 * v_1[0] ∧ shape(v_3, 2) > 2 * v_1[1] ∧ shape(v_3, 3) > 2 * v_1[2]
+>>
+Rule 5 (cropping values must be smaller than the input dimensions in channels_first mode)
+{v_1 : tuple(int), v_2 : str, v_3 : tensor} |= if ndim(v_3) = 5 ∧ v_1.len = 3 ∧ v_2 = "channels_first" then shape(v_3, 2) > 2 * v_1[0] ∧ shape(v_3, 3) > 2 * v_1[1] ∧ shape(v_3, 4) > 2 * v_1[2]
+>>
+Rule 6 (input tensor dtype should be numeric, ranging from int8 to float64)
+{v_1 : tensor} |= 1 ≤ dtype_(v_1) ∧ dtype_(v_1) ≤ 8
+>>
+Rule 7 (symmetric cropping tuple must only contain non-negative integers)
+{v_1 : tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] ≥ 0
+>>
+Rule 9 (non-symmetric cropping tuple must have a length of 3)
+{v_1 : tuple(tuple(int))} |= v_1.len = 3
+>>
+Rule 10 (input channel dimension must be positive when using channels_last format)
+{v_1 : tensor, v_2 : str} |= if ndim(v_1) = 5 ∧ v_2 = "channels_last" then shape(v_1, 4) > 0
+>>
+Rule 11 (input channel dimension must be positive when using channels_first format)
+{v_1 : tensor, v_2 : str} |= if ndim(v_1) = 5 ∧ v_2 = "channels_first" then shape(v_1, 1) > 0
+>>
+Rule 12 (symmetric crop sizes must be less than half of the corresponding spatial dimensions in channels_last format)
+{v_1 : tuple(int), v_2 : tensor} |= if ndim(v_2) = 5 ∧ v_1.len = 3 then ∀i ∈ [0, 2] : 2 * v_1[i] < shape(v_2, i + 1)
+>>
+Rule 13 (symmetric crop sizes must be less than half of the corresponding spatial dimensions in channels_first format)
+{v_1 : tuple(int), v_2 : tensor} |= if ndim(v_2) = 5 ∧ v_1.len = 3 then ∀i ∈ [0, 2] : 2 * v_1[i] < shape(v_2, i + 2)
+>>
+Rule 14 (all 5 dimensions of the input tensor must be positive)
+{v_1 : tensor} |= ndim(v_1) = 5 ∧ (∀i ∈ [0, 4] : shape(v_1, i) > 0)
+>>
+Rule 15 (input tensor must not have complex or string data types)
+{v_1 : tensor} |= dtype_(v_1) < 9
+>>
+Rule 16 (the sum of the symmetric cropping values must be non-negative)
+{v_1 : tuple(int)} |= if v_1.len = 3 then v_1[0] + v_1[1] + v_1[2] ≥ 0

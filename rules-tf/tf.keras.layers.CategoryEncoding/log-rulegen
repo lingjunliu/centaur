@@ -1,0 +1,2565 @@
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.keras.layers.CategoryEncoding API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+A preprocessing layer which encodes integer features.
+
+    This layer provides options for condensing data into a categorical encoding
+    when the total number of tokens are known in advance. It accepts integer
+    values as inputs, and it outputs a dense or sparse representation of those
+    inputs. For integer inputs where the total number of tokens is not known,
+    use `keras.layers.IntegerLookup` instead.
+
+    **Note:** This layer is safe to use inside a `tf.data` or `grain` pipeline
+    (independently of which backend you're using).
+
+    Examples:
+
+    **One-hot encoding data**
+
+    >>> layer = keras.layers.CategoryEncoding(
+    ...           num_tokens=4, output_mode="one_hot")
+    >>> layer([3, 2, 0, 1])
+    array([[0., 0., 0., 1.],
+            [0., 0., 1., 0.],
+            [1., 0., 0., 0.],
+            [0., 1., 0., 0.]]>
+
+    **Multi-hot encoding data**
+
+    >>> layer = keras.layers.CategoryEncoding(
+    ...           num_tokens=4, output_mode="multi_hot")
+    >>> layer([[0, 1], [0, 0], [1, 2], [3, 1]])
+    array([[1., 1., 0., 0.],
+            [1., 0., 0., 0.],
+            [0., 1., 1., 0.],
+            [0., 1., 0., 1.]]>
+
+    **Using weighted inputs in `"count"` mode**
+
+    >>> layer = keras.layers.CategoryEncoding(
+    ...           num_tokens=4, output_mode="count")
+    >>> count_weights = np.array([[.1, .2], [.1, .1], [.2, .3], [.4, .2]])
+    >>> layer([[0, 1], [0, 0], [1, 2], [3, 1]], count_weights=count_weights)
+      array([[0.1, 0.2, 0. , 0. ],
+             [0.2, 0. , 0. , 0. ],
+             [0. , 0.2, 0.3, 0. ],
+             [0. , 0.2, 0. , 0.4]]>
+
+    Args:
+        num_tokens: The total number of tokens the layer should support. All
+            inputs to the layer must integers in the range `0 <= value <
+            num_tokens`, or an error will be thrown.
+        output_mode: Specification for the output of the layer.
+            Values can be `"one_hot"`, `"multi_hot"` or `"count"`,
+            configuring the layer as follows:
+                - `"one_hot"`: Encodes each individual element in the input
+                    into an array of `num_tokens` size, containing a 1 at the
+                    element index. If the last dimension is size 1, will encode
+                    on that dimension. If the last dimension is not size 1,
+                    will append a new dimension for the encoded output.
+                - `"multi_hot"`: Encodes each sample in the input into a single
+                    array of `num_tokens` size, containing a 1 for each
+                    vocabulary term present in the sample. Treats the last
+                    dimension as the sample dimension, if input shape is
+                    `(..., sample_length)`, output shape will be
+                    `(..., num_tokens)`.
+                - `"count"`: Like `"multi_hot"`, but the int array contains a
+                    count of the number of times the token at that index
+                    appeared in the sample.
+            For all output modes, currently only output up to rank 2 is
+            supported.
+            Defaults to `"multi_hot"`.
+        sparse: Whether to return a sparse tensor; for backends that support
+            sparse tensors.
+
+    Call arguments:
+        inputs: A 1D or 2D tensor of integer inputs.
+        count_weights: A tensor in the same shape as `inputs` indicating the
+            weight for each sample value when summing up in `count` mode.
+            Not used in `"multi_hot"` or `"one_hot"` modes.
+
+[API Signature] num_tokens: integer, output_mode: string, sparse: boolean, inputs: tensor, count_weights: tensor
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 21 (primitive type variable should not be zero)
+{v_1 : int ⊎ float} |= v_1 ≠ 0
+
+Rule 6 (last dimension of a tensor matches first dimension of the other)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, 0)
+
+Rule 19 (compatibility of integer or float (data) type tensor and variable)
+{v1 : tensor, v2 : int ⊎ float} |= if 1 ≤ dtype(v1) ∧ dtype(v1) ≤ 5 then 1 ≤ v2 ∧ v2 ≤ 5 else if 6 ≤ dtype(v1) ∧ dtype(v1) ≤ 8 then 1 ≤ v2 ∧ v2 ≤ 8 else false
+
+Rule 11 (index tensor (v_3) is within the input tensor along the specified dimension)
+{v_1 : tensor, v_2 : int, v_3 : tensor} |= min(v_3) ≥ 0 ∧ max(v_3) ≤ shape(v_1, v_2) − 1
+
+Rule 18 (input tensor is empty or only contains non-negative values)
+{v_1 : tensor} |= (∃i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = 0) ∨ min(v_1) ≥ 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 1 (num_tokens must be positive)
+{v_1 : int} |= v_1 > 0
+Token usage: input=2470, output=260, total=5683
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.keras.layers.CategoryEncoding API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+A preprocessing layer which encodes integer features.
+
+    This layer provides options for condensing data into a categorical encoding
+    when the total number of tokens are known in advance. It accepts integer
+    values as inputs, and it outputs a dense or sparse representation of those
+    inputs. For integer inputs where the total number of tokens is not known,
+    use `keras.layers.IntegerLookup` instead.
+
+    **Note:** This layer is safe to use inside a `tf.data` or `grain` pipeline
+    (independently of which backend you're using).
+
+    Examples:
+
+    **One-hot encoding data**
+
+    >>> layer = keras.layers.CategoryEncoding(
+    ...           num_tokens=4, output_mode="one_hot")
+    >>> layer([3, 2, 0, 1])
+    array([[0., 0., 0., 1.],
+            [0., 0., 1., 0.],
+            [1., 0., 0., 0.],
+            [0., 1., 0., 0.]]>
+
+    **Multi-hot encoding data**
+
+    >>> layer = keras.layers.CategoryEncoding(
+    ...           num_tokens=4, output_mode="multi_hot")
+    >>> layer([[0, 1], [0, 0], [1, 2], [3, 1]])
+    array([[1., 1., 0., 0.],
+            [1., 0., 0., 0.],
+            [0., 1., 1., 0.],
+            [0., 1., 0., 1.]]>
+
+    **Using weighted inputs in `"count"` mode**
+
+    >>> layer = keras.layers.CategoryEncoding(
+    ...           num_tokens=4, output_mode="count")
+    >>> count_weights = np.array([[.1, .2], [.1, .1], [.2, .3], [.4, .2]])
+    >>> layer([[0, 1], [0, 0], [1, 2], [3, 1]], count_weights=count_weights)
+      array([[0.1, 0.2, 0. , 0. ],
+             [0.2, 0. , 0. , 0. ],
+             [0. , 0.2, 0.3, 0. ],
+             [0. , 0.2, 0. , 0.4]]>
+
+    Args:
+        num_tokens: The total number of tokens the layer should support. All
+            inputs to the layer must integers in the range `0 <= value <
+            num_tokens`, or an error will be thrown.
+        output_mode: Specification for the output of the layer.
+            Values can be `"one_hot"`, `"multi_hot"` or `"count"`,
+            configuring the layer as follows:
+                - `"one_hot"`: Encodes each individual element in the input
+                    into an array of `num_tokens` size, containing a 1 at the
+                    element index. If the last dimension is size 1, will encode
+                    on that dimension. If the last dimension is not size 1,
+                    will append a new dimension for the encoded output.
+                - `"multi_hot"`: Encodes each sample in the input into a single
+                    array of `num_tokens` size, containing a 1 for each
+                    vocabulary term present in the sample. Treats the last
+                    dimension as the sample dimension, if input shape is
+                    `(..., sample_length)`, output shape will be
+                    `(..., num_tokens)`.
+                - `"count"`: Like `"multi_hot"`, but the int array contains a
+                    count of the number of times the token at that index
+                    appeared in the sample.
+            For all output modes, currently only output up to rank 2 is
+            supported.
+            Defaults to `"multi_hot"`.
+        sparse: Whether to return a sparse tensor; for backends that support
+            sparse tensors.
+
+    Call arguments:
+        inputs: A 1D or 2D tensor of integer inputs.
+        count_weights: A tensor in the same shape as `inputs` indicating the
+            weight for each sample value when summing up in `count` mode.
+            Not used in `"multi_hot"` or `"one_hot"` modes.
+
+[API Signature] num_tokens: integer, output_mode: string, sparse: boolean, inputs: tensor, count_weights: tensor
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 21 (primitive type variable should not be zero)
+{v_1 : int ⊎ float} |= v_1 ≠ 0
+
+Rule 6 (last dimension of a tensor matches first dimension of the other)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, 0)
+
+Rule 19 (compatibility of integer or float (data) type tensor and variable)
+{v1 : tensor, v2 : int ⊎ float} |= if 1 ≤ dtype(v1) ∧ dtype(v1) ≤ 5 then 1 ≤ v2 ∧ v2 ≤ 5 else if 6 ≤ dtype(v1) ∧ dtype(v1) ≤ 8 then 1 ≤ v2 ∧ v2 ≤ 8 else false
+
+Rule 11 (index tensor (v_3) is within the input tensor along the specified dimension)
+{v_1 : tensor, v_2 : int, v_3 : tensor} |= min(v_3) ≥ 0 ∧ max(v_3) ≤ shape(v_1, v_2) − 1
+
+Rule 18 (input tensor is empty or only contains non-negative values)
+{v_1 : tensor} |= (∃i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = 0) ∨ min(v_1) ≥ 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 2 (inputs tensor must be 1D or 2D)
+{v_1 : tensor} |= ndim(v_1) ≥ 1 ∧ ndim(v_1) ≤ 2
+Token usage: input=2470, output=260, total=5683
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.keras.layers.CategoryEncoding API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+A preprocessing layer which encodes integer features.
+
+    This layer provides options for condensing data into a categorical encoding
+    when the total number of tokens are known in advance. It accepts integer
+    values as inputs, and it outputs a dense or sparse representation of those
+    inputs. For integer inputs where the total number of tokens is not known,
+    use `keras.layers.IntegerLookup` instead.
+
+    **Note:** This layer is safe to use inside a `tf.data` or `grain` pipeline
+    (independently of which backend you're using).
+
+    Examples:
+
+    **One-hot encoding data**
+
+    >>> layer = keras.layers.CategoryEncoding(
+    ...           num_tokens=4, output_mode="one_hot")
+    >>> layer([3, 2, 0, 1])
+    array([[0., 0., 0., 1.],
+            [0., 0., 1., 0.],
+            [1., 0., 0., 0.],
+            [0., 1., 0., 0.]]>
+
+    **Multi-hot encoding data**
+
+    >>> layer = keras.layers.CategoryEncoding(
+    ...           num_tokens=4, output_mode="multi_hot")
+    >>> layer([[0, 1], [0, 0], [1, 2], [3, 1]])
+    array([[1., 1., 0., 0.],
+            [1., 0., 0., 0.],
+            [0., 1., 1., 0.],
+            [0., 1., 0., 1.]]>
+
+    **Using weighted inputs in `"count"` mode**
+
+    >>> layer = keras.layers.CategoryEncoding(
+    ...           num_tokens=4, output_mode="count")
+    >>> count_weights = np.array([[.1, .2], [.1, .1], [.2, .3], [.4, .2]])
+    >>> layer([[0, 1], [0, 0], [1, 2], [3, 1]], count_weights=count_weights)
+      array([[0.1, 0.2, 0. , 0. ],
+             [0.2, 0. , 0. , 0. ],
+             [0. , 0.2, 0.3, 0. ],
+             [0. , 0.2, 0. , 0.4]]>
+
+    Args:
+        num_tokens: The total number of tokens the layer should support. All
+            inputs to the layer must integers in the range `0 <= value <
+            num_tokens`, or an error will be thrown.
+        output_mode: Specification for the output of the layer.
+            Values can be `"one_hot"`, `"multi_hot"` or `"count"`,
+            configuring the layer as follows:
+                - `"one_hot"`: Encodes each individual element in the input
+                    into an array of `num_tokens` size, containing a 1 at the
+                    element index. If the last dimension is size 1, will encode
+                    on that dimension. If the last dimension is not size 1,
+                    will append a new dimension for the encoded output.
+                - `"multi_hot"`: Encodes each sample in the input into a single
+                    array of `num_tokens` size, containing a 1 for each
+                    vocabulary term present in the sample. Treats the last
+                    dimension as the sample dimension, if input shape is
+                    `(..., sample_length)`, output shape will be
+                    `(..., num_tokens)`.
+                - `"count"`: Like `"multi_hot"`, but the int array contains a
+                    count of the number of times the token at that index
+                    appeared in the sample.
+            For all output modes, currently only output up to rank 2 is
+            supported.
+            Defaults to `"multi_hot"`.
+        sparse: Whether to return a sparse tensor; for backends that support
+            sparse tensors.
+
+    Call arguments:
+        inputs: A 1D or 2D tensor of integer inputs.
+        count_weights: A tensor in the same shape as `inputs` indicating the
+            weight for each sample value when summing up in `count` mode.
+            Not used in `"multi_hot"` or `"one_hot"` modes.
+
+[API Signature] num_tokens: integer, output_mode: string, sparse: boolean, inputs: tensor, count_weights: tensor
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 21 (primitive type variable should not be zero)
+{v_1 : int ⊎ float} |= v_1 ≠ 0
+
+Rule 6 (last dimension of a tensor matches first dimension of the other)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, 0)
+
+Rule 19 (compatibility of integer or float (data) type tensor and variable)
+{v1 : tensor, v2 : int ⊎ float} |= if 1 ≤ dtype(v1) ∧ dtype(v1) ≤ 5 then 1 ≤ v2 ∧ v2 ≤ 5 else if 6 ≤ dtype(v1) ∧ dtype(v1) ≤ 8 then 1 ≤ v2 ∧ v2 ≤ 8 else false
+
+Rule 11 (index tensor (v_3) is within the input tensor along the specified dimension)
+{v_1 : tensor, v_2 : int, v_3 : tensor} |= min(v_3) ≥ 0 ∧ max(v_3) ≤ shape(v_1, v_2) − 1
+
+Rule 18 (input tensor is empty or only contains non-negative values)
+{v_1 : tensor} |= (∃i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = 0) ∨ min(v_1) ≥ 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 3 (inputs tensor must have integer data type)
+{v_1 : tensor} |= dtype_(v_1) ≥ 1 ∧ dtype_(v_1) ≤ 5
+Token usage: input=2470, output=260, total=5683
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.keras.layers.CategoryEncoding API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+A preprocessing layer which encodes integer features.
+
+    This layer provides options for condensing data into a categorical encoding
+    when the total number of tokens are known in advance. It accepts integer
+    values as inputs, and it outputs a dense or sparse representation of those
+    inputs. For integer inputs where the total number of tokens is not known,
+    use `keras.layers.IntegerLookup` instead.
+
+    **Note:** This layer is safe to use inside a `tf.data` or `grain` pipeline
+    (independently of which backend you're using).
+
+    Examples:
+
+    **One-hot encoding data**
+
+    >>> layer = keras.layers.CategoryEncoding(
+    ...           num_tokens=4, output_mode="one_hot")
+    >>> layer([3, 2, 0, 1])
+    array([[0., 0., 0., 1.],
+            [0., 0., 1., 0.],
+            [1., 0., 0., 0.],
+            [0., 1., 0., 0.]]>
+
+    **Multi-hot encoding data**
+
+    >>> layer = keras.layers.CategoryEncoding(
+    ...           num_tokens=4, output_mode="multi_hot")
+    >>> layer([[0, 1], [0, 0], [1, 2], [3, 1]])
+    array([[1., 1., 0., 0.],
+            [1., 0., 0., 0.],
+            [0., 1., 1., 0.],
+            [0., 1., 0., 1.]]>
+
+    **Using weighted inputs in `"count"` mode**
+
+    >>> layer = keras.layers.CategoryEncoding(
+    ...           num_tokens=4, output_mode="count")
+    >>> count_weights = np.array([[.1, .2], [.1, .1], [.2, .3], [.4, .2]])
+    >>> layer([[0, 1], [0, 0], [1, 2], [3, 1]], count_weights=count_weights)
+      array([[0.1, 0.2, 0. , 0. ],
+             [0.2, 0. , 0. , 0. ],
+             [0. , 0.2, 0.3, 0. ],
+             [0. , 0.2, 0. , 0.4]]>
+
+    Args:
+        num_tokens: The total number of tokens the layer should support. All
+            inputs to the layer must integers in the range `0 <= value <
+            num_tokens`, or an error will be thrown.
+        output_mode: Specification for the output of the layer.
+            Values can be `"one_hot"`, `"multi_hot"` or `"count"`,
+            configuring the layer as follows:
+                - `"one_hot"`: Encodes each individual element in the input
+                    into an array of `num_tokens` size, containing a 1 at the
+                    element index. If the last dimension is size 1, will encode
+                    on that dimension. If the last dimension is not size 1,
+                    will append a new dimension for the encoded output.
+                - `"multi_hot"`: Encodes each sample in the input into a single
+                    array of `num_tokens` size, containing a 1 for each
+                    vocabulary term present in the sample. Treats the last
+                    dimension as the sample dimension, if input shape is
+                    `(..., sample_length)`, output shape will be
+                    `(..., num_tokens)`.
+                - `"count"`: Like `"multi_hot"`, but the int array contains a
+                    count of the number of times the token at that index
+                    appeared in the sample.
+            For all output modes, currently only output up to rank 2 is
+            supported.
+            Defaults to `"multi_hot"`.
+        sparse: Whether to return a sparse tensor; for backends that support
+            sparse tensors.
+
+    Call arguments:
+        inputs: A 1D or 2D tensor of integer inputs.
+        count_weights: A tensor in the same shape as `inputs` indicating the
+            weight for each sample value when summing up in `count` mode.
+            Not used in `"multi_hot"` or `"one_hot"` modes.
+
+[API Signature] num_tokens: integer, output_mode: string, sparse: boolean, inputs: tensor, count_weights: tensor
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 21 (primitive type variable should not be zero)
+{v_1 : int ⊎ float} |= v_1 ≠ 0
+
+Rule 6 (last dimension of a tensor matches first dimension of the other)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, 0)
+
+Rule 19 (compatibility of integer or float (data) type tensor and variable)
+{v1 : tensor, v2 : int ⊎ float} |= if 1 ≤ dtype(v1) ∧ dtype(v1) ≤ 5 then 1 ≤ v2 ∧ v2 ≤ 5 else if 6 ≤ dtype(v1) ∧ dtype(v1) ≤ 8 then 1 ≤ v2 ∧ v2 ≤ 8 else false
+
+Rule 11 (index tensor (v_3) is within the input tensor along the specified dimension)
+{v_1 : tensor, v_2 : int, v_3 : tensor} |= min(v_3) ≥ 0 ∧ max(v_3) ≤ shape(v_1, v_2) − 1
+
+Rule 18 (input tensor is empty or only contains non-negative values)
+{v_1 : tensor} |= (∃i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = 0) ∨ min(v_1) ≥ 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 4 (all elements in inputs tensor must be non-negative and less than num_tokens)
+{v_1 : tensor, v_2 : int} |= min(v_1) ≥ 0 ∧ max(v_1) < v_2
+Token usage: input=2470, output=260, total=5683
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.keras.layers.CategoryEncoding API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+A preprocessing layer which encodes integer features.
+
+    This layer provides options for condensing data into a categorical encoding
+    when the total number of tokens are known in advance. It accepts integer
+    values as inputs, and it outputs a dense or sparse representation of those
+    inputs. For integer inputs where the total number of tokens is not known,
+    use `keras.layers.IntegerLookup` instead.
+
+    **Note:** This layer is safe to use inside a `tf.data` or `grain` pipeline
+    (independently of which backend you're using).
+
+    Examples:
+
+    **One-hot encoding data**
+
+    >>> layer = keras.layers.CategoryEncoding(
+    ...           num_tokens=4, output_mode="one_hot")
+    >>> layer([3, 2, 0, 1])
+    array([[0., 0., 0., 1.],
+            [0., 0., 1., 0.],
+            [1., 0., 0., 0.],
+            [0., 1., 0., 0.]]>
+
+    **Multi-hot encoding data**
+
+    >>> layer = keras.layers.CategoryEncoding(
+    ...           num_tokens=4, output_mode="multi_hot")
+    >>> layer([[0, 1], [0, 0], [1, 2], [3, 1]])
+    array([[1., 1., 0., 0.],
+            [1., 0., 0., 0.],
+            [0., 1., 1., 0.],
+            [0., 1., 0., 1.]]>
+
+    **Using weighted inputs in `"count"` mode**
+
+    >>> layer = keras.layers.CategoryEncoding(
+    ...           num_tokens=4, output_mode="count")
+    >>> count_weights = np.array([[.1, .2], [.1, .1], [.2, .3], [.4, .2]])
+    >>> layer([[0, 1], [0, 0], [1, 2], [3, 1]], count_weights=count_weights)
+      array([[0.1, 0.2, 0. , 0. ],
+             [0.2, 0. , 0. , 0. ],
+             [0. , 0.2, 0.3, 0. ],
+             [0. , 0.2, 0. , 0.4]]>
+
+    Args:
+        num_tokens: The total number of tokens the layer should support. All
+            inputs to the layer must integers in the range `0 <= value <
+            num_tokens`, or an error will be thrown.
+        output_mode: Specification for the output of the layer.
+            Values can be `"one_hot"`, `"multi_hot"` or `"count"`,
+            configuring the layer as follows:
+                - `"one_hot"`: Encodes each individual element in the input
+                    into an array of `num_tokens` size, containing a 1 at the
+                    element index. If the last dimension is size 1, will encode
+                    on that dimension. If the last dimension is not size 1,
+                    will append a new dimension for the encoded output.
+                - `"multi_hot"`: Encodes each sample in the input into a single
+                    array of `num_tokens` size, containing a 1 for each
+                    vocabulary term present in the sample. Treats the last
+                    dimension as the sample dimension, if input shape is
+                    `(..., sample_length)`, output shape will be
+                    `(..., num_tokens)`.
+                - `"count"`: Like `"multi_hot"`, but the int array contains a
+                    count of the number of times the token at that index
+                    appeared in the sample.
+            For all output modes, currently only output up to rank 2 is
+            supported.
+            Defaults to `"multi_hot"`.
+        sparse: Whether to return a sparse tensor; for backends that support
+            sparse tensors.
+
+    Call arguments:
+        inputs: A 1D or 2D tensor of integer inputs.
+        count_weights: A tensor in the same shape as `inputs` indicating the
+            weight for each sample value when summing up in `count` mode.
+            Not used in `"multi_hot"` or `"one_hot"` modes.
+
+[API Signature] num_tokens: integer, output_mode: string, sparse: boolean, inputs: tensor, count_weights: tensor
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 21 (primitive type variable should not be zero)
+{v_1 : int ⊎ float} |= v_1 ≠ 0
+
+Rule 6 (last dimension of a tensor matches first dimension of the other)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, 0)
+
+Rule 19 (compatibility of integer or float (data) type tensor and variable)
+{v1 : tensor, v2 : int ⊎ float} |= if 1 ≤ dtype(v1) ∧ dtype(v1) ≤ 5 then 1 ≤ v2 ∧ v2 ≤ 5 else if 6 ≤ dtype(v1) ∧ dtype(v1) ≤ 8 then 1 ≤ v2 ∧ v2 ≤ 8 else false
+
+Rule 11 (index tensor (v_3) is within the input tensor along the specified dimension)
+{v_1 : tensor, v_2 : int, v_3 : tensor} |= min(v_3) ≥ 0 ∧ max(v_3) ≤ shape(v_1, v_2) − 1
+
+Rule 18 (input tensor is empty or only contains non-negative values)
+{v_1 : tensor} |= (∃i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = 0) ∨ min(v_1) ≥ 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 5 (count_weights tensor must have the same shape as inputs tensor)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i))
+Token usage: input=2470, output=260, total=5683
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.keras.layers.CategoryEncoding API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+A preprocessing layer which encodes integer features.
+
+    This layer provides options for condensing data into a categorical encoding
+    when the total number of tokens are known in advance. It accepts integer
+    values as inputs, and it outputs a dense or sparse representation of those
+    inputs. For integer inputs where the total number of tokens is not known,
+    use `keras.layers.IntegerLookup` instead.
+
+    **Note:** This layer is safe to use inside a `tf.data` or `grain` pipeline
+    (independently of which backend you're using).
+
+    Examples:
+
+    **One-hot encoding data**
+
+    >>> layer = keras.layers.CategoryEncoding(
+    ...           num_tokens=4, output_mode="one_hot")
+    >>> layer([3, 2, 0, 1])
+    array([[0., 0., 0., 1.],
+            [0., 0., 1., 0.],
+            [1., 0., 0., 0.],
+            [0., 1., 0., 0.]]>
+
+    **Multi-hot encoding data**
+
+    >>> layer = keras.layers.CategoryEncoding(
+    ...           num_tokens=4, output_mode="multi_hot")
+    >>> layer([[0, 1], [0, 0], [1, 2], [3, 1]])
+    array([[1., 1., 0., 0.],
+            [1., 0., 0., 0.],
+            [0., 1., 1., 0.],
+            [0., 1., 0., 1.]]>
+
+    **Using weighted inputs in `"count"` mode**
+
+    >>> layer = keras.layers.CategoryEncoding(
+    ...           num_tokens=4, output_mode="count")
+    >>> count_weights = np.array([[.1, .2], [.1, .1], [.2, .3], [.4, .2]])
+    >>> layer([[0, 1], [0, 0], [1, 2], [3, 1]], count_weights=count_weights)
+      array([[0.1, 0.2, 0. , 0. ],
+             [0.2, 0. , 0. , 0. ],
+             [0. , 0.2, 0.3, 0. ],
+             [0. , 0.2, 0. , 0.4]]>
+
+    Args:
+        num_tokens: The total number of tokens the layer should support. All
+            inputs to the layer must integers in the range `0 <= value <
+            num_tokens`, or an error will be thrown.
+        output_mode: Specification for the output of the layer.
+            Values can be `"one_hot"`, `"multi_hot"` or `"count"`,
+            configuring the layer as follows:
+                - `"one_hot"`: Encodes each individual element in the input
+                    into an array of `num_tokens` size, containing a 1 at the
+                    element index. If the last dimension is size 1, will encode
+                    on that dimension. If the last dimension is not size 1,
+                    will append a new dimension for the encoded output.
+                - `"multi_hot"`: Encodes each sample in the input into a single
+                    array of `num_tokens` size, containing a 1 for each
+                    vocabulary term present in the sample. Treats the last
+                    dimension as the sample dimension, if input shape is
+                    `(..., sample_length)`, output shape will be
+                    `(..., num_tokens)`.
+                - `"count"`: Like `"multi_hot"`, but the int array contains a
+                    count of the number of times the token at that index
+                    appeared in the sample.
+            For all output modes, currently only output up to rank 2 is
+            supported.
+            Defaults to `"multi_hot"`.
+        sparse: Whether to return a sparse tensor; for backends that support
+            sparse tensors.
+
+    Call arguments:
+        inputs: A 1D or 2D tensor of integer inputs.
+        count_weights: A tensor in the same shape as `inputs` indicating the
+            weight for each sample value when summing up in `count` mode.
+            Not used in `"multi_hot"` or `"one_hot"` modes.
+
+[API Signature] num_tokens: integer, output_mode: string, sparse: boolean, inputs: tensor, count_weights: tensor
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 21 (primitive type variable should not be zero)
+{v_1 : int ⊎ float} |= v_1 ≠ 0
+
+Rule 25 (tensor shape matches given tuple shape)
+{v_1 : tensor, v_2 : tuple(int)} |= ndim(v_1) = v_2.len ∧ ∀i ∈ [0, v_2.len - 1] : shape(v_1, i) = v_2[i]
+
+Rule 2 (v_2 should be a valid dimension of input tensor)
+{v_1 : tensor, v_2 : int} |= −1 × ndim(v_1) ≤ v_2 ∧ v_2 ≤ ndim(v_1) − 1
+
+Rule 31 (dtype must be a floating-point type)
+{v_1 : dtype} |= v_1 = 6 ∨ v_1 = 7 ∨ v_1 = 8
+
+Rule 9 (4D tensor with all shape dimensions positive)
+{v_1 : tensor} |= ndim(v_1) = 4 ∧ ∀i ∈ [0, 3] : shape(v_1, i) > 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 6 (num_tokens must be positive)
+{v_1 : int} |= v_1 > 0
+Token usage: input=8063, output=255, total=10173
+** DUPLICATED RULE ** (num_failures: 1)
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.keras.layers.CategoryEncoding API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+A preprocessing layer which encodes integer features.
+
+    This layer provides options for condensing data into a categorical encoding
+    when the total number of tokens are known in advance. It accepts integer
+    values as inputs, and it outputs a dense or sparse representation of those
+    inputs. For integer inputs where the total number of tokens is not known,
+    use `keras.layers.IntegerLookup` instead.
+
+    **Note:** This layer is safe to use inside a `tf.data` or `grain` pipeline
+    (independently of which backend you're using).
+
+    Examples:
+
+    **One-hot encoding data**
+
+    >>> layer = keras.layers.CategoryEncoding(
+    ...           num_tokens=4, output_mode="one_hot")
+    >>> layer([3, 2, 0, 1])
+    array([[0., 0., 0., 1.],
+            [0., 0., 1., 0.],
+            [1., 0., 0., 0.],
+            [0., 1., 0., 0.]]>
+
+    **Multi-hot encoding data**
+
+    >>> layer = keras.layers.CategoryEncoding(
+    ...           num_tokens=4, output_mode="multi_hot")
+    >>> layer([[0, 1], [0, 0], [1, 2], [3, 1]])
+    array([[1., 1., 0., 0.],
+            [1., 0., 0., 0.],
+            [0., 1., 1., 0.],
+            [0., 1., 0., 1.]]>
+
+    **Using weighted inputs in `"count"` mode**
+
+    >>> layer = keras.layers.CategoryEncoding(
+    ...           num_tokens=4, output_mode="count")
+    >>> count_weights = np.array([[.1, .2], [.1, .1], [.2, .3], [.4, .2]])
+    >>> layer([[0, 1], [0, 0], [1, 2], [3, 1]], count_weights=count_weights)
+      array([[0.1, 0.2, 0. , 0. ],
+             [0.2, 0. , 0. , 0. ],
+             [0. , 0.2, 0.3, 0. ],
+             [0. , 0.2, 0. , 0.4]]>
+
+    Args:
+        num_tokens: The total number of tokens the layer should support. All
+            inputs to the layer must integers in the range `0 <= value <
+            num_tokens`, or an error will be thrown.
+        output_mode: Specification for the output of the layer.
+            Values can be `"one_hot"`, `"multi_hot"` or `"count"`,
+            configuring the layer as follows:
+                - `"one_hot"`: Encodes each individual element in the input
+                    into an array of `num_tokens` size, containing a 1 at the
+                    element index. If the last dimension is size 1, will encode
+                    on that dimension. If the last dimension is not size 1,
+                    will append a new dimension for the encoded output.
+                - `"multi_hot"`: Encodes each sample in the input into a single
+                    array of `num_tokens` size, containing a 1 for each
+                    vocabulary term present in the sample. Treats the last
+                    dimension as the sample dimension, if input shape is
+                    `(..., sample_length)`, output shape will be
+                    `(..., num_tokens)`.
+                - `"count"`: Like `"multi_hot"`, but the int array contains a
+                    count of the number of times the token at that index
+                    appeared in the sample.
+            For all output modes, currently only output up to rank 2 is
+            supported.
+            Defaults to `"multi_hot"`.
+        sparse: Whether to return a sparse tensor; for backends that support
+            sparse tensors.
+
+    Call arguments:
+        inputs: A 1D or 2D tensor of integer inputs.
+        count_weights: A tensor in the same shape as `inputs` indicating the
+            weight for each sample value when summing up in `count` mode.
+            Not used in `"multi_hot"` or `"one_hot"` modes.
+
+[API Signature] num_tokens: integer, output_mode: string, sparse: boolean, inputs: tensor, count_weights: tensor
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 21 (primitive type variable should not be zero)
+{v_1 : int ⊎ float} |= v_1 ≠ 0
+
+Rule 25 (tensor shape matches given tuple shape)
+{v_1 : tensor, v_2 : tuple(int)} |= ndim(v_1) = v_2.len ∧ ∀i ∈ [0, v_2.len - 1] : shape(v_1, i) = v_2[i]
+
+Rule 2 (v_2 should be a valid dimension of input tensor)
+{v_1 : tensor, v_2 : int} |= −1 × ndim(v_1) ≤ v_2 ∧ v_2 ≤ ndim(v_1) − 1
+
+Rule 31 (dtype must be a floating-point type)
+{v_1 : dtype} |= v_1 = 6 ∨ v_1 = 7 ∨ v_1 = 8
+
+Rule 9 (4D tensor with all shape dimensions positive)
+{v_1 : tensor} |= ndim(v_1) = 4 ∧ ∀i ∈ [0, 3] : shape(v_1, i) > 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 7 (inputs dimension must be 1D or 2D)
+{v_1 : tensor} |= ndim(v_1) ≥ 1 ∧ ndim(v_1) ≤ 2
+Token usage: input=8063, output=255, total=10173
+** DUPLICATED RULE ** (num_failures: 2)
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.keras.layers.CategoryEncoding API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+A preprocessing layer which encodes integer features.
+
+    This layer provides options for condensing data into a categorical encoding
+    when the total number of tokens are known in advance. It accepts integer
+    values as inputs, and it outputs a dense or sparse representation of those
+    inputs. For integer inputs where the total number of tokens is not known,
+    use `keras.layers.IntegerLookup` instead.
+
+    **Note:** This layer is safe to use inside a `tf.data` or `grain` pipeline
+    (independently of which backend you're using).
+
+    Examples:
+
+    **One-hot encoding data**
+
+    >>> layer = keras.layers.CategoryEncoding(
+    ...           num_tokens=4, output_mode="one_hot")
+    >>> layer([3, 2, 0, 1])
+    array([[0., 0., 0., 1.],
+            [0., 0., 1., 0.],
+            [1., 0., 0., 0.],
+            [0., 1., 0., 0.]]>
+
+    **Multi-hot encoding data**
+
+    >>> layer = keras.layers.CategoryEncoding(
+    ...           num_tokens=4, output_mode="multi_hot")
+    >>> layer([[0, 1], [0, 0], [1, 2], [3, 1]])
+    array([[1., 1., 0., 0.],
+            [1., 0., 0., 0.],
+            [0., 1., 1., 0.],
+            [0., 1., 0., 1.]]>
+
+    **Using weighted inputs in `"count"` mode**
+
+    >>> layer = keras.layers.CategoryEncoding(
+    ...           num_tokens=4, output_mode="count")
+    >>> count_weights = np.array([[.1, .2], [.1, .1], [.2, .3], [.4, .2]])
+    >>> layer([[0, 1], [0, 0], [1, 2], [3, 1]], count_weights=count_weights)
+      array([[0.1, 0.2, 0. , 0. ],
+             [0.2, 0. , 0. , 0. ],
+             [0. , 0.2, 0.3, 0. ],
+             [0. , 0.2, 0. , 0.4]]>
+
+    Args:
+        num_tokens: The total number of tokens the layer should support. All
+            inputs to the layer must integers in the range `0 <= value <
+            num_tokens`, or an error will be thrown.
+        output_mode: Specification for the output of the layer.
+            Values can be `"one_hot"`, `"multi_hot"` or `"count"`,
+            configuring the layer as follows:
+                - `"one_hot"`: Encodes each individual element in the input
+                    into an array of `num_tokens` size, containing a 1 at the
+                    element index. If the last dimension is size 1, will encode
+                    on that dimension. If the last dimension is not size 1,
+                    will append a new dimension for the encoded output.
+                - `"multi_hot"`: Encodes each sample in the input into a single
+                    array of `num_tokens` size, containing a 1 for each
+                    vocabulary term present in the sample. Treats the last
+                    dimension as the sample dimension, if input shape is
+                    `(..., sample_length)`, output shape will be
+                    `(..., num_tokens)`.
+                - `"count"`: Like `"multi_hot"`, but the int array contains a
+                    count of the number of times the token at that index
+                    appeared in the sample.
+            For all output modes, currently only output up to rank 2 is
+            supported.
+            Defaults to `"multi_hot"`.
+        sparse: Whether to return a sparse tensor; for backends that support
+            sparse tensors.
+
+    Call arguments:
+        inputs: A 1D or 2D tensor of integer inputs.
+        count_weights: A tensor in the same shape as `inputs` indicating the
+            weight for each sample value when summing up in `count` mode.
+            Not used in `"multi_hot"` or `"one_hot"` modes.
+
+[API Signature] num_tokens: integer, output_mode: string, sparse: boolean, inputs: tensor, count_weights: tensor
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 21 (primitive type variable should not be zero)
+{v_1 : int ⊎ float} |= v_1 ≠ 0
+
+Rule 25 (tensor shape matches given tuple shape)
+{v_1 : tensor, v_2 : tuple(int)} |= ndim(v_1) = v_2.len ∧ ∀i ∈ [0, v_2.len - 1] : shape(v_1, i) = v_2[i]
+
+Rule 2 (v_2 should be a valid dimension of input tensor)
+{v_1 : tensor, v_2 : int} |= −1 × ndim(v_1) ≤ v_2 ∧ v_2 ≤ ndim(v_1) − 1
+
+Rule 31 (dtype must be a floating-point type)
+{v_1 : dtype} |= v_1 = 6 ∨ v_1 = 7 ∨ v_1 = 8
+
+Rule 9 (4D tensor with all shape dimensions positive)
+{v_1 : tensor} |= ndim(v_1) = 4 ∧ ∀i ∈ [0, 3] : shape(v_1, i) > 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 8 (inputs dtype must be of integer type)
+{v_1 : tensor} |= dtype_(v_1) ≥ 1 ∧ dtype_(v_1) ≤ 5
+Token usage: input=8063, output=255, total=10173
+** DUPLICATED RULE ** (num_failures: 3)
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.keras.layers.CategoryEncoding API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+A preprocessing layer which encodes integer features.
+
+    This layer provides options for condensing data into a categorical encoding
+    when the total number of tokens are known in advance. It accepts integer
+    values as inputs, and it outputs a dense or sparse representation of those
+    inputs. For integer inputs where the total number of tokens is not known,
+    use `keras.layers.IntegerLookup` instead.
+
+    **Note:** This layer is safe to use inside a `tf.data` or `grain` pipeline
+    (independently of which backend you're using).
+
+    Examples:
+
+    **One-hot encoding data**
+
+    >>> layer = keras.layers.CategoryEncoding(
+    ...           num_tokens=4, output_mode="one_hot")
+    >>> layer([3, 2, 0, 1])
+    array([[0., 0., 0., 1.],
+            [0., 0., 1., 0.],
+            [1., 0., 0., 0.],
+            [0., 1., 0., 0.]]>
+
+    **Multi-hot encoding data**
+
+    >>> layer = keras.layers.CategoryEncoding(
+    ...           num_tokens=4, output_mode="multi_hot")
+    >>> layer([[0, 1], [0, 0], [1, 2], [3, 1]])
+    array([[1., 1., 0., 0.],
+            [1., 0., 0., 0.],
+            [0., 1., 1., 0.],
+            [0., 1., 0., 1.]]>
+
+    **Using weighted inputs in `"count"` mode**
+
+    >>> layer = keras.layers.CategoryEncoding(
+    ...           num_tokens=4, output_mode="count")
+    >>> count_weights = np.array([[.1, .2], [.1, .1], [.2, .3], [.4, .2]])
+    >>> layer([[0, 1], [0, 0], [1, 2], [3, 1]], count_weights=count_weights)
+      array([[0.1, 0.2, 0. , 0. ],
+             [0.2, 0. , 0. , 0. ],
+             [0. , 0.2, 0.3, 0. ],
+             [0. , 0.2, 0. , 0.4]]>
+
+    Args:
+        num_tokens: The total number of tokens the layer should support. All
+            inputs to the layer must integers in the range `0 <= value <
+            num_tokens`, or an error will be thrown.
+        output_mode: Specification for the output of the layer.
+            Values can be `"one_hot"`, `"multi_hot"` or `"count"`,
+            configuring the layer as follows:
+                - `"one_hot"`: Encodes each individual element in the input
+                    into an array of `num_tokens` size, containing a 1 at the
+                    element index. If the last dimension is size 1, will encode
+                    on that dimension. If the last dimension is not size 1,
+                    will append a new dimension for the encoded output.
+                - `"multi_hot"`: Encodes each sample in the input into a single
+                    array of `num_tokens` size, containing a 1 for each
+                    vocabulary term present in the sample. Treats the last
+                    dimension as the sample dimension, if input shape is
+                    `(..., sample_length)`, output shape will be
+                    `(..., num_tokens)`.
+                - `"count"`: Like `"multi_hot"`, but the int array contains a
+                    count of the number of times the token at that index
+                    appeared in the sample.
+            For all output modes, currently only output up to rank 2 is
+            supported.
+            Defaults to `"multi_hot"`.
+        sparse: Whether to return a sparse tensor; for backends that support
+            sparse tensors.
+
+    Call arguments:
+        inputs: A 1D or 2D tensor of integer inputs.
+        count_weights: A tensor in the same shape as `inputs` indicating the
+            weight for each sample value when summing up in `count` mode.
+            Not used in `"multi_hot"` or `"one_hot"` modes.
+
+[API Signature] num_tokens: integer, output_mode: string, sparse: boolean, inputs: tensor, count_weights: tensor
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 21 (primitive type variable should not be zero)
+{v_1 : int ⊎ float} |= v_1 ≠ 0
+
+Rule 25 (tensor shape matches given tuple shape)
+{v_1 : tensor, v_2 : tuple(int)} |= ndim(v_1) = v_2.len ∧ ∀i ∈ [0, v_2.len - 1] : shape(v_1, i) = v_2[i]
+
+Rule 2 (v_2 should be a valid dimension of input tensor)
+{v_1 : tensor, v_2 : int} |= −1 × ndim(v_1) ≤ v_2 ∧ v_2 ≤ ndim(v_1) − 1
+
+Rule 31 (dtype must be a floating-point type)
+{v_1 : dtype} |= v_1 = 6 ∨ v_1 = 7 ∨ v_1 = 8
+
+Rule 9 (4D tensor with all shape dimensions positive)
+{v_1 : tensor} |= ndim(v_1) = 4 ∧ ∀i ∈ [0, 3] : shape(v_1, i) > 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 9 (all element values in inputs must be non-negative and less than num_tokens)
+{v_1 : tensor, v_2 : int} |= min(v_1) ≥ 0 ∧ max(v_1) < v_2
+Token usage: input=8063, output=255, total=10173
+** DUPLICATED RULE ** (num_failures: 4)
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.keras.layers.CategoryEncoding API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+A preprocessing layer which encodes integer features.
+
+    This layer provides options for condensing data into a categorical encoding
+    when the total number of tokens are known in advance. It accepts integer
+    values as inputs, and it outputs a dense or sparse representation of those
+    inputs. For integer inputs where the total number of tokens is not known,
+    use `keras.layers.IntegerLookup` instead.
+
+    **Note:** This layer is safe to use inside a `tf.data` or `grain` pipeline
+    (independently of which backend you're using).
+
+    Examples:
+
+    **One-hot encoding data**
+
+    >>> layer = keras.layers.CategoryEncoding(
+    ...           num_tokens=4, output_mode="one_hot")
+    >>> layer([3, 2, 0, 1])
+    array([[0., 0., 0., 1.],
+            [0., 0., 1., 0.],
+            [1., 0., 0., 0.],
+            [0., 1., 0., 0.]]>
+
+    **Multi-hot encoding data**
+
+    >>> layer = keras.layers.CategoryEncoding(
+    ...           num_tokens=4, output_mode="multi_hot")
+    >>> layer([[0, 1], [0, 0], [1, 2], [3, 1]])
+    array([[1., 1., 0., 0.],
+            [1., 0., 0., 0.],
+            [0., 1., 1., 0.],
+            [0., 1., 0., 1.]]>
+
+    **Using weighted inputs in `"count"` mode**
+
+    >>> layer = keras.layers.CategoryEncoding(
+    ...           num_tokens=4, output_mode="count")
+    >>> count_weights = np.array([[.1, .2], [.1, .1], [.2, .3], [.4, .2]])
+    >>> layer([[0, 1], [0, 0], [1, 2], [3, 1]], count_weights=count_weights)
+      array([[0.1, 0.2, 0. , 0. ],
+             [0.2, 0. , 0. , 0. ],
+             [0. , 0.2, 0.3, 0. ],
+             [0. , 0.2, 0. , 0.4]]>
+
+    Args:
+        num_tokens: The total number of tokens the layer should support. All
+            inputs to the layer must integers in the range `0 <= value <
+            num_tokens`, or an error will be thrown.
+        output_mode: Specification for the output of the layer.
+            Values can be `"one_hot"`, `"multi_hot"` or `"count"`,
+            configuring the layer as follows:
+                - `"one_hot"`: Encodes each individual element in the input
+                    into an array of `num_tokens` size, containing a 1 at the
+                    element index. If the last dimension is size 1, will encode
+                    on that dimension. If the last dimension is not size 1,
+                    will append a new dimension for the encoded output.
+                - `"multi_hot"`: Encodes each sample in the input into a single
+                    array of `num_tokens` size, containing a 1 for each
+                    vocabulary term present in the sample. Treats the last
+                    dimension as the sample dimension, if input shape is
+                    `(..., sample_length)`, output shape will be
+                    `(..., num_tokens)`.
+                - `"count"`: Like `"multi_hot"`, but the int array contains a
+                    count of the number of times the token at that index
+                    appeared in the sample.
+            For all output modes, currently only output up to rank 2 is
+            supported.
+            Defaults to `"multi_hot"`.
+        sparse: Whether to return a sparse tensor; for backends that support
+            sparse tensors.
+
+    Call arguments:
+        inputs: A 1D or 2D tensor of integer inputs.
+        count_weights: A tensor in the same shape as `inputs` indicating the
+            weight for each sample value when summing up in `count` mode.
+            Not used in `"multi_hot"` or `"one_hot"` modes.
+
+[API Signature] num_tokens: integer, output_mode: string, sparse: boolean, inputs: tensor, count_weights: tensor
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 21 (primitive type variable should not be zero)
+{v_1 : int ⊎ float} |= v_1 ≠ 0
+
+Rule 25 (tensor shape matches given tuple shape)
+{v_1 : tensor, v_2 : tuple(int)} |= ndim(v_1) = v_2.len ∧ ∀i ∈ [0, v_2.len - 1] : shape(v_1, i) = v_2[i]
+
+Rule 2 (v_2 should be a valid dimension of input tensor)
+{v_1 : tensor, v_2 : int} |= −1 × ndim(v_1) ≤ v_2 ∧ v_2 ≤ ndim(v_1) − 1
+
+Rule 31 (dtype must be a floating-point type)
+{v_1 : dtype} |= v_1 = 6 ∨ v_1 = 7 ∨ v_1 = 8
+
+Rule 9 (4D tensor with all shape dimensions positive)
+{v_1 : tensor} |= ndim(v_1) = 4 ∧ ∀i ∈ [0, 3] : shape(v_1, i) > 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 10 (shape of count_weights must match inputs)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i)
+Token usage: input=8063, output=255, total=10173
+** SUCCESS **
+
+>>> PROMPT
+[Feedback Message from Prior Run]
+Duplicated rule: {v_1 : int} |= v_1 > 0
+Duplicated rule: {v_1 : tensor} |= ndim(v_1) ≥ 1 ∧ ndim(v_1) ≤ 2
+Duplicated rule: {v_1 : tensor} |= dtype_(v_1) ≥ 1 ∧ dtype_(v_1) ≤ 5
+Duplicated rule: {v_1 : tensor, v_2 : int} |= min(v_1) ≥ 0 ∧ max(v_1) < v_2
+
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.keras.layers.CategoryEncoding API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+A preprocessing layer which encodes integer features.
+
+    This layer provides options for condensing data into a categorical encoding
+    when the total number of tokens are known in advance. It accepts integer
+    values as inputs, and it outputs a dense or sparse representation of those
+    inputs. For integer inputs where the total number of tokens is not known,
+    use `keras.layers.IntegerLookup` instead.
+
+    **Note:** This layer is safe to use inside a `tf.data` or `grain` pipeline
+    (independently of which backend you're using).
+
+    Examples:
+
+    **One-hot encoding data**
+
+    >>> layer = keras.layers.CategoryEncoding(
+    ...           num_tokens=4, output_mode="one_hot")
+    >>> layer([3, 2, 0, 1])
+    array([[0., 0., 0., 1.],
+            [0., 0., 1., 0.],
+            [1., 0., 0., 0.],
+            [0., 1., 0., 0.]]>
+
+    **Multi-hot encoding data**
+
+    >>> layer = keras.layers.CategoryEncoding(
+    ...           num_tokens=4, output_mode="multi_hot")
+    >>> layer([[0, 1], [0, 0], [1, 2], [3, 1]])
+    array([[1., 1., 0., 0.],
+            [1., 0., 0., 0.],
+            [0., 1., 1., 0.],
+            [0., 1., 0., 1.]]>
+
+    **Using weighted inputs in `"count"` mode**
+
+    >>> layer = keras.layers.CategoryEncoding(
+    ...           num_tokens=4, output_mode="count")
+    >>> count_weights = np.array([[.1, .2], [.1, .1], [.2, .3], [.4, .2]])
+    >>> layer([[0, 1], [0, 0], [1, 2], [3, 1]], count_weights=count_weights)
+      array([[0.1, 0.2, 0. , 0. ],
+             [0.2, 0. , 0. , 0. ],
+             [0. , 0.2, 0.3, 0. ],
+             [0. , 0.2, 0. , 0.4]]>
+
+    Args:
+        num_tokens: The total number of tokens the layer should support. All
+            inputs to the layer must integers in the range `0 <= value <
+            num_tokens`, or an error will be thrown.
+        output_mode: Specification for the output of the layer.
+            Values can be `"one_hot"`, `"multi_hot"` or `"count"`,
+            configuring the layer as follows:
+                - `"one_hot"`: Encodes each individual element in the input
+                    into an array of `num_tokens` size, containing a 1 at the
+                    element index. If the last dimension is size 1, will encode
+                    on that dimension. If the last dimension is not size 1,
+                    will append a new dimension for the encoded output.
+                - `"multi_hot"`: Encodes each sample in the input into a single
+                    array of `num_tokens` size, containing a 1 for each
+                    vocabulary term present in the sample. Treats the last
+                    dimension as the sample dimension, if input shape is
+                    `(..., sample_length)`, output shape will be
+                    `(..., num_tokens)`.
+                - `"count"`: Like `"multi_hot"`, but the int array contains a
+                    count of the number of times the token at that index
+                    appeared in the sample.
+            For all output modes, currently only output up to rank 2 is
+            supported.
+            Defaults to `"multi_hot"`.
+        sparse: Whether to return a sparse tensor; for backends that support
+            sparse tensors.
+
+    Call arguments:
+        inputs: A 1D or 2D tensor of integer inputs.
+        count_weights: A tensor in the same shape as `inputs` indicating the
+            weight for each sample value when summing up in `count` mode.
+            Not used in `"multi_hot"` or `"one_hot"` modes.
+
+[API Signature] num_tokens: integer, output_mode: string, sparse: boolean, inputs: tensor, count_weights: tensor
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 16 (shape alignment for matrix multiplication)
+{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) ≥ 2 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, ndim(v_2) − 2)) ∨ (ndim(v_1) ≥ 2 ∧ ndim(v_2) = 1 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, 0))
+
+Rule 2 (v_2 should be a valid dimension of input tensor)
+{v_1 : tensor, v_2 : int} |= −1 × ndim(v_1) ≤ v_2 ∧ v_2 ≤ ndim(v_1) − 1
+
+Rule 9 (4D tensor with all shape dimensions positive)
+{v_1 : tensor} |= ndim(v_1) = 4 ∧ ∀i ∈ [0, 3] : shape(v_1, i) > 0
+
+Rule 28 (list of ints used as dimensions/axes, all non-negative and valid for tensor shape)
+{v_1 : tensor, v_2 : list(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 13 (tensor must have a floating-point dtype: 6–8)
+{v1: tensor} |= 6 ≤ dtype(v1) ∧ dtype(v1) ≤ 8
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 11 (compatibility of inputs and num_tokens including dtype and value bounds)
+{v_1 : tensor, v_2 : int} |= dtype_(v_1) ≥ 1 ∧ dtype_(v_1) ≤ 5 ∧ v_2 > 0 ∧ min(v_1) ≥ 0 ∧ max(v_1) < v_2
+Token usage: input=12800, output=427, total=19451
+** SUCCESS **
+
+>>> PROMPT
+[Feedback Message from Prior Run]
+Duplicated rule: {v_1 : int} |= v_1 > 0
+Duplicated rule: {v_1 : tensor} |= ndim(v_1) ≥ 1 ∧ ndim(v_1) ≤ 2
+Duplicated rule: {v_1 : tensor} |= dtype_(v_1) ≥ 1 ∧ dtype_(v_1) ≤ 5
+Duplicated rule: {v_1 : tensor, v_2 : int} |= min(v_1) ≥ 0 ∧ max(v_1) < v_2
+
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.keras.layers.CategoryEncoding API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+A preprocessing layer which encodes integer features.
+
+    This layer provides options for condensing data into a categorical encoding
+    when the total number of tokens are known in advance. It accepts integer
+    values as inputs, and it outputs a dense or sparse representation of those
+    inputs. For integer inputs where the total number of tokens is not known,
+    use `keras.layers.IntegerLookup` instead.
+
+    **Note:** This layer is safe to use inside a `tf.data` or `grain` pipeline
+    (independently of which backend you're using).
+
+    Examples:
+
+    **One-hot encoding data**
+
+    >>> layer = keras.layers.CategoryEncoding(
+    ...           num_tokens=4, output_mode="one_hot")
+    >>> layer([3, 2, 0, 1])
+    array([[0., 0., 0., 1.],
+            [0., 0., 1., 0.],
+            [1., 0., 0., 0.],
+            [0., 1., 0., 0.]]>
+
+    **Multi-hot encoding data**
+
+    >>> layer = keras.layers.CategoryEncoding(
+    ...           num_tokens=4, output_mode="multi_hot")
+    >>> layer([[0, 1], [0, 0], [1, 2], [3, 1]])
+    array([[1., 1., 0., 0.],
+            [1., 0., 0., 0.],
+            [0., 1., 1., 0.],
+            [0., 1., 0., 1.]]>
+
+    **Using weighted inputs in `"count"` mode**
+
+    >>> layer = keras.layers.CategoryEncoding(
+    ...           num_tokens=4, output_mode="count")
+    >>> count_weights = np.array([[.1, .2], [.1, .1], [.2, .3], [.4, .2]])
+    >>> layer([[0, 1], [0, 0], [1, 2], [3, 1]], count_weights=count_weights)
+      array([[0.1, 0.2, 0. , 0. ],
+             [0.2, 0. , 0. , 0. ],
+             [0. , 0.2, 0.3, 0. ],
+             [0. , 0.2, 0. , 0.4]]>
+
+    Args:
+        num_tokens: The total number of tokens the layer should support. All
+            inputs to the layer must integers in the range `0 <= value <
+            num_tokens`, or an error will be thrown.
+        output_mode: Specification for the output of the layer.
+            Values can be `"one_hot"`, `"multi_hot"` or `"count"`,
+            configuring the layer as follows:
+                - `"one_hot"`: Encodes each individual element in the input
+                    into an array of `num_tokens` size, containing a 1 at the
+                    element index. If the last dimension is size 1, will encode
+                    on that dimension. If the last dimension is not size 1,
+                    will append a new dimension for the encoded output.
+                - `"multi_hot"`: Encodes each sample in the input into a single
+                    array of `num_tokens` size, containing a 1 for each
+                    vocabulary term present in the sample. Treats the last
+                    dimension as the sample dimension, if input shape is
+                    `(..., sample_length)`, output shape will be
+                    `(..., num_tokens)`.
+                - `"count"`: Like `"multi_hot"`, but the int array contains a
+                    count of the number of times the token at that index
+                    appeared in the sample.
+            For all output modes, currently only output up to rank 2 is
+            supported.
+            Defaults to `"multi_hot"`.
+        sparse: Whether to return a sparse tensor; for backends that support
+            sparse tensors.
+
+    Call arguments:
+        inputs: A 1D or 2D tensor of integer inputs.
+        count_weights: A tensor in the same shape as `inputs` indicating the
+            weight for each sample value when summing up in `count` mode.
+            Not used in `"multi_hot"` or `"one_hot"` modes.
+
+[API Signature] num_tokens: integer, output_mode: string, sparse: boolean, inputs: tensor, count_weights: tensor
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 16 (shape alignment for matrix multiplication)
+{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) ≥ 2 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, ndim(v_2) − 2)) ∨ (ndim(v_1) ≥ 2 ∧ ndim(v_2) = 1 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, 0))
+
+Rule 2 (v_2 should be a valid dimension of input tensor)
+{v_1 : tensor, v_2 : int} |= −1 × ndim(v_1) ≤ v_2 ∧ v_2 ≤ ndim(v_1) − 1
+
+Rule 9 (4D tensor with all shape dimensions positive)
+{v_1 : tensor} |= ndim(v_1) = 4 ∧ ∀i ∈ [0, 3] : shape(v_1, i) > 0
+
+Rule 28 (list of ints used as dimensions/axes, all non-negative and valid for tensor shape)
+{v_1 : tensor, v_2 : list(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 13 (tensor must have a floating-point dtype: 6–8)
+{v1: tensor} |= 6 ≤ dtype(v1) ∧ dtype(v1) ≤ 8
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 12 (shape alignment and dimension limits of inputs and count_weights)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) ≥ 1 ∧ ndim(v_1) ≤ 2 ∧ ndim(v_2) = ndim(v_1) ∧ (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i))
+Token usage: input=12800, output=427, total=19451
+** SUCCESS **
+
+>>> PROMPT
+[Feedback Message from Prior Run]
+Duplicated rule: {v_1 : int} |= v_1 > 0
+Duplicated rule: {v_1 : tensor} |= ndim(v_1) ≥ 1 ∧ ndim(v_1) ≤ 2
+Duplicated rule: {v_1 : tensor} |= dtype_(v_1) ≥ 1 ∧ dtype_(v_1) ≤ 5
+Duplicated rule: {v_1 : tensor, v_2 : int} |= min(v_1) ≥ 0 ∧ max(v_1) < v_2
+
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.keras.layers.CategoryEncoding API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+A preprocessing layer which encodes integer features.
+
+    This layer provides options for condensing data into a categorical encoding
+    when the total number of tokens are known in advance. It accepts integer
+    values as inputs, and it outputs a dense or sparse representation of those
+    inputs. For integer inputs where the total number of tokens is not known,
+    use `keras.layers.IntegerLookup` instead.
+
+    **Note:** This layer is safe to use inside a `tf.data` or `grain` pipeline
+    (independently of which backend you're using).
+
+    Examples:
+
+    **One-hot encoding data**
+
+    >>> layer = keras.layers.CategoryEncoding(
+    ...           num_tokens=4, output_mode="one_hot")
+    >>> layer([3, 2, 0, 1])
+    array([[0., 0., 0., 1.],
+            [0., 0., 1., 0.],
+            [1., 0., 0., 0.],
+            [0., 1., 0., 0.]]>
+
+    **Multi-hot encoding data**
+
+    >>> layer = keras.layers.CategoryEncoding(
+    ...           num_tokens=4, output_mode="multi_hot")
+    >>> layer([[0, 1], [0, 0], [1, 2], [3, 1]])
+    array([[1., 1., 0., 0.],
+            [1., 0., 0., 0.],
+            [0., 1., 1., 0.],
+            [0., 1., 0., 1.]]>
+
+    **Using weighted inputs in `"count"` mode**
+
+    >>> layer = keras.layers.CategoryEncoding(
+    ...           num_tokens=4, output_mode="count")
+    >>> count_weights = np.array([[.1, .2], [.1, .1], [.2, .3], [.4, .2]])
+    >>> layer([[0, 1], [0, 0], [1, 2], [3, 1]], count_weights=count_weights)
+      array([[0.1, 0.2, 0. , 0. ],
+             [0.2, 0. , 0. , 0. ],
+             [0. , 0.2, 0.3, 0. ],
+             [0. , 0.2, 0. , 0.4]]>
+
+    Args:
+        num_tokens: The total number of tokens the layer should support. All
+            inputs to the layer must integers in the range `0 <= value <
+            num_tokens`, or an error will be thrown.
+        output_mode: Specification for the output of the layer.
+            Values can be `"one_hot"`, `"multi_hot"` or `"count"`,
+            configuring the layer as follows:
+                - `"one_hot"`: Encodes each individual element in the input
+                    into an array of `num_tokens` size, containing a 1 at the
+                    element index. If the last dimension is size 1, will encode
+                    on that dimension. If the last dimension is not size 1,
+                    will append a new dimension for the encoded output.
+                - `"multi_hot"`: Encodes each sample in the input into a single
+                    array of `num_tokens` size, containing a 1 for each
+                    vocabulary term present in the sample. Treats the last
+                    dimension as the sample dimension, if input shape is
+                    `(..., sample_length)`, output shape will be
+                    `(..., num_tokens)`.
+                - `"count"`: Like `"multi_hot"`, but the int array contains a
+                    count of the number of times the token at that index
+                    appeared in the sample.
+            For all output modes, currently only output up to rank 2 is
+            supported.
+            Defaults to `"multi_hot"`.
+        sparse: Whether to return a sparse tensor; for backends that support
+            sparse tensors.
+
+    Call arguments:
+        inputs: A 1D or 2D tensor of integer inputs.
+        count_weights: A tensor in the same shape as `inputs` indicating the
+            weight for each sample value when summing up in `count` mode.
+            Not used in `"multi_hot"` or `"one_hot"` modes.
+
+[API Signature] num_tokens: integer, output_mode: string, sparse: boolean, inputs: tensor, count_weights: tensor
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 16 (shape alignment for matrix multiplication)
+{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) ≥ 2 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, ndim(v_2) − 2)) ∨ (ndim(v_1) ≥ 2 ∧ ndim(v_2) = 1 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, 0))
+
+Rule 2 (v_2 should be a valid dimension of input tensor)
+{v_1 : tensor, v_2 : int} |= −1 × ndim(v_1) ≤ v_2 ∧ v_2 ≤ ndim(v_1) − 1
+
+Rule 9 (4D tensor with all shape dimensions positive)
+{v_1 : tensor} |= ndim(v_1) = 4 ∧ ∀i ∈ [0, 3] : shape(v_1, i) > 0
+
+Rule 28 (list of ints used as dimensions/axes, all non-negative and valid for tensor shape)
+{v_1 : tensor, v_2 : list(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 13 (tensor must have a floating-point dtype: 6–8)
+{v1: tensor} |= 6 ≤ dtype(v1) ∧ dtype(v1) ≤ 8
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 13 (inputs passed as a list of integers must have elements within the range of num_tokens)
+{v_1 : list(int), v_2 : int} |= v_1.len > 0 ∧ ∀i ∈ [0, v_1.len - 1] : v_1[i] ≥ 0 ∧ v_1[i] < v_2
+Token usage: input=12800, output=427, total=19451
+** SUCCESS **
+
+>>> PROMPT
+[Feedback Message from Prior Run]
+Duplicated rule: {v_1 : int} |= v_1 > 0
+Duplicated rule: {v_1 : tensor} |= ndim(v_1) ≥ 1 ∧ ndim(v_1) ≤ 2
+Duplicated rule: {v_1 : tensor} |= dtype_(v_1) ≥ 1 ∧ dtype_(v_1) ≤ 5
+Duplicated rule: {v_1 : tensor, v_2 : int} |= min(v_1) ≥ 0 ∧ max(v_1) < v_2
+
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.keras.layers.CategoryEncoding API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+A preprocessing layer which encodes integer features.
+
+    This layer provides options for condensing data into a categorical encoding
+    when the total number of tokens are known in advance. It accepts integer
+    values as inputs, and it outputs a dense or sparse representation of those
+    inputs. For integer inputs where the total number of tokens is not known,
+    use `keras.layers.IntegerLookup` instead.
+
+    **Note:** This layer is safe to use inside a `tf.data` or `grain` pipeline
+    (independently of which backend you're using).
+
+    Examples:
+
+    **One-hot encoding data**
+
+    >>> layer = keras.layers.CategoryEncoding(
+    ...           num_tokens=4, output_mode="one_hot")
+    >>> layer([3, 2, 0, 1])
+    array([[0., 0., 0., 1.],
+            [0., 0., 1., 0.],
+            [1., 0., 0., 0.],
+            [0., 1., 0., 0.]]>
+
+    **Multi-hot encoding data**
+
+    >>> layer = keras.layers.CategoryEncoding(
+    ...           num_tokens=4, output_mode="multi_hot")
+    >>> layer([[0, 1], [0, 0], [1, 2], [3, 1]])
+    array([[1., 1., 0., 0.],
+            [1., 0., 0., 0.],
+            [0., 1., 1., 0.],
+            [0., 1., 0., 1.]]>
+
+    **Using weighted inputs in `"count"` mode**
+
+    >>> layer = keras.layers.CategoryEncoding(
+    ...           num_tokens=4, output_mode="count")
+    >>> count_weights = np.array([[.1, .2], [.1, .1], [.2, .3], [.4, .2]])
+    >>> layer([[0, 1], [0, 0], [1, 2], [3, 1]], count_weights=count_weights)
+      array([[0.1, 0.2, 0. , 0. ],
+             [0.2, 0. , 0. , 0. ],
+             [0. , 0.2, 0.3, 0. ],
+             [0. , 0.2, 0. , 0.4]]>
+
+    Args:
+        num_tokens: The total number of tokens the layer should support. All
+            inputs to the layer must integers in the range `0 <= value <
+            num_tokens`, or an error will be thrown.
+        output_mode: Specification for the output of the layer.
+            Values can be `"one_hot"`, `"multi_hot"` or `"count"`,
+            configuring the layer as follows:
+                - `"one_hot"`: Encodes each individual element in the input
+                    into an array of `num_tokens` size, containing a 1 at the
+                    element index. If the last dimension is size 1, will encode
+                    on that dimension. If the last dimension is not size 1,
+                    will append a new dimension for the encoded output.
+                - `"multi_hot"`: Encodes each sample in the input into a single
+                    array of `num_tokens` size, containing a 1 for each
+                    vocabulary term present in the sample. Treats the last
+                    dimension as the sample dimension, if input shape is
+                    `(..., sample_length)`, output shape will be
+                    `(..., num_tokens)`.
+                - `"count"`: Like `"multi_hot"`, but the int array contains a
+                    count of the number of times the token at that index
+                    appeared in the sample.
+            For all output modes, currently only output up to rank 2 is
+            supported.
+            Defaults to `"multi_hot"`.
+        sparse: Whether to return a sparse tensor; for backends that support
+            sparse tensors.
+
+    Call arguments:
+        inputs: A 1D or 2D tensor of integer inputs.
+        count_weights: A tensor in the same shape as `inputs` indicating the
+            weight for each sample value when summing up in `count` mode.
+            Not used in `"multi_hot"` or `"one_hot"` modes.
+
+[API Signature] num_tokens: integer, output_mode: string, sparse: boolean, inputs: tensor, count_weights: tensor
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 16 (shape alignment for matrix multiplication)
+{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) ≥ 2 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, ndim(v_2) − 2)) ∨ (ndim(v_1) ≥ 2 ∧ ndim(v_2) = 1 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, 0))
+
+Rule 2 (v_2 should be a valid dimension of input tensor)
+{v_1 : tensor, v_2 : int} |= −1 × ndim(v_1) ≤ v_2 ∧ v_2 ≤ ndim(v_1) − 1
+
+Rule 9 (4D tensor with all shape dimensions positive)
+{v_1 : tensor} |= ndim(v_1) = 4 ∧ ∀i ∈ [0, 3] : shape(v_1, i) > 0
+
+Rule 28 (list of ints used as dimensions/axes, all non-negative and valid for tensor shape)
+{v_1 : tensor, v_2 : list(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 13 (tensor must have a floating-point dtype: 6–8)
+{v1: tensor} |= 6 ≤ dtype(v1) ∧ dtype(v1) ≤ 8
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 14 (data type compatibility of inputs and count_weights)
+{v_1 : tensor, v_2 : tensor} |= (dtype_(v_1) ≥ 1 ∧ dtype_(v_1) ≤ 5) ∧ (dtype_(v_2) ≥ 6 ∧ dtype_(v_2) ≤ 8)
+Token usage: input=12800, output=427, total=19451
+** SUCCESS **
+
+>>> PROMPT
+[Feedback Message from Prior Run]
+Duplicated rule: {v_1 : int} |= v_1 > 0
+Duplicated rule: {v_1 : tensor} |= ndim(v_1) ≥ 1 ∧ ndim(v_1) ≤ 2
+Duplicated rule: {v_1 : tensor} |= dtype_(v_1) ≥ 1 ∧ dtype_(v_1) ≤ 5
+Duplicated rule: {v_1 : tensor, v_2 : int} |= min(v_1) ≥ 0 ∧ max(v_1) < v_2
+
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.keras.layers.CategoryEncoding API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+A preprocessing layer which encodes integer features.
+
+    This layer provides options for condensing data into a categorical encoding
+    when the total number of tokens are known in advance. It accepts integer
+    values as inputs, and it outputs a dense or sparse representation of those
+    inputs. For integer inputs where the total number of tokens is not known,
+    use `keras.layers.IntegerLookup` instead.
+
+    **Note:** This layer is safe to use inside a `tf.data` or `grain` pipeline
+    (independently of which backend you're using).
+
+    Examples:
+
+    **One-hot encoding data**
+
+    >>> layer = keras.layers.CategoryEncoding(
+    ...           num_tokens=4, output_mode="one_hot")
+    >>> layer([3, 2, 0, 1])
+    array([[0., 0., 0., 1.],
+            [0., 0., 1., 0.],
+            [1., 0., 0., 0.],
+            [0., 1., 0., 0.]]>
+
+    **Multi-hot encoding data**
+
+    >>> layer = keras.layers.CategoryEncoding(
+    ...           num_tokens=4, output_mode="multi_hot")
+    >>> layer([[0, 1], [0, 0], [1, 2], [3, 1]])
+    array([[1., 1., 0., 0.],
+            [1., 0., 0., 0.],
+            [0., 1., 1., 0.],
+            [0., 1., 0., 1.]]>
+
+    **Using weighted inputs in `"count"` mode**
+
+    >>> layer = keras.layers.CategoryEncoding(
+    ...           num_tokens=4, output_mode="count")
+    >>> count_weights = np.array([[.1, .2], [.1, .1], [.2, .3], [.4, .2]])
+    >>> layer([[0, 1], [0, 0], [1, 2], [3, 1]], count_weights=count_weights)
+      array([[0.1, 0.2, 0. , 0. ],
+             [0.2, 0. , 0. , 0. ],
+             [0. , 0.2, 0.3, 0. ],
+             [0. , 0.2, 0. , 0.4]]>
+
+    Args:
+        num_tokens: The total number of tokens the layer should support. All
+            inputs to the layer must integers in the range `0 <= value <
+            num_tokens`, or an error will be thrown.
+        output_mode: Specification for the output of the layer.
+            Values can be `"one_hot"`, `"multi_hot"` or `"count"`,
+            configuring the layer as follows:
+                - `"one_hot"`: Encodes each individual element in the input
+                    into an array of `num_tokens` size, containing a 1 at the
+                    element index. If the last dimension is size 1, will encode
+                    on that dimension. If the last dimension is not size 1,
+                    will append a new dimension for the encoded output.
+                - `"multi_hot"`: Encodes each sample in the input into a single
+                    array of `num_tokens` size, containing a 1 for each
+                    vocabulary term present in the sample. Treats the last
+                    dimension as the sample dimension, if input shape is
+                    `(..., sample_length)`, output shape will be
+                    `(..., num_tokens)`.
+                - `"count"`: Like `"multi_hot"`, but the int array contains a
+                    count of the number of times the token at that index
+                    appeared in the sample.
+            For all output modes, currently only output up to rank 2 is
+            supported.
+            Defaults to `"multi_hot"`.
+        sparse: Whether to return a sparse tensor; for backends that support
+            sparse tensors.
+
+    Call arguments:
+        inputs: A 1D or 2D tensor of integer inputs.
+        count_weights: A tensor in the same shape as `inputs` indicating the
+            weight for each sample value when summing up in `count` mode.
+            Not used in `"multi_hot"` or `"one_hot"` modes.
+
+[API Signature] num_tokens: integer, output_mode: string, sparse: boolean, inputs: tensor, count_weights: tensor
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 16 (shape alignment for matrix multiplication)
+{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) ≥ 2 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, ndim(v_2) − 2)) ∨ (ndim(v_1) ≥ 2 ∧ ndim(v_2) = 1 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, 0))
+
+Rule 2 (v_2 should be a valid dimension of input tensor)
+{v_1 : tensor, v_2 : int} |= −1 × ndim(v_1) ≤ v_2 ∧ v_2 ≤ ndim(v_1) − 1
+
+Rule 9 (4D tensor with all shape dimensions positive)
+{v_1 : tensor} |= ndim(v_1) = 4 ∧ ∀i ∈ [0, 3] : shape(v_1, i) > 0
+
+Rule 28 (list of ints used as dimensions/axes, all non-negative and valid for tensor shape)
+{v_1 : tensor, v_2 : list(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 13 (tensor must have a floating-point dtype: 6–8)
+{v1: tensor} |= 6 ≤ dtype(v1) ∧ dtype(v1) ≤ 8
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 15 (num_tokens as a union type must be positive and inputs must be non-negative)
+{v_1 : tensor, v_2 : int ⊎ float} |= (v_2 > 0 ∨ v_2 > 0.0) ∧ min(v_1) ≥ 0
+Token usage: input=12800, output=427, total=19451
+** SUCCESS **
+

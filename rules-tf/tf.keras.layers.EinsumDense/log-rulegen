@@ -1,0 +1,3652 @@
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.keras.layers.EinsumDense API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+A layer that uses `einsum` as the backing computation.
+
+    This layer can perform einsum calculations of arbitrary dimensionality.
+
+    Args:
+        equation: An equation describing the einsum to perform.
+            This equation must be a valid einsum string of the form
+            `ab,bc->ac`, `...ab,bc->...ac`, or
+            `ab...,bc->ac...` where 'ab', 'bc', and 'ac' can be any valid einsum
+            axis expression sequence.
+        output_shape: The expected shape of the output tensor
+            (excluding the batch dimension and any dimensions
+            represented by ellipses). You can specify `None` for any dimension
+            that is unknown or can be inferred from the input shape.
+        activation: Activation function to use. If you don't specify anything,
+            no activation is applied
+            (that is, a "linear" activation: `a(x) = x`).
+        bias_axes: A string containing the output dimension(s)
+            to apply a bias to. Each character in the `bias_axes` string
+            should correspond to a character in the output portion
+            of the `equation` string.
+        kernel_initializer: Initializer for the `kernel` weights matrix.
+        bias_initializer: Initializer for the bias vector.
+        kernel_regularizer: Regularizer function applied to the `kernel` weights
+            matrix.
+        bias_regularizer: Regularizer function applied to the bias vector.
+        kernel_constraint: Constraint function applied to the `kernel` weights
+            matrix.
+        bias_constraint: Constraint function applied to the bias vector.
+        lora_rank: Optional integer. If set, the layer's forward pass
+            will implement LoRA (Low-Rank Adaptation)
+            with the provided rank. LoRA sets the layer's kernel
+            to non-trainable and replaces it with a delta over the
+            original kernel, obtained via multiplying two lower-rank
+            trainable matrices
+            (the factorization happens on the last dimension).
+            This can be useful to reduce the
+            computation cost of fine-tuning large dense layers.
+            You can also enable LoRA on an existing
+            `EinsumDense` layer by calling `layer.enable_lora(rank)`.
+         lora_alpha: Optional integer. If set, this parameter scales the
+            low-rank adaptation delta (computed as the product of two lower-rank
+            trainable matrices) during the forward pass. The delta is scaled by
+            `lora_alpha / lora_rank`, allowing you to fine-tune the strength of
+            the LoRA adjustment independently of `lora_rank`.
+        **kwargs: Base layer keyword arguments, such as `name` and `dtype`.
+
+    Examples:
+
+    **Biased dense layer with einsums**
+
+    This example shows how to instantiate a standard Keras dense layer using
+    einsum operations. This example is equivalent to
+    `keras.layers.Dense(64, use_bias=True)`.
+
+    >>> layer = keras.layers.EinsumDense("ab,bc->ac",
+    ...                                       output_shape=64,
+    ...                                       bias_axes="c")
+    >>> input_tensor = keras.Input(shape=[32])
+    >>> output_tensor = layer(input_tensor)
+    >>> output_tensor.shape
+    (None, 64)
+
+    **Applying a dense layer to a sequence**
+
+    This example shows how to instantiate a layer that applies the same dense
+    operation to every element in a sequence. Here, the `output_shape` has two
+    values (since there are two non-batch dimensions in the output); the first
+    dimension in the `output_shape` is `None`, because the sequence dimension
+    `b` has an unknown shape.
+
+    >>> layer = keras.layers.EinsumDense("abc,cd->abd",
+    ...                                       output_shape=(None, 64),
+    ...                                       bias_axes="d")
+    >>> input_tensor = keras.Input(shape=[32, 128])
+    >>> output_tensor = layer(input_tensor)
+    >>> output_tensor.shape
+    (None, 32, 64)
+
+    **Applying a dense layer to a sequence using ellipses**
+
+    This example shows how to instantiate a layer that applies the same dense
+    operation to every element in a sequence, but uses the ellipsis notation
+    instead of specifying the batch and sequence dimensions.
+
+    Because we are using ellipsis notation and have specified only one axis, the
+    `output_shape` arg is a single value. When instantiated in this way, the
+    layer can handle any number of sequence dimensions - including the case
+    where no sequence dimension exists.
+
+    >>> layer = keras.layers.EinsumDense("...x,xy->...y",
+    ...                                       output_shape=64,
+    ...                                       bias_axes="y")
+    >>> input_tensor = keras.Input(shape=[32, 128])
+    >>> output_tensor = layer(input_tensor)
+    >>> output_tensor.shape
+    (None, 32, 64)
+
+[API Signature] equation: string, output_shape: list, activation: string, bias_axes: string, kernel_initializer: string, bias_initializer: string, kernel_regularizer: string, bias_regularizer: string, kernel_constraint: string, bias_constraint: string, lora_rank: integer, inputs: tensor
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 24 (tuple of ints represents valid shape dimensions)
+{v_1 : tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] > 0
+
+Rule 19 (compatibility of integer or float (data) type tensor and variable)
+{v1 : tensor, v2 : int ⊎ float} |= if 1 ≤ dtype(v1) ∧ dtype(v1) ≤ 5 then 1 ≤ v2 ∧ v2 ≤ 5 else if 6 ≤ dtype(v1) ∧ dtype(v1) ≤ 8 then 1 ≤ v2 ∧ v2 ≤ 8 else false
+
+Rule 17 (primitive type variable must be non-negative)
+{v_1 : int ⊎ float} |= v_1 ≥ 0
+
+Rule 16 (shape alignment for matrix multiplication)
+{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) ≥ 2 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, ndim(v_2) − 2)) ∨ (ndim(v_1) ≥ 2 ∧ ndim(v_2) = 1 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, 0))
+
+Rule 7 (first dimension of a tensor matches second dimension of the other)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) ≥ 1 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, 0) = shape(v_2, 1)
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 1 (lora_rank must be a positive integer)
+{v_11 : int} |= v_11 > 0
+Token usage: input=2738, output=383, total=6502
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.keras.layers.EinsumDense API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+A layer that uses `einsum` as the backing computation.
+
+    This layer can perform einsum calculations of arbitrary dimensionality.
+
+    Args:
+        equation: An equation describing the einsum to perform.
+            This equation must be a valid einsum string of the form
+            `ab,bc->ac`, `...ab,bc->...ac`, or
+            `ab...,bc->ac...` where 'ab', 'bc', and 'ac' can be any valid einsum
+            axis expression sequence.
+        output_shape: The expected shape of the output tensor
+            (excluding the batch dimension and any dimensions
+            represented by ellipses). You can specify `None` for any dimension
+            that is unknown or can be inferred from the input shape.
+        activation: Activation function to use. If you don't specify anything,
+            no activation is applied
+            (that is, a "linear" activation: `a(x) = x`).
+        bias_axes: A string containing the output dimension(s)
+            to apply a bias to. Each character in the `bias_axes` string
+            should correspond to a character in the output portion
+            of the `equation` string.
+        kernel_initializer: Initializer for the `kernel` weights matrix.
+        bias_initializer: Initializer for the bias vector.
+        kernel_regularizer: Regularizer function applied to the `kernel` weights
+            matrix.
+        bias_regularizer: Regularizer function applied to the bias vector.
+        kernel_constraint: Constraint function applied to the `kernel` weights
+            matrix.
+        bias_constraint: Constraint function applied to the bias vector.
+        lora_rank: Optional integer. If set, the layer's forward pass
+            will implement LoRA (Low-Rank Adaptation)
+            with the provided rank. LoRA sets the layer's kernel
+            to non-trainable and replaces it with a delta over the
+            original kernel, obtained via multiplying two lower-rank
+            trainable matrices
+            (the factorization happens on the last dimension).
+            This can be useful to reduce the
+            computation cost of fine-tuning large dense layers.
+            You can also enable LoRA on an existing
+            `EinsumDense` layer by calling `layer.enable_lora(rank)`.
+         lora_alpha: Optional integer. If set, this parameter scales the
+            low-rank adaptation delta (computed as the product of two lower-rank
+            trainable matrices) during the forward pass. The delta is scaled by
+            `lora_alpha / lora_rank`, allowing you to fine-tune the strength of
+            the LoRA adjustment independently of `lora_rank`.
+        **kwargs: Base layer keyword arguments, such as `name` and `dtype`.
+
+    Examples:
+
+    **Biased dense layer with einsums**
+
+    This example shows how to instantiate a standard Keras dense layer using
+    einsum operations. This example is equivalent to
+    `keras.layers.Dense(64, use_bias=True)`.
+
+    >>> layer = keras.layers.EinsumDense("ab,bc->ac",
+    ...                                       output_shape=64,
+    ...                                       bias_axes="c")
+    >>> input_tensor = keras.Input(shape=[32])
+    >>> output_tensor = layer(input_tensor)
+    >>> output_tensor.shape
+    (None, 64)
+
+    **Applying a dense layer to a sequence**
+
+    This example shows how to instantiate a layer that applies the same dense
+    operation to every element in a sequence. Here, the `output_shape` has two
+    values (since there are two non-batch dimensions in the output); the first
+    dimension in the `output_shape` is `None`, because the sequence dimension
+    `b` has an unknown shape.
+
+    >>> layer = keras.layers.EinsumDense("abc,cd->abd",
+    ...                                       output_shape=(None, 64),
+    ...                                       bias_axes="d")
+    >>> input_tensor = keras.Input(shape=[32, 128])
+    >>> output_tensor = layer(input_tensor)
+    >>> output_tensor.shape
+    (None, 32, 64)
+
+    **Applying a dense layer to a sequence using ellipses**
+
+    This example shows how to instantiate a layer that applies the same dense
+    operation to every element in a sequence, but uses the ellipsis notation
+    instead of specifying the batch and sequence dimensions.
+
+    Because we are using ellipsis notation and have specified only one axis, the
+    `output_shape` arg is a single value. When instantiated in this way, the
+    layer can handle any number of sequence dimensions - including the case
+    where no sequence dimension exists.
+
+    >>> layer = keras.layers.EinsumDense("...x,xy->...y",
+    ...                                       output_shape=64,
+    ...                                       bias_axes="y")
+    >>> input_tensor = keras.Input(shape=[32, 128])
+    >>> output_tensor = layer(input_tensor)
+    >>> output_tensor.shape
+    (None, 32, 64)
+
+[API Signature] equation: string, output_shape: list, activation: string, bias_axes: string, kernel_initializer: string, bias_initializer: string, kernel_regularizer: string, bias_regularizer: string, kernel_constraint: string, bias_constraint: string, lora_rank: integer, inputs: tensor
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 24 (tuple of ints represents valid shape dimensions)
+{v_1 : tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] > 0
+
+Rule 19 (compatibility of integer or float (data) type tensor and variable)
+{v1 : tensor, v2 : int ⊎ float} |= if 1 ≤ dtype(v1) ∧ dtype(v1) ≤ 5 then 1 ≤ v2 ∧ v2 ≤ 5 else if 6 ≤ dtype(v1) ∧ dtype(v1) ≤ 8 then 1 ≤ v2 ∧ v2 ≤ 8 else false
+
+Rule 17 (primitive type variable must be non-negative)
+{v_1 : int ⊎ float} |= v_1 ≥ 0
+
+Rule 16 (shape alignment for matrix multiplication)
+{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) ≥ 2 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, ndim(v_2) − 2)) ∨ (ndim(v_1) ≥ 2 ∧ ndim(v_2) = 1 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, 0))
+
+Rule 7 (first dimension of a tensor matches second dimension of the other)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) ≥ 1 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, 0) = shape(v_2, 1)
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 2 (activation must be a valid activation function string)
+{v_3 : str} |= v_3 = "relu" ∨ v_3 = "tanh" ∨ v_3 = "sigmoid" ∨ v_3 = "softmax" ∨ v_3 = "elu" ∨ v_3 = "selu" ∨ v_3 = "gelu" ∨ v_3 = "swish" ∨ v_3 = "softplus" ∨ v_3 = "linear"
+Token usage: input=2738, output=383, total=6502
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.keras.layers.EinsumDense API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+A layer that uses `einsum` as the backing computation.
+
+    This layer can perform einsum calculations of arbitrary dimensionality.
+
+    Args:
+        equation: An equation describing the einsum to perform.
+            This equation must be a valid einsum string of the form
+            `ab,bc->ac`, `...ab,bc->...ac`, or
+            `ab...,bc->ac...` where 'ab', 'bc', and 'ac' can be any valid einsum
+            axis expression sequence.
+        output_shape: The expected shape of the output tensor
+            (excluding the batch dimension and any dimensions
+            represented by ellipses). You can specify `None` for any dimension
+            that is unknown or can be inferred from the input shape.
+        activation: Activation function to use. If you don't specify anything,
+            no activation is applied
+            (that is, a "linear" activation: `a(x) = x`).
+        bias_axes: A string containing the output dimension(s)
+            to apply a bias to. Each character in the `bias_axes` string
+            should correspond to a character in the output portion
+            of the `equation` string.
+        kernel_initializer: Initializer for the `kernel` weights matrix.
+        bias_initializer: Initializer for the bias vector.
+        kernel_regularizer: Regularizer function applied to the `kernel` weights
+            matrix.
+        bias_regularizer: Regularizer function applied to the bias vector.
+        kernel_constraint: Constraint function applied to the `kernel` weights
+            matrix.
+        bias_constraint: Constraint function applied to the bias vector.
+        lora_rank: Optional integer. If set, the layer's forward pass
+            will implement LoRA (Low-Rank Adaptation)
+            with the provided rank. LoRA sets the layer's kernel
+            to non-trainable and replaces it with a delta over the
+            original kernel, obtained via multiplying two lower-rank
+            trainable matrices
+            (the factorization happens on the last dimension).
+            This can be useful to reduce the
+            computation cost of fine-tuning large dense layers.
+            You can also enable LoRA on an existing
+            `EinsumDense` layer by calling `layer.enable_lora(rank)`.
+         lora_alpha: Optional integer. If set, this parameter scales the
+            low-rank adaptation delta (computed as the product of two lower-rank
+            trainable matrices) during the forward pass. The delta is scaled by
+            `lora_alpha / lora_rank`, allowing you to fine-tune the strength of
+            the LoRA adjustment independently of `lora_rank`.
+        **kwargs: Base layer keyword arguments, such as `name` and `dtype`.
+
+    Examples:
+
+    **Biased dense layer with einsums**
+
+    This example shows how to instantiate a standard Keras dense layer using
+    einsum operations. This example is equivalent to
+    `keras.layers.Dense(64, use_bias=True)`.
+
+    >>> layer = keras.layers.EinsumDense("ab,bc->ac",
+    ...                                       output_shape=64,
+    ...                                       bias_axes="c")
+    >>> input_tensor = keras.Input(shape=[32])
+    >>> output_tensor = layer(input_tensor)
+    >>> output_tensor.shape
+    (None, 64)
+
+    **Applying a dense layer to a sequence**
+
+    This example shows how to instantiate a layer that applies the same dense
+    operation to every element in a sequence. Here, the `output_shape` has two
+    values (since there are two non-batch dimensions in the output); the first
+    dimension in the `output_shape` is `None`, because the sequence dimension
+    `b` has an unknown shape.
+
+    >>> layer = keras.layers.EinsumDense("abc,cd->abd",
+    ...                                       output_shape=(None, 64),
+    ...                                       bias_axes="d")
+    >>> input_tensor = keras.Input(shape=[32, 128])
+    >>> output_tensor = layer(input_tensor)
+    >>> output_tensor.shape
+    (None, 32, 64)
+
+    **Applying a dense layer to a sequence using ellipses**
+
+    This example shows how to instantiate a layer that applies the same dense
+    operation to every element in a sequence, but uses the ellipsis notation
+    instead of specifying the batch and sequence dimensions.
+
+    Because we are using ellipsis notation and have specified only one axis, the
+    `output_shape` arg is a single value. When instantiated in this way, the
+    layer can handle any number of sequence dimensions - including the case
+    where no sequence dimension exists.
+
+    >>> layer = keras.layers.EinsumDense("...x,xy->...y",
+    ...                                       output_shape=64,
+    ...                                       bias_axes="y")
+    >>> input_tensor = keras.Input(shape=[32, 128])
+    >>> output_tensor = layer(input_tensor)
+    >>> output_tensor.shape
+    (None, 32, 64)
+
+[API Signature] equation: string, output_shape: list, activation: string, bias_axes: string, kernel_initializer: string, bias_initializer: string, kernel_regularizer: string, bias_regularizer: string, kernel_constraint: string, bias_constraint: string, lora_rank: integer, inputs: tensor
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 24 (tuple of ints represents valid shape dimensions)
+{v_1 : tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] > 0
+
+Rule 19 (compatibility of integer or float (data) type tensor and variable)
+{v1 : tensor, v2 : int ⊎ float} |= if 1 ≤ dtype(v1) ∧ dtype(v1) ≤ 5 then 1 ≤ v2 ∧ v2 ≤ 5 else if 6 ≤ dtype(v1) ∧ dtype(v1) ≤ 8 then 1 ≤ v2 ∧ v2 ≤ 8 else false
+
+Rule 17 (primitive type variable must be non-negative)
+{v_1 : int ⊎ float} |= v_1 ≥ 0
+
+Rule 16 (shape alignment for matrix multiplication)
+{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) ≥ 2 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, ndim(v_2) − 2)) ∨ (ndim(v_1) ≥ 2 ∧ ndim(v_2) = 1 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, 0))
+
+Rule 7 (first dimension of a tensor matches second dimension of the other)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) ≥ 1 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, 0) = shape(v_2, 1)
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 3 (equation must be a valid einsum equation string from the supported set)
+{v_1 : str} |= v_1 = "ii" ∨ v_1 = "ii->i" ∨ v_1 = "i,j->ij" ∨ v_1 = "bij,bjk->bik" ∨ v_1 = "...ij->...ji" ∨ v_1 = "bn,anm,bm->ba"
+Token usage: input=2738, output=383, total=6502
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.keras.layers.EinsumDense API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+A layer that uses `einsum` as the backing computation.
+
+    This layer can perform einsum calculations of arbitrary dimensionality.
+
+    Args:
+        equation: An equation describing the einsum to perform.
+            This equation must be a valid einsum string of the form
+            `ab,bc->ac`, `...ab,bc->...ac`, or
+            `ab...,bc->ac...` where 'ab', 'bc', and 'ac' can be any valid einsum
+            axis expression sequence.
+        output_shape: The expected shape of the output tensor
+            (excluding the batch dimension and any dimensions
+            represented by ellipses). You can specify `None` for any dimension
+            that is unknown or can be inferred from the input shape.
+        activation: Activation function to use. If you don't specify anything,
+            no activation is applied
+            (that is, a "linear" activation: `a(x) = x`).
+        bias_axes: A string containing the output dimension(s)
+            to apply a bias to. Each character in the `bias_axes` string
+            should correspond to a character in the output portion
+            of the `equation` string.
+        kernel_initializer: Initializer for the `kernel` weights matrix.
+        bias_initializer: Initializer for the bias vector.
+        kernel_regularizer: Regularizer function applied to the `kernel` weights
+            matrix.
+        bias_regularizer: Regularizer function applied to the bias vector.
+        kernel_constraint: Constraint function applied to the `kernel` weights
+            matrix.
+        bias_constraint: Constraint function applied to the bias vector.
+        lora_rank: Optional integer. If set, the layer's forward pass
+            will implement LoRA (Low-Rank Adaptation)
+            with the provided rank. LoRA sets the layer's kernel
+            to non-trainable and replaces it with a delta over the
+            original kernel, obtained via multiplying two lower-rank
+            trainable matrices
+            (the factorization happens on the last dimension).
+            This can be useful to reduce the
+            computation cost of fine-tuning large dense layers.
+            You can also enable LoRA on an existing
+            `EinsumDense` layer by calling `layer.enable_lora(rank)`.
+         lora_alpha: Optional integer. If set, this parameter scales the
+            low-rank adaptation delta (computed as the product of two lower-rank
+            trainable matrices) during the forward pass. The delta is scaled by
+            `lora_alpha / lora_rank`, allowing you to fine-tune the strength of
+            the LoRA adjustment independently of `lora_rank`.
+        **kwargs: Base layer keyword arguments, such as `name` and `dtype`.
+
+    Examples:
+
+    **Biased dense layer with einsums**
+
+    This example shows how to instantiate a standard Keras dense layer using
+    einsum operations. This example is equivalent to
+    `keras.layers.Dense(64, use_bias=True)`.
+
+    >>> layer = keras.layers.EinsumDense("ab,bc->ac",
+    ...                                       output_shape=64,
+    ...                                       bias_axes="c")
+    >>> input_tensor = keras.Input(shape=[32])
+    >>> output_tensor = layer(input_tensor)
+    >>> output_tensor.shape
+    (None, 64)
+
+    **Applying a dense layer to a sequence**
+
+    This example shows how to instantiate a layer that applies the same dense
+    operation to every element in a sequence. Here, the `output_shape` has two
+    values (since there are two non-batch dimensions in the output); the first
+    dimension in the `output_shape` is `None`, because the sequence dimension
+    `b` has an unknown shape.
+
+    >>> layer = keras.layers.EinsumDense("abc,cd->abd",
+    ...                                       output_shape=(None, 64),
+    ...                                       bias_axes="d")
+    >>> input_tensor = keras.Input(shape=[32, 128])
+    >>> output_tensor = layer(input_tensor)
+    >>> output_tensor.shape
+    (None, 32, 64)
+
+    **Applying a dense layer to a sequence using ellipses**
+
+    This example shows how to instantiate a layer that applies the same dense
+    operation to every element in a sequence, but uses the ellipsis notation
+    instead of specifying the batch and sequence dimensions.
+
+    Because we are using ellipsis notation and have specified only one axis, the
+    `output_shape` arg is a single value. When instantiated in this way, the
+    layer can handle any number of sequence dimensions - including the case
+    where no sequence dimension exists.
+
+    >>> layer = keras.layers.EinsumDense("...x,xy->...y",
+    ...                                       output_shape=64,
+    ...                                       bias_axes="y")
+    >>> input_tensor = keras.Input(shape=[32, 128])
+    >>> output_tensor = layer(input_tensor)
+    >>> output_tensor.shape
+    (None, 32, 64)
+
+[API Signature] equation: string, output_shape: list, activation: string, bias_axes: string, kernel_initializer: string, bias_initializer: string, kernel_regularizer: string, bias_regularizer: string, kernel_constraint: string, bias_constraint: string, lora_rank: integer, inputs: tensor
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 24 (tuple of ints represents valid shape dimensions)
+{v_1 : tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] > 0
+
+Rule 19 (compatibility of integer or float (data) type tensor and variable)
+{v1 : tensor, v2 : int ⊎ float} |= if 1 ≤ dtype(v1) ∧ dtype(v1) ≤ 5 then 1 ≤ v2 ∧ v2 ≤ 5 else if 6 ≤ dtype(v1) ∧ dtype(v1) ≤ 8 then 1 ≤ v2 ∧ v2 ≤ 8 else false
+
+Rule 17 (primitive type variable must be non-negative)
+{v_1 : int ⊎ float} |= v_1 ≥ 0
+
+Rule 16 (shape alignment for matrix multiplication)
+{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) ≥ 2 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, ndim(v_2) − 2)) ∨ (ndim(v_1) ≥ 2 ∧ ndim(v_2) = 1 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, 0))
+
+Rule 7 (first dimension of a tensor matches second dimension of the other)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) ≥ 1 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, 0) = shape(v_2, 1)
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 4 (all elements in output_shape must be positive integers)
+{v_2 : list(int)} |= ∀i ∈ [0, v_2.len - 1] : v_2[i] > 0
+Token usage: input=2738, output=383, total=6502
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.keras.layers.EinsumDense API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+A layer that uses `einsum` as the backing computation.
+
+    This layer can perform einsum calculations of arbitrary dimensionality.
+
+    Args:
+        equation: An equation describing the einsum to perform.
+            This equation must be a valid einsum string of the form
+            `ab,bc->ac`, `...ab,bc->...ac`, or
+            `ab...,bc->ac...` where 'ab', 'bc', and 'ac' can be any valid einsum
+            axis expression sequence.
+        output_shape: The expected shape of the output tensor
+            (excluding the batch dimension and any dimensions
+            represented by ellipses). You can specify `None` for any dimension
+            that is unknown or can be inferred from the input shape.
+        activation: Activation function to use. If you don't specify anything,
+            no activation is applied
+            (that is, a "linear" activation: `a(x) = x`).
+        bias_axes: A string containing the output dimension(s)
+            to apply a bias to. Each character in the `bias_axes` string
+            should correspond to a character in the output portion
+            of the `equation` string.
+        kernel_initializer: Initializer for the `kernel` weights matrix.
+        bias_initializer: Initializer for the bias vector.
+        kernel_regularizer: Regularizer function applied to the `kernel` weights
+            matrix.
+        bias_regularizer: Regularizer function applied to the bias vector.
+        kernel_constraint: Constraint function applied to the `kernel` weights
+            matrix.
+        bias_constraint: Constraint function applied to the bias vector.
+        lora_rank: Optional integer. If set, the layer's forward pass
+            will implement LoRA (Low-Rank Adaptation)
+            with the provided rank. LoRA sets the layer's kernel
+            to non-trainable and replaces it with a delta over the
+            original kernel, obtained via multiplying two lower-rank
+            trainable matrices
+            (the factorization happens on the last dimension).
+            This can be useful to reduce the
+            computation cost of fine-tuning large dense layers.
+            You can also enable LoRA on an existing
+            `EinsumDense` layer by calling `layer.enable_lora(rank)`.
+         lora_alpha: Optional integer. If set, this parameter scales the
+            low-rank adaptation delta (computed as the product of two lower-rank
+            trainable matrices) during the forward pass. The delta is scaled by
+            `lora_alpha / lora_rank`, allowing you to fine-tune the strength of
+            the LoRA adjustment independently of `lora_rank`.
+        **kwargs: Base layer keyword arguments, such as `name` and `dtype`.
+
+    Examples:
+
+    **Biased dense layer with einsums**
+
+    This example shows how to instantiate a standard Keras dense layer using
+    einsum operations. This example is equivalent to
+    `keras.layers.Dense(64, use_bias=True)`.
+
+    >>> layer = keras.layers.EinsumDense("ab,bc->ac",
+    ...                                       output_shape=64,
+    ...                                       bias_axes="c")
+    >>> input_tensor = keras.Input(shape=[32])
+    >>> output_tensor = layer(input_tensor)
+    >>> output_tensor.shape
+    (None, 64)
+
+    **Applying a dense layer to a sequence**
+
+    This example shows how to instantiate a layer that applies the same dense
+    operation to every element in a sequence. Here, the `output_shape` has two
+    values (since there are two non-batch dimensions in the output); the first
+    dimension in the `output_shape` is `None`, because the sequence dimension
+    `b` has an unknown shape.
+
+    >>> layer = keras.layers.EinsumDense("abc,cd->abd",
+    ...                                       output_shape=(None, 64),
+    ...                                       bias_axes="d")
+    >>> input_tensor = keras.Input(shape=[32, 128])
+    >>> output_tensor = layer(input_tensor)
+    >>> output_tensor.shape
+    (None, 32, 64)
+
+    **Applying a dense layer to a sequence using ellipses**
+
+    This example shows how to instantiate a layer that applies the same dense
+    operation to every element in a sequence, but uses the ellipsis notation
+    instead of specifying the batch and sequence dimensions.
+
+    Because we are using ellipsis notation and have specified only one axis, the
+    `output_shape` arg is a single value. When instantiated in this way, the
+    layer can handle any number of sequence dimensions - including the case
+    where no sequence dimension exists.
+
+    >>> layer = keras.layers.EinsumDense("...x,xy->...y",
+    ...                                       output_shape=64,
+    ...                                       bias_axes="y")
+    >>> input_tensor = keras.Input(shape=[32, 128])
+    >>> output_tensor = layer(input_tensor)
+    >>> output_tensor.shape
+    (None, 32, 64)
+
+[API Signature] equation: string, output_shape: list, activation: string, bias_axes: string, kernel_initializer: string, bias_initializer: string, kernel_regularizer: string, bias_regularizer: string, kernel_constraint: string, bias_constraint: string, lora_rank: integer, inputs: tensor
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 24 (tuple of ints represents valid shape dimensions)
+{v_1 : tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] > 0
+
+Rule 19 (compatibility of integer or float (data) type tensor and variable)
+{v1 : tensor, v2 : int ⊎ float} |= if 1 ≤ dtype(v1) ∧ dtype(v1) ≤ 5 then 1 ≤ v2 ∧ v2 ≤ 5 else if 6 ≤ dtype(v1) ∧ dtype(v1) ≤ 8 then 1 ≤ v2 ∧ v2 ≤ 8 else false
+
+Rule 17 (primitive type variable must be non-negative)
+{v_1 : int ⊎ float} |= v_1 ≥ 0
+
+Rule 16 (shape alignment for matrix multiplication)
+{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) ≥ 2 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, ndim(v_2) − 2)) ∨ (ndim(v_1) ≥ 2 ∧ ndim(v_2) = 1 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, 0))
+
+Rule 7 (first dimension of a tensor matches second dimension of the other)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) ≥ 1 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, 0) = shape(v_2, 1)
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 5 (inputs must be a tensor of rank 1 or greater)
+{v_12 : tensor} |= ndim(v_12) ≥ 1
+Token usage: input=2738, output=383, total=6502
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.keras.layers.EinsumDense API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+A layer that uses `einsum` as the backing computation.
+
+    This layer can perform einsum calculations of arbitrary dimensionality.
+
+    Args:
+        equation: An equation describing the einsum to perform.
+            This equation must be a valid einsum string of the form
+            `ab,bc->ac`, `...ab,bc->...ac`, or
+            `ab...,bc->ac...` where 'ab', 'bc', and 'ac' can be any valid einsum
+            axis expression sequence.
+        output_shape: The expected shape of the output tensor
+            (excluding the batch dimension and any dimensions
+            represented by ellipses). You can specify `None` for any dimension
+            that is unknown or can be inferred from the input shape.
+        activation: Activation function to use. If you don't specify anything,
+            no activation is applied
+            (that is, a "linear" activation: `a(x) = x`).
+        bias_axes: A string containing the output dimension(s)
+            to apply a bias to. Each character in the `bias_axes` string
+            should correspond to a character in the output portion
+            of the `equation` string.
+        kernel_initializer: Initializer for the `kernel` weights matrix.
+        bias_initializer: Initializer for the bias vector.
+        kernel_regularizer: Regularizer function applied to the `kernel` weights
+            matrix.
+        bias_regularizer: Regularizer function applied to the bias vector.
+        kernel_constraint: Constraint function applied to the `kernel` weights
+            matrix.
+        bias_constraint: Constraint function applied to the bias vector.
+        lora_rank: Optional integer. If set, the layer's forward pass
+            will implement LoRA (Low-Rank Adaptation)
+            with the provided rank. LoRA sets the layer's kernel
+            to non-trainable and replaces it with a delta over the
+            original kernel, obtained via multiplying two lower-rank
+            trainable matrices
+            (the factorization happens on the last dimension).
+            This can be useful to reduce the
+            computation cost of fine-tuning large dense layers.
+            You can also enable LoRA on an existing
+            `EinsumDense` layer by calling `layer.enable_lora(rank)`.
+         lora_alpha: Optional integer. If set, this parameter scales the
+            low-rank adaptation delta (computed as the product of two lower-rank
+            trainable matrices) during the forward pass. The delta is scaled by
+            `lora_alpha / lora_rank`, allowing you to fine-tune the strength of
+            the LoRA adjustment independently of `lora_rank`.
+        **kwargs: Base layer keyword arguments, such as `name` and `dtype`.
+
+    Examples:
+
+    **Biased dense layer with einsums**
+
+    This example shows how to instantiate a standard Keras dense layer using
+    einsum operations. This example is equivalent to
+    `keras.layers.Dense(64, use_bias=True)`.
+
+    >>> layer = keras.layers.EinsumDense("ab,bc->ac",
+    ...                                       output_shape=64,
+    ...                                       bias_axes="c")
+    >>> input_tensor = keras.Input(shape=[32])
+    >>> output_tensor = layer(input_tensor)
+    >>> output_tensor.shape
+    (None, 64)
+
+    **Applying a dense layer to a sequence**
+
+    This example shows how to instantiate a layer that applies the same dense
+    operation to every element in a sequence. Here, the `output_shape` has two
+    values (since there are two non-batch dimensions in the output); the first
+    dimension in the `output_shape` is `None`, because the sequence dimension
+    `b` has an unknown shape.
+
+    >>> layer = keras.layers.EinsumDense("abc,cd->abd",
+    ...                                       output_shape=(None, 64),
+    ...                                       bias_axes="d")
+    >>> input_tensor = keras.Input(shape=[32, 128])
+    >>> output_tensor = layer(input_tensor)
+    >>> output_tensor.shape
+    (None, 32, 64)
+
+    **Applying a dense layer to a sequence using ellipses**
+
+    This example shows how to instantiate a layer that applies the same dense
+    operation to every element in a sequence, but uses the ellipsis notation
+    instead of specifying the batch and sequence dimensions.
+
+    Because we are using ellipsis notation and have specified only one axis, the
+    `output_shape` arg is a single value. When instantiated in this way, the
+    layer can handle any number of sequence dimensions - including the case
+    where no sequence dimension exists.
+
+    >>> layer = keras.layers.EinsumDense("...x,xy->...y",
+    ...                                       output_shape=64,
+    ...                                       bias_axes="y")
+    >>> input_tensor = keras.Input(shape=[32, 128])
+    >>> output_tensor = layer(input_tensor)
+    >>> output_tensor.shape
+    (None, 32, 64)
+
+[API Signature] equation: string, output_shape: list, activation: string, bias_axes: string, kernel_initializer: string, bias_initializer: string, kernel_regularizer: string, bias_regularizer: string, kernel_constraint: string, bias_constraint: string, lora_rank: integer, inputs: tensor
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 24 (tuple of ints represents valid shape dimensions)
+{v_1 : tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] > 0
+
+Rule 19 (compatibility of integer or float (data) type tensor and variable)
+{v1 : tensor, v2 : int ⊎ float} |= if 1 ≤ dtype(v1) ∧ dtype(v1) ≤ 5 then 1 ≤ v2 ∧ v2 ≤ 5 else if 6 ≤ dtype(v1) ∧ dtype(v1) ≤ 8 then 1 ≤ v2 ∧ v2 ≤ 8 else false
+
+Rule 17 (primitive type variable must be non-negative)
+{v_1 : int ⊎ float} |= v_1 ≥ 0
+
+Rule 16 (shape alignment for matrix multiplication)
+{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) ≥ 2 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, ndim(v_2) − 2)) ∨ (ndim(v_1) ≥ 2 ∧ ndim(v_2) = 1 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, 0))
+
+Rule 7 (first dimension of a tensor matches second dimension of the other)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) ≥ 1 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, 0) = shape(v_2, 1)
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 6 (inputs must have a numeric data type)
+{v_12 : tensor} |= dtype_(v_12) ≥ 1 ∧ dtype_(v_12) ≤ 10
+Token usage: input=2738, output=383, total=6502
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.keras.layers.EinsumDense API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+A layer that uses `einsum` as the backing computation.
+
+    This layer can perform einsum calculations of arbitrary dimensionality.
+
+    Args:
+        equation: An equation describing the einsum to perform.
+            This equation must be a valid einsum string of the form
+            `ab,bc->ac`, `...ab,bc->...ac`, or
+            `ab...,bc->ac...` where 'ab', 'bc', and 'ac' can be any valid einsum
+            axis expression sequence.
+        output_shape: The expected shape of the output tensor
+            (excluding the batch dimension and any dimensions
+            represented by ellipses). You can specify `None` for any dimension
+            that is unknown or can be inferred from the input shape.
+        activation: Activation function to use. If you don't specify anything,
+            no activation is applied
+            (that is, a "linear" activation: `a(x) = x`).
+        bias_axes: A string containing the output dimension(s)
+            to apply a bias to. Each character in the `bias_axes` string
+            should correspond to a character in the output portion
+            of the `equation` string.
+        kernel_initializer: Initializer for the `kernel` weights matrix.
+        bias_initializer: Initializer for the bias vector.
+        kernel_regularizer: Regularizer function applied to the `kernel` weights
+            matrix.
+        bias_regularizer: Regularizer function applied to the bias vector.
+        kernel_constraint: Constraint function applied to the `kernel` weights
+            matrix.
+        bias_constraint: Constraint function applied to the bias vector.
+        lora_rank: Optional integer. If set, the layer's forward pass
+            will implement LoRA (Low-Rank Adaptation)
+            with the provided rank. LoRA sets the layer's kernel
+            to non-trainable and replaces it with a delta over the
+            original kernel, obtained via multiplying two lower-rank
+            trainable matrices
+            (the factorization happens on the last dimension).
+            This can be useful to reduce the
+            computation cost of fine-tuning large dense layers.
+            You can also enable LoRA on an existing
+            `EinsumDense` layer by calling `layer.enable_lora(rank)`.
+         lora_alpha: Optional integer. If set, this parameter scales the
+            low-rank adaptation delta (computed as the product of two lower-rank
+            trainable matrices) during the forward pass. The delta is scaled by
+            `lora_alpha / lora_rank`, allowing you to fine-tune the strength of
+            the LoRA adjustment independently of `lora_rank`.
+        **kwargs: Base layer keyword arguments, such as `name` and `dtype`.
+
+    Examples:
+
+    **Biased dense layer with einsums**
+
+    This example shows how to instantiate a standard Keras dense layer using
+    einsum operations. This example is equivalent to
+    `keras.layers.Dense(64, use_bias=True)`.
+
+    >>> layer = keras.layers.EinsumDense("ab,bc->ac",
+    ...                                       output_shape=64,
+    ...                                       bias_axes="c")
+    >>> input_tensor = keras.Input(shape=[32])
+    >>> output_tensor = layer(input_tensor)
+    >>> output_tensor.shape
+    (None, 64)
+
+    **Applying a dense layer to a sequence**
+
+    This example shows how to instantiate a layer that applies the same dense
+    operation to every element in a sequence. Here, the `output_shape` has two
+    values (since there are two non-batch dimensions in the output); the first
+    dimension in the `output_shape` is `None`, because the sequence dimension
+    `b` has an unknown shape.
+
+    >>> layer = keras.layers.EinsumDense("abc,cd->abd",
+    ...                                       output_shape=(None, 64),
+    ...                                       bias_axes="d")
+    >>> input_tensor = keras.Input(shape=[32, 128])
+    >>> output_tensor = layer(input_tensor)
+    >>> output_tensor.shape
+    (None, 32, 64)
+
+    **Applying a dense layer to a sequence using ellipses**
+
+    This example shows how to instantiate a layer that applies the same dense
+    operation to every element in a sequence, but uses the ellipsis notation
+    instead of specifying the batch and sequence dimensions.
+
+    Because we are using ellipsis notation and have specified only one axis, the
+    `output_shape` arg is a single value. When instantiated in this way, the
+    layer can handle any number of sequence dimensions - including the case
+    where no sequence dimension exists.
+
+    >>> layer = keras.layers.EinsumDense("...x,xy->...y",
+    ...                                       output_shape=64,
+    ...                                       bias_axes="y")
+    >>> input_tensor = keras.Input(shape=[32, 128])
+    >>> output_tensor = layer(input_tensor)
+    >>> output_tensor.shape
+    (None, 32, 64)
+
+[API Signature] equation: string, output_shape: list, activation: string, bias_axes: string, kernel_initializer: string, bias_initializer: string, kernel_regularizer: string, bias_regularizer: string, kernel_constraint: string, bias_constraint: string, lora_rank: integer, inputs: tensor
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 18 (input tensor is empty or only contains non-negative values)
+{v_1 : tensor} |= (∃i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = 0) ∨ min(v_1) ≥ 0
+
+Rule 2 (v_2 should be a valid dimension of input tensor)
+{v_1 : tensor, v_2 : int} |= −1 × ndim(v_1) ≤ v_2 ∧ v_2 ≤ ndim(v_1) − 1
+
+Rule 10 (valid 2D transposed convolution)
+{v_1 : tensor, v_2 : tensor, v_3 : int, v_4 : int} |= ndim(v_1) = 4 ∧ ndim(v_2) = 4 ∧ v_3 ≥ 1 ∧ v_4 ≥ 0 ∧ v_3 × (shape(v_1, 2) − 1) + shape(v_2, 2) − 2 × v_4 > 0 ∧ v_3 × (shape(v_1, 3) − 1) + shape(v_2, 3) − 2 × v_4 > 0
+
+Rule 15 (broadcasting compatibility for tensor shapes)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ ∀i ∈ [0, if ndim(v_1) ≥ ndim(v_2) then ndim(v_1) − 1 else ndim(v_2) − 1] : ndim(v_1) − i − 1 < 0 ∨ ndim(v_2) − i − 1 < 0 ∨ shape(v_1, ndim(v_1) − i − 1) = 1 ∨ shape(v_2, ndim(v_2) − i − 1) = 1 ∨ shape(v_1, ndim(v_1) − i − 1) = shape(v_2, ndim(v_2) − i − 1)
+
+Rule 31 (dtype must be a floating-point type)
+{v_1 : dtype} |= v_1 = 6 ∨ v_1 = 7 ∨ v_1 = 8
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 7 (equation must be a valid einsum equation string from the allowed set)
+{v_1 : str} |= v_1 = "ii" ∨ v_1 = "ii->i" ∨ v_1 = "i,j->ij" ∨ v_1 = "bij,bjk->bik" ∨ v_1 = "...ij->...ji" ∨ v_1 = "bn,anm,bm->ba"
+Token usage: input=9392, output=441, total=13781
+** DUPLICATED RULE ** (num_failures: 1)
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.keras.layers.EinsumDense API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+A layer that uses `einsum` as the backing computation.
+
+    This layer can perform einsum calculations of arbitrary dimensionality.
+
+    Args:
+        equation: An equation describing the einsum to perform.
+            This equation must be a valid einsum string of the form
+            `ab,bc->ac`, `...ab,bc->...ac`, or
+            `ab...,bc->ac...` where 'ab', 'bc', and 'ac' can be any valid einsum
+            axis expression sequence.
+        output_shape: The expected shape of the output tensor
+            (excluding the batch dimension and any dimensions
+            represented by ellipses). You can specify `None` for any dimension
+            that is unknown or can be inferred from the input shape.
+        activation: Activation function to use. If you don't specify anything,
+            no activation is applied
+            (that is, a "linear" activation: `a(x) = x`).
+        bias_axes: A string containing the output dimension(s)
+            to apply a bias to. Each character in the `bias_axes` string
+            should correspond to a character in the output portion
+            of the `equation` string.
+        kernel_initializer: Initializer for the `kernel` weights matrix.
+        bias_initializer: Initializer for the bias vector.
+        kernel_regularizer: Regularizer function applied to the `kernel` weights
+            matrix.
+        bias_regularizer: Regularizer function applied to the bias vector.
+        kernel_constraint: Constraint function applied to the `kernel` weights
+            matrix.
+        bias_constraint: Constraint function applied to the bias vector.
+        lora_rank: Optional integer. If set, the layer's forward pass
+            will implement LoRA (Low-Rank Adaptation)
+            with the provided rank. LoRA sets the layer's kernel
+            to non-trainable and replaces it with a delta over the
+            original kernel, obtained via multiplying two lower-rank
+            trainable matrices
+            (the factorization happens on the last dimension).
+            This can be useful to reduce the
+            computation cost of fine-tuning large dense layers.
+            You can also enable LoRA on an existing
+            `EinsumDense` layer by calling `layer.enable_lora(rank)`.
+         lora_alpha: Optional integer. If set, this parameter scales the
+            low-rank adaptation delta (computed as the product of two lower-rank
+            trainable matrices) during the forward pass. The delta is scaled by
+            `lora_alpha / lora_rank`, allowing you to fine-tune the strength of
+            the LoRA adjustment independently of `lora_rank`.
+        **kwargs: Base layer keyword arguments, such as `name` and `dtype`.
+
+    Examples:
+
+    **Biased dense layer with einsums**
+
+    This example shows how to instantiate a standard Keras dense layer using
+    einsum operations. This example is equivalent to
+    `keras.layers.Dense(64, use_bias=True)`.
+
+    >>> layer = keras.layers.EinsumDense("ab,bc->ac",
+    ...                                       output_shape=64,
+    ...                                       bias_axes="c")
+    >>> input_tensor = keras.Input(shape=[32])
+    >>> output_tensor = layer(input_tensor)
+    >>> output_tensor.shape
+    (None, 64)
+
+    **Applying a dense layer to a sequence**
+
+    This example shows how to instantiate a layer that applies the same dense
+    operation to every element in a sequence. Here, the `output_shape` has two
+    values (since there are two non-batch dimensions in the output); the first
+    dimension in the `output_shape` is `None`, because the sequence dimension
+    `b` has an unknown shape.
+
+    >>> layer = keras.layers.EinsumDense("abc,cd->abd",
+    ...                                       output_shape=(None, 64),
+    ...                                       bias_axes="d")
+    >>> input_tensor = keras.Input(shape=[32, 128])
+    >>> output_tensor = layer(input_tensor)
+    >>> output_tensor.shape
+    (None, 32, 64)
+
+    **Applying a dense layer to a sequence using ellipses**
+
+    This example shows how to instantiate a layer that applies the same dense
+    operation to every element in a sequence, but uses the ellipsis notation
+    instead of specifying the batch and sequence dimensions.
+
+    Because we are using ellipsis notation and have specified only one axis, the
+    `output_shape` arg is a single value. When instantiated in this way, the
+    layer can handle any number of sequence dimensions - including the case
+    where no sequence dimension exists.
+
+    >>> layer = keras.layers.EinsumDense("...x,xy->...y",
+    ...                                       output_shape=64,
+    ...                                       bias_axes="y")
+    >>> input_tensor = keras.Input(shape=[32, 128])
+    >>> output_tensor = layer(input_tensor)
+    >>> output_tensor.shape
+    (None, 32, 64)
+
+[API Signature] equation: string, output_shape: list, activation: string, bias_axes: string, kernel_initializer: string, bias_initializer: string, kernel_regularizer: string, bias_regularizer: string, kernel_constraint: string, bias_constraint: string, lora_rank: integer, inputs: tensor
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 18 (input tensor is empty or only contains non-negative values)
+{v_1 : tensor} |= (∃i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = 0) ∨ min(v_1) ≥ 0
+
+Rule 2 (v_2 should be a valid dimension of input tensor)
+{v_1 : tensor, v_2 : int} |= −1 × ndim(v_1) ≤ v_2 ∧ v_2 ≤ ndim(v_1) − 1
+
+Rule 10 (valid 2D transposed convolution)
+{v_1 : tensor, v_2 : tensor, v_3 : int, v_4 : int} |= ndim(v_1) = 4 ∧ ndim(v_2) = 4 ∧ v_3 ≥ 1 ∧ v_4 ≥ 0 ∧ v_3 × (shape(v_1, 2) − 1) + shape(v_2, 2) − 2 × v_4 > 0 ∧ v_3 × (shape(v_1, 3) − 1) + shape(v_2, 3) − 2 × v_4 > 0
+
+Rule 15 (broadcasting compatibility for tensor shapes)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ ∀i ∈ [0, if ndim(v_1) ≥ ndim(v_2) then ndim(v_1) − 1 else ndim(v_2) − 1] : ndim(v_1) − i − 1 < 0 ∨ ndim(v_2) − i − 1 < 0 ∨ shape(v_1, ndim(v_1) − i − 1) = 1 ∨ shape(v_2, ndim(v_2) − i − 1) = 1 ∨ shape(v_1, ndim(v_1) − i − 1) = shape(v_2, ndim(v_2) − i − 1)
+
+Rule 31 (dtype must be a floating-point type)
+{v_1 : dtype} |= v_1 = 6 ∨ v_1 = 7 ∨ v_1 = 8
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 8 (activation must be a valid activation function string)
+{v_3 : str} |= v_3 = "relu" ∨ v_3 = "tanh" ∨ v_3 = "sigmoid" ∨ v_3 = "softmax" ∨ v_3 = "elu" ∨ v_3 = "selu" ∨ v_3 = "gelu" ∨ v_3 = "swish" ∨ v_3 = "softplus" ∨ v_3 = "linear"
+Token usage: input=9392, output=441, total=13781
+** DUPLICATED RULE ** (num_failures: 2)
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.keras.layers.EinsumDense API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+A layer that uses `einsum` as the backing computation.
+
+    This layer can perform einsum calculations of arbitrary dimensionality.
+
+    Args:
+        equation: An equation describing the einsum to perform.
+            This equation must be a valid einsum string of the form
+            `ab,bc->ac`, `...ab,bc->...ac`, or
+            `ab...,bc->ac...` where 'ab', 'bc', and 'ac' can be any valid einsum
+            axis expression sequence.
+        output_shape: The expected shape of the output tensor
+            (excluding the batch dimension and any dimensions
+            represented by ellipses). You can specify `None` for any dimension
+            that is unknown or can be inferred from the input shape.
+        activation: Activation function to use. If you don't specify anything,
+            no activation is applied
+            (that is, a "linear" activation: `a(x) = x`).
+        bias_axes: A string containing the output dimension(s)
+            to apply a bias to. Each character in the `bias_axes` string
+            should correspond to a character in the output portion
+            of the `equation` string.
+        kernel_initializer: Initializer for the `kernel` weights matrix.
+        bias_initializer: Initializer for the bias vector.
+        kernel_regularizer: Regularizer function applied to the `kernel` weights
+            matrix.
+        bias_regularizer: Regularizer function applied to the bias vector.
+        kernel_constraint: Constraint function applied to the `kernel` weights
+            matrix.
+        bias_constraint: Constraint function applied to the bias vector.
+        lora_rank: Optional integer. If set, the layer's forward pass
+            will implement LoRA (Low-Rank Adaptation)
+            with the provided rank. LoRA sets the layer's kernel
+            to non-trainable and replaces it with a delta over the
+            original kernel, obtained via multiplying two lower-rank
+            trainable matrices
+            (the factorization happens on the last dimension).
+            This can be useful to reduce the
+            computation cost of fine-tuning large dense layers.
+            You can also enable LoRA on an existing
+            `EinsumDense` layer by calling `layer.enable_lora(rank)`.
+         lora_alpha: Optional integer. If set, this parameter scales the
+            low-rank adaptation delta (computed as the product of two lower-rank
+            trainable matrices) during the forward pass. The delta is scaled by
+            `lora_alpha / lora_rank`, allowing you to fine-tune the strength of
+            the LoRA adjustment independently of `lora_rank`.
+        **kwargs: Base layer keyword arguments, such as `name` and `dtype`.
+
+    Examples:
+
+    **Biased dense layer with einsums**
+
+    This example shows how to instantiate a standard Keras dense layer using
+    einsum operations. This example is equivalent to
+    `keras.layers.Dense(64, use_bias=True)`.
+
+    >>> layer = keras.layers.EinsumDense("ab,bc->ac",
+    ...                                       output_shape=64,
+    ...                                       bias_axes="c")
+    >>> input_tensor = keras.Input(shape=[32])
+    >>> output_tensor = layer(input_tensor)
+    >>> output_tensor.shape
+    (None, 64)
+
+    **Applying a dense layer to a sequence**
+
+    This example shows how to instantiate a layer that applies the same dense
+    operation to every element in a sequence. Here, the `output_shape` has two
+    values (since there are two non-batch dimensions in the output); the first
+    dimension in the `output_shape` is `None`, because the sequence dimension
+    `b` has an unknown shape.
+
+    >>> layer = keras.layers.EinsumDense("abc,cd->abd",
+    ...                                       output_shape=(None, 64),
+    ...                                       bias_axes="d")
+    >>> input_tensor = keras.Input(shape=[32, 128])
+    >>> output_tensor = layer(input_tensor)
+    >>> output_tensor.shape
+    (None, 32, 64)
+
+    **Applying a dense layer to a sequence using ellipses**
+
+    This example shows how to instantiate a layer that applies the same dense
+    operation to every element in a sequence, but uses the ellipsis notation
+    instead of specifying the batch and sequence dimensions.
+
+    Because we are using ellipsis notation and have specified only one axis, the
+    `output_shape` arg is a single value. When instantiated in this way, the
+    layer can handle any number of sequence dimensions - including the case
+    where no sequence dimension exists.
+
+    >>> layer = keras.layers.EinsumDense("...x,xy->...y",
+    ...                                       output_shape=64,
+    ...                                       bias_axes="y")
+    >>> input_tensor = keras.Input(shape=[32, 128])
+    >>> output_tensor = layer(input_tensor)
+    >>> output_tensor.shape
+    (None, 32, 64)
+
+[API Signature] equation: string, output_shape: list, activation: string, bias_axes: string, kernel_initializer: string, bias_initializer: string, kernel_regularizer: string, bias_regularizer: string, kernel_constraint: string, bias_constraint: string, lora_rank: integer, inputs: tensor
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 18 (input tensor is empty or only contains non-negative values)
+{v_1 : tensor} |= (∃i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = 0) ∨ min(v_1) ≥ 0
+
+Rule 2 (v_2 should be a valid dimension of input tensor)
+{v_1 : tensor, v_2 : int} |= −1 × ndim(v_1) ≤ v_2 ∧ v_2 ≤ ndim(v_1) − 1
+
+Rule 10 (valid 2D transposed convolution)
+{v_1 : tensor, v_2 : tensor, v_3 : int, v_4 : int} |= ndim(v_1) = 4 ∧ ndim(v_2) = 4 ∧ v_3 ≥ 1 ∧ v_4 ≥ 0 ∧ v_3 × (shape(v_1, 2) − 1) + shape(v_2, 2) − 2 × v_4 > 0 ∧ v_3 × (shape(v_1, 3) − 1) + shape(v_2, 3) − 2 × v_4 > 0
+
+Rule 15 (broadcasting compatibility for tensor shapes)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ ∀i ∈ [0, if ndim(v_1) ≥ ndim(v_2) then ndim(v_1) − 1 else ndim(v_2) − 1] : ndim(v_1) − i − 1 < 0 ∨ ndim(v_2) − i − 1 < 0 ∨ shape(v_1, ndim(v_1) − i − 1) = 1 ∨ shape(v_2, ndim(v_2) − i − 1) = 1 ∨ shape(v_1, ndim(v_1) − i − 1) = shape(v_2, ndim(v_2) − i − 1)
+
+Rule 31 (dtype must be a floating-point type)
+{v_1 : dtype} |= v_1 = 6 ∨ v_1 = 7 ∨ v_1 = 8
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 9 (lora_rank must be a positive integer)
+{v_11 : int} |= v_11 > 0
+Token usage: input=9392, output=441, total=13781
+** DUPLICATED RULE ** (num_failures: 3)
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.keras.layers.EinsumDense API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+A layer that uses `einsum` as the backing computation.
+
+    This layer can perform einsum calculations of arbitrary dimensionality.
+
+    Args:
+        equation: An equation describing the einsum to perform.
+            This equation must be a valid einsum string of the form
+            `ab,bc->ac`, `...ab,bc->...ac`, or
+            `ab...,bc->ac...` where 'ab', 'bc', and 'ac' can be any valid einsum
+            axis expression sequence.
+        output_shape: The expected shape of the output tensor
+            (excluding the batch dimension and any dimensions
+            represented by ellipses). You can specify `None` for any dimension
+            that is unknown or can be inferred from the input shape.
+        activation: Activation function to use. If you don't specify anything,
+            no activation is applied
+            (that is, a "linear" activation: `a(x) = x`).
+        bias_axes: A string containing the output dimension(s)
+            to apply a bias to. Each character in the `bias_axes` string
+            should correspond to a character in the output portion
+            of the `equation` string.
+        kernel_initializer: Initializer for the `kernel` weights matrix.
+        bias_initializer: Initializer for the bias vector.
+        kernel_regularizer: Regularizer function applied to the `kernel` weights
+            matrix.
+        bias_regularizer: Regularizer function applied to the bias vector.
+        kernel_constraint: Constraint function applied to the `kernel` weights
+            matrix.
+        bias_constraint: Constraint function applied to the bias vector.
+        lora_rank: Optional integer. If set, the layer's forward pass
+            will implement LoRA (Low-Rank Adaptation)
+            with the provided rank. LoRA sets the layer's kernel
+            to non-trainable and replaces it with a delta over the
+            original kernel, obtained via multiplying two lower-rank
+            trainable matrices
+            (the factorization happens on the last dimension).
+            This can be useful to reduce the
+            computation cost of fine-tuning large dense layers.
+            You can also enable LoRA on an existing
+            `EinsumDense` layer by calling `layer.enable_lora(rank)`.
+         lora_alpha: Optional integer. If set, this parameter scales the
+            low-rank adaptation delta (computed as the product of two lower-rank
+            trainable matrices) during the forward pass. The delta is scaled by
+            `lora_alpha / lora_rank`, allowing you to fine-tune the strength of
+            the LoRA adjustment independently of `lora_rank`.
+        **kwargs: Base layer keyword arguments, such as `name` and `dtype`.
+
+    Examples:
+
+    **Biased dense layer with einsums**
+
+    This example shows how to instantiate a standard Keras dense layer using
+    einsum operations. This example is equivalent to
+    `keras.layers.Dense(64, use_bias=True)`.
+
+    >>> layer = keras.layers.EinsumDense("ab,bc->ac",
+    ...                                       output_shape=64,
+    ...                                       bias_axes="c")
+    >>> input_tensor = keras.Input(shape=[32])
+    >>> output_tensor = layer(input_tensor)
+    >>> output_tensor.shape
+    (None, 64)
+
+    **Applying a dense layer to a sequence**
+
+    This example shows how to instantiate a layer that applies the same dense
+    operation to every element in a sequence. Here, the `output_shape` has two
+    values (since there are two non-batch dimensions in the output); the first
+    dimension in the `output_shape` is `None`, because the sequence dimension
+    `b` has an unknown shape.
+
+    >>> layer = keras.layers.EinsumDense("abc,cd->abd",
+    ...                                       output_shape=(None, 64),
+    ...                                       bias_axes="d")
+    >>> input_tensor = keras.Input(shape=[32, 128])
+    >>> output_tensor = layer(input_tensor)
+    >>> output_tensor.shape
+    (None, 32, 64)
+
+    **Applying a dense layer to a sequence using ellipses**
+
+    This example shows how to instantiate a layer that applies the same dense
+    operation to every element in a sequence, but uses the ellipsis notation
+    instead of specifying the batch and sequence dimensions.
+
+    Because we are using ellipsis notation and have specified only one axis, the
+    `output_shape` arg is a single value. When instantiated in this way, the
+    layer can handle any number of sequence dimensions - including the case
+    where no sequence dimension exists.
+
+    >>> layer = keras.layers.EinsumDense("...x,xy->...y",
+    ...                                       output_shape=64,
+    ...                                       bias_axes="y")
+    >>> input_tensor = keras.Input(shape=[32, 128])
+    >>> output_tensor = layer(input_tensor)
+    >>> output_tensor.shape
+    (None, 32, 64)
+
+[API Signature] equation: string, output_shape: list, activation: string, bias_axes: string, kernel_initializer: string, bias_initializer: string, kernel_regularizer: string, bias_regularizer: string, kernel_constraint: string, bias_constraint: string, lora_rank: integer, inputs: tensor
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 18 (input tensor is empty or only contains non-negative values)
+{v_1 : tensor} |= (∃i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = 0) ∨ min(v_1) ≥ 0
+
+Rule 2 (v_2 should be a valid dimension of input tensor)
+{v_1 : tensor, v_2 : int} |= −1 × ndim(v_1) ≤ v_2 ∧ v_2 ≤ ndim(v_1) − 1
+
+Rule 10 (valid 2D transposed convolution)
+{v_1 : tensor, v_2 : tensor, v_3 : int, v_4 : int} |= ndim(v_1) = 4 ∧ ndim(v_2) = 4 ∧ v_3 ≥ 1 ∧ v_4 ≥ 0 ∧ v_3 × (shape(v_1, 2) − 1) + shape(v_2, 2) − 2 × v_4 > 0 ∧ v_3 × (shape(v_1, 3) − 1) + shape(v_2, 3) − 2 × v_4 > 0
+
+Rule 15 (broadcasting compatibility for tensor shapes)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ ∀i ∈ [0, if ndim(v_1) ≥ ndim(v_2) then ndim(v_1) − 1 else ndim(v_2) − 1] : ndim(v_1) − i − 1 < 0 ∨ ndim(v_2) − i − 1 < 0 ∨ shape(v_1, ndim(v_1) − i − 1) = 1 ∨ shape(v_2, ndim(v_2) − i − 1) = 1 ∨ shape(v_1, ndim(v_1) − i − 1) = shape(v_2, ndim(v_2) − i − 1)
+
+Rule 31 (dtype must be a floating-point type)
+{v_1 : dtype} |= v_1 = 6 ∨ v_1 = 7 ∨ v_1 = 8
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 10 (all elements in output_shape list must be positive dimensions)
+{v_2 : list(int)} |= ∀i ∈ [0, v_2.len - 1] : v_2[i] > 0
+Token usage: input=9392, output=441, total=13781
+** DUPLICATED RULE ** (num_failures: 4)
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.keras.layers.EinsumDense API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+A layer that uses `einsum` as the backing computation.
+
+    This layer can perform einsum calculations of arbitrary dimensionality.
+
+    Args:
+        equation: An equation describing the einsum to perform.
+            This equation must be a valid einsum string of the form
+            `ab,bc->ac`, `...ab,bc->...ac`, or
+            `ab...,bc->ac...` where 'ab', 'bc', and 'ac' can be any valid einsum
+            axis expression sequence.
+        output_shape: The expected shape of the output tensor
+            (excluding the batch dimension and any dimensions
+            represented by ellipses). You can specify `None` for any dimension
+            that is unknown or can be inferred from the input shape.
+        activation: Activation function to use. If you don't specify anything,
+            no activation is applied
+            (that is, a "linear" activation: `a(x) = x`).
+        bias_axes: A string containing the output dimension(s)
+            to apply a bias to. Each character in the `bias_axes` string
+            should correspond to a character in the output portion
+            of the `equation` string.
+        kernel_initializer: Initializer for the `kernel` weights matrix.
+        bias_initializer: Initializer for the bias vector.
+        kernel_regularizer: Regularizer function applied to the `kernel` weights
+            matrix.
+        bias_regularizer: Regularizer function applied to the bias vector.
+        kernel_constraint: Constraint function applied to the `kernel` weights
+            matrix.
+        bias_constraint: Constraint function applied to the bias vector.
+        lora_rank: Optional integer. If set, the layer's forward pass
+            will implement LoRA (Low-Rank Adaptation)
+            with the provided rank. LoRA sets the layer's kernel
+            to non-trainable and replaces it with a delta over the
+            original kernel, obtained via multiplying two lower-rank
+            trainable matrices
+            (the factorization happens on the last dimension).
+            This can be useful to reduce the
+            computation cost of fine-tuning large dense layers.
+            You can also enable LoRA on an existing
+            `EinsumDense` layer by calling `layer.enable_lora(rank)`.
+         lora_alpha: Optional integer. If set, this parameter scales the
+            low-rank adaptation delta (computed as the product of two lower-rank
+            trainable matrices) during the forward pass. The delta is scaled by
+            `lora_alpha / lora_rank`, allowing you to fine-tune the strength of
+            the LoRA adjustment independently of `lora_rank`.
+        **kwargs: Base layer keyword arguments, such as `name` and `dtype`.
+
+    Examples:
+
+    **Biased dense layer with einsums**
+
+    This example shows how to instantiate a standard Keras dense layer using
+    einsum operations. This example is equivalent to
+    `keras.layers.Dense(64, use_bias=True)`.
+
+    >>> layer = keras.layers.EinsumDense("ab,bc->ac",
+    ...                                       output_shape=64,
+    ...                                       bias_axes="c")
+    >>> input_tensor = keras.Input(shape=[32])
+    >>> output_tensor = layer(input_tensor)
+    >>> output_tensor.shape
+    (None, 64)
+
+    **Applying a dense layer to a sequence**
+
+    This example shows how to instantiate a layer that applies the same dense
+    operation to every element in a sequence. Here, the `output_shape` has two
+    values (since there are two non-batch dimensions in the output); the first
+    dimension in the `output_shape` is `None`, because the sequence dimension
+    `b` has an unknown shape.
+
+    >>> layer = keras.layers.EinsumDense("abc,cd->abd",
+    ...                                       output_shape=(None, 64),
+    ...                                       bias_axes="d")
+    >>> input_tensor = keras.Input(shape=[32, 128])
+    >>> output_tensor = layer(input_tensor)
+    >>> output_tensor.shape
+    (None, 32, 64)
+
+    **Applying a dense layer to a sequence using ellipses**
+
+    This example shows how to instantiate a layer that applies the same dense
+    operation to every element in a sequence, but uses the ellipsis notation
+    instead of specifying the batch and sequence dimensions.
+
+    Because we are using ellipsis notation and have specified only one axis, the
+    `output_shape` arg is a single value. When instantiated in this way, the
+    layer can handle any number of sequence dimensions - including the case
+    where no sequence dimension exists.
+
+    >>> layer = keras.layers.EinsumDense("...x,xy->...y",
+    ...                                       output_shape=64,
+    ...                                       bias_axes="y")
+    >>> input_tensor = keras.Input(shape=[32, 128])
+    >>> output_tensor = layer(input_tensor)
+    >>> output_tensor.shape
+    (None, 32, 64)
+
+[API Signature] equation: string, output_shape: list, activation: string, bias_axes: string, kernel_initializer: string, bias_initializer: string, kernel_regularizer: string, bias_regularizer: string, kernel_constraint: string, bias_constraint: string, lora_rank: integer, inputs: tensor
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 18 (input tensor is empty or only contains non-negative values)
+{v_1 : tensor} |= (∃i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = 0) ∨ min(v_1) ≥ 0
+
+Rule 2 (v_2 should be a valid dimension of input tensor)
+{v_1 : tensor, v_2 : int} |= −1 × ndim(v_1) ≤ v_2 ∧ v_2 ≤ ndim(v_1) − 1
+
+Rule 10 (valid 2D transposed convolution)
+{v_1 : tensor, v_2 : tensor, v_3 : int, v_4 : int} |= ndim(v_1) = 4 ∧ ndim(v_2) = 4 ∧ v_3 ≥ 1 ∧ v_4 ≥ 0 ∧ v_3 × (shape(v_1, 2) − 1) + shape(v_2, 2) − 2 × v_4 > 0 ∧ v_3 × (shape(v_1, 3) − 1) + shape(v_2, 3) − 2 × v_4 > 0
+
+Rule 15 (broadcasting compatibility for tensor shapes)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ ∀i ∈ [0, if ndim(v_1) ≥ ndim(v_2) then ndim(v_1) − 1 else ndim(v_2) − 1] : ndim(v_1) − i − 1 < 0 ∨ ndim(v_2) − i − 1 < 0 ∨ shape(v_1, ndim(v_1) − i − 1) = 1 ∨ shape(v_2, ndim(v_2) − i − 1) = 1 ∨ shape(v_1, ndim(v_1) − i − 1) = shape(v_2, ndim(v_2) − i − 1)
+
+Rule 31 (dtype must be a floating-point type)
+{v_1 : dtype} |= v_1 = 6 ∨ v_1 = 7 ∨ v_1 = 8
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 11 (inputs must have a floating-point or complex data type)
+{v_12 : tensor} |= dtype_(v_12) ≥ 6 ∧ dtype_(v_12) ≤ 10
+Token usage: input=9392, output=441, total=13781
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.keras.layers.EinsumDense API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+A layer that uses `einsum` as the backing computation.
+
+    This layer can perform einsum calculations of arbitrary dimensionality.
+
+    Args:
+        equation: An equation describing the einsum to perform.
+            This equation must be a valid einsum string of the form
+            `ab,bc->ac`, `...ab,bc->...ac`, or
+            `ab...,bc->ac...` where 'ab', 'bc', and 'ac' can be any valid einsum
+            axis expression sequence.
+        output_shape: The expected shape of the output tensor
+            (excluding the batch dimension and any dimensions
+            represented by ellipses). You can specify `None` for any dimension
+            that is unknown or can be inferred from the input shape.
+        activation: Activation function to use. If you don't specify anything,
+            no activation is applied
+            (that is, a "linear" activation: `a(x) = x`).
+        bias_axes: A string containing the output dimension(s)
+            to apply a bias to. Each character in the `bias_axes` string
+            should correspond to a character in the output portion
+            of the `equation` string.
+        kernel_initializer: Initializer for the `kernel` weights matrix.
+        bias_initializer: Initializer for the bias vector.
+        kernel_regularizer: Regularizer function applied to the `kernel` weights
+            matrix.
+        bias_regularizer: Regularizer function applied to the bias vector.
+        kernel_constraint: Constraint function applied to the `kernel` weights
+            matrix.
+        bias_constraint: Constraint function applied to the bias vector.
+        lora_rank: Optional integer. If set, the layer's forward pass
+            will implement LoRA (Low-Rank Adaptation)
+            with the provided rank. LoRA sets the layer's kernel
+            to non-trainable and replaces it with a delta over the
+            original kernel, obtained via multiplying two lower-rank
+            trainable matrices
+            (the factorization happens on the last dimension).
+            This can be useful to reduce the
+            computation cost of fine-tuning large dense layers.
+            You can also enable LoRA on an existing
+            `EinsumDense` layer by calling `layer.enable_lora(rank)`.
+         lora_alpha: Optional integer. If set, this parameter scales the
+            low-rank adaptation delta (computed as the product of two lower-rank
+            trainable matrices) during the forward pass. The delta is scaled by
+            `lora_alpha / lora_rank`, allowing you to fine-tune the strength of
+            the LoRA adjustment independently of `lora_rank`.
+        **kwargs: Base layer keyword arguments, such as `name` and `dtype`.
+
+    Examples:
+
+    **Biased dense layer with einsums**
+
+    This example shows how to instantiate a standard Keras dense layer using
+    einsum operations. This example is equivalent to
+    `keras.layers.Dense(64, use_bias=True)`.
+
+    >>> layer = keras.layers.EinsumDense("ab,bc->ac",
+    ...                                       output_shape=64,
+    ...                                       bias_axes="c")
+    >>> input_tensor = keras.Input(shape=[32])
+    >>> output_tensor = layer(input_tensor)
+    >>> output_tensor.shape
+    (None, 64)
+
+    **Applying a dense layer to a sequence**
+
+    This example shows how to instantiate a layer that applies the same dense
+    operation to every element in a sequence. Here, the `output_shape` has two
+    values (since there are two non-batch dimensions in the output); the first
+    dimension in the `output_shape` is `None`, because the sequence dimension
+    `b` has an unknown shape.
+
+    >>> layer = keras.layers.EinsumDense("abc,cd->abd",
+    ...                                       output_shape=(None, 64),
+    ...                                       bias_axes="d")
+    >>> input_tensor = keras.Input(shape=[32, 128])
+    >>> output_tensor = layer(input_tensor)
+    >>> output_tensor.shape
+    (None, 32, 64)
+
+    **Applying a dense layer to a sequence using ellipses**
+
+    This example shows how to instantiate a layer that applies the same dense
+    operation to every element in a sequence, but uses the ellipsis notation
+    instead of specifying the batch and sequence dimensions.
+
+    Because we are using ellipsis notation and have specified only one axis, the
+    `output_shape` arg is a single value. When instantiated in this way, the
+    layer can handle any number of sequence dimensions - including the case
+    where no sequence dimension exists.
+
+    >>> layer = keras.layers.EinsumDense("...x,xy->...y",
+    ...                                       output_shape=64,
+    ...                                       bias_axes="y")
+    >>> input_tensor = keras.Input(shape=[32, 128])
+    >>> output_tensor = layer(input_tensor)
+    >>> output_tensor.shape
+    (None, 32, 64)
+
+[API Signature] equation: string, output_shape: list, activation: string, bias_axes: string, kernel_initializer: string, bias_initializer: string, kernel_regularizer: string, bias_regularizer: string, kernel_constraint: string, bias_constraint: string, lora_rank: integer, inputs: tensor
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 18 (input tensor is empty or only contains non-negative values)
+{v_1 : tensor} |= (∃i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = 0) ∨ min(v_1) ≥ 0
+
+Rule 2 (v_2 should be a valid dimension of input tensor)
+{v_1 : tensor, v_2 : int} |= −1 × ndim(v_1) ≤ v_2 ∧ v_2 ≤ ndim(v_1) − 1
+
+Rule 10 (valid 2D transposed convolution)
+{v_1 : tensor, v_2 : tensor, v_3 : int, v_4 : int} |= ndim(v_1) = 4 ∧ ndim(v_2) = 4 ∧ v_3 ≥ 1 ∧ v_4 ≥ 0 ∧ v_3 × (shape(v_1, 2) − 1) + shape(v_2, 2) − 2 × v_4 > 0 ∧ v_3 × (shape(v_1, 3) − 1) + shape(v_2, 3) − 2 × v_4 > 0
+
+Rule 15 (broadcasting compatibility for tensor shapes)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ ∀i ∈ [0, if ndim(v_1) ≥ ndim(v_2) then ndim(v_1) − 1 else ndim(v_2) − 1] : ndim(v_1) − i − 1 < 0 ∨ ndim(v_2) − i − 1 < 0 ∨ shape(v_1, ndim(v_1) − i − 1) = 1 ∨ shape(v_2, ndim(v_2) − i − 1) = 1 ∨ shape(v_1, ndim(v_1) − i − 1) = shape(v_2, ndim(v_2) − i − 1)
+
+Rule 31 (dtype must be a floating-point type)
+{v_1 : dtype} |= v_1 = 6 ∨ v_1 = 7 ∨ v_1 = 8
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 12 (inputs must be a tensor of rank 1 or greater)
+{v_12 : tensor} |= ndim(v_12) ≥ 1
+Token usage: input=9392, output=441, total=13781
+** DUPLICATED RULE ** (num_failures: 5)
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.keras.layers.EinsumDense API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+A layer that uses `einsum` as the backing computation.
+
+    This layer can perform einsum calculations of arbitrary dimensionality.
+
+    Args:
+        equation: An equation describing the einsum to perform.
+            This equation must be a valid einsum string of the form
+            `ab,bc->ac`, `...ab,bc->...ac`, or
+            `ab...,bc->ac...` where 'ab', 'bc', and 'ac' can be any valid einsum
+            axis expression sequence.
+        output_shape: The expected shape of the output tensor
+            (excluding the batch dimension and any dimensions
+            represented by ellipses). You can specify `None` for any dimension
+            that is unknown or can be inferred from the input shape.
+        activation: Activation function to use. If you don't specify anything,
+            no activation is applied
+            (that is, a "linear" activation: `a(x) = x`).
+        bias_axes: A string containing the output dimension(s)
+            to apply a bias to. Each character in the `bias_axes` string
+            should correspond to a character in the output portion
+            of the `equation` string.
+        kernel_initializer: Initializer for the `kernel` weights matrix.
+        bias_initializer: Initializer for the bias vector.
+        kernel_regularizer: Regularizer function applied to the `kernel` weights
+            matrix.
+        bias_regularizer: Regularizer function applied to the bias vector.
+        kernel_constraint: Constraint function applied to the `kernel` weights
+            matrix.
+        bias_constraint: Constraint function applied to the bias vector.
+        lora_rank: Optional integer. If set, the layer's forward pass
+            will implement LoRA (Low-Rank Adaptation)
+            with the provided rank. LoRA sets the layer's kernel
+            to non-trainable and replaces it with a delta over the
+            original kernel, obtained via multiplying two lower-rank
+            trainable matrices
+            (the factorization happens on the last dimension).
+            This can be useful to reduce the
+            computation cost of fine-tuning large dense layers.
+            You can also enable LoRA on an existing
+            `EinsumDense` layer by calling `layer.enable_lora(rank)`.
+         lora_alpha: Optional integer. If set, this parameter scales the
+            low-rank adaptation delta (computed as the product of two lower-rank
+            trainable matrices) during the forward pass. The delta is scaled by
+            `lora_alpha / lora_rank`, allowing you to fine-tune the strength of
+            the LoRA adjustment independently of `lora_rank`.
+        **kwargs: Base layer keyword arguments, such as `name` and `dtype`.
+
+    Examples:
+
+    **Biased dense layer with einsums**
+
+    This example shows how to instantiate a standard Keras dense layer using
+    einsum operations. This example is equivalent to
+    `keras.layers.Dense(64, use_bias=True)`.
+
+    >>> layer = keras.layers.EinsumDense("ab,bc->ac",
+    ...                                       output_shape=64,
+    ...                                       bias_axes="c")
+    >>> input_tensor = keras.Input(shape=[32])
+    >>> output_tensor = layer(input_tensor)
+    >>> output_tensor.shape
+    (None, 64)
+
+    **Applying a dense layer to a sequence**
+
+    This example shows how to instantiate a layer that applies the same dense
+    operation to every element in a sequence. Here, the `output_shape` has two
+    values (since there are two non-batch dimensions in the output); the first
+    dimension in the `output_shape` is `None`, because the sequence dimension
+    `b` has an unknown shape.
+
+    >>> layer = keras.layers.EinsumDense("abc,cd->abd",
+    ...                                       output_shape=(None, 64),
+    ...                                       bias_axes="d")
+    >>> input_tensor = keras.Input(shape=[32, 128])
+    >>> output_tensor = layer(input_tensor)
+    >>> output_tensor.shape
+    (None, 32, 64)
+
+    **Applying a dense layer to a sequence using ellipses**
+
+    This example shows how to instantiate a layer that applies the same dense
+    operation to every element in a sequence, but uses the ellipsis notation
+    instead of specifying the batch and sequence dimensions.
+
+    Because we are using ellipsis notation and have specified only one axis, the
+    `output_shape` arg is a single value. When instantiated in this way, the
+    layer can handle any number of sequence dimensions - including the case
+    where no sequence dimension exists.
+
+    >>> layer = keras.layers.EinsumDense("...x,xy->...y",
+    ...                                       output_shape=64,
+    ...                                       bias_axes="y")
+    >>> input_tensor = keras.Input(shape=[32, 128])
+    >>> output_tensor = layer(input_tensor)
+    >>> output_tensor.shape
+    (None, 32, 64)
+
+[API Signature] equation: string, output_shape: list, activation: string, bias_axes: string, kernel_initializer: string, bias_initializer: string, kernel_regularizer: string, bias_regularizer: string, kernel_constraint: string, bias_constraint: string, lora_rank: integer, inputs: tensor
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 18 (input tensor is empty or only contains non-negative values)
+{v_1 : tensor} |= (∃i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = 0) ∨ min(v_1) ≥ 0
+
+Rule 2 (v_2 should be a valid dimension of input tensor)
+{v_1 : tensor, v_2 : int} |= −1 × ndim(v_1) ≤ v_2 ∧ v_2 ≤ ndim(v_1) − 1
+
+Rule 10 (valid 2D transposed convolution)
+{v_1 : tensor, v_2 : tensor, v_3 : int, v_4 : int} |= ndim(v_1) = 4 ∧ ndim(v_2) = 4 ∧ v_3 ≥ 1 ∧ v_4 ≥ 0 ∧ v_3 × (shape(v_1, 2) − 1) + shape(v_2, 2) − 2 × v_4 > 0 ∧ v_3 × (shape(v_1, 3) − 1) + shape(v_2, 3) − 2 × v_4 > 0
+
+Rule 15 (broadcasting compatibility for tensor shapes)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ ∀i ∈ [0, if ndim(v_1) ≥ ndim(v_2) then ndim(v_1) − 1 else ndim(v_2) − 1] : ndim(v_1) − i − 1 < 0 ∨ ndim(v_2) − i − 1 < 0 ∨ shape(v_1, ndim(v_1) − i − 1) = 1 ∨ shape(v_2, ndim(v_2) − i − 1) = 1 ∨ shape(v_1, ndim(v_1) − i − 1) = shape(v_2, ndim(v_2) − i − 1)
+
+Rule 31 (dtype must be a floating-point type)
+{v_1 : dtype} |= v_1 = 6 ∨ v_1 = 7 ∨ v_1 = 8
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 13 (all elements in output_shape tuple must be positive dimensions)
+{v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : v_2[i] > 0
+Token usage: input=9392, output=441, total=13781
+** SUCCESS **
+
+>>> PROMPT
+[Feedback Message from Prior Run]
+Duplicated rule: {v_1 : str} |= v_1 = "ii" ∨ v_1 = "ii->i" ∨ v_1 = "i,j->ij" ∨ v_1 = "bij,bjk->bik" ∨ v_1 = "...ij->...ji" ∨ v_1 = "bn,anm,bm->ba"
+Duplicated rule: {v_3 : str} |= v_3 = "relu" ∨ v_3 = "tanh" ∨ v_3 = "sigmoid" ∨ v_3 = "softmax" ∨ v_3 = "elu" ∨ v_3 = "selu" ∨ v_3 = "gelu" ∨ v_3 = "swish" ∨ v_3 = "softplus" ∨ v_3 = "linear"
+Duplicated rule: {v_11 : int} |= v_11 > 0
+Duplicated rule: {v_2 : list(int)} |= ∀i ∈ [0, v_2.len - 1] : v_2[i] > 0
+Duplicated rule: {v_12 : tensor} |= ndim(v_12) ≥ 1
+
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.keras.layers.EinsumDense API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+A layer that uses `einsum` as the backing computation.
+
+    This layer can perform einsum calculations of arbitrary dimensionality.
+
+    Args:
+        equation: An equation describing the einsum to perform.
+            This equation must be a valid einsum string of the form
+            `ab,bc->ac`, `...ab,bc->...ac`, or
+            `ab...,bc->ac...` where 'ab', 'bc', and 'ac' can be any valid einsum
+            axis expression sequence.
+        output_shape: The expected shape of the output tensor
+            (excluding the batch dimension and any dimensions
+            represented by ellipses). You can specify `None` for any dimension
+            that is unknown or can be inferred from the input shape.
+        activation: Activation function to use. If you don't specify anything,
+            no activation is applied
+            (that is, a "linear" activation: `a(x) = x`).
+        bias_axes: A string containing the output dimension(s)
+            to apply a bias to. Each character in the `bias_axes` string
+            should correspond to a character in the output portion
+            of the `equation` string.
+        kernel_initializer: Initializer for the `kernel` weights matrix.
+        bias_initializer: Initializer for the bias vector.
+        kernel_regularizer: Regularizer function applied to the `kernel` weights
+            matrix.
+        bias_regularizer: Regularizer function applied to the bias vector.
+        kernel_constraint: Constraint function applied to the `kernel` weights
+            matrix.
+        bias_constraint: Constraint function applied to the bias vector.
+        lora_rank: Optional integer. If set, the layer's forward pass
+            will implement LoRA (Low-Rank Adaptation)
+            with the provided rank. LoRA sets the layer's kernel
+            to non-trainable and replaces it with a delta over the
+            original kernel, obtained via multiplying two lower-rank
+            trainable matrices
+            (the factorization happens on the last dimension).
+            This can be useful to reduce the
+            computation cost of fine-tuning large dense layers.
+            You can also enable LoRA on an existing
+            `EinsumDense` layer by calling `layer.enable_lora(rank)`.
+         lora_alpha: Optional integer. If set, this parameter scales the
+            low-rank adaptation delta (computed as the product of two lower-rank
+            trainable matrices) during the forward pass. The delta is scaled by
+            `lora_alpha / lora_rank`, allowing you to fine-tune the strength of
+            the LoRA adjustment independently of `lora_rank`.
+        **kwargs: Base layer keyword arguments, such as `name` and `dtype`.
+
+    Examples:
+
+    **Biased dense layer with einsums**
+
+    This example shows how to instantiate a standard Keras dense layer using
+    einsum operations. This example is equivalent to
+    `keras.layers.Dense(64, use_bias=True)`.
+
+    >>> layer = keras.layers.EinsumDense("ab,bc->ac",
+    ...                                       output_shape=64,
+    ...                                       bias_axes="c")
+    >>> input_tensor = keras.Input(shape=[32])
+    >>> output_tensor = layer(input_tensor)
+    >>> output_tensor.shape
+    (None, 64)
+
+    **Applying a dense layer to a sequence**
+
+    This example shows how to instantiate a layer that applies the same dense
+    operation to every element in a sequence. Here, the `output_shape` has two
+    values (since there are two non-batch dimensions in the output); the first
+    dimension in the `output_shape` is `None`, because the sequence dimension
+    `b` has an unknown shape.
+
+    >>> layer = keras.layers.EinsumDense("abc,cd->abd",
+    ...                                       output_shape=(None, 64),
+    ...                                       bias_axes="d")
+    >>> input_tensor = keras.Input(shape=[32, 128])
+    >>> output_tensor = layer(input_tensor)
+    >>> output_tensor.shape
+    (None, 32, 64)
+
+    **Applying a dense layer to a sequence using ellipses**
+
+    This example shows how to instantiate a layer that applies the same dense
+    operation to every element in a sequence, but uses the ellipsis notation
+    instead of specifying the batch and sequence dimensions.
+
+    Because we are using ellipsis notation and have specified only one axis, the
+    `output_shape` arg is a single value. When instantiated in this way, the
+    layer can handle any number of sequence dimensions - including the case
+    where no sequence dimension exists.
+
+    >>> layer = keras.layers.EinsumDense("...x,xy->...y",
+    ...                                       output_shape=64,
+    ...                                       bias_axes="y")
+    >>> input_tensor = keras.Input(shape=[32, 128])
+    >>> output_tensor = layer(input_tensor)
+    >>> output_tensor.shape
+    (None, 32, 64)
+
+[API Signature] equation: string, output_shape: list, activation: string, bias_axes: string, kernel_initializer: string, bias_initializer: string, kernel_regularizer: string, bias_regularizer: string, kernel_constraint: string, bias_constraint: string, lora_rank: integer, inputs: tensor
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 6 (last dimension of a tensor matches first dimension of the other)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, 0)
+
+Rule 28 (list of ints used as dimensions/axes, all non-negative and valid for tensor shape)
+{v_1 : tensor, v_2 : list(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 7 (first dimension of a tensor matches second dimension of the other)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) ≥ 1 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, 0) = shape(v_2, 1)
+
+Rule 17 (primitive type variable must be non-negative)
+{v_1 : int ⊎ float} |= v_1 ≥ 0
+
+Rule 11 (index tensor (v_3) is within the input tensor along the specified dimension)
+{v_1 : tensor, v_2 : int, v_3 : tensor} |= min(v_3) ≥ 0 ∧ max(v_3) ≤ shape(v_1, v_2) − 1
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 14 (input tensor dtype must be floating-point)
+{v_12 : tensor} |= dtype_(v_12) = 6 ∨ dtype_(v_12) = 7 ∨ dtype_(v_12) = 8
+Token usage: input=16753, output=357, total=22108
+** SUCCESS **
+
+>>> PROMPT
+[Feedback Message from Prior Run]
+Duplicated rule: {v_1 : str} |= v_1 = "ii" ∨ v_1 = "ii->i" ∨ v_1 = "i,j->ij" ∨ v_1 = "bij,bjk->bik" ∨ v_1 = "...ij->...ji" ∨ v_1 = "bn,anm,bm->ba"
+Duplicated rule: {v_3 : str} |= v_3 = "relu" ∨ v_3 = "tanh" ∨ v_3 = "sigmoid" ∨ v_3 = "softmax" ∨ v_3 = "elu" ∨ v_3 = "selu" ∨ v_3 = "gelu" ∨ v_3 = "swish" ∨ v_3 = "softplus" ∨ v_3 = "linear"
+Duplicated rule: {v_11 : int} |= v_11 > 0
+Duplicated rule: {v_2 : list(int)} |= ∀i ∈ [0, v_2.len - 1] : v_2[i] > 0
+Duplicated rule: {v_12 : tensor} |= ndim(v_12) ≥ 1
+
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.keras.layers.EinsumDense API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+A layer that uses `einsum` as the backing computation.
+
+    This layer can perform einsum calculations of arbitrary dimensionality.
+
+    Args:
+        equation: An equation describing the einsum to perform.
+            This equation must be a valid einsum string of the form
+            `ab,bc->ac`, `...ab,bc->...ac`, or
+            `ab...,bc->ac...` where 'ab', 'bc', and 'ac' can be any valid einsum
+            axis expression sequence.
+        output_shape: The expected shape of the output tensor
+            (excluding the batch dimension and any dimensions
+            represented by ellipses). You can specify `None` for any dimension
+            that is unknown or can be inferred from the input shape.
+        activation: Activation function to use. If you don't specify anything,
+            no activation is applied
+            (that is, a "linear" activation: `a(x) = x`).
+        bias_axes: A string containing the output dimension(s)
+            to apply a bias to. Each character in the `bias_axes` string
+            should correspond to a character in the output portion
+            of the `equation` string.
+        kernel_initializer: Initializer for the `kernel` weights matrix.
+        bias_initializer: Initializer for the bias vector.
+        kernel_regularizer: Regularizer function applied to the `kernel` weights
+            matrix.
+        bias_regularizer: Regularizer function applied to the bias vector.
+        kernel_constraint: Constraint function applied to the `kernel` weights
+            matrix.
+        bias_constraint: Constraint function applied to the bias vector.
+        lora_rank: Optional integer. If set, the layer's forward pass
+            will implement LoRA (Low-Rank Adaptation)
+            with the provided rank. LoRA sets the layer's kernel
+            to non-trainable and replaces it with a delta over the
+            original kernel, obtained via multiplying two lower-rank
+            trainable matrices
+            (the factorization happens on the last dimension).
+            This can be useful to reduce the
+            computation cost of fine-tuning large dense layers.
+            You can also enable LoRA on an existing
+            `EinsumDense` layer by calling `layer.enable_lora(rank)`.
+         lora_alpha: Optional integer. If set, this parameter scales the
+            low-rank adaptation delta (computed as the product of two lower-rank
+            trainable matrices) during the forward pass. The delta is scaled by
+            `lora_alpha / lora_rank`, allowing you to fine-tune the strength of
+            the LoRA adjustment independently of `lora_rank`.
+        **kwargs: Base layer keyword arguments, such as `name` and `dtype`.
+
+    Examples:
+
+    **Biased dense layer with einsums**
+
+    This example shows how to instantiate a standard Keras dense layer using
+    einsum operations. This example is equivalent to
+    `keras.layers.Dense(64, use_bias=True)`.
+
+    >>> layer = keras.layers.EinsumDense("ab,bc->ac",
+    ...                                       output_shape=64,
+    ...                                       bias_axes="c")
+    >>> input_tensor = keras.Input(shape=[32])
+    >>> output_tensor = layer(input_tensor)
+    >>> output_tensor.shape
+    (None, 64)
+
+    **Applying a dense layer to a sequence**
+
+    This example shows how to instantiate a layer that applies the same dense
+    operation to every element in a sequence. Here, the `output_shape` has two
+    values (since there are two non-batch dimensions in the output); the first
+    dimension in the `output_shape` is `None`, because the sequence dimension
+    `b` has an unknown shape.
+
+    >>> layer = keras.layers.EinsumDense("abc,cd->abd",
+    ...                                       output_shape=(None, 64),
+    ...                                       bias_axes="d")
+    >>> input_tensor = keras.Input(shape=[32, 128])
+    >>> output_tensor = layer(input_tensor)
+    >>> output_tensor.shape
+    (None, 32, 64)
+
+    **Applying a dense layer to a sequence using ellipses**
+
+    This example shows how to instantiate a layer that applies the same dense
+    operation to every element in a sequence, but uses the ellipsis notation
+    instead of specifying the batch and sequence dimensions.
+
+    Because we are using ellipsis notation and have specified only one axis, the
+    `output_shape` arg is a single value. When instantiated in this way, the
+    layer can handle any number of sequence dimensions - including the case
+    where no sequence dimension exists.
+
+    >>> layer = keras.layers.EinsumDense("...x,xy->...y",
+    ...                                       output_shape=64,
+    ...                                       bias_axes="y")
+    >>> input_tensor = keras.Input(shape=[32, 128])
+    >>> output_tensor = layer(input_tensor)
+    >>> output_tensor.shape
+    (None, 32, 64)
+
+[API Signature] equation: string, output_shape: list, activation: string, bias_axes: string, kernel_initializer: string, bias_initializer: string, kernel_regularizer: string, bias_regularizer: string, kernel_constraint: string, bias_constraint: string, lora_rank: integer, inputs: tensor
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 6 (last dimension of a tensor matches first dimension of the other)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, 0)
+
+Rule 28 (list of ints used as dimensions/axes, all non-negative and valid for tensor shape)
+{v_1 : tensor, v_2 : list(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 7 (first dimension of a tensor matches second dimension of the other)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) ≥ 1 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, 0) = shape(v_2, 1)
+
+Rule 17 (primitive type variable must be non-negative)
+{v_1 : int ⊎ float} |= v_1 ≥ 0
+
+Rule 11 (index tensor (v_3) is within the input tensor along the specified dimension)
+{v_1 : tensor, v_2 : int, v_3 : tensor} |= min(v_3) ≥ 0 ∧ max(v_3) ≤ shape(v_1, v_2) − 1
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 15 (rank of input tensor must be at least 2 for dense projection)
+{v_12 : tensor} |= ndim(v_12) ≥ 2
+Token usage: input=16753, output=357, total=22108
+** SUCCESS **
+
+>>> PROMPT
+[Feedback Message from Prior Run]
+Duplicated rule: {v_1 : str} |= v_1 = "ii" ∨ v_1 = "ii->i" ∨ v_1 = "i,j->ij" ∨ v_1 = "bij,bjk->bik" ∨ v_1 = "...ij->...ji" ∨ v_1 = "bn,anm,bm->ba"
+Duplicated rule: {v_3 : str} |= v_3 = "relu" ∨ v_3 = "tanh" ∨ v_3 = "sigmoid" ∨ v_3 = "softmax" ∨ v_3 = "elu" ∨ v_3 = "selu" ∨ v_3 = "gelu" ∨ v_3 = "swish" ∨ v_3 = "softplus" ∨ v_3 = "linear"
+Duplicated rule: {v_11 : int} |= v_11 > 0
+Duplicated rule: {v_2 : list(int)} |= ∀i ∈ [0, v_2.len - 1] : v_2[i] > 0
+Duplicated rule: {v_12 : tensor} |= ndim(v_12) ≥ 1
+
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.keras.layers.EinsumDense API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+A layer that uses `einsum` as the backing computation.
+
+    This layer can perform einsum calculations of arbitrary dimensionality.
+
+    Args:
+        equation: An equation describing the einsum to perform.
+            This equation must be a valid einsum string of the form
+            `ab,bc->ac`, `...ab,bc->...ac`, or
+            `ab...,bc->ac...` where 'ab', 'bc', and 'ac' can be any valid einsum
+            axis expression sequence.
+        output_shape: The expected shape of the output tensor
+            (excluding the batch dimension and any dimensions
+            represented by ellipses). You can specify `None` for any dimension
+            that is unknown or can be inferred from the input shape.
+        activation: Activation function to use. If you don't specify anything,
+            no activation is applied
+            (that is, a "linear" activation: `a(x) = x`).
+        bias_axes: A string containing the output dimension(s)
+            to apply a bias to. Each character in the `bias_axes` string
+            should correspond to a character in the output portion
+            of the `equation` string.
+        kernel_initializer: Initializer for the `kernel` weights matrix.
+        bias_initializer: Initializer for the bias vector.
+        kernel_regularizer: Regularizer function applied to the `kernel` weights
+            matrix.
+        bias_regularizer: Regularizer function applied to the bias vector.
+        kernel_constraint: Constraint function applied to the `kernel` weights
+            matrix.
+        bias_constraint: Constraint function applied to the bias vector.
+        lora_rank: Optional integer. If set, the layer's forward pass
+            will implement LoRA (Low-Rank Adaptation)
+            with the provided rank. LoRA sets the layer's kernel
+            to non-trainable and replaces it with a delta over the
+            original kernel, obtained via multiplying two lower-rank
+            trainable matrices
+            (the factorization happens on the last dimension).
+            This can be useful to reduce the
+            computation cost of fine-tuning large dense layers.
+            You can also enable LoRA on an existing
+            `EinsumDense` layer by calling `layer.enable_lora(rank)`.
+         lora_alpha: Optional integer. If set, this parameter scales the
+            low-rank adaptation delta (computed as the product of two lower-rank
+            trainable matrices) during the forward pass. The delta is scaled by
+            `lora_alpha / lora_rank`, allowing you to fine-tune the strength of
+            the LoRA adjustment independently of `lora_rank`.
+        **kwargs: Base layer keyword arguments, such as `name` and `dtype`.
+
+    Examples:
+
+    **Biased dense layer with einsums**
+
+    This example shows how to instantiate a standard Keras dense layer using
+    einsum operations. This example is equivalent to
+    `keras.layers.Dense(64, use_bias=True)`.
+
+    >>> layer = keras.layers.EinsumDense("ab,bc->ac",
+    ...                                       output_shape=64,
+    ...                                       bias_axes="c")
+    >>> input_tensor = keras.Input(shape=[32])
+    >>> output_tensor = layer(input_tensor)
+    >>> output_tensor.shape
+    (None, 64)
+
+    **Applying a dense layer to a sequence**
+
+    This example shows how to instantiate a layer that applies the same dense
+    operation to every element in a sequence. Here, the `output_shape` has two
+    values (since there are two non-batch dimensions in the output); the first
+    dimension in the `output_shape` is `None`, because the sequence dimension
+    `b` has an unknown shape.
+
+    >>> layer = keras.layers.EinsumDense("abc,cd->abd",
+    ...                                       output_shape=(None, 64),
+    ...                                       bias_axes="d")
+    >>> input_tensor = keras.Input(shape=[32, 128])
+    >>> output_tensor = layer(input_tensor)
+    >>> output_tensor.shape
+    (None, 32, 64)
+
+    **Applying a dense layer to a sequence using ellipses**
+
+    This example shows how to instantiate a layer that applies the same dense
+    operation to every element in a sequence, but uses the ellipsis notation
+    instead of specifying the batch and sequence dimensions.
+
+    Because we are using ellipsis notation and have specified only one axis, the
+    `output_shape` arg is a single value. When instantiated in this way, the
+    layer can handle any number of sequence dimensions - including the case
+    where no sequence dimension exists.
+
+    >>> layer = keras.layers.EinsumDense("...x,xy->...y",
+    ...                                       output_shape=64,
+    ...                                       bias_axes="y")
+    >>> input_tensor = keras.Input(shape=[32, 128])
+    >>> output_tensor = layer(input_tensor)
+    >>> output_tensor.shape
+    (None, 32, 64)
+
+[API Signature] equation: string, output_shape: list, activation: string, bias_axes: string, kernel_initializer: string, bias_initializer: string, kernel_regularizer: string, bias_regularizer: string, kernel_constraint: string, bias_constraint: string, lora_rank: integer, inputs: tensor
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 6 (last dimension of a tensor matches first dimension of the other)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, 0)
+
+Rule 28 (list of ints used as dimensions/axes, all non-negative and valid for tensor shape)
+{v_1 : tensor, v_2 : list(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 7 (first dimension of a tensor matches second dimension of the other)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) ≥ 1 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, 0) = shape(v_2, 1)
+
+Rule 17 (primitive type variable must be non-negative)
+{v_1 : int ⊎ float} |= v_1 ≥ 0
+
+Rule 11 (index tensor (v_3) is within the input tensor along the specified dimension)
+{v_1 : tensor, v_2 : int, v_3 : tensor} |= min(v_3) ≥ 0 ∧ max(v_3) ≤ shape(v_1, v_2) − 1
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 16 (low-rank adaptation rank must be smaller than the feature dimension of inputs)
+{v_11 : int, v_12 : tensor} |= ndim(v_12) ≥ 2 ∧ v_11 ≥ 1 ∧ v_11 < shape(v_12, ndim(v_12) - 1)
+Token usage: input=16753, output=357, total=22108
+** SUCCESS **
+
+>>> PROMPT
+[Feedback Message from Prior Run]
+Duplicated rule: {v_1 : str} |= v_1 = "ii" ∨ v_1 = "ii->i" ∨ v_1 = "i,j->ij" ∨ v_1 = "bij,bjk->bik" ∨ v_1 = "...ij->...ji" ∨ v_1 = "bn,anm,bm->ba"
+Duplicated rule: {v_3 : str} |= v_3 = "relu" ∨ v_3 = "tanh" ∨ v_3 = "sigmoid" ∨ v_3 = "softmax" ∨ v_3 = "elu" ∨ v_3 = "selu" ∨ v_3 = "gelu" ∨ v_3 = "swish" ∨ v_3 = "softplus" ∨ v_3 = "linear"
+Duplicated rule: {v_11 : int} |= v_11 > 0
+Duplicated rule: {v_2 : list(int)} |= ∀i ∈ [0, v_2.len - 1] : v_2[i] > 0
+Duplicated rule: {v_12 : tensor} |= ndim(v_12) ≥ 1
+
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.keras.layers.EinsumDense API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+A layer that uses `einsum` as the backing computation.
+
+    This layer can perform einsum calculations of arbitrary dimensionality.
+
+    Args:
+        equation: An equation describing the einsum to perform.
+            This equation must be a valid einsum string of the form
+            `ab,bc->ac`, `...ab,bc->...ac`, or
+            `ab...,bc->ac...` where 'ab', 'bc', and 'ac' can be any valid einsum
+            axis expression sequence.
+        output_shape: The expected shape of the output tensor
+            (excluding the batch dimension and any dimensions
+            represented by ellipses). You can specify `None` for any dimension
+            that is unknown or can be inferred from the input shape.
+        activation: Activation function to use. If you don't specify anything,
+            no activation is applied
+            (that is, a "linear" activation: `a(x) = x`).
+        bias_axes: A string containing the output dimension(s)
+            to apply a bias to. Each character in the `bias_axes` string
+            should correspond to a character in the output portion
+            of the `equation` string.
+        kernel_initializer: Initializer for the `kernel` weights matrix.
+        bias_initializer: Initializer for the bias vector.
+        kernel_regularizer: Regularizer function applied to the `kernel` weights
+            matrix.
+        bias_regularizer: Regularizer function applied to the bias vector.
+        kernel_constraint: Constraint function applied to the `kernel` weights
+            matrix.
+        bias_constraint: Constraint function applied to the bias vector.
+        lora_rank: Optional integer. If set, the layer's forward pass
+            will implement LoRA (Low-Rank Adaptation)
+            with the provided rank. LoRA sets the layer's kernel
+            to non-trainable and replaces it with a delta over the
+            original kernel, obtained via multiplying two lower-rank
+            trainable matrices
+            (the factorization happens on the last dimension).
+            This can be useful to reduce the
+            computation cost of fine-tuning large dense layers.
+            You can also enable LoRA on an existing
+            `EinsumDense` layer by calling `layer.enable_lora(rank)`.
+         lora_alpha: Optional integer. If set, this parameter scales the
+            low-rank adaptation delta (computed as the product of two lower-rank
+            trainable matrices) during the forward pass. The delta is scaled by
+            `lora_alpha / lora_rank`, allowing you to fine-tune the strength of
+            the LoRA adjustment independently of `lora_rank`.
+        **kwargs: Base layer keyword arguments, such as `name` and `dtype`.
+
+    Examples:
+
+    **Biased dense layer with einsums**
+
+    This example shows how to instantiate a standard Keras dense layer using
+    einsum operations. This example is equivalent to
+    `keras.layers.Dense(64, use_bias=True)`.
+
+    >>> layer = keras.layers.EinsumDense("ab,bc->ac",
+    ...                                       output_shape=64,
+    ...                                       bias_axes="c")
+    >>> input_tensor = keras.Input(shape=[32])
+    >>> output_tensor = layer(input_tensor)
+    >>> output_tensor.shape
+    (None, 64)
+
+    **Applying a dense layer to a sequence**
+
+    This example shows how to instantiate a layer that applies the same dense
+    operation to every element in a sequence. Here, the `output_shape` has two
+    values (since there are two non-batch dimensions in the output); the first
+    dimension in the `output_shape` is `None`, because the sequence dimension
+    `b` has an unknown shape.
+
+    >>> layer = keras.layers.EinsumDense("abc,cd->abd",
+    ...                                       output_shape=(None, 64),
+    ...                                       bias_axes="d")
+    >>> input_tensor = keras.Input(shape=[32, 128])
+    >>> output_tensor = layer(input_tensor)
+    >>> output_tensor.shape
+    (None, 32, 64)
+
+    **Applying a dense layer to a sequence using ellipses**
+
+    This example shows how to instantiate a layer that applies the same dense
+    operation to every element in a sequence, but uses the ellipsis notation
+    instead of specifying the batch and sequence dimensions.
+
+    Because we are using ellipsis notation and have specified only one axis, the
+    `output_shape` arg is a single value. When instantiated in this way, the
+    layer can handle any number of sequence dimensions - including the case
+    where no sequence dimension exists.
+
+    >>> layer = keras.layers.EinsumDense("...x,xy->...y",
+    ...                                       output_shape=64,
+    ...                                       bias_axes="y")
+    >>> input_tensor = keras.Input(shape=[32, 128])
+    >>> output_tensor = layer(input_tensor)
+    >>> output_tensor.shape
+    (None, 32, 64)
+
+[API Signature] equation: string, output_shape: list, activation: string, bias_axes: string, kernel_initializer: string, bias_initializer: string, kernel_regularizer: string, bias_regularizer: string, kernel_constraint: string, bias_constraint: string, lora_rank: integer, inputs: tensor
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 6 (last dimension of a tensor matches first dimension of the other)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, 0)
+
+Rule 28 (list of ints used as dimensions/axes, all non-negative and valid for tensor shape)
+{v_1 : tensor, v_2 : list(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 7 (first dimension of a tensor matches second dimension of the other)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) ≥ 1 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, 0) = shape(v_2, 1)
+
+Rule 17 (primitive type variable must be non-negative)
+{v_1 : int ⊎ float} |= v_1 ≥ 0
+
+Rule 11 (index tensor (v_3) is within the input tensor along the specified dimension)
+{v_1 : tensor, v_2 : int, v_3 : tensor} |= min(v_3) ≥ 0 ∧ max(v_3) ≤ shape(v_1, v_2) − 1
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 17 (all dimensions specified in output_shape tuple must be at least 1)
+{v_2 : tuple(int)} |= v_2.len ≥ 1 ∧ (∀i ∈ [0, v_2.len - 1] : v_2[i] ≥ 1)
+Token usage: input=16753, output=357, total=22108
+** SUCCESS **
+
+>>> PROMPT
+[Feedback Message from Prior Run]
+Duplicated rule: {v_1 : str} |= v_1 = "ii" ∨ v_1 = "ii->i" ∨ v_1 = "i,j->ij" ∨ v_1 = "bij,bjk->bik" ∨ v_1 = "...ij->...ji" ∨ v_1 = "bn,anm,bm->ba"
+Duplicated rule: {v_3 : str} |= v_3 = "relu" ∨ v_3 = "tanh" ∨ v_3 = "sigmoid" ∨ v_3 = "softmax" ∨ v_3 = "elu" ∨ v_3 = "selu" ∨ v_3 = "gelu" ∨ v_3 = "swish" ∨ v_3 = "softplus" ∨ v_3 = "linear"
+Duplicated rule: {v_11 : int} |= v_11 > 0
+Duplicated rule: {v_2 : list(int)} |= ∀i ∈ [0, v_2.len - 1] : v_2[i] > 0
+Duplicated rule: {v_12 : tensor} |= ndim(v_12) ≥ 1
+
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.keras.layers.EinsumDense API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+A layer that uses `einsum` as the backing computation.
+
+    This layer can perform einsum calculations of arbitrary dimensionality.
+
+    Args:
+        equation: An equation describing the einsum to perform.
+            This equation must be a valid einsum string of the form
+            `ab,bc->ac`, `...ab,bc->...ac`, or
+            `ab...,bc->ac...` where 'ab', 'bc', and 'ac' can be any valid einsum
+            axis expression sequence.
+        output_shape: The expected shape of the output tensor
+            (excluding the batch dimension and any dimensions
+            represented by ellipses). You can specify `None` for any dimension
+            that is unknown or can be inferred from the input shape.
+        activation: Activation function to use. If you don't specify anything,
+            no activation is applied
+            (that is, a "linear" activation: `a(x) = x`).
+        bias_axes: A string containing the output dimension(s)
+            to apply a bias to. Each character in the `bias_axes` string
+            should correspond to a character in the output portion
+            of the `equation` string.
+        kernel_initializer: Initializer for the `kernel` weights matrix.
+        bias_initializer: Initializer for the bias vector.
+        kernel_regularizer: Regularizer function applied to the `kernel` weights
+            matrix.
+        bias_regularizer: Regularizer function applied to the bias vector.
+        kernel_constraint: Constraint function applied to the `kernel` weights
+            matrix.
+        bias_constraint: Constraint function applied to the bias vector.
+        lora_rank: Optional integer. If set, the layer's forward pass
+            will implement LoRA (Low-Rank Adaptation)
+            with the provided rank. LoRA sets the layer's kernel
+            to non-trainable and replaces it with a delta over the
+            original kernel, obtained via multiplying two lower-rank
+            trainable matrices
+            (the factorization happens on the last dimension).
+            This can be useful to reduce the
+            computation cost of fine-tuning large dense layers.
+            You can also enable LoRA on an existing
+            `EinsumDense` layer by calling `layer.enable_lora(rank)`.
+         lora_alpha: Optional integer. If set, this parameter scales the
+            low-rank adaptation delta (computed as the product of two lower-rank
+            trainable matrices) during the forward pass. The delta is scaled by
+            `lora_alpha / lora_rank`, allowing you to fine-tune the strength of
+            the LoRA adjustment independently of `lora_rank`.
+        **kwargs: Base layer keyword arguments, such as `name` and `dtype`.
+
+    Examples:
+
+    **Biased dense layer with einsums**
+
+    This example shows how to instantiate a standard Keras dense layer using
+    einsum operations. This example is equivalent to
+    `keras.layers.Dense(64, use_bias=True)`.
+
+    >>> layer = keras.layers.EinsumDense("ab,bc->ac",
+    ...                                       output_shape=64,
+    ...                                       bias_axes="c")
+    >>> input_tensor = keras.Input(shape=[32])
+    >>> output_tensor = layer(input_tensor)
+    >>> output_tensor.shape
+    (None, 64)
+
+    **Applying a dense layer to a sequence**
+
+    This example shows how to instantiate a layer that applies the same dense
+    operation to every element in a sequence. Here, the `output_shape` has two
+    values (since there are two non-batch dimensions in the output); the first
+    dimension in the `output_shape` is `None`, because the sequence dimension
+    `b` has an unknown shape.
+
+    >>> layer = keras.layers.EinsumDense("abc,cd->abd",
+    ...                                       output_shape=(None, 64),
+    ...                                       bias_axes="d")
+    >>> input_tensor = keras.Input(shape=[32, 128])
+    >>> output_tensor = layer(input_tensor)
+    >>> output_tensor.shape
+    (None, 32, 64)
+
+    **Applying a dense layer to a sequence using ellipses**
+
+    This example shows how to instantiate a layer that applies the same dense
+    operation to every element in a sequence, but uses the ellipsis notation
+    instead of specifying the batch and sequence dimensions.
+
+    Because we are using ellipsis notation and have specified only one axis, the
+    `output_shape` arg is a single value. When instantiated in this way, the
+    layer can handle any number of sequence dimensions - including the case
+    where no sequence dimension exists.
+
+    >>> layer = keras.layers.EinsumDense("...x,xy->...y",
+    ...                                       output_shape=64,
+    ...                                       bias_axes="y")
+    >>> input_tensor = keras.Input(shape=[32, 128])
+    >>> output_tensor = layer(input_tensor)
+    >>> output_tensor.shape
+    (None, 32, 64)
+
+[API Signature] equation: string, output_shape: list, activation: string, bias_axes: string, kernel_initializer: string, bias_initializer: string, kernel_regularizer: string, bias_regularizer: string, kernel_constraint: string, bias_constraint: string, lora_rank: integer, inputs: tensor
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 6 (last dimension of a tensor matches first dimension of the other)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, 0)
+
+Rule 28 (list of ints used as dimensions/axes, all non-negative and valid for tensor shape)
+{v_1 : tensor, v_2 : list(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 7 (first dimension of a tensor matches second dimension of the other)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) ≥ 1 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, 0) = shape(v_2, 1)
+
+Rule 17 (primitive type variable must be non-negative)
+{v_1 : int ⊎ float} |= v_1 ≥ 0
+
+Rule 11 (index tensor (v_3) is within the input tensor along the specified dimension)
+{v_1 : tensor, v_2 : int, v_3 : tensor} |= min(v_3) ≥ 0 ∧ max(v_3) ≤ shape(v_1, v_2) − 1
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 18 (activation function must be chosen from standard projection activations)
+{v_3 : str} |= v_3 = "relu" ∨ v_3 = "tanh" ∨ v_3 = "sigmoid" ∨ v_3 = "linear"
+Token usage: input=16753, output=357, total=22108
+** SUCCESS **
+
+>>> PROMPT
+[Feedback Message from Prior Run]
+Duplicated rule: {v_1 : str} |= v_1 = "ii" ∨ v_1 = "ii->i" ∨ v_1 = "i,j->ij" ∨ v_1 = "bij,bjk->bik" ∨ v_1 = "...ij->...ji" ∨ v_1 = "bn,anm,bm->ba"
+Duplicated rule: {v_3 : str} |= v_3 = "relu" ∨ v_3 = "tanh" ∨ v_3 = "sigmoid" ∨ v_3 = "softmax" ∨ v_3 = "elu" ∨ v_3 = "selu" ∨ v_3 = "gelu" ∨ v_3 = "swish" ∨ v_3 = "softplus" ∨ v_3 = "linear"
+Duplicated rule: {v_11 : int} |= v_11 > 0
+Duplicated rule: {v_2 : list(int)} |= ∀i ∈ [0, v_2.len - 1] : v_2[i] > 0
+Duplicated rule: {v_12 : tensor} |= ndim(v_12) ≥ 1
+
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.keras.layers.EinsumDense API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+A layer that uses `einsum` as the backing computation.
+
+    This layer can perform einsum calculations of arbitrary dimensionality.
+
+    Args:
+        equation: An equation describing the einsum to perform.
+            This equation must be a valid einsum string of the form
+            `ab,bc->ac`, `...ab,bc->...ac`, or
+            `ab...,bc->ac...` where 'ab', 'bc', and 'ac' can be any valid einsum
+            axis expression sequence.
+        output_shape: The expected shape of the output tensor
+            (excluding the batch dimension and any dimensions
+            represented by ellipses). You can specify `None` for any dimension
+            that is unknown or can be inferred from the input shape.
+        activation: Activation function to use. If you don't specify anything,
+            no activation is applied
+            (that is, a "linear" activation: `a(x) = x`).
+        bias_axes: A string containing the output dimension(s)
+            to apply a bias to. Each character in the `bias_axes` string
+            should correspond to a character in the output portion
+            of the `equation` string.
+        kernel_initializer: Initializer for the `kernel` weights matrix.
+        bias_initializer: Initializer for the bias vector.
+        kernel_regularizer: Regularizer function applied to the `kernel` weights
+            matrix.
+        bias_regularizer: Regularizer function applied to the bias vector.
+        kernel_constraint: Constraint function applied to the `kernel` weights
+            matrix.
+        bias_constraint: Constraint function applied to the bias vector.
+        lora_rank: Optional integer. If set, the layer's forward pass
+            will implement LoRA (Low-Rank Adaptation)
+            with the provided rank. LoRA sets the layer's kernel
+            to non-trainable and replaces it with a delta over the
+            original kernel, obtained via multiplying two lower-rank
+            trainable matrices
+            (the factorization happens on the last dimension).
+            This can be useful to reduce the
+            computation cost of fine-tuning large dense layers.
+            You can also enable LoRA on an existing
+            `EinsumDense` layer by calling `layer.enable_lora(rank)`.
+         lora_alpha: Optional integer. If set, this parameter scales the
+            low-rank adaptation delta (computed as the product of two lower-rank
+            trainable matrices) during the forward pass. The delta is scaled by
+            `lora_alpha / lora_rank`, allowing you to fine-tune the strength of
+            the LoRA adjustment independently of `lora_rank`.
+        **kwargs: Base layer keyword arguments, such as `name` and `dtype`.
+
+    Examples:
+
+    **Biased dense layer with einsums**
+
+    This example shows how to instantiate a standard Keras dense layer using
+    einsum operations. This example is equivalent to
+    `keras.layers.Dense(64, use_bias=True)`.
+
+    >>> layer = keras.layers.EinsumDense("ab,bc->ac",
+    ...                                       output_shape=64,
+    ...                                       bias_axes="c")
+    >>> input_tensor = keras.Input(shape=[32])
+    >>> output_tensor = layer(input_tensor)
+    >>> output_tensor.shape
+    (None, 64)
+
+    **Applying a dense layer to a sequence**
+
+    This example shows how to instantiate a layer that applies the same dense
+    operation to every element in a sequence. Here, the `output_shape` has two
+    values (since there are two non-batch dimensions in the output); the first
+    dimension in the `output_shape` is `None`, because the sequence dimension
+    `b` has an unknown shape.
+
+    >>> layer = keras.layers.EinsumDense("abc,cd->abd",
+    ...                                       output_shape=(None, 64),
+    ...                                       bias_axes="d")
+    >>> input_tensor = keras.Input(shape=[32, 128])
+    >>> output_tensor = layer(input_tensor)
+    >>> output_tensor.shape
+    (None, 32, 64)
+
+    **Applying a dense layer to a sequence using ellipses**
+
+    This example shows how to instantiate a layer that applies the same dense
+    operation to every element in a sequence, but uses the ellipsis notation
+    instead of specifying the batch and sequence dimensions.
+
+    Because we are using ellipsis notation and have specified only one axis, the
+    `output_shape` arg is a single value. When instantiated in this way, the
+    layer can handle any number of sequence dimensions - including the case
+    where no sequence dimension exists.
+
+    >>> layer = keras.layers.EinsumDense("...x,xy->...y",
+    ...                                       output_shape=64,
+    ...                                       bias_axes="y")
+    >>> input_tensor = keras.Input(shape=[32, 128])
+    >>> output_tensor = layer(input_tensor)
+    >>> output_tensor.shape
+    (None, 32, 64)
+
+[API Signature] equation: string, output_shape: list, activation: string, bias_axes: string, kernel_initializer: string, bias_initializer: string, kernel_regularizer: string, bias_regularizer: string, kernel_constraint: string, bias_constraint: string, lora_rank: integer, inputs: tensor
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 6 (last dimension of a tensor matches first dimension of the other)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, 0)
+
+Rule 28 (list of ints used as dimensions/axes, all non-negative and valid for tensor shape)
+{v_1 : tensor, v_2 : list(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 7 (first dimension of a tensor matches second dimension of the other)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) ≥ 1 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, 0) = shape(v_2, 1)
+
+Rule 17 (primitive type variable must be non-negative)
+{v_1 : int ⊎ float} |= v_1 ≥ 0
+
+Rule 11 (index tensor (v_3) is within the input tensor along the specified dimension)
+{v_1 : tensor, v_2 : int, v_3 : tensor} |= min(v_3) ≥ 0 ∧ max(v_3) ≤ shape(v_1, v_2) − 1
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 19 (equation must be a valid 3D contraction or transpose pattern)
+{v_1 : str} |= v_1 = "bij,bjk->bik" ∨ v_1 = "...ij->...ji"
+Token usage: input=16753, output=357, total=22108
+** SUCCESS **
+
