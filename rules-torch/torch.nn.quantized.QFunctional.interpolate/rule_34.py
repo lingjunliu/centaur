@@ -25,7 +25,7 @@ def rule_34_func(arg1, arg2, solver=None, neg=False):
 
         # Variable declarations
         solver = Solver()
-        arg1_value = String('arg1_value')
+        arg1_value = Int('arg1_value')
         arg2_ndim = Int('arg2_ndim')
 
         # Value assignments

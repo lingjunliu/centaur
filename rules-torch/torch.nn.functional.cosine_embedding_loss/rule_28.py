@@ -25,7 +25,7 @@ def rule_28_func(arg1, arg2, solver=None, neg=False):
 
         # Variable declarations
         solver = Solver()
-        arg2_value = String('arg2_value')
+        arg2_value = Int('arg2_value')
 
         # Value assignments
         solver.add(arg2_value == list_of_string_values_torch.index(arg2))

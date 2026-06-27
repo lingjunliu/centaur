@@ -34,7 +34,7 @@ def rule_62_func(arg1, arg2, arg3, solver=None, neg=False):
         arg2_ndim = Int('arg2_ndim')
         arg2_shape = Array('arg2_shape', IntSort(), IntSort())
         arg2_dtype = Int('arg2_dtype')
-        arg3_value = String('arg3_value')
+        arg3_value = Int('arg3_value')
 
         # Value assignments
         solver.add(arg1_ndim == arg1.ndim)
@@ -48,9 +48,9 @@ def rule_62_func(arg1, arg2, arg3, solver=None, neg=False):
         solver.add(arg3_value == list_of_string_values_torch.index(arg3))
 
         # Constraints for rule 62
-        rule_62(solver, {'arg1_dtype': arg1_dtype, 'arg1_ndim': arg1_ndim, 'arg1_shape': arg1_shape, 'arg2_dtype': arg2_dtype, 'arg2_ndim': arg2_ndim, 'arg2_shape': arg2_shape, 'arg3_value': arg3_value})
+        rule_62(solver, {'arg1_ndim': arg1_ndim, 'arg1_dtype': arg1_dtype, 'arg1_shape': arg1_shape, 'arg2_ndim': arg2_ndim, 'arg2_dtype': arg2_dtype, 'arg2_shape': arg2_shape, 'arg3_value': arg3_value})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_62(solver, {'arg1_dtype': arg1['dtype'], 'arg1_ndim': arg1['ndim'], 'arg1_shape': arg1['shape'], 'arg2_dtype': arg2['dtype'], 'arg2_ndim': arg2['ndim'], 'arg2_shape': arg2['shape'], 'arg3_value': arg3['value']}, neg)
+        rule_62(solver, {'arg1_ndim': arg1['ndim'], 'arg1_dtype': arg1['dtype'], 'arg1_shape': arg1['shape'], 'arg2_ndim': arg2['ndim'], 'arg2_dtype': arg2['dtype'], 'arg2_shape': arg2['shape'], 'arg3_value': arg3['value']}, neg)

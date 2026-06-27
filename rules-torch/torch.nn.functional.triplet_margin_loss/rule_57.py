@@ -30,7 +30,7 @@ def rule_57_func(arg1, arg2, arg3, solver=None, neg=False):
         solver = Solver()
         arg1_ndim = Int('arg1_ndim')
         arg1_shape = Array('arg1_shape', IntSort(), IntSort())
-        arg2_value = String('arg2_value')
+        arg2_value = Int('arg2_value')
         arg3_ndim = Int('arg3_ndim')
         arg3_shape = Array('arg3_shape', IntSort(), IntSort())
 

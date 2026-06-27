@@ -31,7 +31,7 @@ def rule_55_func(arg1, arg2, arg3, solver=None, neg=False):
         arg1_shape = Array('arg1_shape', IntSort(), IntSort())
         arg1_dtype = Int('arg1_dtype')
         arg2_dtype = Int('arg2_dtype')
-        arg3_value = String('arg3_value')
+        arg3_value = Int('arg3_value')
 
         # Value assignments
         for i in range(arg1.ndim):

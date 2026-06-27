@@ -29,7 +29,7 @@ def rule_40_func(arg1, arg2, arg3, solver=None, neg=False):
         # Variable declarations
         solver = Solver()
         arg1_dtype = Int('arg1_dtype')
-        arg2_value = String('arg2_value')
+        arg2_value = Int('arg2_value')
         arg3_dtype = Int('arg3_dtype')
 
         # Value assignments

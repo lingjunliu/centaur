@@ -31,7 +31,7 @@ def rule_140_func(arg1, arg2, arg3, arg4, solver=None, neg=False):
 
         # Variable declarations
         solver = Solver()
-        arg1_value = String('arg1_value')
+        arg1_value = Int('arg1_value')
         arg2_dtype = Int('arg2_dtype')
         arg3_value = Real('arg3_value')
         arg4_value = Bool('arg4_value')

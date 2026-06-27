@@ -34,7 +34,7 @@ def rule_51_func(arg1, arg2, arg3, arg4, solver=None, neg=False):
         arg1_ndim = Int('arg1_ndim')
         arg2_ndim = Int('arg2_ndim')
         arg3_ndim = Int('arg3_ndim')
-        arg4_value = String('arg4_value')
+        arg4_value = Int('arg4_value')
 
         # Value assignments
         solver.add(arg1_ndim == arg1.ndim)

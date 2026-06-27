@@ -26,7 +26,7 @@ def rule_32_func(arg1, arg2, solver=None, neg=False):
         # Variable declarations
         solver = Solver()
         arg1_dtype = Int('arg1_dtype')
-        arg2_value = String('arg2_value')
+        arg2_value = Int('arg2_value')
 
         # Value assignments
         solver.add(arg1_dtype == list_of_available_dtypes.index(arg1.dtype))

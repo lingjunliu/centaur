@@ -31,7 +31,7 @@ def rule_22_func(arg1, arg2, arg3, solver=None, neg=False):
         arg1_ndim = Int('arg1_ndim')
         arg1_shape = Array('arg1_shape', IntSort(), IntSort())
         arg2_shape = Array('arg2_shape', IntSort(), IntSort())
-        arg3_value = String('arg3_value')
+        arg3_value = Int('arg3_value')
 
         # Value assignments
         solver.add(arg1_ndim == arg1.ndim)

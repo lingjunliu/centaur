@@ -33,7 +33,7 @@ def rule_95_func(arg1, arg2, arg3, arg4, solver=None, neg=False):
         solver = Solver()
         arg1_ndim = Int('arg1_ndim')
         arg2_length = Int('arg2_length')
-        arg3_value = String('arg3_value')
+        arg3_value = Int('arg3_value')
         arg4_value = Real('arg4_value')
 
         # Value assignments

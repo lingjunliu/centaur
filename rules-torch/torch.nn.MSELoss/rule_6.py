@@ -31,7 +31,7 @@ def rule_6_func(arg1, arg2, arg3, solver=None, neg=False):
         arg1_ndim = Int('arg1_ndim')
         arg1_range = Array('arg1_range', IntSort(), IntSort())
         arg2_range = Array('arg2_range', IntSort(), IntSort())
-        arg3_value = String('arg3_value')
+        arg3_value = Int('arg3_value')
 
         # Value assignments
         solver.add(arg1_ndim == arg1.ndim)

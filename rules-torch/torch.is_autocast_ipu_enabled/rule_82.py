@@ -30,7 +30,7 @@ def rule_82_func(arg1, arg2, arg3, solver=None, neg=False):
         solver = Solver()
         arg1_range = Array('arg1_range', IntSort(), IntSort())
         arg2_value = Real('arg2_value')
-        arg3_value = String('arg3_value')
+        arg3_value = Int('arg3_value')
 
         # Value assignments
         arg1_range = Store(arg1_range, 0, int(np.min(arg1)))
