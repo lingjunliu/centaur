@@ -33,7 +33,7 @@ def rule_52_func(arg1, arg2, arg3, arg4, solver=None, neg=False):
         solver = Solver()
         arg1_ndim = Int('arg1_ndim')
         arg2_range = Array('arg2_range', IntSort(), IntSort())
-        arg3_value = String('arg3_value')
+        arg3_value = Int('arg3_value')
         arg4_value = Bool('arg4_value')
 
         # Value assignments

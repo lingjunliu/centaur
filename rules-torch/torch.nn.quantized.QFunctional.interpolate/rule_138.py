@@ -25,7 +25,7 @@ def rule_138_func(arg1, arg2, solver=None, neg=False):
 
         # Variable declarations
         solver = Solver()
-        arg1_value = String('arg1_value')
+        arg1_value = Int('arg1_value')
         arg2_dtype = Int('arg2_dtype')
 
         # Value assignments

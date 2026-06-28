@@ -41,7 +41,7 @@ def rule_48_func(arg1, arg2, arg3, arg4, arg5, solver=None, neg=False):
         arg3_ndim = Int('arg3_ndim')
         arg3_shape = Array('arg3_shape', IntSort(), IntSort())
         arg4_value = Bool('arg4_value')
-        arg5_value = String('arg5_value')
+        arg5_value = Int('arg5_value')
 
         # Value assignments
         solver.add(arg1_ndim == arg1.ndim)

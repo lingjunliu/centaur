@@ -30,7 +30,7 @@ def rule_72_func(arg1, arg2, arg3, solver=None, neg=False):
         solver = Solver()
         arg1_value = Int('arg1_value')
         arg2_value = Bool('arg2_value')
-        arg3_value = String('arg3_value')
+        arg3_value = Int('arg3_value')
 
         # Value assignments
         solver.add(arg1_value == int(arg1))

@@ -42,7 +42,7 @@ def rule_28_func(arg1, arg2, arg3, arg4, arg5, solver=None, neg=False):
         arg3_shape = Array('arg3_shape', IntSort(), IntSort())
         arg4_ndim = Int('arg4_ndim')
         arg4_shape = Array('arg4_shape', IntSort(), IntSort())
-        arg5_value = String('arg5_value')
+        arg5_value = Int('arg5_value')
 
         # Value assignments
         solver.add(arg1_ndim == arg1.ndim)
